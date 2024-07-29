@@ -4,25 +4,100 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:ArchSitePlan.UI"
+             xmlns:uc="clr-namespace:ArchSitePlan.UI.UserControls"
              mc:Ignorable="d" 
              d:DesignHeight="500" d:DesignWidth="250"
+             d:DataContext="{d:DesignInstance local:MainViewModel, IsDesignTimeCreatable=True}"
              Background="White">
+
+    <UserControl.Resources>
+
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Styles/Styles.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+            <Image x:Key="Cursor" 
+                   Source="Resources\Cursor.png"
+                   Height="20"
+                   Width="20"/>
+
+            <Image x:Key="Pline" 
+                   Source="Resources\Pline.png"
+                   Height="20"
+                   Width="20"/> 
+
+            <Image x:Key="Line" 
+                   Source="Resources\Line.png"
+                   Height="20"
+                   Width="20"/>
+
+        </ResourceDictionary>
+        
+    </UserControl.Resources>
+    
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition/>
-            <RowDefinition/>
-            <RowDefinition/>
+            <RowDefinition Height="50"/>
+            <RowDefinition Height="35"/>
+            <RowDefinition Height="35"/>
+            <RowDefinition Height="35"/>
+            <RowDefinition Height="35"/>
         </Grid.RowDefinitions>
 
         <Grid.ColumnDefinitions>
             <ColumnDefinition/>
-            <ColumnDefinition/>
-            <ColumnDefinition/>
+            <ColumnDefinition Width="35"/>
+            <ColumnDefinition Width="35"/>
+            <ColumnDefinition Width="35"/>
         </Grid.ColumnDefinitions>
+
+        <TextBlock Text="Parametric Site Capacity"
+                   FontSize="22"
+                   VerticalAlignment="Stretch"
+                   Grid.ColumnSpan="4"
+                   Background="{StaticResource MainBlue}"
+                   Foreground="White"/>
         
-        <Button Content="Test"
-                Grid.Column="1"
-                Grid.Row="1"/>
+        <uc:Heading HeadingText="Road"
+                    Grid.Row="1"
+                    Grid.ColumnSpan="4"/>
+
+        <TextBlock Text="Create/ Edit Existing"
+                   Grid.Row="2"
+                   VerticalAlignment="Center"/>
+
+        <Button  
+            Grid.Row="2"
+            Grid.Column="1"
+            Content="{StaticResource Cursor}"
+            Style="{StaticResource SquareButton}"/>
+
+        <Button  
+            Grid.Row="2"
+            Grid.Column="2"
+            Content="{StaticResource Line}"
+            Style="{StaticResource SquareButton}"/>
+
+        <Button  
+            Grid.Row="2"
+            Grid.Column="3"
+            Content="{StaticResource Pline}"
+            Style="{StaticResource SquareButton}"/>
+
+        <TextBlock Text="Road Width"
+           Grid.Row="3"
+           VerticalAlignment="Center"/>
+
+        <TextBox Text="Placeholder"
+                 Grid.Row="3"
+                 Grid.Column="1"
+                 Grid.ColumnSpan="2"
+                 VerticalAlignment="Center"/>
+
+        <Button Grid.Row="3"
+                Grid.Column="3"
+                Style="{StaticResource SquareButton}"
+                />
 
     </Grid>
 </UserControl>
