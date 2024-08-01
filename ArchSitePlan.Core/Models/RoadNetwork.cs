@@ -1,4 +1,5 @@
-﻿using Elements.Geometry;
+﻿using BH.oM.Geometry;
+using Elements.Geometry;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,11 +12,16 @@ namespace ArchSitePlan.Core.Models
     {
         public List<Road> Roads { get; set; }
 
-        public List<IndexedPolycurve> ROWs { get; set; }
+        public List<PlanarSurface> ROWs { get; set; }
         public RoadNetwork() { }
 
         private void CalculateROWs()
         {
+        }
+
+        public void AddRoad(ICurve centerLine, double width)
+        {
+            Roads.Add(new Road(centerLine, width));
         }
     }
 }

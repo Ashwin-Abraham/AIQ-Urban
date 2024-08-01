@@ -12,15 +12,29 @@ namespace ArchSitePlan.Test
         [Fact]
         public void CanOffsetPolycurve()
         {
-            PolyCurve crv = Create.RandomPolyCurve();
-            var newCrv = Modify.Offset(crv, 1);
+            Line t3 = Create.Line(Point.Origin, Create.Point(0,5));
+            Line offsetLine = t3.Offset(1, Vector.XAxis);
 
-            List<BoundedCurve> crvs1 = ToHyparInterop.ToHypar(crv);
-            //List<BoundedCurve> crvs2 = ToHyparInterop.ToHypar(newCrv);
-
-            DEBUGMODEL.AddBoundedCurves(crvs1);
-            //DEBUGMODEL.AddBoundedCurves(crvs2);
+            DEBUGMODEL.AddBoundedCurve(ToHyparInterop.ToHypar(t3));
+            DEBUGMODEL.AddBoundedCurve(ToHyparInterop.ToHypar(offsetLine), DebugMaterials.Red);
             DEBUGMODEL.OpenAsGlb();
+
+            Arc t2 = Create.RandomArc(Point.Origin);
+            
+            var join = Compute.IJoin(new List<ICurve>(){ t2, t3 }).First();
+            double length1 = join.ILength();
+
+            var projectedCrv = Modify.Project(join, Plane.XY);
+
+            List<BoundedCurve> crvs2 = ToHyparInterop.ToHypar(projectedCrv);
+            
+            
+            var offsetCrv = Modify.Offset(join, 0.5);
+            List<BoundedCurve> crvs1 = ToHyparInterop.ToHypar(offsetCrv);
+
+            DEBUGMODEL.AddBoundedCurves(crvs1, DebugMaterials.Red);
+            DEBUGMODEL.OpenAsGlb();
+
         }
 
         [Fact]

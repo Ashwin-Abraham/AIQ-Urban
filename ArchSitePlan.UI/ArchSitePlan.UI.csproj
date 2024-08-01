@@ -18,6 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\AA.RhinoHyparInterop\AA.RhinoHyparInterop.csproj" />
     <ProjectReference Include="..\ArchSitePlan.Core\ArchSitePlan.Core.csproj" />
   </ItemGroup>
 

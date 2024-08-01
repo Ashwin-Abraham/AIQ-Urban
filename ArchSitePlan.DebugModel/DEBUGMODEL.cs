@@ -24,9 +24,11 @@ namespace ArchSitePlan.DebugModel
         public static void OpenAsGlb(string path = defaultPath)
         {
             path += glbExtension;
-
             Elements.Serialization.glTF.GltfExtensions.ToGlTF(_hyparModel, path);
-            Process.Start(path);
+            Process.Start(new ProcessStartInfo(path)
+            {
+                UseShellExecute = true
+            });
         }
 
         public static void AddMass(Mass testMass)

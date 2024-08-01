@@ -7,7 +7,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Hypar.Elements" Version="2.1.0" />
+    <PackageReference Include="BHoM" Version="6.3.0" />
+    <PackageReference Include="BHoM.Engine" Version="6.3.0" />
+    <PackageReference Include="DeepCloner" Version="0.10.0" />
   </ItemGroup>
 
 </Project>

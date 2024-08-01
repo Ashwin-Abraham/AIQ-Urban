@@ -1,13 +1,10 @@
-﻿using ArchSitePlan.UI.Constants;
+﻿using AA.RhinoHyparInterop;
+using ArchSitePlan.Core.Singletons;
+using ArchSitePlan.UI.Constants;
 using Rhino;
 using Rhino.DocObjects;
 using Rhino.Geometry;
 using Rhino.Input;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 
@@ -64,11 +61,12 @@ namespace ArchSitePlan.UI
                     throw new Exception("No valid object selected");
 
                 RhinoObject ob = objRef.Object();
-                var curve = ob.Geometry as Curve;
+                Curve curve = ob.Geometry as Curve;
 
                 if (curve.Degree > 2)
                     throw new Exception("Curve degree is too high, please select line, polyline or arc only");
 
+                Singletons.RoadNetwork.AddRoad(curve.ToHyparPolycurve(), 2);
             }
             catch(Exception ex) 
             {
