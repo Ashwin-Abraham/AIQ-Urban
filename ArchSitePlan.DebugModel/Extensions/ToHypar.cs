@@ -5,8 +5,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using BH.Engine.Geometry;
+using ArchSitePlan.DebugModel.Extensions;
 
-namespace ArchSitePlan.Test.BHoMExtensions
+namespace ArchSitePlan.DebugModel.BHoMExtensions
 {
     public static class ToHyparInterop
     {
@@ -25,13 +27,23 @@ namespace ArchSitePlan.Test.BHoMExtensions
                 if (pline != null)
                     hyparCrvs.Add(ToHypar(pline));
 
-                //Arc arc = crv as Arc;
-                //if (arc != null)
-                //    hyparCrvs.Add(ToHyparInterop.ToHypar(arc));
+                Arc arc = crv as Arc;
+                if (arc != null)
+                    hyparCrvs.Add(ToHyparInterop.ToHypar(arc));
             }
 
             return hyparCrvs;
         }
+
+        public static Elements.Geometry.Arc ToHypar(this Arc arc)
+        {
+            return new Elements.Geometry.Arc(
+                arc.Centre().ToHypar(),
+                arc.Radius,
+                arc.StartAngle.RadiansToDegrees(),
+                arc.EndAngle.RadiansToDegrees());
+        }
+
         public static Elements.Geometry.Polyline ToHypar(this Polyline pline)
         {
             var points = pline.ControlPoints.Select(pt => ToHypar(pt)).ToList();
@@ -39,12 +51,12 @@ namespace ArchSitePlan.Test.BHoMExtensions
             return new Elements.Geometry.Polyline(points);
         }
 
-        public static Elements.Geometry.Line ToHypar(Line line)
+        public static Elements.Geometry.Line ToHypar(this Line line)
         {
             return new Elements.Geometry.Line(ToHypar(line.Start), ToHypar(line.End));
         }
 
-        public static Elements.Geometry.Vector3 ToHypar(Point point)
+        public static Elements.Geometry.Vector3 ToHypar(this Point point)
         {
             return new Elements.Geometry.Vector3(point.X, point.Y, point.Z);
         }

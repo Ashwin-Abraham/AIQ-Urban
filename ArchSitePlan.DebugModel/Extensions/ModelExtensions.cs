@@ -1,6 +1,4 @@
-﻿using ArchSitePlan.DebugModel;
-using ArchSitePlan.Test.BHoMExtensions;
-using BH.oM.Geometry;
+﻿using ArchSitePlan.DebugModel.BHoMExtensions;
 using Elements;
 using Elements.Geometry;
 using System;
@@ -9,11 +7,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ArchSitePlan.Test.HyparExtensions
+namespace ArchSitePlan.DebugModel.Extensions
 {
-    public static class ModelExtension
+    public static class ModelExtensions
     {
-        public static void AddBHoMElement(this Model model, PolyCurve crv)
+        public static void AddBHoMElement(this Model model, BH.oM.Geometry.PolyCurve crv)
         {
             List<BoundedCurve> crvs = ToHyparInterop.ToHypar(crv);
 

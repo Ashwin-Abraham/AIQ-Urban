@@ -14,11 +14,14 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="RhinoWindows" Version="8.9.24194.18121" />
+	  <PackageReference Include="RhinoWindows" Version="8.9.24194.18121">
+		  <ExcludeAssets>runtime</ExcludeAssets>
+	  </PackageReference>
   </ItemGroup>
+	
+	
 
   <ItemGroup>
-    <ProjectReference Include="..\AA.RhinoHyparInterop\AA.RhinoHyparInterop.csproj" />
     <ProjectReference Include="..\ArchSitePlan.Core\ArchSitePlan.Core.csproj" />
   </ItemGroup>
 
@@ -41,3 +44,4 @@
   </ItemGroup>
 
 </Project>
+ 

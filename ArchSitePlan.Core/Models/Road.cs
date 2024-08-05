@@ -1,11 +1,8 @@
-﻿using ArchSitePlan.Core.Constants;
-using ArchSitePlan.Core.Extensions;
-using Elements.Geometry;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using ArchSitePlan.Core.Extensions;
+using ArchSitePlan.DebugModel;
+using ArchSitePlan.DebugModel.BHoMExtensions;
+using BH.Engine.Geometry;
+using BH.oM.Geometry;
 
 namespace ArchSitePlan.Core.Models
 {
@@ -16,40 +13,53 @@ namespace ArchSitePlan.Core.Models
         /// <summary>
         /// Contains a list of arcs and lines representing the centerline
         /// </summary>
-        public IndexedPolycurve Centerline {  get; init; }
-        public Polygon RoWs {  get; private set; }
+        public PolyCurve Centerline {  get; init; }
+        public PlanarSurface RoW {  get; private set; }
 
         public double Width { get; private set; }
 
-        public Road(IndexedPolycurve centerline, double width)
+        /// <summary>
+        /// Makes a road using unbroken centerline
+        /// </summary>
+        /// <param name="centerline"></param>
+        /// <param name="width"></param>
+        Road(PolyCurve centerline, Guid centerLineId, double width, PlanarSurface row)
         {
-            Centerline = centerline; 
+            Centerline = centerline;
+            CenterLineId = centerLineId;
             Width = width;
-
-            //RoWs = CalculateRoWs();
+            RoW = row;
         }
 
-        //private void ValidateCenterLine(IndexedPolycurve centerline)
-        //{
-        //    for(int i =0; i< centerline.Count - 1; i++)
-        //    {
-        //        if (centerline[i].End.DistanceTo(centerline[i+1].Start) > Vector3.EPSILON) 
-        //            throw new Exception(Messages.InvalidCL);
-        //    }
-        //}
+        public static bool TryCreateRoad(PolyCurve centerline, 
+            Guid id,
+            double width, 
+            out Road road)
+        {
+            road = null;
+            var segments = centerline.Curves;
+            for (int i = 0; i < segments.Count - 1; i++) 
+            {
+                var currentCrvEnd = segments[i].IEndPoint();
+                var nextCrvStart = segments[i].IStartPoint();
 
-        //private List<IndexedPolycurve> CalculateRoWs()
-        //{
-        //    var curves = Centerline.ToArcsAndLines();
+                if (!currentCrvEnd.IsEqual(nextCrvStart))
+                    return false;
+            }
 
-        //    var offset = Centerline.Offset(Width / 2);
-        //    foreach(var crv in Centerline)
-        //    {
-        //        if(crv.TryGetArc(out Arc arc))
-        //            arc.
+            PlanarSurface row = CalculateRoWs(centerline, width);
 
-        //    }
-        //    List<>
-        //}
+            road = new Road(centerline, id, width, row);
+            return true;
+        }
+
+        private static PlanarSurface CalculateRoWs(PolyCurve centerline, double width)
+        {
+            PolyCurve boundary = centerline.OffsetBothSides(width/2, Vector.ZAxis);
+            PlanarSurface surface = Create.PlanarSurface(boundary);
+
+
+            return surface;
+        }
     }
 }

@@ -35,9 +35,11 @@
         
     </UserControl.Resources>
     
-    <Grid>
+    <Grid Margin="5">
         <Grid.RowDefinitions>
-            <RowDefinition Height="50"/>
+            <RowDefinition Height="40"/>
+            <RowDefinition Height="35"/>
+            <RowDefinition Height="35"/>
             <RowDefinition Height="35"/>
             <RowDefinition Height="35"/>
             <RowDefinition Height="35"/>
@@ -52,8 +54,9 @@
         </Grid.ColumnDefinitions>
 
         <TextBlock Text="Parametric Site Capacity"
-                   FontSize="22"
+                   FontSize="20"
                    VerticalAlignment="Stretch"
+                   TextAlignment="Center"
                    Grid.ColumnSpan="4"
                    Background="{StaticResource MainBlue}"
                    Foreground="White"/>
@@ -70,7 +73,8 @@
             Grid.Row="2"
             Grid.Column="1"
             Content="{StaticResource Cursor}"
-            Style="{StaticResource SquareButton}"/>
+            Style="{StaticResource SquareButton}"
+            Command="{Binding SelectRoadCurve_Cmd}"/>
 
         <Button  
             Grid.Row="2"
@@ -88,7 +92,7 @@
            Grid.Row="3"
            VerticalAlignment="Center"/>
 
-        <TextBox Text="Placeholder"
+        <TextBox Text="2A"
                  Grid.Row="3"
                  Grid.Column="1"
                  Grid.ColumnSpan="2"
@@ -98,6 +102,15 @@
                 Grid.Column="3"
                 Style="{StaticResource SquareButton}"
                 />
+
+        <Button Content="Visualize"
+            Grid.Row="5"
+                Grid.Column="1"
+                Grid.ColumnSpan="3"
+                Width="Auto"
+                Style="{StaticResource SquareButton}"
+                Command="{Binding VisualizeModel_Cmd}"
+        />
 
     </Grid>
 </UserControl>

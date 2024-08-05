@@ -44,7 +44,7 @@ namespace ArchSitePlan.RhinoAddin
     public class MainViewHost : RhinoWindows.Controls.WpfElementHost
 
     {
-        public MainViewHost() : base(new Main(), null)
+        public MainViewHost() : base(new Main(), new MainViewModel())
         {
 
         }
