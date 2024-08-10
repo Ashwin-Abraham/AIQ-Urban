@@ -9,6 +9,6 @@ namespace ArchSitePlan.Core.Singletons
 {
     public static class Singletons
     {
-        public static RoadNetwork RoadNetwork { get; set; }
+        public static RoadNetwork RoadNetwork { get; set; } = new RoadNetwork();
     }
 }

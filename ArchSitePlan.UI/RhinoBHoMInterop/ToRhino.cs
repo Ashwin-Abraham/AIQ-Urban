@@ -1,4 +1,5 @@
-﻿using ArchSitePlan.DebugModel;
+﻿using ArchSitePlan.Core.Extensions;
+using ArchSitePlan.DebugModel;
 using BH.Engine.Geometry;
 using BH.Engine.Spatial;
 using BH.oM.Geometry;
@@ -11,8 +12,10 @@ namespace ArchSitePlan.UI.RhinoBHoMInterop
         {
             var rhinoPoints = bhomSurface.ExternalBoundary.IControlPoints().ToRhino();
 
-            var brep = Rhino.Geometry.Brep.CreatePlanarBreps(bhomSurface.ExternalBoundary.ToRhino()).First();
+            var crvList = bhomSurface.ExternalBoundary.ObjectToList();
+            crvList.AddRange(bhomSurface.InternalBoundaries);
 
+            var brep = Rhino.Geometry.Brep.CreatePlanarBreps(crvList.ToRhino()).First();
             return brep;
         }
 
@@ -32,6 +35,12 @@ namespace ArchSitePlan.UI.RhinoBHoMInterop
             var rhinoCrv = Rhino.Geometry.Curve.CreateControlPointCurve(rhinoPts, 1);
 
             return rhinoCrv;
+        }
+
+        public static IEnumerable<Rhino.Geometry.Curve> ToRhino(this IEnumerable<ICurve> curve)
+        {
+            var result = curve.Select(c => c.ToRhino());
+            return result;
         }
     }
 }

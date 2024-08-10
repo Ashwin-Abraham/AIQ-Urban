@@ -1,6 +1,8 @@
-﻿using ArchSitePlan.Core.Models;
+﻿using ArchSitePlan.Core.Extensions;
+using ArchSitePlan.Core.Models;
 using ArchSitePlan.Core.Singletons;
 using ArchSitePlan.DebugModel;
+using ArchSitePlan.UI.Actions;
 using ArchSitePlan.UI.Constants;
 using ArchSitePlan.UI.Helpers;
 using ArchSitePlan.UI.RhinoBHoMInterop;
@@ -16,6 +18,7 @@ namespace ArchSitePlan.UI
 {
     public class MainViewModel:ViewModelBase
     {
+        #region VARIABLES
         public static RhinoDoc doc = RhinoDoc.ActiveDoc;
         private bool _buttonToggle = true;
         public string ButtonToggle
@@ -40,21 +43,47 @@ namespace ArchSitePlan.UI
                 if (InputHelpers.IsNumber(value.ToString()))
                     _roadWidth = value;
                 else
-                    RoadWidth = 0;
+                    _roadWidth = 3;
 
                 OnPropertyChanged(nameof(RoadWidth));
+                RhinoEventHandler.ActiveRoadWidth = _roadWidth;
             }
         }
 
-        public ICommand ToggleValue_Cmd { get; }
+        List<Guid> _roadCenterlineGuids = Singletons.RoadNetwork.Roads
+            .Select(r => r.CenterLineId)
+            .ToList();
+
+        private bool _roadCLSelectionModeActive = false;
+        public bool RoadCLSelectionModeActive
+        {
+            get => _roadCLSelectionModeActive;
+            set
+            {
+                _roadCLSelectionModeActive = value;
+                RhinoEventHandler.RoadCLSelectionModeActive = value;
+                RhinoEventHandler.ActivateRoadSelectionFilter(value);
+                OnPropertyChanged(nameof(RoadCLSelectionModeActive));
+            }
+        }
+        #endregion
+
+        #region COMMANDS
+        public ICommand RefreshRoads_Cmd { get; }
         public ICommand SelectRoadCurve_Cmd { get; }
         public ICommand DrawRoadLine_Cmd { get; }
         public ICommand DrawRoadPolyline_Cmd { get; }
         public ICommand VisualizeModel_Cmd { get; }
+        #endregion
+
+        #region EVENTS
+        
+        #endregion
+
         public MainViewModel()
         {
             Singletons.RoadNetwork = new RoadNetwork();
-            this.ToggleValue_Cmd = new RelayCommand(ToggleValue_Exec);
+            this.RefreshRoads_Cmd = new RelayCommand(RefreshRoads_Exec);
             this.SelectRoadCurve_Cmd = new RelayCommand(SelectRoadCurve_Exec);
             this.DrawRoadLine_Cmd = new RelayCommand(DrawRoadLine_Exec);
             this.DrawRoadPolyline_Cmd = new RelayCommand(DrawRoadPolyline_Exec);
@@ -65,7 +94,7 @@ namespace ArchSitePlan.UI
         {
             try
             {
-                Output.OutputRoadsToRhino(RhinoDoc.ActiveDoc, Singletons.RoadNetwork);
+                OutputFromCoreModel.OutputRoadsToRhino(RhinoDoc.ActiveDoc, Singletons.RoadNetwork);
             }
             catch (Exception ex)
             {
@@ -84,32 +113,34 @@ namespace ArchSitePlan.UI
 
         private void SelectRoadCurve_Exec(object obj)
         {
-            int a = 0;
-            int x = a + 25;
             try
             {
-               var result = RhinoGet.GetOneObject(
-                   UIMessages.SelectRoadCrv,
-                   true,
-                   ObjectType.Curve,
-                   out ObjRef objRef);
+                ////var result = RhinoGet.GetOneObject(
+                ////    UIMessages.SelectRoadCrv,
+                ////    true,
+                ////    ObjectType.Curve,
+                ////    out ObjRef objRef);
 
-                if (result != Rhino.Commands.Result.Success)
-                    throw new Exception("No valid object selected");
+                //// if (result != Rhino.Commands.Result.Success)
+                ////     throw new Exception("No valid object selected");
 
-                RhinoObject ob = objRef.Object();
-                Guid id = ob.Id;
-                Curve curve = ob.Geometry as Curve;
+                //// CoreModelInput.AddRoad(objRef.Object());
 
-                if (curve.Degree > 2)
-                    throw new Exception("Curve degree is too high, please select line, polyline or arc only");
+                //var result = RhinoGet.GetMultipleObjects(
+                //    UIMessages.SelectRoadCrv,
+                //    true,
+                //    ObjectType.Curve,
+                //    out ObjRef[] objRefs);
 
+                //var selectedObjs = objRefs.Select(o => o.Object())
+                //    .Where(o => o != null && !(o.Geometry is BrepEdge))
+                //    .ToList();
 
-                if(curve.TryGetPolyline(out Polyline polyline))
-                {
-                    var bhom = polyline.ToBHoM();
-                    Singletons.RoadNetwork.AddRoad(polyline.ToBHoM(), id, 10);
-                }
+                //selectedObjs.ForEach(obj => obj.Select(true));
+
+                //selectedObjs.ForEach (obj => CoreModelInput.AddRoad(obj));
+
+                //selectedObjs.ForEach(obj => obj.Select(false));
             }
             catch (Exception ex) 
             {
@@ -117,10 +148,9 @@ namespace ArchSitePlan.UI
             }
         }
 
-        private void ToggleValue_Exec(object obj)
+        private void RefreshRoads_Exec(object obj)
         {
-            // Dummy set to trigger bool inversion
-            ButtonToggle = "";
+
         }
     }
 }

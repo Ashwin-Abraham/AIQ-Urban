@@ -8,7 +8,7 @@ namespace ArchSitePlan.Core.Models
     {
         private List<Road> _roads  = new List<Road>();
         public IReadOnlyList<Road> Roads => _roads.AsReadOnly();
-        public List<PlanarSurface> ROWs => CalculateRoW();
+        public List<PlanarSurface> ROWs = new List<PlanarSurface>();
         public RoadNetwork() { }
 
         //private void CalculateRoWs()
@@ -49,14 +49,55 @@ namespace ArchSitePlan.Core.Models
         //    }
         //}
 
-        private List<PlanarSurface> CalculateRoW()
+        public bool TryUpdateSomeRoads(List<(Polyline,Guid)> newGuidAndCL)
+        {
+            var guids = newGuidAndCL.Select(x => x.Item2).ToList();
+
+            var roadsToUpdate = Roads
+                .Where(rd => guids.Contains(rd.CenterLineId))
+                .ToList();
+
+            foreach (var road in roadsToUpdate )
+            {
+                var newCL = newGuidAndCL
+                    .Find(x => x.Item2 == road.CenterLineId)
+                    .Item1;
+
+                AddRoad(newCL, road.CenterLineId, road.Width );
+                _roads.Remove(road);
+            }
+
+            return roadsToUpdate.Any();
+        }
+
+        public bool TryRemoveRoad(Guid roadCLId)
+        {
+            int count = _roads.RemoveAll(r => r.CenterLineId == roadCLId);
+            return count > 0;
+        }
+
+        private void UpdateRoWs()
         {
             var externalBoundaries = _roads.Select(r => r.RoW.ExternalBoundary);
             var union = Compute.BooleanUnion(externalBoundaries)
-                .Select(pCrv => Create.PlanarSurface(pCrv))
+                //.Select(pCrv => Create.PlanarSurface(pCrv))
                 .ToList();
 
-            return union;
+            var roadPoints = Roads
+                .Select(r => r.Centerline.PointAtParameter(0.5))
+                .ToList();
+
+            var roads = union
+                .Where(pCrv => pCrv.IsContainingAny(roadPoints))
+                .ToList();
+
+            var parcels = union.Where(pCrv => !roads.Contains(pCrv))
+                .Cast<ICurve>()
+                .ToList();
+
+            var roadSrfs = roads.Select(r => Create.PlanarSurface(r, parcels)).ToList();
+
+            ROWs = roadSrfs;
         }
 
         public void AddRoad(Polyline centerLine, Guid id, double width)
@@ -66,6 +107,7 @@ namespace ArchSitePlan.Core.Models
             {
                 TryRemove(road.CenterLineId);
                 _roads.Add(road);
+                UpdateRoWs();
             }
         }
 

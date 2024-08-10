@@ -8,7 +8,7 @@ namespace ArchSitePlan.UI.Helpers
         private static readonly Regex _regex = new Regex(@"^\d+(\.\d+)?$"); 
         public static bool IsNumber(string text)
         {
-            return !_regex.IsMatch(text);
+            return _regex.IsMatch(text);
         }
     }
 }

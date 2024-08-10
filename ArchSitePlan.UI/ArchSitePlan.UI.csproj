@@ -14,7 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
-	  <PackageReference Include="RhinoWindows" Version="8.9.24194.18121">
+	  <PackageReference Include="RhinoWindows" Version="8.4.24044.15001">
 		  <ExcludeAssets>runtime</ExcludeAssets>
 	  </PackageReference>
   </ItemGroup>

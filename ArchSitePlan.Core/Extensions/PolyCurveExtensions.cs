@@ -27,7 +27,7 @@ namespace ArchSitePlan.Core.Extensions
 
         public static PolyCurve OffsetSafe(this PolyCurve curve, double distance, Vector normal)
         {
-            if (curve.Curves.Count > 1 
+            if (curve.Curves.Count > 1
                 || curve.Curves.First().GetType() == typeof(Polyline))
                 return curve.Offset(distance, normal);
 
@@ -63,6 +63,17 @@ namespace ArchSitePlan.Core.Extensions
             bool check = joinedCrv.ValidateContinuity();
 
             return joinedCrv;
+        }
+
+        public static bool IsContainingAny(this PolyCurve curve, List<Point> points, bool acceptOnEdge = true, double tolerance = 1E-06)
+        {
+            foreach (Point point in points)
+            {
+                if (curve.IsContaining(point.ObjectToList(), acceptOnEdge, tolerance))
+                    return true;
+            }
+
+            return false;
         }
     }
 }
