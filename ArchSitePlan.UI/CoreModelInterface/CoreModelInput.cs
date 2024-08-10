@@ -1,12 +1,7 @@
-﻿using ArchSitePlan.Core.Singletons;
+﻿using ArchSitePlan.Core.Models;
 using ArchSitePlan.UI.RhinoBHoMInterop;
 using Rhino.DocObjects;
 using Rhino.Geometry;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ArchSitePlan.UI.Actions
 {
@@ -24,13 +19,13 @@ namespace ArchSitePlan.UI.Actions
             if (curve.TryGetPolyline(out Polyline polyline))
             {
                 var bhom = polyline.ToBHoM();
-                Singletons.RoadNetwork.AddRoad(polyline.ToBHoM(), id, width);
+                CoreModel.AddRoad(polyline.ToBHoM(), id, width);
             }
         }
 
         public static void UpdateRoadNetwork(List<RhinoObject> modifiedRhinoObjs)
         {
-            var roadCenterlineGuids = Singletons.RoadNetwork.Roads
+            var roadCenterlineGuids = CoreModel.Roads
                 .Select(r => r.CenterLineId)
                 .ToList();
 
@@ -52,9 +47,9 @@ namespace ArchSitePlan.UI.Actions
                 .Where(x => x.bhom != null)
                 .ToList();
 
-            if (Singletons.RoadNetwork.TryUpdateSomeRoads(roadCrvs))
+            if (CoreModel.TryUpdateSomeRoads(roadCrvs))
             {
-                roadCenterlineGuids = Singletons.RoadNetwork.Roads
+                roadCenterlineGuids = CoreModel.Roads
                .Select(r => r.CenterLineId)
                .ToList();
             }

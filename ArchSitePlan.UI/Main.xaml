@@ -45,6 +45,8 @@
             <RowDefinition Height="35"/>
             <RowDefinition Height="35"/>
             <RowDefinition Height="35"/>
+            <RowDefinition Height="35"/>
+            <RowDefinition Height="35"/>
         </Grid.RowDefinitions>
 
         <Grid.ColumnDefinitions>
@@ -71,34 +73,23 @@
                    VerticalAlignment="Center"/>
 
         <ToggleButton Grid.Row="2"
-                      Grid.Column="1"
+                      Grid.Column="3"
                       Content="{StaticResource Cursor}"
+                      Style="{StaticResource SquareToggleButton}"
                       IsChecked="{Binding RoadCLSelectionModeActive}"/>
-
-        <Button  
-            Grid.Row="2"
-            Grid.Column="2"
-            Content="{StaticResource Line}"
-            Style="{StaticResource SquareButton}"/>
-
-        <Button  
-            Grid.Row="2"
-            Grid.Column="3"
-            Content="{StaticResource Pline}"
-            Style="{StaticResource SquareButton}"/>
 
         <TextBlock Text="Road Width"
            Grid.Row="3"
            VerticalAlignment="Center"/>
 
-        <TextBox Text="{Binding RoadWidth, Mode=TwoWay}"
-                 Grid.Row="3"
-                 Grid.Column="1"
+        <TextBlock Text="{Binding RoadWidth, Mode=TwoWay}"
+                 Grid.Row="4"
+                 Grid.Column="3"
                  Grid.ColumnSpan="2"
                  VerticalAlignment="Center"/>
 
         <Slider Grid.Row="4"
-                Grid.ColumnSpan="4"
+                Grid.ColumnSpan="3"
                 VerticalAlignment="Center"
                 Margin="25,0,25,0"
                 Minimum="1"
@@ -110,11 +101,6 @@
                 IsMoveToPointEnabled="True"
                 />
 
-        <Button Grid.Row="3"
-                Grid.Column="3"
-                Style="{StaticResource SquareButton}"
-                />
-
         <Button Content="Visualize"
             Grid.Row="5"
                 Grid.Column="1"
@@ -123,5 +109,15 @@
                 Style="{StaticResource SquareButton}"
                 Command="{Binding VisualizeModel_Cmd}"/>
 
+        <TextBlock Text="Parcel Edit"
+                   Grid.Row="6"
+                   VerticalAlignment="Center"/>
+
+        <ToggleButton Grid.Row="7"
+              Grid.Column="3"
+              Content="{StaticResource Cursor}"
+              Style="{StaticResource SquareToggleButton}"
+              IsChecked="{Binding ParcelSelectionModeActive}"/>
+        
     </Grid>
 </UserControl>

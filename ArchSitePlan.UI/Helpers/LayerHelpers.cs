@@ -28,6 +28,15 @@ namespace ArchSitePlan.UI.Helpers
             else
                 return index;
         }
+
+        public static void ToggleLockLayer(RhinoDoc doc, string layerName, bool lockLayer)
+        {
+            string layer = layerName;
+            int index = doc.Layers.FindByFullPath(layer, LayerConstants.DefaultLayerIndex);
+
+            if (index == LayerConstants.DefaultLayerIndex)
+                doc.Layers[index].IsLocked = lockLayer;
+        }
     }
 
 }

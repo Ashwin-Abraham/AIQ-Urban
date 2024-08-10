@@ -1,18 +1,10 @@
-﻿using ArchSitePlan.Core.Extensions;
-using ArchSitePlan.Core.Models;
-using ArchSitePlan.Core.Singletons;
-using ArchSitePlan.DebugModel;
+﻿using ArchSitePlan.Core.Models;
 using ArchSitePlan.UI.Actions;
-using ArchSitePlan.UI.Constants;
 using ArchSitePlan.UI.Helpers;
-using ArchSitePlan.UI.RhinoBHoMInterop;
-using BH.Engine.Geometry;
 using Rhino;
-using Rhino.DocObjects;
-using Rhino.Geometry;
-using Rhino.Input;
 using System.Windows;
 using System.Windows.Input;
+using static ArchSitePlan.UI.Constants.Enums;
 
 namespace ArchSitePlan.UI
 {
@@ -50,7 +42,7 @@ namespace ArchSitePlan.UI
             }
         }
 
-        List<Guid> _roadCenterlineGuids = Singletons.RoadNetwork.Roads
+        List<Guid> _roadCenterlineGuids = CoreModel.Roads
             .Select(r => r.CenterLineId)
             .ToList();
 
@@ -61,9 +53,20 @@ namespace ArchSitePlan.UI
             set
             {
                 _roadCLSelectionModeActive = value;
-                RhinoEventHandler.RoadCLSelectionModeActive = value;
-                RhinoEventHandler.ActivateRoadSelectionFilter(value);
                 OnPropertyChanged(nameof(RoadCLSelectionModeActive));
+                ChangeSelectionMode(RhinoSelectionMode.Road);
+            }
+        }
+
+        private bool _parcelSelectionModeActive = false;
+        public bool ParcelSelectionModeActive
+        {
+            get => _parcelSelectionModeActive;
+            set
+            {
+                _parcelSelectionModeActive = value;
+                ChangeSelectionMode(RhinoSelectionMode.Parcel);
+                OnPropertyChanged(nameof(ParcelSelectionModeActive));
             }
         }
         #endregion
@@ -82,7 +85,6 @@ namespace ArchSitePlan.UI
 
         public MainViewModel()
         {
-            Singletons.RoadNetwork = new RoadNetwork();
             this.RefreshRoads_Cmd = new RelayCommand(RefreshRoads_Exec);
             this.SelectRoadCurve_Cmd = new RelayCommand(SelectRoadCurve_Exec);
             this.DrawRoadLine_Cmd = new RelayCommand(DrawRoadLine_Exec);
@@ -90,11 +92,25 @@ namespace ArchSitePlan.UI
             this.VisualizeModel_Cmd = new RelayCommand(VisualizeModel_Exec);
         }
 
+        private void ChangeSelectionMode(RhinoSelectionMode mode)
+        {
+            RoadCLSelectionModeActive = ParcelSelectionModeActive = false;
+
+            switch(mode)
+            {
+                case RhinoSelectionMode.Road: RoadCLSelectionModeActive = true; break;
+                case RhinoSelectionMode.Parcel: ParcelSelectionModeActive = true; break;
+                default:  break;
+            }
+
+            RhinoEventHandler.ChangeSelectionMode(mode);
+        }
+
         private void VisualizeModel_Exec(object obj)
         {
             try
             {
-                OutputFromCoreModel.OutputRoadsToRhino(RhinoDoc.ActiveDoc, Singletons.RoadNetwork);
+                OutputFromCoreModel.OutputCoreModelToRhino(RhinoDoc.ActiveDoc);
             }
             catch (Exception ex)
             {

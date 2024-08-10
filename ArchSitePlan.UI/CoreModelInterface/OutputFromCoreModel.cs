@@ -14,42 +14,45 @@ namespace ArchSitePlan.UI.Actions
 {
     public static class OutputFromCoreModel
     {
-        public static void OutputParcelsToRhino(RhinoDoc doc)
+        private static void OutputParcelsToRhino(RhinoDoc doc)
         {
-            //// Get Attributes
-            //LayerHelpers.EnsureLayerExists(doc, LayerConstants.RoadLayer);
+            // Get Attributes
+            LayerHelpers.EnsureLayerExists(doc, LayerConstants.ParcelsLayer);
 
-            //ObjectAttributes parcelGeometryAttributes = new ObjectAttributes()
-            //{
-            //    LayerIndex = LayerHelpers.GetLayerIndex(RhinoDoc.ActiveDoc, LayerConstants.RoadLayer)
-            //};
+            ObjectAttributes parcelGeometryAttributes = new ObjectAttributes()
+            {
+                LayerIndex = LayerHelpers.GetLayerIndex(RhinoDoc.ActiveDoc, LayerConstants.ParcelsLayer)
+            };
 
-            //// Delete Existing Objects
-            //var guids = doc.Objects
-            //    .Where(obj => obj.Attributes.LayerIndex == parcelGeometryAttributes.LayerIndex)
-            //    .Select(obj => obj.Id)
-            //    .ToList();
+            // Delete Existing Objects
+            var guids = doc.Objects
+                .Where(obj => obj.Attributes.LayerIndex == parcelGeometryAttributes.LayerIndex)
+                .Select(obj => obj.Id)
+                .ToList();
 
-            //doc.Objects.Delete(guids, true);
+            doc.Objects.Delete(guids, true);
 
-            //// Bake model to rhino
-            //var rhinoSurfaces = network.ROWs
-            //    .Select(row => row.ToRhino())
-            //    .ToList();
+            // Bake model to rhino
+            var rhinoSurfaces = CoreModel.Parcels
+                .Select(row => row.Boundary.ToRhino())
+                .ToList();
 
-            //rhinoSurfaces
-            //    .ToList()
-            //    .ForEach(brep => doc.Objects.AddBrep(brep, parcelGeometryAttributes));
+            rhinoSurfaces
+                .ToList()
+                .ForEach(brep => doc.Objects.AddBrep(brep, parcelGeometryAttributes));
 
-            //doc.Views.Redraw();
+            doc.Views.Redraw();
         }
 
-        public static void Bake()
+        public static void OutputCoreModelToRhino(RhinoDoc doc)
         {
-
+            LayerHelpers.ToggleLockLayer(doc, LayerConstants.MainLayer, false);
+            OutputRoadsToRhino(doc);
+            OutputParcelsToRhino(doc);
+            LayerHelpers.ToggleLockLayer(doc, LayerConstants.MainLayer, true);
         }
 
-        public static void OutputRoadsToRhino(RhinoDoc doc, RoadNetwork network)
+        private static void OutputRoadsToRhino(RhinoDoc doc)
         {
             // Get Attributes
             LayerHelpers.EnsureLayerExists(doc, LayerConstants.RoadLayer);
@@ -68,7 +71,7 @@ namespace ArchSitePlan.UI.Actions
             doc.Objects.Delete(guids, true);
 
             // Bake model to rhino
-            var rhinoSurfaces = network.ROWs
+            var rhinoSurfaces = CoreModel.ROWs
                 .Select(row => row.ToRhino())
                 .ToList();
 

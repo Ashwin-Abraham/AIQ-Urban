@@ -1,22 +1,17 @@
-﻿using ArchSitePlan.Core.Extensions;
-using ArchSitePlan.Core.Singletons;
+﻿using ArchSitePlan.Core.Models;
 using Rhino;
 using Rhino.DocObjects;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.ServiceModel.Channels;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
+using static ArchSitePlan.UI.Constants.Enums;
 
 namespace ArchSitePlan.UI.Actions
 {
     public static class RhinoEventHandler
     {
         private static Guid _lastDeletedId = Guid.Empty;
-        public static bool RoadCLSelectionModeActive = false;
-        public static double ActiveRoadWidth =3;
+        private static RhinoSelectionMode _selectionMode = RhinoSelectionMode.None;
+        public static double ActiveRoadWidth = 3;
+        private static List<Guid> _selectedParcels = new List<Guid>();
 
         static RhinoEventHandler()
         {
@@ -37,14 +32,24 @@ namespace ArchSitePlan.UI.Actions
         {
             try
             {
-                if (RoadCLSelectionModeActive)
+                if (_selectionMode == RhinoSelectionMode.Road)
                 {
                     var crvObjs = args.RhinoObjects
                         .Where(obj => obj.ObjectType == ObjectType.Curve)
                         .ToList();
 
                     crvObjs.ForEach(obj => CoreModelInput.AddRoad(obj, ActiveRoadWidth));
-                    OutputFromCoreModel.OutputRoadsToRhino(RhinoDoc.ActiveDoc, Singletons.RoadNetwork);
+                    OutputFromCoreModel.OutputCoreModelToRhino(RhinoDoc.ActiveDoc);
+                }
+
+                if(_selectionMode == RhinoSelectionMode.Parcel)
+                {
+                    var srfObjs = args.RhinoObjects
+                        .Where(obj => obj.ObjectType == ObjectType.Surface)
+                        .ToList();
+
+                    srfObjs.ForEach(obj => CoreModelInput.AddRoad(obj, ActiveRoadWidth));
+                    OutputFromCoreModel.OutputCoreModelToRhino(RhinoDoc.ActiveDoc);
                 }
             }
             catch(Exception ex)
@@ -56,18 +61,17 @@ namespace ArchSitePlan.UI.Actions
 
         public static void OnRhinoDocObjectAddition(RhinoObjectEventArgs args)
         {
-            if (_lastDeletedId == args.ObjectId)
-            {
-                CoreModelInput.AddRoad(args.TheObject, ActiveRoadWidth);
-                OutputFromCoreModel.OutputRoadsToRhino(RhinoDoc.ActiveDoc, Singletons.RoadNetwork);
-            }
+            if (_lastDeletedId != args.ObjectId) return;
+         
+            CoreModelInput.AddRoad(args.TheObject, ActiveRoadWidth);
+            OutputFromCoreModel.OutputCoreModelToRhino(RhinoDoc.ActiveDoc);
         }
 
         public static void OnRhinoDocObjectRemove(RhinoObjectEventArgs args)
         {
              if (args.TheObject.IsDeleted)
             {
-                if(Singletons.RoadNetwork.TryRemoveRoad(args.TheObject.Id))
+                if(CoreModel.TryRemoveRoad(args.TheObject.Id))
                     _lastDeletedId = args.TheObject.Id;
             }
         }
@@ -77,6 +81,11 @@ namespace ArchSitePlan.UI.Actions
             //For example you want to get the list of all selected curves
             var selectedCurveObjects = RhinoDoc.ActiveDoc.Objects.GetObjectsByType<RhinoObject>(new ObjectEnumeratorSettings() { ObjectTypeFilter = ObjectType.Curve, SelectedObjectsFilter = true }).ToList();
             //Update your lists 
+        }
+
+        internal static void ChangeSelectionMode(RhinoSelectionMode mode)
+        {
+            _selectionMode = mode;
         }
     }
 }

@@ -4,12 +4,13 @@ using BH.oM.Geometry;
 
 namespace ArchSitePlan.Core.Models
 {
-    public class RoadNetwork
+    public static class CoreModel
     {
-        private List<Road> _roads  = new List<Road>();
-        public IReadOnlyList<Road> Roads => _roads.AsReadOnly();
-        public List<PlanarSurface> ROWs = new List<PlanarSurface>();
-        public RoadNetwork() { }
+        private static List<Road> _roads  = new List<Road>();
+        public static IReadOnlyList<Road> Roads => _roads.AsReadOnly();
+        public static List<PlanarSurface> ROWs = new List<PlanarSurface>();
+        public static List<Parcel> Parcels = new List<Parcel>();
+        static CoreModel() { }
 
         //private void CalculateRoWs()
         //{
@@ -49,7 +50,7 @@ namespace ArchSitePlan.Core.Models
         //    }
         //}
 
-        public bool TryUpdateSomeRoads(List<(Polyline,Guid)> newGuidAndCL)
+        public static bool TryUpdateSomeRoads(List<(Polyline,Guid)> newGuidAndCL)
         {
             var guids = newGuidAndCL.Select(x => x.Item2).ToList();
 
@@ -70,13 +71,13 @@ namespace ArchSitePlan.Core.Models
             return roadsToUpdate.Any();
         }
 
-        public bool TryRemoveRoad(Guid roadCLId)
+        public static bool TryRemoveRoad(Guid roadCLId)
         {
             int count = _roads.RemoveAll(r => r.CenterLineId == roadCLId);
             return count > 0;
         }
 
-        private void UpdateRoWs()
+        private static void UpdateParcelsAndRoWs()
         {
             var externalBoundaries = _roads.Select(r => r.RoW.ExternalBoundary);
             var union = Compute.BooleanUnion(externalBoundaries)
@@ -97,21 +98,25 @@ namespace ArchSitePlan.Core.Models
 
             var roadSrfs = roads.Select(r => Create.PlanarSurface(r, parcels)).ToList();
 
+            Parcels = union.Where(pCrv => !roads.Contains(pCrv))
+                .Select(p => new Parcel(Create.PlanarSurface(p)))
+                .ToList();
+
             ROWs = roadSrfs;
         }
 
-        public void AddRoad(Polyline centerLine, Guid id, double width)
+        public static void AddRoad(Polyline centerLine, Guid id, double width)
         {
             var pCurve = Create.PolyCurve(centerLine.ObjectToList());
             if(Road.TryCreateRoad(pCurve, id, width, out Road road))
             {
                 TryRemove(road.CenterLineId);
                 _roads.Add(road);
-                UpdateRoWs();
+                UpdateParcelsAndRoWs();
             }
         }
 
-        public bool TryRemove(Guid roadId)
+        public static bool TryRemove(Guid roadId)
         {
             int removalIndex = _roads.FindIndex(r => r.CenterLineId.Equals(roadId));
 
