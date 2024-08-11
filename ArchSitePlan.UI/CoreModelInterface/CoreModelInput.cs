@@ -1,7 +1,9 @@
-﻿using ArchSitePlan.Core.Models;
+﻿using ArchSitePlan.Core.Constants;
+using ArchSitePlan.Core.Models;
 using ArchSitePlan.UI.RhinoBHoMInterop;
 using Rhino.DocObjects;
 using Rhino.Geometry;
+using static ArchSitePlan.Core.Constants.Enums;
 
 namespace ArchSitePlan.UI.Actions
 {
@@ -53,6 +55,15 @@ namespace ArchSitePlan.UI.Actions
                .Select(r => r.CenterLineId)
                .ToList();
             }
+        }
+
+        /// <summary>
+        /// Updates the parcel use if it exists
+        /// </summary>
+        public static void TryUpdateParcelUse(RhinoObject parcel, Landuse use)
+        {
+            CoreModel.Parcels.FindAll(p => p.Id == parcel.Id)
+                .ForEach(p => p.LandUse = use);
         }
     }
 }

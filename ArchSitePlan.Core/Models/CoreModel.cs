@@ -1,4 +1,5 @@
 ﻿using ArchSitePlan.Core.Extensions;
+using ArchSitePlan.Core.Metrics;
 using BH.Engine.Geometry;
 using BH.oM.Geometry;
 
@@ -10,6 +11,7 @@ namespace ArchSitePlan.Core.Models
         public static IReadOnlyList<Road> Roads => _roads.AsReadOnly();
         public static List<PlanarSurface> ROWs = new List<PlanarSurface>();
         public static List<Parcel> Parcels = new List<Parcel>();
+        public static ProjectMetrics ProjectMetrics = new ProjectMetrics();
         static CoreModel() { }
 
         //private void CalculateRoWs()
@@ -113,7 +115,13 @@ namespace ArchSitePlan.Core.Models
                 TryRemove(road.CenterLineId);
                 _roads.Add(road);
                 UpdateParcelsAndRoWs();
+                UpdateParcelMetrics();
             }
+        }
+
+        private static void UpdateParcelMetrics()
+        {
+            ProjectMetrics.UpdateParcelMetrics(Parcels);
         }
 
         public static bool TryRemove(Guid roadId)

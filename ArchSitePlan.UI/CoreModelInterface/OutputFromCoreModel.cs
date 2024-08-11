@@ -9,37 +9,58 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static ArchSitePlan.Core.Constants.Enums;
 
 namespace ArchSitePlan.UI.Actions
 {
     public static class OutputFromCoreModel
     {
-        private static void OutputParcelsToRhino(RhinoDoc doc)
+        private static ObjectAttributes GetParcelAttributesByUse(RhinoDoc doc, Landuse use)
         {
-            // Get Attributes
-            LayerHelpers.EnsureLayerExists(doc, LayerConstants.ParcelsLayer);
+            string layerName = LayerHelpers.ConstructParcelRhinoLayerName(use);
+            LayerHelpers.EnsureLayerExists(doc, layerName);
+            LayerHelpers.SetLayerColour(doc, layerName, Defaults.LandUseColours[use]);
 
             ObjectAttributes parcelGeometryAttributes = new ObjectAttributes()
             {
-                LayerIndex = LayerHelpers.GetLayerIndex(RhinoDoc.ActiveDoc, LayerConstants.ParcelsLayer)
+                LayerIndex = LayerHelpers.GetLayerIndex(doc, layerName)
             };
 
-            // Delete Existing Objects
+            return parcelGeometryAttributes;
+        }
+        private static Dictionary<Landuse, ObjectAttributes> GetParcelAttributesForAllUses(RhinoDoc doc)
+        {
+            var uses = Enum.GetValues(typeof(Landuse)).Cast<Landuse>().ToList();
+            var dictionary = new Dictionary<Landuse, ObjectAttributes>();
+
+            foreach ( var use in uses)
+            {
+                var attributes = GetParcelAttributesByUse(doc, use);
+                dictionary.Add(use, attributes);
+            }
+
+            return dictionary;
+        }
+        public static void OutputParcelsToRhino(RhinoDoc doc)
+        {
+            // Get Attributes
+            var parcelGeometryAttributes = GetParcelAttributesForAllUses(doc);
+            var parcelLayers = parcelGeometryAttributes.Values.Select(attr => attr.LayerIndex).ToList();
+
+            // Delete Existing Parcel Objects
             var guids = doc.Objects
-                .Where(obj => obj.Attributes.LayerIndex == parcelGeometryAttributes.LayerIndex)
+                .Where(obj => parcelLayers.Contains(obj.Attributes.LayerIndex))
                 .Select(obj => obj.Id)
                 .ToList();
 
             doc.Objects.Delete(guids, true);
 
             // Bake model to rhino
-            var rhinoSurfaces = CoreModel.Parcels
-                .Select(row => row.Boundary.ToRhino())
-                .ToList();
-
-            rhinoSurfaces
-                .ToList()
-                .ForEach(brep => doc.Objects.AddBrep(brep, parcelGeometryAttributes));
+            foreach(var parcel in CoreModel.Parcels)
+            {
+                var rhinoSrf = parcel.Boundary.ToRhino();
+                parcel.Id = doc.Objects.AddBrep(rhinoSrf, parcelGeometryAttributes[parcel.LandUse]);
+            }
 
             doc.Views.Redraw();
         }
@@ -82,6 +103,10 @@ namespace ArchSitePlan.UI.Actions
             doc.Views.Redraw();
         }
 
-
+        internal static void UpdateRhinoParcel(RhinoObject obj)
+        {
+            var parcels = CoreModel.Parcels.FindAll(p => p.Id == obj.Id);
+            OutputParcelsToRhino(RhinoDoc.ActiveDoc);
+        }
     }
 }

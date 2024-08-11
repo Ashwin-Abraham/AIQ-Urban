@@ -1,4 +1,5 @@
 ﻿using ArchSitePlan.UI;
+using ArchSitePlan.UI.Actions;
 using Eto.Forms;
 using Rhino;
 using System;
@@ -35,7 +36,6 @@ namespace ArchSitePlan.RhinoAddin
             //System.Drawing.Icon.ExtractAssociatedIcon(null));
 
             // InitializePython();
-
             return Rhino.PlugIns.LoadReturnCode.Success;
         }
     }
@@ -44,9 +44,10 @@ namespace ArchSitePlan.RhinoAddin
     public class MainViewHost : RhinoWindows.Controls.WpfElementHost
 
     {
-        public MainViewHost() : base(new Main(), new MainViewModel())
+        public static MainViewModel viewModel = new MainViewModel();
+        public MainViewHost() : base(new Main(), viewModel)
         {
-
+            RhinoEventHandler.ViewModel = viewModel;
         }
 
         /// <summary>
