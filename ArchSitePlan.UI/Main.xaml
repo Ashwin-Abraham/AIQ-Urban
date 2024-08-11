@@ -5,6 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:ArchSitePlan.UI"
              xmlns:uc="clr-namespace:ArchSitePlan.UI.UserControls"
+             xmlns:mah="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
              mc:Ignorable="d" 
              d:DesignHeight="500" d:DesignWidth="250"
              d:DataContext="{d:DesignInstance local:MainViewModel, IsDesignTimeCreatable=True}"
@@ -15,6 +16,11 @@
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="Styles/Styles.xaml" />
+                <!-- MahApps.Metro resource dictionaries. Make sure that all file names are Case Sensitive! -->
+                <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Controls.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Fonts.xaml" />
+                <!-- Theme setting -->
+                <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Themes/Light.Blue.xaml" />
             </ResourceDictionary.MergedDictionaries>
             
             <Image x:Key="Cursor" 
@@ -45,13 +51,13 @@
             <RowDefinition Height="35"/>
             <RowDefinition Height="35"/>
             <RowDefinition Height="35"/>
+            <RowDefinition Height="35"/>
+            <RowDefinition Height="35"/>
         </Grid.RowDefinitions>
 
         <Grid.ColumnDefinitions>
             <ColumnDefinition/>
-            <ColumnDefinition Width="35"/>
-            <ColumnDefinition Width="35"/>
-            <ColumnDefinition Width="35"/>
+            <ColumnDefinition Width="100"/>
         </Grid.ColumnDefinitions>
 
         <TextBlock Text="Parametric Site Capacity"
@@ -70,35 +76,23 @@
                    Grid.Row="2"
                    VerticalAlignment="Center"/>
 
-        <ToggleButton Grid.Row="2"
-                      Grid.Column="1"
-                      Content="{StaticResource Cursor}"
-                      IsChecked="{Binding RoadCLSelectionModeActive}"/>
-
-        <Button  
-            Grid.Row="2"
-            Grid.Column="2"
-            Content="{StaticResource Line}"
-            Style="{StaticResource SquareButton}"/>
-
-        <Button  
-            Grid.Row="2"
-            Grid.Column="3"
-            Content="{StaticResource Pline}"
-            Style="{StaticResource SquareButton}"/>
+        <mah:ToggleSwitch Grid.Row="2"
+                          Grid.Column="1"
+                          Grid.ColumnSpan="2"
+                          IsOn="{Binding RoadCLSelectionModeActive, Mode=TwoWay}"/>
 
         <TextBlock Text="Road Width"
            Grid.Row="3"
            VerticalAlignment="Center"/>
 
-        <TextBox Text="{Binding RoadWidth, Mode=TwoWay}"
-                 Grid.Row="3"
+        <TextBlock Text="{Binding RoadWidth, Mode=TwoWay}"
+                 Grid.Row="4"
                  Grid.Column="1"
-                 Grid.ColumnSpan="2"
-                 VerticalAlignment="Center"/>
+                 VerticalAlignment="Center"
+                   HorizontalAlignment="Left"/>
 
         <Slider Grid.Row="4"
-                Grid.ColumnSpan="4"
+                Grid.ColumnSpan="1"
                 VerticalAlignment="Center"
                 Margin="25,0,25,0"
                 Minimum="1"
@@ -110,11 +104,6 @@
                 IsMoveToPointEnabled="True"
                 />
 
-        <Button Grid.Row="3"
-                Grid.Column="3"
-                Style="{StaticResource SquareButton}"
-                />
-
         <Button Content="Visualize"
             Grid.Row="5"
                 Grid.Column="1"
@@ -123,5 +112,28 @@
                 Style="{StaticResource SquareButton}"
                 Command="{Binding VisualizeModel_Cmd}"/>
 
+        <TextBlock Text="Parcel Edit"
+                   Grid.Row="6"
+                   VerticalAlignment="Center"/>
+
+        <mah:ToggleSwitch Grid.Row="6"
+                          Grid.Column="1"
+                          Grid.ColumnSpan="2"
+                          IsOn="{Binding ParcelSelectionModeActive, Mode=TwoWay}"/>
+
+        <TextBlock  Grid.Row="7"
+                    Background="{Binding SelectedLandUseColour}"
+                    Grid.Column="1"
+                    Width="43"
+                    Margin="0,4,0,4"
+                    HorizontalAlignment="Left"
+                         />
+
+        <ComboBox Grid.Row="7"
+                  Margin="5"
+                  VerticalAlignment="Center"
+                  ItemsSource="{Binding LandUses}"
+                  SelectedItem="{Binding SelectedLandUse}"
+                  />
     </Grid>
 </UserControl>

@@ -1,22 +1,17 @@
-﻿using ArchSitePlan.Core.Extensions;
-using ArchSitePlan.Core.Models;
-using ArchSitePlan.Core.Singletons;
-using ArchSitePlan.DebugModel;
+﻿using ArchSitePlan.Core.Models;
 using ArchSitePlan.UI.Actions;
-using ArchSitePlan.UI.Constants;
 using ArchSitePlan.UI.Helpers;
-using ArchSitePlan.UI.RhinoBHoMInterop;
-using BH.Engine.Geometry;
 using Rhino;
-using Rhino.DocObjects;
-using Rhino.Geometry;
-using Rhino.Input;
+using System.ComponentModel;
+using System.Drawing;
 using System.Windows;
 using System.Windows.Input;
+using static ArchSitePlan.Core.Constants.Enums;
+using static ArchSitePlan.UI.Constants.Enums;
 
 namespace ArchSitePlan.UI
 {
-    public class MainViewModel:ViewModelBase
+    public class MainViewModel:ViewModelBase,INotifyPropertyChanged
     {
         #region VARIABLES
         public static RhinoDoc doc = RhinoDoc.ActiveDoc;
@@ -46,13 +41,9 @@ namespace ArchSitePlan.UI
                     _roadWidth = 3;
 
                 OnPropertyChanged(nameof(RoadWidth));
-                RhinoEventHandler.ActiveRoadWidth = _roadWidth;
             }
         }
-
-        List<Guid> _roadCenterlineGuids = Singletons.RoadNetwork.Roads
-            .Select(r => r.CenterLineId)
-            .ToList();
+        public RhinoSelectionMode SelectionMode = RhinoSelectionMode.None;
 
         private bool _roadCLSelectionModeActive = false;
         public bool RoadCLSelectionModeActive
@@ -61,18 +52,72 @@ namespace ArchSitePlan.UI
             set
             {
                 _roadCLSelectionModeActive = value;
-                RhinoEventHandler.RoadCLSelectionModeActive = value;
-                RhinoEventHandler.ActivateRoadSelectionFilter(value);
                 OnPropertyChanged(nameof(RoadCLSelectionModeActive));
+
+                if (_roadCLSelectionModeActive)
+                    ParcelSelectionModeActive = false;
+             
+                SetSelectionMode();
             }
         }
+
+        private bool _parcelSelectionModeActive = false;
+        public bool ParcelSelectionModeActive
+        {
+            get => _parcelSelectionModeActive;
+            set
+            {
+                _parcelSelectionModeActive = value;
+                OnPropertyChanged(nameof(ParcelSelectionModeActive));
+
+                if (_parcelSelectionModeActive)
+                    RoadCLSelectionModeActive = false;
+
+                SetSelectionMode();
+
+            }
+        }
+
+        private void SetSelectionMode()
+        {
+            if (RoadCLSelectionModeActive)
+                SelectionMode = RhinoSelectionMode.Road;
+            else if (ParcelSelectionModeActive)
+                SelectionMode = RhinoSelectionMode.Parcel;
+            else
+                SelectionMode = RhinoSelectionMode.None;
+        }
+
+        public List<Landuse> LandUses { get; set; } = Enum.GetValues(typeof(Landuse)).Cast<Landuse>().ToList();
+        
+        private Landuse _selectedLanduse = Landuse.Undefined;
+        public Landuse SelectedLandUse
+        {
+            get => _selectedLanduse;
+            set
+            {
+                _selectedLanduse = value;
+                OnPropertyChanged(nameof(SelectedLandUse));
+                UpdateSelectedLanduseColour(_selectedLanduse);
+            }
+        }
+        
+        private string _selectedLandUseColour = Defaults.LandUseColours[Landuse.Undefined].Name.ToString();
+        public string SelectedLandUseColour 
+        {
+            get => _selectedLandUseColour;
+            set
+            {
+                _selectedLandUseColour = value;
+                OnPropertyChanged(nameof(SelectedLandUseColour));
+            }
+        } 
+
         #endregion
 
         #region COMMANDS
         public ICommand RefreshRoads_Cmd { get; }
         public ICommand SelectRoadCurve_Cmd { get; }
-        public ICommand DrawRoadLine_Cmd { get; }
-        public ICommand DrawRoadPolyline_Cmd { get; }
         public ICommand VisualizeModel_Cmd { get; }
         #endregion
 
@@ -82,11 +127,8 @@ namespace ArchSitePlan.UI
 
         public MainViewModel()
         {
-            Singletons.RoadNetwork = new RoadNetwork();
             this.RefreshRoads_Cmd = new RelayCommand(RefreshRoads_Exec);
             this.SelectRoadCurve_Cmd = new RelayCommand(SelectRoadCurve_Exec);
-            this.DrawRoadLine_Cmd = new RelayCommand(DrawRoadLine_Exec);
-            this.DrawRoadPolyline_Cmd = new RelayCommand(DrawRoadPolyline_Exec);
             this.VisualizeModel_Cmd = new RelayCommand(VisualizeModel_Exec);
         }
 
@@ -94,7 +136,7 @@ namespace ArchSitePlan.UI
         {
             try
             {
-                OutputFromCoreModel.OutputRoadsToRhino(RhinoDoc.ActiveDoc, Singletons.RoadNetwork);
+                OutputFromCoreModel.OutputCoreModelToRhino(RhinoDoc.ActiveDoc);
             }
             catch (Exception ex)
             {
@@ -102,15 +144,13 @@ namespace ArchSitePlan.UI
             }
         }
 
-        private void DrawRoadPolyline_Exec(object obj)
+        private void UpdateSelectedLanduseColour(Landuse use)
         {
+            if (Defaults.LandUseColours.TryGetValue(use, out Color color))
+                SelectedLandUseColour = color.Name.ToString();
+            else
+                SelectedLandUseColour = Defaults.LandUseColours[Landuse.Undefined].Name.ToString();
         }
-
-        private void DrawRoadLine_Exec(object obj)
-        {
-
-        }
-
         private void SelectRoadCurve_Exec(object obj)
         {
             try

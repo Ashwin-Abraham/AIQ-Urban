@@ -3,7 +3,7 @@ using System.ComponentModel;
 
 namespace ArchSitePlan.UI
 {
-    public class ViewModelBase : Rhino.UI.ViewModel
+    public class ViewModelBase : Rhino.UI.ViewModel, INotifyPropertyChanged
     {
 
         public event PropertyChangedEventHandler PropertyChanged;
