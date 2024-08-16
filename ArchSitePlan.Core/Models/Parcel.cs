@@ -13,7 +13,7 @@ namespace ArchSitePlan.Core.Models
         public PlanarSurface Boundary {  get; set; }
         public Landuse LandUse { get; set; }
         public Guid Id { get; set; }
-        public Parcel(PlanarSurface boundary)
+        internal Parcel(PlanarSurface boundary)
         {
             Boundary = boundary;
         }

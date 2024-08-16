@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ArchSitePlan.Core.Models
 {
-    public class ParcelDivider
+    internal class ParcelDivider
     {
     }
 }

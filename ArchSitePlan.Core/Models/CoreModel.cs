@@ -1,7 +1,9 @@
-﻿using ArchSitePlan.Core.Extensions;
+﻿using ArchSitePlan.Core.Constants;
+using ArchSitePlan.Core.Extensions;
 using ArchSitePlan.Core.Metrics;
 using BH.Engine.Geometry;
 using BH.oM.Geometry;
+using static ArchSitePlan.Core.Constants.Enums;
 
 namespace ArchSitePlan.Core.Models
 {
@@ -135,6 +137,18 @@ namespace ArchSitePlan.Core.Models
             }
 
             return false;
+        }
+
+        public static void UpdateParcelUse(List<Guid> guids, Landuse use)
+        {
+            Parcels.FindAll(p => guids.Contains(p.Id))
+            .ForEach(p => p.LandUse = use);
+            ProjectMetrics.UpdateParcelMetrics(Parcels);
+        }
+
+        public static IEnumerable<object> GetRoads()
+        {
+            throw new NotImplementedException();
         }
     }
 }

@@ -1,6 +1,7 @@
-﻿using ArchSitePlan.Core.Models;
-using ArchSitePlan.UI.Actions;
+﻿using ArchSitePlan.Core.Metrics;
+using ArchSitePlan.Core.Models;
 using ArchSitePlan.UI.Helpers;
+using ArchSitePlan.UI.Models;
 using Rhino;
 using System.ComponentModel;
 using System.Drawing;
@@ -98,20 +99,31 @@ namespace ArchSitePlan.UI
             {
                 _selectedLanduse = value;
                 OnPropertyChanged(nameof(SelectedLandUse));
-                UpdateSelectedLanduseColour(_selectedLanduse);
+                //UpdateSelectedLanduseColour(_selectedLanduse);
             }
         }
         
-        private string _selectedLandUseColour = Defaults.LandUseColours[Landuse.Undefined].Name.ToString();
-        public string SelectedLandUseColour 
+        //private string _selectedLandUseColour = Defaults.LandUseColours[Landuse.Undefined].Name.ToString();
+        //public string SelectedLandUseColour 
+        //{
+        //    get => _selectedLandUseColour;
+        //    set
+        //    {
+        //        _selectedLandUseColour = value;
+        //        OnPropertyChanged(nameof(SelectedLandUseColour));
+        //    }
+        //}
+
+        private List<HorizontalGraphData> _landUseGraphData = new();
+        public List<HorizontalGraphData> LandUseGraphData
         {
-            get => _selectedLandUseColour;
+            get => _landUseGraphData;
             set
             {
-                _selectedLandUseColour = value;
-                OnPropertyChanged(nameof(SelectedLandUseColour));
+                _landUseGraphData = value;
+                OnPropertyChanged(nameof(LandUseGraphData));
             }
-        } 
+        }
 
         #endregion
 
@@ -121,36 +133,32 @@ namespace ArchSitePlan.UI
         public ICommand VisualizeModel_Cmd { get; }
         #endregion
 
-        #region EVENTS
-        
-        #endregion
-
         public MainViewModel()
         {
             this.RefreshRoads_Cmd = new RelayCommand(RefreshRoads_Exec);
             this.SelectRoadCurve_Cmd = new RelayCommand(SelectRoadCurve_Exec);
-            this.VisualizeModel_Cmd = new RelayCommand(VisualizeModel_Exec);
         }
 
-        private void VisualizeModel_Exec(object obj)
-        {
-            try
-            {
-                OutputFromCoreModel.OutputCoreModelToRhino(RhinoDoc.ActiveDoc);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message);
-            }
-        }
+      
+        //private void VisualizeModel_Exec(object obj)
+        //{
+        //    try
+        //    {
+        //        OutputFromCoreModel.OutputCoreModelToRhino(RhinoDoc.ActiveDoc);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        MessageBox.Show(ex.Message);
+        //    }
+        //}
 
-        private void UpdateSelectedLanduseColour(Landuse use)
-        {
-            if (Defaults.LandUseColours.TryGetValue(use, out Color color))
-                SelectedLandUseColour = color.Name.ToString();
-            else
-                SelectedLandUseColour = Defaults.LandUseColours[Landuse.Undefined].Name.ToString();
-        }
+        //private void UpdateSelectedLanduseColour(Landuse use)
+        //{
+        //    if (Defaults.LandUseColours.TryGetValue(use, out Color color))
+        //        SelectedLandUseColour = color..ToString();
+        //    else
+        //        SelectedLandUseColour = Defaults.LandUseColours[Landuse.Undefined].Name.ToString();
+        //}
         private void SelectRoadCurve_Exec(object obj)
         {
             try
@@ -191,6 +199,35 @@ namespace ArchSitePlan.UI
         private void RefreshRoads_Exec(object obj)
         {
 
+        }
+
+        internal List<HorizontalGraphData> ComputeLandUseGraphData(ProjectMetrics projectMetrics)
+        {
+            var allUses = Enum.GetValues<Landuse>();
+            List<HorizontalGraphData> graphData = new();
+            var areaPerUse = projectMetrics.Parcels
+                .GroupBy(p => p.Use)
+                .ToDictionary(grp => grp.Key, grp => grp.Sum(p => p.Area));
+
+            double maxArea = areaPerUse.Max(kvp => kvp.Value);
+
+            foreach(var use in allUses)
+            {
+                double useArea = projectMetrics.Parcels.Where(p => p.Use == use)
+                    .Sum(p => p.Area);
+
+                Color useColor = Defaults.LandUseColours[Landuse.Undefined];
+
+                if (Defaults.LandUseColours.TryGetValue(use, out Color color))
+                    useColor = color;
+
+                graphData.Add( new HorizontalGraphData(
+                    useArea, 
+                    use.ToString(), 
+                    color,
+                    maxArea));
+            }
+            return graphData;
         }
     }
 }

@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static ArchSitePlan.Core.Constants.Enums;
 
 namespace ArchSitePlan.Core.Metrics
 {
@@ -13,6 +14,7 @@ namespace ArchSitePlan.Core.Metrics
     {
         public double Area;
         public double Perimeter;
+        public Landuse Use;
         public ParcelMetrics(Parcel parcel) 
         {
             CalculateParcelMetrics(parcel);
@@ -22,6 +24,7 @@ namespace ArchSitePlan.Core.Metrics
         {
             Area = Math.Abs(parcel.Boundary.Area());
             Perimeter = Math.Abs(parcel.Boundary.ExternalBoundary.Length());
+            Use = parcel.LandUse;
         }
     }
 }
