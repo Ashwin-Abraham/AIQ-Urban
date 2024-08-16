@@ -31,7 +31,7 @@ namespace ArchSitePlan.Core.Models
             RoW = row;
         }
 
-        public static bool TryCreateRoad(PolyCurve centerline, 
+        internal static bool TryCreateRoad(PolyCurve centerline, 
             Guid id,
             double width, 
             out Road road)

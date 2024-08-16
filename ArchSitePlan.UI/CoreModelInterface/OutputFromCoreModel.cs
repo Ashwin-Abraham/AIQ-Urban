@@ -108,5 +108,6 @@ namespace ArchSitePlan.UI.Actions
             var parcels = CoreModel.Parcels.FindAll(p => p.Id == obj.Id);
             OutputParcelsToRhino(RhinoDoc.ActiveDoc);
         }
+
     }
 }

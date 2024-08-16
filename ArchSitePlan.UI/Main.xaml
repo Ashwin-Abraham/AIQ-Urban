@@ -6,11 +6,11 @@
              xmlns:local="clr-namespace:ArchSitePlan.UI"
              xmlns:uc="clr-namespace:ArchSitePlan.UI.UserControls"
              xmlns:mah="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
+             xmlns:lvc="clr-namespace:LiveCharts.Wpf;assembly=LiveCharts.Wpf"
              mc:Ignorable="d" 
              d:DesignHeight="500" d:DesignWidth="250"
-             d:DataContext="{d:DesignInstance local:MainViewModel, IsDesignTimeCreatable=True}"
+             d:DataContext="{d:DesignInstance local:MainViewModel}"
              Background="White">
-
     <UserControl.Resources>
 
         <ResourceDictionary>
@@ -52,7 +52,7 @@
             <RowDefinition Height="35"/>
             <RowDefinition Height="35"/>
             <RowDefinition Height="35"/>
-            <RowDefinition Height="35"/>
+            <RowDefinition Height="200"/>
         </Grid.RowDefinitions>
 
         <Grid.ColumnDefinitions>
@@ -135,5 +135,14 @@
                   ItemsSource="{Binding LandUses}"
                   SelectedItem="{Binding SelectedLandUse}"
                   />
+
+        <!--<lvc:CartesianChart Grid.Row="8"
+                            Grid.ColumnSpan="2"/>-->
+        
+        <uc:HorizontalGraph Grid.Row="8"
+                            Grid.ColumnSpan="3"
+                            GraphData="{Binding LandUseGraphData, UpdateSourceTrigger=Default, Mode=OneWay}"
+                            GraphTitle="Landuse Area"
+                            />
     </Grid>
 </UserControl>

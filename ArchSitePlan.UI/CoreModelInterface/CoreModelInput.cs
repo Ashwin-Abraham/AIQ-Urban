@@ -1,4 +1,5 @@
 ﻿using ArchSitePlan.Core.Constants;
+using ArchSitePlan.Core.Extensions;
 using ArchSitePlan.Core.Models;
 using ArchSitePlan.UI.RhinoBHoMInterop;
 using Rhino.DocObjects;
@@ -62,8 +63,7 @@ namespace ArchSitePlan.UI.Actions
         /// </summary>
         public static void TryUpdateParcelUse(RhinoObject parcel, Landuse use)
         {
-            CoreModel.Parcels.FindAll(p => p.Id == parcel.Id)
-                .ForEach(p => p.LandUse = use);
+            CoreModel.UpdateParcelUse(parcel.Id.ObjectToList(), use);
         }
     }
 }

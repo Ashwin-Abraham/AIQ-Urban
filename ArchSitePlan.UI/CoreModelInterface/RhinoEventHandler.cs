@@ -1,4 +1,6 @@
-﻿using ArchSitePlan.Core.Models;
+﻿using ArchSitePlan.Core.Metrics;
+using ArchSitePlan.Core.Models;
+using ArchSitePlan.UI.Models;
 using Rhino;
 using Rhino.DocObjects;
 using System.Windows;
@@ -22,6 +24,8 @@ namespace ArchSitePlan.UI.Actions
 
             EventHandler<RhinoObjectSelectionEventArgs> selectedRhinoObjectsEvent = (sender, args) => OnRhinoDocObjectSelection(args);
             RhinoDoc.SelectObjects += selectedRhinoObjectsEvent;
+
+            //ViewModel.LandUseGraphData = ViewModel.ComputeLandUseGraphData(CoreModel.ProjectMetrics);
         }
         public static void ActivateRoadSelectionFilter(bool activate)
         {
@@ -53,8 +57,11 @@ namespace ArchSitePlan.UI.Actions
                         OutputFromCoreModel.UpdateRhinoParcel(obj);
                     }
                 }
+
+                if(ViewModel.SelectionMode != RhinoSelectionMode.None)
+                    ViewModel.LandUseGraphData = ViewModel.ComputeLandUseGraphData(CoreModel.ProjectMetrics);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 MessageBox.Show(ex.Message);
             }
@@ -69,6 +76,7 @@ namespace ArchSitePlan.UI.Actions
             {
                 CoreModelInput.AddRoad(args.TheObject, ViewModel.RoadWidth);
                 OutputFromCoreModel.OutputCoreModelToRhino(RhinoDoc.ActiveDoc);
+                ViewModel.LandUseGraphData = ViewModel.ComputeLandUseGraphData(CoreModel.ProjectMetrics);
             }
         }
 
@@ -77,7 +85,10 @@ namespace ArchSitePlan.UI.Actions
              if (args.TheObject.IsDeleted && ViewModel.SelectionMode == RhinoSelectionMode.Road)
             {
                 if(CoreModel.TryRemoveRoad(args.TheObject.Id))
+                {
                     _lastDeletedId = args.TheObject.Id;
+                    ViewModel.LandUseGraphData = ViewModel.ComputeLandUseGraphData(CoreModel.ProjectMetrics);
+                }
             }
         }
     }
