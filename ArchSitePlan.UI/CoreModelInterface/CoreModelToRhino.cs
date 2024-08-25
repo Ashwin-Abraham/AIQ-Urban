@@ -1,19 +1,18 @@
-﻿using ArchSitePlan.Core.Models;
+﻿using ArchSitePlan.Core.Extensions;
+using ArchSitePlan.Core.Models;
 using ArchSitePlan.UI.Constants;
 using ArchSitePlan.UI.Helpers;
 using ArchSitePlan.UI.RhinoBHoMInterop;
+using BH.Engine.Geometry;
+using BH.oM.Geometry;
 using Rhino;
 using Rhino.DocObjects;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Rhino.Geometry;
 using static ArchSitePlan.Core.Constants.Enums;
 
 namespace ArchSitePlan.UI.Actions
 {
-    public static class OutputFromCoreModel
+    public static class CoreModelToRhino
     {
         private static ObjectAttributes GetParcelAttributesByUse(RhinoDoc doc, Landuse use)
         {
@@ -23,7 +22,7 @@ namespace ArchSitePlan.UI.Actions
 
             ObjectAttributes parcelGeometryAttributes = new ObjectAttributes()
             {
-                LayerIndex = LayerHelpers.GetLayerIndex(doc, layerName)
+                LayerIndex = LayerHelpers.CreateOrGetLayerIndex(doc, layerName)
             };
 
             return parcelGeometryAttributes;
@@ -80,7 +79,7 @@ namespace ArchSitePlan.UI.Actions
 
             ObjectAttributes roadGeometryAttributes = new ObjectAttributes()
             {
-                LayerIndex = LayerHelpers.GetLayerIndex(RhinoDoc.ActiveDoc, LayerConstants.RoadLayer)
+                LayerIndex = LayerHelpers.CreateOrGetLayerIndex(RhinoDoc.ActiveDoc, LayerConstants.RoadLayer)
             };
 
             // Delete Existing Objects
@@ -103,11 +102,55 @@ namespace ArchSitePlan.UI.Actions
             doc.Views.Redraw();
         }
 
-        internal static void UpdateRhinoParcel(RhinoObject obj)
+        internal static void UpdateRhinoParcel(Guid id)
         {
-            var parcels = CoreModel.Parcels.FindAll(p => p.Id == obj.Id);
+            var parcels = CoreModel.Parcels.FindAll(p => p.Id == id);
             OutputParcelsToRhino(RhinoDoc.ActiveDoc);
         }
 
+        internal static void BakeRhinoBuilding(Building building)
+        {
+            var extrusion = building.GetExtruded3D();
+
+            var ex = Rhino.Geometry.Extrusion.Create(extrusion.Curve.ToRhino(),
+                extrusion.Direction.Length(),
+                extrusion.Capped);
+            
+            RhinoDoc doc = RhinoDoc.ActiveDoc;
+
+            // Create new building
+            building.OutputMassId = doc.Objects.AddExtrusion(ex, RhinoObjAttributeConstants.BuildingGeometryAttributes);
+            for(int i =0; i< building.FloorPlates.Count; i++)
+            {
+                building.FloorPlates[i] =
+                    (Profile: building.FloorPlates[i].Profile,
+                    Id: BakeToRhino(
+                    building.FloorPlates[i].Profile,
+                    doc,
+                    RhinoObjAttributeConstants.BuildingFloorPlateAttributes));
+            }
+        }
+
+        private static Guid BakeToRhino(PlanarSurface floorProfile, RhinoDoc doc, ObjectAttributes attrib)
+        {
+            var curve = floorProfile.ExternalBoundary.ToRhino();
+            Guid id = doc.Objects.AddCurve(curve, attrib);
+            return id;
+        }
+
+        internal static void DeleteRhinoBuilding(Building building)
+        {
+            RhinoDoc doc = RhinoDoc.ActiveDoc;
+
+            // Find guids
+            var guids = building.OutputMassId.ObjectToList();
+            guids.AddRange(building.FloorPlates.Select(f => f.Id));
+
+            // Delete rhino objects
+            var result = guids.Select(id => doc.Objects.FindId(id))
+                .Where(obj => obj != null)
+                .Select(obj => doc.Objects.Delete(obj, true, true))
+                .ToList();
+        }
     }
 }

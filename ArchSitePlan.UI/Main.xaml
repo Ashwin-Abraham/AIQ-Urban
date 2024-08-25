@@ -22,7 +22,7 @@
                 <!-- Theme setting -->
                 <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Themes/Light.Blue.xaml" />
             </ResourceDictionary.MergedDictionaries>
-            
+
             <Image x:Key="Cursor" 
                    Source="Resources\Cursor.png"
                    Height="20"
@@ -31,7 +31,7 @@
             <Image x:Key="Pline" 
                    Source="Resources\Pline.png"
                    Height="20"
-                   Width="20"/> 
+                   Width="20"/>
 
             <Image x:Key="Line" 
                    Source="Resources\Line.png"
@@ -39,110 +39,232 @@
                    Width="20"/>
 
         </ResourceDictionary>
-        
+
     </UserControl.Resources>
-    
+
     <Grid Margin="5">
         <Grid.RowDefinitions>
             <RowDefinition Height="40"/>
-            <RowDefinition Height="35"/>
-            <RowDefinition Height="35"/>
-            <RowDefinition Height="35"/>
-            <RowDefinition Height="35"/>
-            <RowDefinition Height="35"/>
-            <RowDefinition Height="35"/>
-            <RowDefinition Height="35"/>
-            <RowDefinition Height="200"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
         <Grid.ColumnDefinitions>
-            <ColumnDefinition/>
+            <ColumnDefinition Width="37*"/>
+            <ColumnDefinition Width="33*"/>
             <ColumnDefinition Width="100"/>
         </Grid.ColumnDefinitions>
 
         <TextBlock Text="Parametric Site Capacity"
                    FontSize="20"
-                   VerticalAlignment="Stretch"
                    TextAlignment="Center"
-                   Grid.ColumnSpan="4"
+                   Grid.ColumnSpan="3"
                    Background="{StaticResource MainBlue}"
                    Foreground="White"/>
-        
-        <uc:Heading HeadingText="Road"
-                    Grid.Row="1"
-                    Grid.ColumnSpan="4"/>
 
-        <TextBlock Text="Create/ Edit Existing"
-                   Grid.Row="2"
-                   VerticalAlignment="Center"/>
 
-        <mah:ToggleSwitch Grid.Row="2"
-                          Grid.Column="1"
+        <!--Road Width Expander-->
+        <Expander Grid.Row="1"
+                  Grid.ColumnSpan="3"
+                  Header="1. Roads"
+                  IsExpanded="{Binding RoadExpanderOpen, Mode=TwoWay}"
+                  >
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="35"/>
+                    <RowDefinition Height="35"/>
+                </Grid.RowDefinitions>
+
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="50"/>
+                    <ColumnDefinition Width="250"/>
+                    <ColumnDefinition Width="100"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Text="Width"
+                           VerticalAlignment="Center"
+                           HorizontalAlignment="Center"/>
+
+                <Slider Grid.Column="1"
+                    VerticalAlignment="Center"
+                        Margin="25,0,25,0"
+                        Minimum="1"
+                        Maximum="25"
+                        Value="{Binding RoadWidth, UpdateSourceTrigger=PropertyChanged}"
+                        IsSnapToTickEnabled="True"
+                        TickFrequency="1"
+                        TickPlacement="BottomRight"
+                        IsMoveToPointEnabled="True"
+                        />
+
+                <TextBlock Text="{Binding RoadWidth, Mode=TwoWay}"
+                           Grid.Column="2"
+                           VerticalAlignment="Center"
+                           HorizontalAlignment="Left"/>
+
+            </Grid>
+
+        </Expander>
+
+        <!--Land Use Expander-->
+        <Expander Grid.Row="2"
+                  Grid.ColumnSpan="3"
+                  Header="2. Land Use"
+                  IsExpanded="{Binding LanduseExpanderOpen, Mode=TwoWay}">
+
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="40"/>
+                    <RowDefinition Height="200"/>
+                </Grid.RowDefinitions>
+
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="50"/>
+                    <ColumnDefinition Width="250"/>
+                    <ColumnDefinition Width="100"/>
+                </Grid.ColumnDefinitions>
+
+                <ComboBox Margin="5"
                           Grid.ColumnSpan="2"
-                          IsOn="{Binding RoadCLSelectionModeActive, Mode=TwoWay}"/>
+                          VerticalAlignment="Center"
+                          ItemsSource="{Binding LandUses}"
+                          SelectedItem="{Binding SelectedLandUse}"
+                          />
 
-        <TextBlock Text="Road Width"
-           Grid.Row="3"
-           VerticalAlignment="Center"/>
+                <TextBlock Background="{Binding SelectedLandUseColour, Mode=TwoWay}"
+                            Grid.Column="2"
+                            Width="45"
+                            Margin="0,4,0,4"
+                            HorizontalAlignment="Left"
+                           VerticalAlignment="Center"/>
 
-        <TextBlock Text="{Binding RoadWidth, Mode=TwoWay}"
-                 Grid.Row="4"
-                 Grid.Column="1"
-                 VerticalAlignment="Center"
-                   HorizontalAlignment="Left"/>
 
-        <Slider Grid.Row="4"
-                Grid.ColumnSpan="1"
-                VerticalAlignment="Center"
-                Margin="25,0,25,0"
-                Minimum="1"
-                Maximum="25"
-                Value="{Binding RoadWidth, UpdateSourceTrigger=PropertyChanged}"
-                IsSnapToTickEnabled="True"
-                TickFrequency="1"
-                TickPlacement="BottomRight"
-                IsMoveToPointEnabled="True"
-                />
-
-        <Button Content="Visualize"
-            Grid.Row="5"
-                Grid.Column="1"
-                Grid.ColumnSpan="3"
-                Width="Auto"
-                Style="{StaticResource SquareButton}"
-                Command="{Binding VisualizeModel_Cmd}"/>
-
-        <TextBlock Text="Parcel Edit"
-                   Grid.Row="6"
-                   VerticalAlignment="Center"/>
-
-        <mah:ToggleSwitch Grid.Row="6"
-                          Grid.Column="1"
-                          Grid.ColumnSpan="2"
-                          IsOn="{Binding ParcelSelectionModeActive, Mode=TwoWay}"/>
-
-        <TextBlock  Grid.Row="7"
-                    Background="{Binding SelectedLandUseColour}"
-                    Grid.Column="1"
-                    Width="43"
-                    Margin="0,4,0,4"
-                    HorizontalAlignment="Left"
-                         />
-
-        <ComboBox Grid.Row="7"
-                  Margin="5"
-                  VerticalAlignment="Center"
-                  ItemsSource="{Binding LandUses}"
-                  SelectedItem="{Binding SelectedLandUse}"
-                  />
-
-        <!--<lvc:CartesianChart Grid.Row="8"
-                            Grid.ColumnSpan="2"/>-->
-        
-        <uc:HorizontalGraph Grid.Row="8"
-                            Grid.ColumnSpan="3"
+                <uc:HorizontalGraph Grid.ColumnSpan="3"
+                                    Grid.Row="1"
                             GraphData="{Binding LandUseGraphData, UpdateSourceTrigger=Default, Mode=OneWay}"
                             GraphTitle="Landuse Area"
                             />
+
+            </Grid>
+        </Expander>
+
+
+        <!--Buildings Expander-->
+        <Expander Grid.Row="3"
+          Grid.ColumnSpan="3"
+          Header="3. Buildings"
+                  IsExpanded="{Binding BuildingsExpanderOpen, Mode=TwoWay}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="35"/>
+                    <RowDefinition Height="35"/>
+                    <RowDefinition Height="35"/>
+                    <RowDefinition Height="35"/>
+                </Grid.RowDefinitions>
+
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="3*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Text="Floor Count"
+                           Grid.Column="0"/>
+                
+                <Slider Grid.Column="1"
+                        Value="{Binding ActiveBuildingFloorCount, Mode=TwoWay}"
+                        Minimum="1"
+                        Maximum="100"/>
+                
+                <TextBox Text="{Binding ActiveBuildingFloorCount}"
+                           Grid.Column="2"
+                         Width="50"
+                         VerticalAlignment="Center"
+                           HorizontalAlignment="Center"/>
+
+                <TextBlock Text="Floor Height"
+                           Grid.Row="1"
+                           Grid.Column="0"/>
+
+                <Slider Grid.Column="1"
+                        Grid.Row="1"
+                        Minimum="1.50"
+                        Maximum="20.00"
+                        Value="{Binding ActiveBuildingFloorHeight, Mode=TwoWay}"/>
+
+                <TextBox Text="{Binding ActiveBuildingFloorHeight}"
+                         Grid.Row="1"
+                         Grid.Column="2"
+                         VerticalAlignment="Center"
+                         Width="50"
+                           HorizontalAlignment="Center"/>
+
+                <TextBlock Text="Total Height"
+                           Grid.Row="2"/>
+                
+                <TextBlock Text="{Binding TotalHeight}"
+                           Grid.Row="2"
+                           Grid.Column="2"/>
+
+                <StackPanel Grid.Row="4"
+                            Grid.ColumnSpan="3"
+                            Orientation="Horizontal"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center">
+
+                    <RadioButton Margin="5"
+                                 IsChecked="{Binding BuildingFootprintSelectorModeActive}"
+                                 Content="Footprint"/> 
+                    
+                    <RadioButton Margin="5"
+                                 IsChecked="{Binding BuildingMassSelectorModeActive}"
+                                 Content="Mass"/>
+                    <Button Content="Update Building"
+                            Command="{Binding UpdateBuilding_Cmd}"
+                            Margin="5,0,15,0"/>
+
+                </StackPanel>
+
+            </Grid>
+        </Expander>
+
+        <Expander Grid.Row="4"
+          Grid.ColumnSpan="3"
+          Header="4. Study Area">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="35"/>
+                    <RowDefinition Height="35"/>
+                </Grid.RowDefinitions>
+
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="50"/>
+                    <ColumnDefinition Width="250"/>
+                    <ColumnDefinition Width="100"/>
+                </Grid.ColumnDefinitions>
+            </Grid>
+        </Expander>
+
+        <Expander Grid.Row="5"
+                  Grid.ColumnSpan="3"
+                  Header="5. Exports"
+                  IsExpanded="{Binding ExportsExpanderOpen, Mode=TwoWay}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="35"/>
+                    <RowDefinition Height="35"/>
+                </Grid.RowDefinitions>
+
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="50"/>
+                    <ColumnDefinition Width="250"/>
+                    <ColumnDefinition Width="100"/>
+                </Grid.ColumnDefinitions>
+            </Grid>
+        </Expander>
     </Grid>
+
 </UserControl>

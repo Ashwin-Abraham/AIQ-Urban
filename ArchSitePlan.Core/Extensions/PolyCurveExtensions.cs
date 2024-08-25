@@ -27,23 +27,19 @@ namespace ArchSitePlan.Core.Extensions
 
         public static PolyCurve OffsetSafe(this PolyCurve curve, double distance, Vector normal)
         {
-            if (curve.Curves.Count > 1
-                || curve.Curves.First().GetType() == typeof(Polyline))
-                return curve.Offset(distance, normal);
-
-            var singleCrv = curve.Curves.First();
-            PolyCurve result = new PolyCurve();
-
-            if (singleCrv.IIsLinear())
+            if (curve.Curves.Count == 1 && curve.Curves.First().IIsLinear())
             {
-                Line line = Create.Line(singleCrv.IStartPoint(), singleCrv.IEndPoint());
+                var firstCurve = curve.Curves.First();
+                Line line = Create.Line(firstCurve.IStartPoint(), firstCurve.IEndPoint());
                 Line offsetLine = line.Offset(distance, normal);
-                result.Curves.Add(offsetLine);
+                var result = Create.PolyCurve(((ICurve)offsetLine).ObjectToList());
 
                 return result;
             }
-
-            return null;
+            else
+            {
+                return curve.Offset(distance, normal);
+            }
         }
 
         public static PolyCurve OffsetBothSides(this PolyCurve curve, double distance, Vector normal)

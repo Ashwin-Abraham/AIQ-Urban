@@ -13,6 +13,7 @@ namespace ArchSitePlan.Core.Models
         public static IReadOnlyList<Road> Roads => _roads.AsReadOnly();
         public static List<PlanarSurface> ROWs = new List<PlanarSurface>();
         public static List<Parcel> Parcels = new List<Parcel>();
+        public static List<Building> Buildings = new List<Building>();
         public static ProjectMetrics ProjectMetrics = new ProjectMetrics();
         static CoreModel() { }
 
@@ -102,10 +103,19 @@ namespace ArchSitePlan.Core.Models
 
             var roadSrfs = roads.Select(r => Create.PlanarSurface(r, parcels)).ToList();
 
-            Parcels = union.Where(pCrv => !roads.Contains(pCrv))
-                .Select(p => new Parcel(Create.PlanarSurface(p)))
-                .ToList();
+            List<Parcel> newParcels = new();
+            foreach(var pCrv in union)
+            {
+                if (roads.Contains(pCrv)) continue;
 
+                Landuse nearestUse = Parcels.Any()?
+                    Parcels.MinBy(p => p.Boundary.Centroid().Distance(pCrv.Centroid())).LandUse
+                    :Landuse.Undefined;
+
+                newParcels.Add(new Parcel(Create.PlanarSurface(pCrv), nearestUse));
+            }
+
+            Parcels = newParcels;
             ROWs = roadSrfs;
         }
 
@@ -149,6 +159,30 @@ namespace ArchSitePlan.Core.Models
         public static IEnumerable<object> GetRoads()
         {
             throw new NotImplementedException();
+        }
+
+        public static bool TryAddBuilding(Guid id, 
+            PlanarSurface footPrint, 
+            int floorCount, 
+            double floorToFloorHt)
+        {
+            if(!Buildings.Any(b => b.Id == id))
+            {
+                var newBldg = new Building(footPrint, floorCount, floorToFloorHt, id);
+                Buildings.Add(newBldg);
+
+                return true;
+            }
+            return false;
+        }
+
+        public static void UpdateBuilding(Guid id, PlanarSurface footPrint, int floorCount, double floorToFloorHt)
+        {
+            int i = Buildings.FindIndex(b => b.Id == id);
+
+            if (i == -1) return;
+
+            Buildings[i].UpdateProperties(footPrint, floorCount, floorToFloorHt);
         }
     }
 }
