@@ -8,12 +8,21 @@ namespace ArchSitePlan.UI.Constants
 {
     public static class Enums
     {
-        public enum RhinoSelectionMode
+        public enum AppMode
         {
             Road,
             Separator,
-            Parcel,
+            LandUse,
             Building,
+            StudyArea,
+            Export,
+            None
+        }
+
+        public enum BuildingSelectorMode
+        {
+            Footprint,
+            Mass,
             None
         }
     }

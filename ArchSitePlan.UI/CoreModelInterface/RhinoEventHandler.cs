@@ -1,11 +1,16 @@
 ﻿using ArchSitePlan.Core.Metrics;
 using ArchSitePlan.Core.Models;
 using ArchSitePlan.UI.Models;
+using ArchSitePlan.UI.RhinoBHoMInterop;
+using BH.Engine.Geometry;
+using BH.oM.Geometry;
 using Rhino;
 using Rhino.DocObjects;
+using Rhino.Geometry;
 using System.Windows;
 using static ArchSitePlan.Core.Constants.Enums;
 using static ArchSitePlan.UI.Constants.Enums;
+using Vector = BH.oM.Geometry.Vector;
 
 namespace ArchSitePlan.UI.Actions
 {
@@ -35,17 +40,17 @@ namespace ArchSitePlan.UI.Actions
         {
             try
             {
-                if (ViewModel.SelectionMode == RhinoSelectionMode.Road)
+                if (ViewModel.AppMode == AppMode.Road)
                 {
                     var crvObjs = args.RhinoObjects
                         .Where(obj => obj.ObjectType == ObjectType.Curve)
                         .ToList();
 
-                    crvObjs.ForEach(obj => CoreModelInput.AddRoad(obj, ViewModel.RoadWidth));
-                    OutputFromCoreModel.OutputCoreModelToRhino(RhinoDoc.ActiveDoc);
+                    crvObjs.ForEach(obj => RhinoToCoreModel.AddRoad(obj, ViewModel.RoadWidth));
+                    CoreModelToRhino.OutputCoreModelToRhino(RhinoDoc.ActiveDoc);
                 }
 
-                if(ViewModel.SelectionMode == RhinoSelectionMode.Parcel)
+                else if(ViewModel.AppMode == AppMode.LandUse)
                 {
                     var srfObjs = args.RhinoObjects
                         .Where(obj => obj.ObjectType == ObjectType.Brep)
@@ -53,12 +58,37 @@ namespace ArchSitePlan.UI.Actions
 
                     foreach( var obj in srfObjs)
                     {
-                        CoreModelInput.TryUpdateParcelUse(obj, ViewModel.SelectedLandUse);
-                        OutputFromCoreModel.UpdateRhinoParcel(obj);
+                        RhinoToCoreModel.TryUpdateParcelUse(obj, ViewModel.SelectedLandUse);
+                        CoreModelToRhino.UpdateRhinoParcel(obj.Id);
                     }
+
+                    ViewModel.LandUseGraphData = ViewModel.ComputeLandUseGraphData(CoreModel.ProjectMetrics);
                 }
 
-                if(ViewModel.SelectionMode != RhinoSelectionMode.None)
+                else if(ViewModel.AppMode == AppMode.Building)
+                {
+                    // Update view model with current building data
+                    var crvRhinoObjs = args.RhinoObjects
+                                            .Where(obj => obj.ObjectType == ObjectType.Curve)
+                                            .Where(obj => (obj.Geometry as Curve).IsClosed)
+                                            .ToList();
+
+                    var brepRhinoObjs = args.RhinoObjects
+                        .Where(obj => obj.ObjectType == ObjectType.Brep)
+                        .ToList();
+
+                    var rhinoObjs = ViewModel.BuildingSelectorMode == BuildingSelectorMode.Footprint? crvRhinoObjs: brepRhinoObjs;
+                    var rhinoObjsGuids = rhinoObjs.Select(b => b.Id).ToList();
+
+                    var building = CoreModel.Buildings.FirstOrDefault(b => rhinoObjsGuids.Contains(b.Id));
+
+                    if (building == null) return;
+
+                    ViewModel.ActiveBuildingFloorCount = building.FloorCount;
+                    ViewModel.ActiveBuildingFloorHeight = building.FloorToFloorHeight;
+                }
+
+                else if(ViewModel.AppMode != AppMode.None)
                     ViewModel.LandUseGraphData = ViewModel.ComputeLandUseGraphData(CoreModel.ProjectMetrics);
             }
             catch (Exception ex)
@@ -72,17 +102,17 @@ namespace ArchSitePlan.UI.Actions
         {
             if (_lastDeletedId != args.ObjectId) return;
          
-            if(ViewModel.SelectionMode == RhinoSelectionMode.Road)
+            if(ViewModel.AppMode == AppMode.Road)
             {
-                CoreModelInput.AddRoad(args.TheObject, ViewModel.RoadWidth);
-                OutputFromCoreModel.OutputCoreModelToRhino(RhinoDoc.ActiveDoc);
+                RhinoToCoreModel.AddRoad(args.TheObject, ViewModel.RoadWidth);
+                CoreModelToRhino.OutputCoreModelToRhino(RhinoDoc.ActiveDoc);
                 ViewModel.LandUseGraphData = ViewModel.ComputeLandUseGraphData(CoreModel.ProjectMetrics);
             }
         }
 
         public static void OnRhinoDocObjectRemove(RhinoObjectEventArgs args)
         {
-             if (args.TheObject.IsDeleted && ViewModel.SelectionMode == RhinoSelectionMode.Road)
+             if (args.TheObject.IsDeleted && ViewModel.AppMode == AppMode.Road)
             {
                 if(CoreModel.TryRemoveRoad(args.TheObject.Id))
                 {
@@ -90,6 +120,52 @@ namespace ArchSitePlan.UI.Actions
                     ViewModel.LandUseGraphData = ViewModel.ComputeLandUseGraphData(CoreModel.ProjectMetrics);
                 }
             }
+        }
+
+        internal static void UpdateSelectedBuildings(List<RhinoObject> rhinoObjs, 
+            ObjectType requiredType, 
+            int floorCount, 
+            double floorToFloorHt)
+        {
+            foreach (var obj in rhinoObjs)
+            {
+                bool buildingExists = CoreModel.Buildings.Any(b => b.Id == obj.Id);
+                var footPrint = GetFootPrint(obj);
+                Building building = null;
+
+                if (!buildingExists)
+                {
+                    CoreModel.TryAddBuilding(obj.Id, footPrint, floorCount, floorToFloorHt);
+                    building = CoreModel.Buildings.Find(b => b.Id == obj.Id);
+                }
+                else
+                {
+                    building = CoreModel.Buildings.Find(b => b.Id == obj.Id);
+                    CoreModelToRhino.DeleteRhinoBuilding(building);
+                    CoreModel.UpdateBuilding(obj.Id, footPrint, floorCount, floorToFloorHt);
+                }
+
+                CoreModelToRhino.BakeRhinoBuilding(building);
+            }
+        }
+
+        private static PlanarSurface GetFootPrint(RhinoObject crv)
+        {
+            var curve = crv.Geometry as Curve;
+            BH.oM.Geometry.Polyline bhom = null;
+
+            if (curve != null && curve.TryGetPolyline(out Rhino.Geometry.Polyline polyline)
+                && polyline.IsClosed)
+                bhom = polyline.ToBHoM();
+            else
+                return null;
+
+            bhom = bhom.IsClockwise(Vector.ZAxis) ? bhom : bhom.Flip();
+
+            bool clockWise = bhom.IsClockwise(Vector.ZAxis);
+
+            PlanarSurface footPrint = Create.PlanarSurface(bhom);
+            return footPrint;
         }
     }
 }

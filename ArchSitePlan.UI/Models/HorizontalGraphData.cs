@@ -1,4 +1,5 @@
 ﻿using ArchSitePlan.UI.Constants;
+using ArchSitePlan.UI.Extensions;
 using System.Drawing;
 using System.Windows.Media;
 using Color = System.Drawing.Color;
@@ -15,19 +16,8 @@ namespace ArchSitePlan.UI.Models
         {
             Area = Math.Round(area,0);
             Name = name;
-            Color = new SolidColorBrush(ToWindowsColor(color));
+            Color = new SolidColorBrush(color.ToWindowsColor());
             BarHeight = SetBarHeight(Area, maxArea, GeneralConstants.MaxGraphBarSize);
-        }
-
-        private System.Windows.Media.Color ToWindowsColor(Color color)
-        {
-            var windowsColor = new System.Windows.Media.Color();
-            windowsColor.A = color.A;
-            windowsColor.R = color.R;
-            windowsColor.G = color.G;
-            windowsColor.B = color.B;
-
-            return windowsColor;
         }
 
         private double SetBarHeight(double area, double maxArea, double maxGraphHeight)

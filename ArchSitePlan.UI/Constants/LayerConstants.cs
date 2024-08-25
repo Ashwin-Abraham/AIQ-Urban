@@ -10,6 +10,9 @@ namespace ArchSitePlan.UI.Constants
     {
         public const string MainLayer = "ArchSitePlan";
         private const string _sep_ = "::";
+        public static string BuildingFloorOutlineLayer = $"{BuildingMassLayer}{_sep_}Floor Plate Outline";
+        public static string BuildingMassLayer = $"{BuildingMassLayer}{_sep_}Mass";
+        public const string BuildingLayer = $"{MainLayer}{_sep_}Buildings";
         public const string ParcelsLayer = $"{MainLayer}{_sep_}Parcels";
         public const string RoadLayer = $"{MainLayer}{_sep_}Roads";
         public const string RoadCLLayer = $"{RoadLayer}{_sep_}CL";

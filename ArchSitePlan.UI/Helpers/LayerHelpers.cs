@@ -20,7 +20,7 @@ namespace ArchSitePlan.UI.Helpers
                 doc.Layers.AddPath(layerName);
         }
 
-        public static int GetLayerIndex(RhinoDoc doc, string layerName)
+        public static int CreateOrGetLayerIndex(RhinoDoc doc, string layerName)
         {
             string layer = layerName;
             int index = doc.Layers.FindByFullPath(layer, LayerConstants.DefaultLayerIndex);

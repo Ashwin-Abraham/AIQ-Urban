@@ -1,5 +1,6 @@
 ﻿using ArchSitePlan.Core.Metrics;
 using ArchSitePlan.Core.Models;
+using ArchSitePlan.UI.Extensions;
 using ArchSitePlan.UI.Helpers;
 using ArchSitePlan.UI.Models;
 using Rhino;
@@ -7,8 +8,11 @@ using System.ComponentModel;
 using System.Drawing;
 using System.Windows;
 using System.Windows.Input;
+using SolidColorBrush =  System.Windows.Media.SolidColorBrush;
 using static ArchSitePlan.Core.Constants.Enums;
 using static ArchSitePlan.UI.Constants.Enums;
+using ArchSitePlan.UI.Actions;
+using Rhino.DocObjects;
 
 namespace ArchSitePlan.UI
 {
@@ -44,49 +48,88 @@ namespace ArchSitePlan.UI
                 OnPropertyChanged(nameof(RoadWidth));
             }
         }
-        public RhinoSelectionMode SelectionMode = RhinoSelectionMode.None;
+        public AppMode AppMode = AppMode.None;
 
-        private bool _roadCLSelectionModeActive = false;
-        public bool RoadCLSelectionModeActive
+        private bool _roadExpanderOpen = false;
+        public bool RoadExpanderOpen
         {
-            get => _roadCLSelectionModeActive;
+            get => _roadExpanderOpen;
             set
             {
-                _roadCLSelectionModeActive = value;
-                OnPropertyChanged(nameof(RoadCLSelectionModeActive));
-
-                if (_roadCLSelectionModeActive)
-                    ParcelSelectionModeActive = false;
-             
-                SetSelectionMode();
+                _roadExpanderOpen = value;
+                OnPropertyChanged(nameof(RoadExpanderOpen));
+                SetSelectionMode(AppMode.Road, RoadExpanderOpen);
             }
         }
 
-        private bool _parcelSelectionModeActive = false;
-        public bool ParcelSelectionModeActive
+        private bool _landuseExpanderOpen = false;
+        public bool LanduseExpanderOpen
         {
-            get => _parcelSelectionModeActive;
+            get => _landuseExpanderOpen;
             set
             {
-                _parcelSelectionModeActive = value;
-                OnPropertyChanged(nameof(ParcelSelectionModeActive));
-
-                if (_parcelSelectionModeActive)
-                    RoadCLSelectionModeActive = false;
-
-                SetSelectionMode();
-
+                _landuseExpanderOpen = value;
+                OnPropertyChanged(nameof(LanduseExpanderOpen));
+                SetSelectionMode(AppMode.LandUse, LanduseExpanderOpen);
             }
         }
 
-        private void SetSelectionMode()
+        private bool _exportsExpanderOpen = false;
+        public bool ExportsExpanderOpen
         {
-            if (RoadCLSelectionModeActive)
-                SelectionMode = RhinoSelectionMode.Road;
-            else if (ParcelSelectionModeActive)
-                SelectionMode = RhinoSelectionMode.Parcel;
-            else
-                SelectionMode = RhinoSelectionMode.None;
+            get => _exportsExpanderOpen;
+            set
+            {
+                _exportsExpanderOpen = value;
+                OnPropertyChanged(nameof(ExportsExpanderOpen));
+                SetSelectionMode(AppMode.Export, ExportsExpanderOpen);
+            }
+        }
+
+        private bool _buildingsExpanderOpen = false;
+        public bool BuildingsExpanderOpen
+        {
+            get => _buildingsExpanderOpen;
+            set
+            {
+                _buildingsExpanderOpen = value;
+                OnPropertyChanged(nameof(BuildingsExpanderOpen));
+                SetSelectionMode(AppMode.Building, BuildingsExpanderOpen);
+            }
+        }
+
+        private bool _studyAreaExpanderOpen = false;
+        public bool StudyAreaExpanderOpen
+        {
+            get => _studyAreaExpanderOpen;
+            set
+            {
+                _studyAreaExpanderOpen = value;
+                OnPropertyChanged(nameof(StudyAreaExpanderOpen));
+                SetSelectionMode(AppMode.StudyArea, StudyAreaExpanderOpen);
+            }
+        }
+
+        private int _activeBuildingFloorCount = 3;
+        public int ActiveBuildingFloorCount
+        {
+            get => _activeBuildingFloorCount;
+            set
+            {
+                _activeBuildingFloorCount = value;
+                OnPropertyChanged(nameof(ActiveBuildingFloorCount));
+            }
+        }
+
+        private double _activeBuildingFloorHeight = 3.0;
+        public double ActiveBuildingFloorHeight
+        {
+            get => _activeBuildingFloorHeight;
+            set
+            {
+                _activeBuildingFloorHeight = Math.Round(value, 2);
+                OnPropertyChanged(nameof(ActiveBuildingFloorHeight));
+            }
         }
 
         public List<Landuse> LandUses { get; set; } = Enum.GetValues(typeof(Landuse)).Cast<Landuse>().ToList();
@@ -99,20 +142,21 @@ namespace ArchSitePlan.UI
             {
                 _selectedLanduse = value;
                 OnPropertyChanged(nameof(SelectedLandUse));
-                //UpdateSelectedLanduseColour(_selectedLanduse);
+                UpdateSelectedLanduseColour(_selectedLanduse);
             }
         }
-        
-        //private string _selectedLandUseColour = Defaults.LandUseColours[Landuse.Undefined].Name.ToString();
-        //public string SelectedLandUseColour 
-        //{
-        //    get => _selectedLandUseColour;
-        //    set
-        //    {
-        //        _selectedLandUseColour = value;
-        //        OnPropertyChanged(nameof(SelectedLandUseColour));
-        //    }
-        //}
+
+        private SolidColorBrush _selectedLandUseColour = new SolidColorBrush(
+            Defaults.LandUseColours[Landuse.Undefined].ToWindowsColor());
+        public SolidColorBrush SelectedLandUseColour
+        {
+            get => _selectedLandUseColour;
+            set
+            {
+                _selectedLandUseColour = value;
+                OnPropertyChanged(nameof(SelectedLandUseColour));
+            }
+        }
 
         private List<HorizontalGraphData> _landUseGraphData = new();
         public List<HorizontalGraphData> LandUseGraphData
@@ -125,70 +169,104 @@ namespace ArchSitePlan.UI
             }
         }
 
+        public BuildingSelectorMode BuildingSelectorMode = BuildingSelectorMode.None;
+        
+
+        private bool _buildingFootprintSelectorModeActive = false;
+        public bool BuildingFootprintSelectorModeActive
+        {
+            get => _buildingFootprintSelectorModeActive;
+            set
+            {
+                _buildingFootprintSelectorModeActive = value;
+                BuildingSelectorMode = BuildingSelectorMode.Footprint;
+                OnPropertyChanged(nameof(BuildingFootprintSelectorModeActive));
+            }
+        }
+
+        private bool _buildingMassSelectorModeActive = false;
+        public bool BuildingMassSelectorModeActive
+        {
+            get => _buildingMassSelectorModeActive;
+            set
+            {
+                BuildingSelectorMode = BuildingSelectorMode.Mass;
+                _buildingMassSelectorModeActive = value;
+                OnPropertyChanged(nameof(BuildingMassSelectorModeActive));
+            }
+        }
+
         #endregion
 
         #region COMMANDS
         public ICommand RefreshRoads_Cmd { get; }
         public ICommand SelectRoadCurve_Cmd { get; }
         public ICommand VisualizeModel_Cmd { get; }
+        public ICommand UpdateBuilding_Cmd { get; }
         #endregion
 
         public MainViewModel()
         {
             this.RefreshRoads_Cmd = new RelayCommand(RefreshRoads_Exec);
             this.SelectRoadCurve_Cmd = new RelayCommand(SelectRoadCurve_Exec);
+            this.UpdateBuilding_Cmd = new RelayCommand(UpdateBuilding_Exec);
         }
 
-      
-        //private void VisualizeModel_Exec(object obj)
-        //{
-        //    try
-        //    {
-        //        OutputFromCoreModel.OutputCoreModelToRhino(RhinoDoc.ActiveDoc);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        MessageBox.Show(ex.Message);
-        //    }
-        //}
+        private void UpdateBuilding_Exec(object obj)
+        {
+            var requiredType = BuildingFootprintSelectorModeActive ? ObjectType.Curve : ObjectType.Brep;
 
-        //private void UpdateSelectedLanduseColour(Landuse use)
-        //{
-        //    if (Defaults.LandUseColours.TryGetValue(use, out Color color))
-        //        SelectedLandUseColour = color..ToString();
-        //    else
-        //        SelectedLandUseColour = Defaults.LandUseColours[Landuse.Undefined].Name.ToString();
-        //}
+            var rhinoObjs = RhinoDoc.ActiveDoc.Objects.GetSelectedObjects(false, false)
+                .Where(obj => obj.ObjectType == requiredType)
+                .ToList();
+
+            RhinoEventHandler.UpdateSelectedBuildings(rhinoObjs, 
+                requiredType, 
+                ActiveBuildingFloorCount, 
+                ActiveBuildingFloorHeight);
+
+            doc.Views.Redraw();
+        }
+
+        private void SetSelectionMode(AppMode changedExpander, bool expanderOpen)
+        {
+            // Set current mode
+            if (!expanderOpen)
+            {
+                // If expander is closed while the app mode is unchanged, it means wwe have closed all expanders
+                if (AppMode == changedExpander) AppMode = AppMode.None;
+                // Early return to avoid cyclic SetSelectionMode calls for expander closure
+                return;
+            }
+            if (expanderOpen)
+                AppMode = changedExpander;
+
+            // Close other expanders
+            if (AppMode != AppMode.Road && RoadExpanderOpen)
+                RoadExpanderOpen = false;
+            if (AppMode != AppMode.LandUse && LanduseExpanderOpen)
+                LanduseExpanderOpen = false;
+            if (AppMode != AppMode.Building && BuildingsExpanderOpen)
+                BuildingsExpanderOpen = false;
+            if (AppMode != AppMode.StudyArea && StudyAreaExpanderOpen)
+                StudyAreaExpanderOpen = false;
+            if (AppMode != AppMode.Export && ExportsExpanderOpen)
+                ExportsExpanderOpen = false;
+        }
+
+        private void UpdateSelectedLanduseColour(Landuse use)
+        {
+            if (Defaults.LandUseColours.TryGetValue(use, out Color color))
+                SelectedLandUseColour = new SolidColorBrush(color.ToWindowsColor());
+            else
+                SelectedLandUseColour = new SolidColorBrush(Defaults.LandUseColours[Landuse.Undefined]
+                    .ToWindowsColor());
+        }
         private void SelectRoadCurve_Exec(object obj)
         {
             try
             {
-                ////var result = RhinoGet.GetOneObject(
-                ////    UIMessages.SelectRoadCrv,
-                ////    true,
-                ////    ObjectType.Curve,
-                ////    out ObjRef objRef);
-
-                //// if (result != Rhino.Commands.Result.Success)
-                ////     throw new Exception("No valid object selected");
-
-                //// CoreModelInput.AddRoad(objRef.Object());
-
-                //var result = RhinoGet.GetMultipleObjects(
-                //    UIMessages.SelectRoadCrv,
-                //    true,
-                //    ObjectType.Curve,
-                //    out ObjRef[] objRefs);
-
-                //var selectedObjs = objRefs.Select(o => o.Object())
-                //    .Where(o => o != null && !(o.Geometry is BrepEdge))
-                //    .ToList();
-
-                //selectedObjs.ForEach(obj => obj.Select(true));
-
-                //selectedObjs.ForEach (obj => CoreModelInput.AddRoad(obj));
-
-                //selectedObjs.ForEach(obj => obj.Select(false));
+               
             }
             catch (Exception ex) 
             {
@@ -205,6 +283,9 @@ namespace ArchSitePlan.UI
         {
             var allUses = Enum.GetValues<Landuse>();
             List<HorizontalGraphData> graphData = new();
+
+            if(!projectMetrics.Parcels.Any()) return graphData;
+
             var areaPerUse = projectMetrics.Parcels
                 .GroupBy(p => p.Use)
                 .ToDictionary(grp => grp.Key, grp => grp.Sum(p => p.Area));

@@ -2,13 +2,15 @@
 using ArchSitePlan.Core.Extensions;
 using ArchSitePlan.Core.Models;
 using ArchSitePlan.UI.RhinoBHoMInterop;
+using BH.Engine.Geometry;
+using BH.oM.Geometry;
 using Rhino.DocObjects;
 using Rhino.Geometry;
 using static ArchSitePlan.Core.Constants.Enums;
-
+using Polyline = Rhino.Geometry.Polyline;
 namespace ArchSitePlan.UI.Actions
 {
-    public static class CoreModelInput
+    public static class RhinoToCoreModel
     {
         public static void AddRoad(RhinoObject obj, double width)
         {
@@ -22,7 +24,7 @@ namespace ArchSitePlan.UI.Actions
             if (curve.TryGetPolyline(out Polyline polyline))
             {
                 var bhom = polyline.ToBHoM();
-                CoreModel.AddRoad(polyline.ToBHoM(), id, width);
+                CoreModel.AddRoad(bhom, id, width);
             }
         }
 
