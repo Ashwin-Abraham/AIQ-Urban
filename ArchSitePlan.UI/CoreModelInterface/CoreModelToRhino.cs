@@ -16,13 +16,17 @@ namespace ArchSitePlan.UI.Actions
     {
         private static ObjectAttributes GetParcelAttributesByUse(RhinoDoc doc, Landuse use)
         {
-            string layerName = LayerHelpers.ConstructParcelRhinoLayerName(use);
-            LayerHelpers.EnsureLayerExists(doc, layerName);
-            LayerHelpers.SetLayerColour(doc, layerName, Defaults.LandUseColours[use]);
+            string layerName = LayerHelpers.GetParcelRhinoLayerName(use);
+            int layerIndex = LayerHelpers.CreateOrGetLayerIndex(
+                doc,
+                layerName,
+                Defaults.LandUseColours[use]);
+
+            LayerHelpers.SetLayerColour(doc, layerIndex, Defaults.LandUseColours[use]);
 
             ObjectAttributes parcelGeometryAttributes = new ObjectAttributes()
             {
-                LayerIndex = LayerHelpers.CreateOrGetLayerIndex(doc, layerName)
+                LayerIndex = layerIndex
             };
 
             return parcelGeometryAttributes;
@@ -40,25 +44,34 @@ namespace ArchSitePlan.UI.Actions
 
             return dictionary;
         }
-        public static void OutputParcelsToRhino(RhinoDoc doc)
+        public static void OutputParcelsToRhino(List<Parcel> parcels, RhinoDoc doc)
         {
             // Get Attributes
             var parcelGeometryAttributes = GetParcelAttributesForAllUses(doc);
-            var parcelLayers = parcelGeometryAttributes.Values.Select(attr => attr.LayerIndex).ToList();
+            var parcelLayerNames = Enum.GetValues<Landuse>()
+                .Select(use => LayerHelpers.GetParcelRhinoLayerName(use))
+                .ToList();
+
+            var parcelLayerIndices = doc.Layers
+                .Where(layer => parcelLayerNames.Contains(layer.Name))
+                .Select(layer => layer.Index)
+                .ToList();
+
+            var parcelGuids = parcels.Select(p => p.OriginalObjectID).ToList();
 
             // Delete Existing Parcel Objects
             var guids = doc.Objects
-                .Where(obj => parcelLayers.Contains(obj.Attributes.LayerIndex))
+                .Where(obj => parcelGuids.Contains(obj.Id))
                 .Select(obj => obj.Id)
                 .ToList();
 
             doc.Objects.Delete(guids, true);
 
             // Bake model to rhino
-            foreach(var parcel in CoreModel.Parcels)
+            foreach(var parcel in parcels)
             {
                 var rhinoSrf = parcel.Boundary.ToRhino();
-                parcel.Id = doc.Objects.AddBrep(rhinoSrf, parcelGeometryAttributes[parcel.LandUse]);
+                parcel.OriginalObjectID = doc.Objects.AddBrep(rhinoSrf, parcelGeometryAttributes[parcel.LandUse]);
             }
 
             doc.Views.Redraw();
@@ -68,8 +81,43 @@ namespace ArchSitePlan.UI.Actions
         {
             LayerHelpers.ToggleLockLayer(doc, LayerConstants.MainLayer, false);
             OutputRoadsToRhino(doc);
-            OutputParcelsToRhino(doc);
+            OutputParcelsToRhino(CoreModel.Parcels, doc);
+            MoveStudyAreasToCorrectRhinoLayer(doc);
             LayerHelpers.ToggleLockLayer(doc, LayerConstants.MainLayer, true);
+        }
+
+        private static void MoveStudyAreasToCorrectRhinoLayer(RhinoDoc doc)
+        {
+            // Get Attributes
+            LayerHelpers.EnsureLayerExists(doc, LayerConstants.StudyAreaLayer);
+            int studyAreasLayerIndex = LayerHelpers.CreateOrGetLayerIndex(
+                RhinoDoc.ActiveDoc, 
+                LayerConstants.StudyAreaLayer,
+                LayerConstants.StudyAreaColour);
+
+            ObjectAttributes studyAreasAttributes = new ObjectAttributes()
+            {
+                LayerIndex = studyAreasLayerIndex
+            };
+
+            // Delete Existing Objects
+            var rhinoGuidsInLayer = doc.Objects
+                .Where(obj => obj.Attributes.LayerIndex == studyAreasLayerIndex)
+                .Select(obj => obj.Id)
+                .ToList();
+
+            var studiesAndMetrics = CoreModel.StudiesAndMetrics
+                .Where(s => !rhinoGuidsInLayer.Contains(s.Study.Id))
+                .ToList();
+
+            foreach( var studyAndMetric in studiesAndMetrics )
+            {
+                var studyAreaObj = doc.Objects.FindId(studyAndMetric.Study.Id);
+                studyAreaObj.Attributes.LayerIndex = studyAreasLayerIndex;
+                studyAreaObj.CommitChanges();
+            }
+
+            doc.Views.Redraw();
         }
 
         private static void OutputRoadsToRhino(RhinoDoc doc)
@@ -79,7 +127,10 @@ namespace ArchSitePlan.UI.Actions
 
             ObjectAttributes roadGeometryAttributes = new ObjectAttributes()
             {
-                LayerIndex = LayerHelpers.CreateOrGetLayerIndex(RhinoDoc.ActiveDoc, LayerConstants.RoadLayer)
+                LayerIndex = LayerHelpers.CreateOrGetLayerIndex(
+                    RhinoDoc.ActiveDoc, 
+                    LayerConstants.RoadLayer,
+                    LayerConstants.RoadColour)
             };
 
             // Delete Existing Objects
@@ -104,8 +155,10 @@ namespace ArchSitePlan.UI.Actions
 
         internal static void UpdateRhinoParcel(Guid id)
         {
-            var parcels = CoreModel.Parcels.FindAll(p => p.Id == id);
-            OutputParcelsToRhino(RhinoDoc.ActiveDoc);
+            var parcel = CoreModel.Parcels.FirstOrDefault(p => p.OriginalObjectID == id);
+
+            if(parcel != null)
+                OutputParcelsToRhino(parcel.ObjectToList(), RhinoDoc.ActiveDoc);
         }
 
         internal static void BakeRhinoBuilding(Building building)

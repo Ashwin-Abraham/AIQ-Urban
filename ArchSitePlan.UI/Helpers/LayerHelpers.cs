@@ -20,15 +20,18 @@ namespace ArchSitePlan.UI.Helpers
                 doc.Layers.AddPath(layerName);
         }
 
-        public static int CreateOrGetLayerIndex(RhinoDoc doc, string layerName)
+        public static int CreateOrGetLayerIndex(RhinoDoc doc,
+            string layerName,
+            Color layerColor)
         {
             string layer = layerName;
             int index = doc.Layers.FindByFullPath(layer, LayerConstants.DefaultLayerIndex);
             
             if (index == LayerConstants.DefaultLayerIndex)
-                return doc.Layers.AddPath(layer);
-            else
-                return index;
+                index = doc.Layers.AddPath(layer);
+
+            doc.Layers[index].Color = layerColor;
+            return index;
         }
 
         public static void ToggleLockLayer(RhinoDoc doc, string layerName, bool lockLayer)
@@ -40,17 +43,14 @@ namespace ArchSitePlan.UI.Helpers
                 doc.Layers[index].IsLocked = lockLayer;
         }
 
-        public static string ConstructParcelRhinoLayerName(Landuse use)
+        public static string GetParcelRhinoLayerName(Landuse use)
         {
             return LayerConstants.ParcelsLayer + "::" + use.ToString();
         }
 
-        internal static void SetLayerColour(RhinoDoc doc, string layerName, Color color)
+        internal static void SetLayerColour(RhinoDoc doc, int layerIndex, Color color)
         {
-            var index = doc.Layers.FindByFullPath(layerName, -10);
-            
-            if(index != -10)
-                doc.Layers[index].Color = color;
+            doc.Layers[layerIndex].Color = color;
         }
     }
 

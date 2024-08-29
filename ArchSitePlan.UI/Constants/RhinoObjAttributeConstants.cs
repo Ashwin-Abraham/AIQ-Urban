@@ -13,17 +13,26 @@ namespace ArchSitePlan.UI.Constants
     {
         public static ObjectAttributes RoadGeometryAttributes = new ObjectAttributes()
         {
-            LayerIndex = LayerHelpers.CreateOrGetLayerIndex(RhinoDoc.ActiveDoc, LayerConstants.RoadLayer)
+            LayerIndex = LayerHelpers.CreateOrGetLayerIndex(
+                RhinoDoc.ActiveDoc, 
+                LayerConstants.RoadLayer,
+                LayerConstants.RoadColour)
         };
 
         public static ObjectAttributes BuildingGeometryAttributes = new ObjectAttributes()
         {
-            LayerIndex = LayerHelpers.CreateOrGetLayerIndex(RhinoDoc.ActiveDoc, LayerConstants.BuildingMassLayer)
+            LayerIndex = LayerHelpers.CreateOrGetLayerIndex(
+                RhinoDoc.ActiveDoc, 
+                LayerConstants.BuildingMassLayer,
+                LayerConstants.BuildingMassColour)
         };
 
         public static ObjectAttributes BuildingFloorPlateAttributes = new ObjectAttributes()
         {
-            LayerIndex = LayerHelpers.CreateOrGetLayerIndex(RhinoDoc.ActiveDoc, LayerConstants.BuildingFloorOutlineLayer)
+            LayerIndex = LayerHelpers.CreateOrGetLayerIndex(
+                RhinoDoc.ActiveDoc, 
+                LayerConstants.BuildingFloorOutlineLayer, 
+                LayerConstants.BuildingFloorOutlineColour)
         };
 
 

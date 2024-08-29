@@ -62,7 +62,10 @@ namespace ArchSitePlan.UI.Actions
                         CoreModelToRhino.UpdateRhinoParcel(obj.Id);
                     }
 
-                    ViewModel.LandUseGraphData = ViewModel.ComputeLandUseGraphData(CoreModel.ProjectMetrics);
+                    var activeStudyMetric = CoreModel.StudiesAndMetrics.FirstOrDefault(s => s.Study.Name == ViewModel.ActiveStudyAreaName);
+                    
+                    if(activeStudyMetric!= null)
+                        ViewModel.LandUseGraphData = ViewModel.ComputeLandUseGraphData(activeStudyMetric.Metrics);
                 }
 
                 else if(ViewModel.AppMode == AppMode.Building)
@@ -89,7 +92,10 @@ namespace ArchSitePlan.UI.Actions
                 }
 
                 else if(ViewModel.AppMode != AppMode.None)
-                    ViewModel.LandUseGraphData = ViewModel.ComputeLandUseGraphData(CoreModel.ProjectMetrics);
+                {
+                    var activeStudyMetric = CoreModel.StudiesAndMetrics.FirstOrDefault(s => s.Study.Name == ViewModel.ActiveStudyAreaName);
+                    ViewModel.LandUseGraphData = ViewModel.ComputeLandUseGraphData(activeStudyMetric.Metrics);
+                }
             }
             catch (Exception ex)
             {
@@ -106,7 +112,9 @@ namespace ArchSitePlan.UI.Actions
             {
                 RhinoToCoreModel.AddRoad(args.TheObject, ViewModel.RoadWidth);
                 CoreModelToRhino.OutputCoreModelToRhino(RhinoDoc.ActiveDoc);
-                ViewModel.LandUseGraphData = ViewModel.ComputeLandUseGraphData(CoreModel.ProjectMetrics);
+
+                var activeStudyMetric = CoreModel.StudiesAndMetrics.FirstOrDefault(s => s.Study.Name == ViewModel.ActiveStudyAreaName);
+                ViewModel.LandUseGraphData = ViewModel.ComputeLandUseGraphData(activeStudyMetric.Metrics);
             }
         }
 
@@ -117,7 +125,9 @@ namespace ArchSitePlan.UI.Actions
                 if(CoreModel.TryRemoveRoad(args.TheObject.Id))
                 {
                     _lastDeletedId = args.TheObject.Id;
-                    ViewModel.LandUseGraphData = ViewModel.ComputeLandUseGraphData(CoreModel.ProjectMetrics);
+
+                    var activeStudyMetric = CoreModel.StudiesAndMetrics.FirstOrDefault(s => s.Study.Name == ViewModel.ActiveStudyAreaName);
+                    ViewModel.LandUseGraphData = ViewModel.ComputeLandUseGraphData(activeStudyMetric.Metrics);
                 }
             }
         }
