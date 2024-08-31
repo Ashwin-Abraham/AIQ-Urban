@@ -5,8 +5,10 @@ namespace ArchSitePlan.Core.Metrics
 {
     public class StudyAreaMetrics
     {
-        public PolyCurve Boundary { get; private set; }
-        public double BoundedArea { get; private set; }
+        public double BoundedArea { get; private set; } = 25;
+        public double FAR { get; private set; } = 12;
+        public double DevelopableArea { get; private set; } = 5;
+        public double BuiltArea { get; private set; } = 2;
         public List<ParcelMetrics> ParcelMetrics = new();
         //public RoadMetrics RoadMetric = new();
         private void UpdateParcelMetrics(List<Parcel> parcels)
@@ -17,6 +19,8 @@ namespace ArchSitePlan.Core.Metrics
             {
                 ParcelMetrics.Add(new ParcelMetrics(p));
             }
+
+            BoundedArea = ParcelMetrics.Sum(p => p.Area);
         }
 
         public StudyAreaMetrics(List<Parcel> parcels)

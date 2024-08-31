@@ -120,7 +120,6 @@
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="40"/>
-                    <RowDefinition Height="200"/>
                 </Grid.RowDefinitions>
 
                 <Grid.ColumnDefinitions>
@@ -301,15 +300,19 @@
                     Orientation="Horizontal"
                     HorizontalAlignment="Center">
             <uc:MetricBox MetricName="Total Bounded Area"
+                          Value="{Binding ActiveStudy.Metrics.BoundedArea}"
                           Unit="sq m"/>
             
             <uc:MetricBox MetricName="Developable Area"
+                          Value="{Binding ActiveStudy.Metrics.DevelopableArea}"
                           Unit="sq m"/>
             
             <uc:MetricBox MetricName="Built Area"
+                          Value="{Binding ActiveStudy.Metrics.BuiltArea}"
                           Unit="sq m"/>
 
-            <uc:MetricBox MetricName="FAR"
+            <uc:MetricBox MetricName="FAR"                                                    
+                          Value="{Binding ActiveStudy.Metrics.FAR}"
                           Unit="sq m"/>
         </StackPanel>
 

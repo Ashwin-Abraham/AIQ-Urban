@@ -200,14 +200,14 @@ namespace ArchSitePlan.UI
         }
 
         private static readonly string _defaultStudyAreaNameTextBox = "Enter name";
-        private StudyArea _activeStudyArea = null;
+        private string _activeStudyAreaName = _defaultStudyAreaNameTextBox;
         public string ActiveStudyAreaName
         {
-            get => _activeStudyArea.Name;
+            get => _activeStudyAreaName;
             set
             {
-                var studyAndMetric = CoreModel.StudiesAndMetrics.FirstOrDefault(sam => sam.Study.Name == value);
-                _activeStudyArea = studyAndMetric != null? studyAndMetric.Study: null;
+                _activeStudyAreaName = value;
+                ActiveStudy = CoreModel.Studies.Find(s => s.Name == value);
                 OnPropertyChanged(nameof(ActiveStudyAreaName));
             }
         }
@@ -223,6 +223,17 @@ namespace ArchSitePlan.UI
             }
         }
 
+        private StudyArea _activeStudy = null;
+        public StudyArea ActiveStudy
+        {
+            get => _activeStudy;
+            set
+            {
+                _activeStudy = value;
+                UpdateDisplayedStudyAreaData();
+                OnPropertyChanged(nameof(ActiveStudy));
+            }
+        }
         #endregion
 
         #region COMMANDS
@@ -264,23 +275,18 @@ namespace ArchSitePlan.UI
                 if (!boundary.TryGetPolyline(out Polyline rhinoPline))
                     throw new Exception("Select polylines only");
 
-                if(RhinoToCoreModel.TryGetStudyArea(rhinoObj.Id,out StudyArea area))
-                {
-                    area = new StudyArea(rhinoPline.ToBHoM(), rhinoObj.Id, ActiveStudyAreaName);
-                }
-                else
-                {
-                    if (RhinoToCoreModel.TryAddStudyArea(
+                RhinoToCoreModel.TryAddStudyArea(
                         rhinoPline.ToBHoM(),
                         rhinoObj.Id,
-                        ActiveStudyAreaName))
+                        ActiveStudyAreaName);
 
-                        CoreModelToRhino.OutputCoreModelToRhino(RhinoDoc.ActiveDoc);
+                CoreModelToRhino.RefreshStudyAreaMetrics();
 
-                    StudyAreasNames = CoreModel.StudiesAndMetrics.Select(s => s.Study.Name).ToList();
-                }
+                CoreModelToRhino.OutputCoreModelToRhino(RhinoDoc.ActiveDoc);
+
+                StudyAreasNames = CoreModel.Studies.Select(s => s.Name).ToList();
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 MessageBox.Show(ex.Message);
             }
@@ -353,14 +359,20 @@ namespace ArchSitePlan.UI
 
         }
 
-        internal List<HorizontalGraphData> ComputeLandUseGraphData(StudyAreaMetrics metrics)
+        public void UpdateDisplayedStudyAreaData()
+        {
+            CoreModel.TryGetStudyAreaAndMetric(_activeStudy.Id, out _activeStudy);
+            UpdateLandUseGraphData(_activeStudy.Metrics);
+        }
+
+        private void UpdateLandUseGraphData(StudyAreaMetrics studyAndMetric)
         { 
             var allUses = Enum.GetValues<Landuse>();
             List<HorizontalGraphData> graphData = new();
 
-            if(!metrics.ParcelMetrics.Any()) return graphData;
+            if(!studyAndMetric.ParcelMetrics.Any()) return;
 
-            var areaPerUse = metrics.ParcelMetrics
+            var areaPerUse = studyAndMetric.ParcelMetrics
                 .GroupBy(p => p.Use)
                 .ToDictionary(grp => grp.Key, grp => grp.Sum(p => p.Area));
 
@@ -368,7 +380,7 @@ namespace ArchSitePlan.UI
 
             foreach(var use in allUses)
             {
-                double useArea = metrics.ParcelMetrics.Where(p => p.Use == use)
+                double useArea = studyAndMetric.ParcelMetrics.Where(p => p.Use == use)
                     .Sum(p => p.Area);
 
                 Color useColor = Defaults.LandUseColours[Landuse.Undefined];
@@ -382,7 +394,10 @@ namespace ArchSitePlan.UI
                     color,
                     maxArea));
             }
-            return graphData;
+
+            LandUseGraphData = graphData;
         }
+
+       
     }
 }

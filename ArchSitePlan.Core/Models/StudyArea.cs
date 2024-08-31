@@ -1,4 +1,5 @@
-﻿using BH.Engine.Geometry;
+﻿using ArchSitePlan.Core.Metrics;
+using BH.Engine.Geometry;
 using BH.oM.Geometry;
 using System;
 using System.Collections.Generic;
@@ -15,12 +16,23 @@ namespace ArchSitePlan.Core.Models
         public string Name { get; private set; }
         public double Area { get; private set; }
 
-        public StudyArea(Polyline boundary, Guid id, string name)
+        public StudyAreaMetrics Metrics { get; private set; }
+        public StudyArea(
+            Polyline boundary, 
+            Guid id, 
+            string name,
+            List<Parcel> parcels = null)
         {
             Boundary = boundary;
             Id = id;
             Name = name;
             Area = Math.Abs(boundary.Area());
+            Metrics = new StudyAreaMetrics(parcels?? new List<Parcel>());
         }
+
+        public StudyArea(
+            StudyArea study,
+            List<Parcel> parcels): this(study.Boundary, study.Id, study.Name, parcels)
+        { }
     }
 }

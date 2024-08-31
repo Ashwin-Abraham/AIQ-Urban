@@ -44,7 +44,7 @@ namespace ArchSitePlan.UI.Actions
 
             return dictionary;
         }
-        public static void OutputParcelsToRhino(List<Parcel> parcels, RhinoDoc doc)
+        public static void OutputParcelsToRhino(RhinoDoc doc)
         {
             // Get Attributes
             var parcelGeometryAttributes = GetParcelAttributesForAllUses(doc);
@@ -52,23 +52,19 @@ namespace ArchSitePlan.UI.Actions
                 .Select(use => LayerHelpers.GetParcelRhinoLayerName(use))
                 .ToList();
 
-            var parcelLayerIndices = doc.Layers
-                .Where(layer => parcelLayerNames.Contains(layer.Name))
-                .Select(layer => layer.Index)
+            var layerNames = doc.Layers.Select(l => l.Name).ToList();
+
+            var parcelObjs = doc.Layers
+                .Where(layer => parcelLayerNames.Contains(layer.FullPath))
+                .SelectMany(lay => doc.Objects.FindByLayer(lay))
                 .ToList();
 
-            var parcelGuids = parcels.Select(p => p.OriginalObjectID).ToList();
+            var parcelGuids = parcelObjs.Select(obj => obj.Id);
 
-            // Delete Existing Parcel Objects
-            var guids = doc.Objects
-                .Where(obj => parcelGuids.Contains(obj.Id))
-                .Select(obj => obj.Id)
-                .ToList();
-
-            doc.Objects.Delete(guids, true);
+            doc.Objects.Delete(parcelGuids, true);
 
             // Bake model to rhino
-            foreach(var parcel in parcels)
+            foreach(var parcel in CoreModel.Parcels)
             {
                 var rhinoSrf = parcel.Boundary.ToRhino();
                 parcel.OriginalObjectID = doc.Objects.AddBrep(rhinoSrf, parcelGeometryAttributes[parcel.LandUse]);
@@ -81,7 +77,7 @@ namespace ArchSitePlan.UI.Actions
         {
             LayerHelpers.ToggleLockLayer(doc, LayerConstants.MainLayer, false);
             OutputRoadsToRhino(doc);
-            OutputParcelsToRhino(CoreModel.Parcels, doc);
+            OutputParcelsToRhino(doc);
             MoveStudyAreasToCorrectRhinoLayer(doc);
             LayerHelpers.ToggleLockLayer(doc, LayerConstants.MainLayer, true);
         }
@@ -106,13 +102,13 @@ namespace ArchSitePlan.UI.Actions
                 .Select(obj => obj.Id)
                 .ToList();
 
-            var studiesAndMetrics = CoreModel.StudiesAndMetrics
-                .Where(s => !rhinoGuidsInLayer.Contains(s.Study.Id))
+            var studiesAndMetrics = CoreModel.Studies
+                .Where(s => !rhinoGuidsInLayer.Contains(s.Id))
                 .ToList();
 
             foreach( var studyAndMetric in studiesAndMetrics )
             {
-                var studyAreaObj = doc.Objects.FindId(studyAndMetric.Study.Id);
+                var studyAreaObj = doc.Objects.FindId(studyAndMetric.Id);
                 studyAreaObj.Attributes.LayerIndex = studyAreasLayerIndex;
                 studyAreaObj.CommitChanges();
             }
@@ -151,14 +147,6 @@ namespace ArchSitePlan.UI.Actions
                 .ForEach(brep => doc.Objects.AddBrep(brep, roadGeometryAttributes));
 
             doc.Views.Redraw();
-        }
-
-        internal static void UpdateRhinoParcel(Guid id)
-        {
-            var parcel = CoreModel.Parcels.FirstOrDefault(p => p.OriginalObjectID == id);
-
-            if(parcel != null)
-                OutputParcelsToRhino(parcel.ObjectToList(), RhinoDoc.ActiveDoc);
         }
 
         internal static void BakeRhinoBuilding(Building building)
@@ -204,6 +192,11 @@ namespace ArchSitePlan.UI.Actions
                 .Where(obj => obj != null)
                 .Select(obj => doc.Objects.Delete(obj, true, true))
                 .ToList();
+        }
+
+        internal static void RefreshStudyAreaMetrics(bool recalculateModelSplit = true)
+        {
+            CoreModel.RefreshStudyAreaMetrics(recalculateModelSplit);
         }
     }
 }

@@ -7,7 +7,6 @@ using static ArchSitePlan.Core.Constants.Enums;
 
 namespace ArchSitePlan.Core.Models
 {
-    public record StudyAreasAndMetrics(StudyArea Study, StudyAreaMetrics Metrics);
     public static class CoreModel
     {
         private static List<Road> _roads  = new List<Road>();
@@ -15,26 +14,24 @@ namespace ArchSitePlan.Core.Models
         public static List<PlanarSurface> ROWs = new List<PlanarSurface>();
         public static List<Parcel> Parcels = new List<Parcel>();
         public static List<Building> Buildings = new List<Building>();
-        public static List<StudyAreasAndMetrics> StudiesAndMetrics = new ();
+        public static List<StudyArea> Studies = new ();
         static CoreModel() { }
 
-        public static void AddStudyArea(StudyArea studyArea) => StudiesAndMetrics.Add(new StudyAreasAndMetrics(studyArea, null));
-        public static void RemoveStudyArea(StudyArea studyArea) => StudiesAndMetrics.RemoveAll(sam => sam.Study == studyArea);
+        public static void AddStudyArea(StudyArea studyArea) => Studies.Add(studyArea);
+        public static void RemoveStudyArea(StudyArea studyArea) => Studies.Remove(studyArea);
 
         public static void RefreshStudyAreaMetrics(bool RecalculatModelSplit = true)
         {
             if (RecalculatModelSplit) 
                 SplitCoreModelByStudyAreas();
 
-            for (int i = 0; i < StudiesAndMetrics.Count; i++) 
+            for (int i = 0; i < Studies.Count; i++) 
             {
                 var parcelsInArea = Parcels
-                    .Where(p => StudiesAndMetrics[i].Study.Boundary.IsContaining(p.Boundary.Centroid().ObjectToList()))
+                    .Where(p => Studies[i].Boundary.IsContaining(p.Boundary.Centroid().ObjectToList()))
                     .ToList();
 
-                StudiesAndMetrics[i] = new StudyAreasAndMetrics(
-                    StudiesAndMetrics[i].Study,
-                    new StudyAreaMetrics(parcelsInArea));
+                Studies[i] = new StudyArea(Studies[i], parcelsInArea);
             }
         }
         private static void SplitCoreModelByStudyAreas()
@@ -79,7 +76,7 @@ namespace ArchSitePlan.Core.Models
 
         private static void SplitRoadsByStudyAreas()
         {
-            var studyBoundaries = StudiesAndMetrics.Select(sa => sa.Study.Boundary).ToList();
+            var studyBoundaries = Studies.Select(sa => sa.Boundary).ToList();
 
             foreach (var boundary in studyBoundaries)
             {
@@ -109,11 +106,11 @@ namespace ArchSitePlan.Core.Models
         }
         private static void SplitParcelsByStudyAreas()
         {
-            var splitters = StudiesAndMetrics.Select(sa => sa.Study.Boundary)
+            var splitters = Studies.Select(sa => sa.Boundary)
                 .SelectMany(pline => pline.Segments())
                 .ToList();
 
-            var studyBoundaries = StudiesAndMetrics.Select(sa => sa.Study.Boundary).ToList();
+            var studyBoundaries = Studies.Select(sa => sa.Boundary).ToList();
 
 
             foreach(var boundary in studyBoundaries)
@@ -272,17 +269,26 @@ namespace ArchSitePlan.Core.Models
             Buildings[i].UpdateProperties(footPrint, floorCount, floorToFloorHt);
         }
 
-        public static bool TryGetStudyArea(Guid id, out StudyArea area)
+        public static bool TryGetStudyAreaAndMetric(Guid id, out StudyArea area)
         {
-            area = StudiesAndMetrics.Find(s => s.Study.Id == id).Study;
-            return area != null;
+            area = null;
+            var studyAndMetric = Studies.Find(s => s.Id == id);
+
+            if (studyAndMetric == null) return false;
+
+            area = studyAndMetric;
+            return true;
         }
 
-        public static bool TryAddStudyArea(Polyline boundary, Guid id, string name)
+        public static bool TryAddOrUpdateStudyArea(Polyline boundary, Guid id, string name)
         {
-            if (StudiesAndMetrics.Any(s => s.Study.Id == id)) return false;
-
-            StudiesAndMetrics.Add( new StudyAreasAndMetrics( new StudyArea(boundary, id, name), null));
+            if (Studies.Any(s => s.Id == id))
+            {
+                int index = Studies.FindIndex(s => s.Id == id);
+                Studies[index] = new StudyArea(boundary, id, name);
+            }
+            else
+                Studies.Add( new StudyArea(boundary, id, name));
             return true;
         }
     }
