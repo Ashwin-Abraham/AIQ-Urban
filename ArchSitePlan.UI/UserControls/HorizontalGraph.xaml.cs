@@ -20,7 +20,7 @@ namespace ArchSitePlan.UI.UserControls
     /// <summary>
     /// Interaction logic for HorizontalGraph.xaml
     /// </summary>
-    public partial class HorizontalGraph : UserControl, INotifyPropertyChanged
+    public partial class HorizontalGraph : UserControl
     {
         // DependencyProperty for GraphData
         public static readonly DependencyProperty GraphDataProperty = DependencyProperty.Register(
@@ -51,13 +51,6 @@ namespace ArchSitePlan.UI.UserControls
         public HorizontalGraph()
         {
             InitializeComponent();
-        }
-
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        protected virtual void OnPropertyChanged(string propertyName)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 }

@@ -13,6 +13,9 @@ using static ArchSitePlan.Core.Constants.Enums;
 using static ArchSitePlan.UI.Constants.Enums;
 using ArchSitePlan.UI.Actions;
 using Rhino.DocObjects;
+using Rhino.Input;
+using Rhino.Geometry;
+using ArchSitePlan.UI.RhinoBHoMInterop;
 
 namespace ArchSitePlan.UI
 {
@@ -196,6 +199,41 @@ namespace ArchSitePlan.UI
             }
         }
 
+        private static readonly string _defaultStudyAreaNameTextBox = "Enter name";
+        private string _activeStudyAreaName = _defaultStudyAreaNameTextBox;
+        public string ActiveStudyAreaName
+        {
+            get => _activeStudyAreaName;
+            set
+            {
+                _activeStudyAreaName = value;
+                ActiveStudy = CoreModel.Studies.Find(s => s.Name == value);
+                OnPropertyChanged(nameof(ActiveStudyAreaName));
+            }
+        }
+
+        private List<string> _studyAreasNames = new();
+        public List<string> StudyAreasNames
+        {
+            get => _studyAreasNames;
+            set
+            {
+                _studyAreasNames = value;
+                OnPropertyChanged(nameof(StudyAreasNames));
+            }
+        }
+
+        private StudyArea _activeStudy = null;
+        public StudyArea ActiveStudy
+        {
+            get => _activeStudy;
+            set
+            {
+                _activeStudy = value;
+                UpdateDisplayedStudyAreaData();
+                OnPropertyChanged(nameof(ActiveStudy));
+            }
+        }
         #endregion
 
         #region COMMANDS
@@ -203,6 +241,7 @@ namespace ArchSitePlan.UI
         public ICommand SelectRoadCurve_Cmd { get; }
         public ICommand VisualizeModel_Cmd { get; }
         public ICommand UpdateBuilding_Cmd { get; }
+        public ICommand AddStudyArea_Cmd { get; }
         #endregion
 
         public MainViewModel()
@@ -210,6 +249,47 @@ namespace ArchSitePlan.UI
             this.RefreshRoads_Cmd = new RelayCommand(RefreshRoads_Exec);
             this.SelectRoadCurve_Cmd = new RelayCommand(SelectRoadCurve_Exec);
             this.UpdateBuilding_Cmd = new RelayCommand(UpdateBuilding_Exec);
+            this.AddStudyArea_Cmd = new RelayCommand(AddStudyArea_Exec);
+        }
+
+        private void AddStudyArea_Exec(object o)
+        {
+            try
+            {
+                var result = RhinoGet.GetOneObject("Select a closed curve as the study area",
+                true,
+                ObjectType.Curve,
+                out ObjRef objRef);
+                
+                if (result != Rhino.Commands.Result.Success) return;
+
+                var rhinoObj = objRef.Object();
+                var boundary = rhinoObj.Geometry as Curve;
+
+                if (!boundary.IsClosed)
+                    throw new Exception("Error. Please select closed curve instead");
+                if (ActiveStudyAreaName == _defaultStudyAreaNameTextBox
+                    || ActiveStudyAreaName == string.Empty)
+                    throw new Exception("Error. Please enter a study name");
+
+                if (!boundary.TryGetPolyline(out Polyline rhinoPline))
+                    throw new Exception("Select polylines only");
+
+                RhinoToCoreModel.TryAddStudyArea(
+                        rhinoPline.ToBHoM(),
+                        rhinoObj.Id,
+                        ActiveStudyAreaName);
+
+                CoreModelToRhino.RefreshStudyAreaMetrics();
+
+                CoreModelToRhino.OutputCoreModelToRhino(RhinoDoc.ActiveDoc);
+
+                StudyAreasNames = CoreModel.Studies.Select(s => s.Name).ToList();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
         }
 
         private void UpdateBuilding_Exec(object obj)
@@ -279,14 +359,20 @@ namespace ArchSitePlan.UI
 
         }
 
-        internal List<HorizontalGraphData> ComputeLandUseGraphData(ProjectMetrics projectMetrics)
+        public void UpdateDisplayedStudyAreaData()
         {
+            CoreModel.TryGetStudyAreaAndMetric(_activeStudy.Id, out _activeStudy);
+            UpdateLandUseGraphData(_activeStudy.Metrics);
+        }
+
+        private void UpdateLandUseGraphData(StudyAreaMetrics studyAndMetric)
+        { 
             var allUses = Enum.GetValues<Landuse>();
             List<HorizontalGraphData> graphData = new();
 
-            if(!projectMetrics.Parcels.Any()) return graphData;
+            if(!studyAndMetric.ParcelMetrics.Any()) return;
 
-            var areaPerUse = projectMetrics.Parcels
+            var areaPerUse = studyAndMetric.ParcelMetrics
                 .GroupBy(p => p.Use)
                 .ToDictionary(grp => grp.Key, grp => grp.Sum(p => p.Area));
 
@@ -294,7 +380,7 @@ namespace ArchSitePlan.UI
 
             foreach(var use in allUses)
             {
-                double useArea = projectMetrics.Parcels.Where(p => p.Use == use)
+                double useArea = studyAndMetric.ParcelMetrics.Where(p => p.Use == use)
                     .Sum(p => p.Area);
 
                 Color useColor = Defaults.LandUseColours[Landuse.Undefined];
@@ -308,7 +394,10 @@ namespace ArchSitePlan.UI
                     color,
                     maxArea));
             }
-            return graphData;
+
+            LandUseGraphData = graphData;
         }
+
+       
     }
 }

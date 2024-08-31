@@ -12,11 +12,15 @@ namespace ArchSitePlan.Core.Models
     {
         public PlanarSurface Boundary {  get; set; }
         public Landuse LandUse { get; set; }
-        public Guid Id { get; set; }
+        public Guid OriginalObjectID { get; set; }
         internal Parcel(PlanarSurface boundary, Landuse use)
         {
             Boundary = boundary;
             LandUse = use;
+        }
+        internal Parcel(Parcel parcel, PlanarSurface boundary):this(boundary, parcel.LandUse)
+        {
+            OriginalObjectID = parcel.OriginalObjectID;
         }
     }
 }

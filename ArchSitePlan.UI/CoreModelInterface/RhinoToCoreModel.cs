@@ -67,5 +67,17 @@ namespace ArchSitePlan.UI.Actions
         {
             CoreModel.UpdateParcelUse(parcel.Id.ObjectToList(), use);
         }
+
+        internal static bool TryGetStudyAreaAndMetric(Guid id, out StudyArea area)
+        {
+           return CoreModel.TryGetStudyAreaAndMetric(id, out area);
+        }
+
+        internal static bool TryAddStudyArea(BH.oM.Geometry.Polyline boundary, 
+            Guid id, 
+            string name)
+        {
+            return CoreModel.TryAddOrUpdateStudyArea(boundary, id, name);
+        }
     }
 }

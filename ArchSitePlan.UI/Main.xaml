@@ -50,12 +50,14 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="200"/>
         </Grid.RowDefinitions>
 
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="37*"/>
-            <ColumnDefinition Width="33*"/>
-            <ColumnDefinition Width="100"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
         <TextBlock Text="Parametric Site Capacity"
@@ -118,7 +120,6 @@
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="40"/>
-                    <RowDefinition Height="200"/>
                 </Grid.RowDefinitions>
 
                 <Grid.ColumnDefinitions>
@@ -142,11 +143,7 @@
                            VerticalAlignment="Center"/>
 
 
-                <uc:HorizontalGraph Grid.ColumnSpan="3"
-                                    Grid.Row="1"
-                            GraphData="{Binding LandUseGraphData, UpdateSourceTrigger=Default, Mode=OneWay}"
-                            GraphTitle="Landuse Area"
-                            />
+
 
             </Grid>
         </Expander>
@@ -231,21 +228,27 @@
             </Grid>
         </Expander>
 
+        <!--Study Area-->
         <Expander Grid.Row="4"
           Grid.ColumnSpan="3"
           Header="4. Study Area">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="35"/>
-                    <RowDefinition Height="35"/>
                 </Grid.RowDefinitions>
 
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="50"/>
-                    <ColumnDefinition Width="250"/>
-                    <ColumnDefinition Width="100"/>
+                    <ColumnDefinition Width="2*"/>
+                    <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
+
+                <TextBox Text="{Binding ActiveStudyAreaName, Mode=TwoWay}"/>
+                <Button Content="Add Study Area"
+                              Grid.Column="1"
+                              Command="{Binding AddStudyArea_Cmd}"/>
             </Grid>
+
+
         </Expander>
 
         <Expander Grid.Row="5"
@@ -265,6 +268,60 @@
                 </Grid.ColumnDefinitions>
             </Grid>
         </Expander>
+        
+        <!--Active Study Area-->
+        <!--<Grid Grid.Row="6"
+              Grid.ColumnSpan="5">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="35"/>
+                <RowDefinition Height="35"/>
+                <RowDefinition Height="35"/>
+                <RowDefinition Height="35"/>
+                <RowDefinition Height="35"/>
+                <RowDefinition Height="35"/>
+            </Grid.RowDefinitions>
+
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>-->
+
+        <TextBlock Text="Study Area Name"
+                   Grid.Row="6"/>
+        
+        <ComboBox Grid.Row="6"
+                  Grid.Column="1"
+                  ItemsSource="{Binding StudyAreasNames}"
+                  SelectedItem="{Binding ActiveStudyAreaName}"
+                  />
+        
+        <StackPanel Grid.Row="7"
+                    Grid.ColumnSpan="3"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Center">
+            <uc:MetricBox MetricName="Total Bounded Area"
+                          Value="{Binding ActiveStudy.Metrics.BoundedArea}"
+                          Unit="sq m"/>
+            
+            <uc:MetricBox MetricName="Developable Area"
+                          Value="{Binding ActiveStudy.Metrics.DevelopableArea}"
+                          Unit="sq m"/>
+            
+            <uc:MetricBox MetricName="Built Area"
+                          Value="{Binding ActiveStudy.Metrics.BuiltArea}"
+                          Unit="sq m"/>
+
+            <uc:MetricBox MetricName="FAR"                                                    
+                          Value="{Binding ActiveStudy.Metrics.FAR}"
+                          Unit="sq m"/>
+        </StackPanel>
+
+        <uc:HorizontalGraph Grid.Row="8"
+                            Grid.ColumnSpan="2"
+                            GraphData="{Binding LandUseGraphData, UpdateSourceTrigger=Default, Mode=OneWay}"
+                            GraphTitle="Landuse Area"
+                            />
+
     </Grid>
 
 </UserControl>

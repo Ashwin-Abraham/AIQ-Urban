@@ -59,10 +59,10 @@ namespace ArchSitePlan.UI.Actions
                     foreach( var obj in srfObjs)
                     {
                         RhinoToCoreModel.TryUpdateParcelUse(obj, ViewModel.SelectedLandUse);
-                        CoreModelToRhino.UpdateRhinoParcel(obj.Id);
+                        CoreModelToRhino.OutputParcelsToRhino(RhinoDoc.ActiveDoc);
                     }
-
-                    ViewModel.LandUseGraphData = ViewModel.ComputeLandUseGraphData(CoreModel.ProjectMetrics);
+                
+                    ViewModel.UpdateDisplayedStudyAreaData();
                 }
 
                 else if(ViewModel.AppMode == AppMode.Building)
@@ -89,7 +89,10 @@ namespace ArchSitePlan.UI.Actions
                 }
 
                 else if(ViewModel.AppMode != AppMode.None)
-                    ViewModel.LandUseGraphData = ViewModel.ComputeLandUseGraphData(CoreModel.ProjectMetrics);
+                {
+                    //var activeStudyMetric = CoreModel.StudiesAndMetrics.FirstOrDefault(s => s.Study.Name == ViewModel.ActiveStudyAreaName);
+                    //ViewModel.UpdateDisplayedStudyAreaData();
+                }
             }
             catch (Exception ex)
             {
@@ -106,7 +109,9 @@ namespace ArchSitePlan.UI.Actions
             {
                 RhinoToCoreModel.AddRoad(args.TheObject, ViewModel.RoadWidth);
                 CoreModelToRhino.OutputCoreModelToRhino(RhinoDoc.ActiveDoc);
-                ViewModel.LandUseGraphData = ViewModel.ComputeLandUseGraphData(CoreModel.ProjectMetrics);
+
+                var activeStudyMetric = CoreModel.Studies.FirstOrDefault(s => s.Name == ViewModel.ActiveStudyAreaName);
+                ViewModel.UpdateDisplayedStudyAreaData();
             }
         }
 
@@ -117,7 +122,9 @@ namespace ArchSitePlan.UI.Actions
                 if(CoreModel.TryRemoveRoad(args.TheObject.Id))
                 {
                     _lastDeletedId = args.TheObject.Id;
-                    ViewModel.LandUseGraphData = ViewModel.ComputeLandUseGraphData(CoreModel.ProjectMetrics);
+
+                    var activeStudyMetric = CoreModel.Studies.FirstOrDefault(s => s.Name == ViewModel.ActiveStudyAreaName);
+                    ViewModel.UpdateDisplayedStudyAreaData();
                 }
             }
         }

@@ -23,13 +23,17 @@ namespace ArchSitePlan.Core.Models
         /// </summary>
         /// <param name="centerline"></param>
         /// <param name="width"></param>
-        Road(PolyCurve centerline, Guid centerLineId, double width, PlanarSurface row)
+        Road(PolyCurve centerline, Guid centerLineId, double width)
         {
             Centerline = centerline;
             CenterLineId = centerLineId;
             Width = width;
-            RoW = row;
+            RoW = CalculateRoWs(centerline, width);
         }
+
+        public Road(PolyCurve newCenterline, Road parentRoad)
+            : this(newCenterline, parentRoad.CenterLineId, parentRoad.Width) 
+        { }
 
         internal static bool TryCreateRoad(PolyCurve centerline, 
             Guid id,
@@ -47,9 +51,7 @@ namespace ArchSitePlan.Core.Models
                     return false;
             }
 
-            PlanarSurface row = CalculateRoWs(centerline, width);
-
-            road = new Road(centerline, id, width, row);
+            road = new Road(centerline, id, width);
             return true;
         }
 
