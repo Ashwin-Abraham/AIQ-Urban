@@ -9,6 +9,7 @@ using Rhino;
 using Rhino.DocObjects;
 using Rhino.Geometry;
 using static ArchSitePlan.Core.Constants.Enums;
+using static ArchSitePlan.UI.Constants.Enums;
 
 namespace ArchSitePlan.UI.Actions
 {
@@ -75,11 +76,9 @@ namespace ArchSitePlan.UI.Actions
 
         public static void OutputCoreModelToRhino(RhinoDoc doc)
         {
-            LayerHelpers.ToggleLockLayer(doc, LayerConstants.MainLayer, false);
             OutputRoadsToRhino(doc);
             OutputParcelsToRhino(doc);
             MoveStudyAreasToCorrectRhinoLayer(doc);
-            LayerHelpers.ToggleLockLayer(doc, LayerConstants.MainLayer, true);
         }
 
         private static void MoveStudyAreasToCorrectRhinoLayer(RhinoDoc doc)
@@ -197,6 +196,65 @@ namespace ArchSitePlan.UI.Actions
         internal static void RefreshStudyAreaMetrics(bool recalculateModelSplit = true)
         {
             CoreModel.RefreshStudyAreaMetrics(recalculateModelSplit);
+        }
+
+        internal static void LockModelLayersExcept(RhinoDoc doc, List<string> layersToUnlock, bool unlockChildren=true)
+        {
+            ToggleLockModelLayers(doc, true);
+
+            // Unlock layer and children
+            List<Layer> unlockedLayers = new List<Layer>();
+            foreach(var layer in layersToUnlock)
+            {
+                int layerIndex = doc.Layers.FindByFullPath(layer, -1);
+                if (layerIndex == -1) continue;
+
+                Layer parent = doc.Layers[layerIndex];
+                var children = parent.GetChildren(true);
+
+                LayerHelpers.ToggleLockLayer(doc, layer, false);
+                unlockedLayers.Add(parent);
+                parent.IsLocked = false;
+
+                if (children != null)
+                {
+                    foreach (var child in children)
+                        child.IsLocked = false;
+
+                    unlockedLayers.AddRange(children);
+                }
+            }
+        }
+
+        internal static void ToggleLockModelLayers(RhinoDoc doc, bool lockLayers)
+        {
+            var mainLayer = doc.Layers.FindByFullPath(LayerConstants.MainLayer, -1);
+            if (mainLayer == -1) return;
+
+            var appLayers = doc.Layers[mainLayer].GetChildren(true);
+
+            // Unlock app layers
+            doc.Layers[mainLayer].IsLocked = false;
+            foreach (var layer in appLayers)
+                layer.IsLocked = lockLayers;
+        }
+
+        internal static void ToggleLayerStateBasedOnAppMode(RhinoDoc doc, AppMode appMode)
+        {
+            List<string> layersToUnlock = new();
+
+            switch (appMode)
+            {
+                case AppMode.Road:  layersToUnlock.Add(LayerConstants.RoadLayer); break;
+                case AppMode.LandUse:  layersToUnlock.Add(LayerConstants.ParcelsLayer); break;
+                case AppMode.Building:  layersToUnlock.Add(LayerConstants.BuildingLayer); break;
+                case AppMode.StudyArea:  layersToUnlock.Add(LayerConstants.StudyAreaLayer); break;
+            }
+
+            LockModelLayersExcept(doc, layersToUnlock);
+
+            // Deselects selected objects
+            doc.Views.Redraw();
         }
     }
 }

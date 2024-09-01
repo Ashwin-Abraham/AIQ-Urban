@@ -16,6 +16,8 @@ using Rhino.DocObjects;
 using Rhino.Input;
 using Rhino.Geometry;
 using ArchSitePlan.UI.RhinoBHoMInterop;
+using ArchSitePlan.UI.Constants;
+using ArchSitePlan.Core.Extensions;
 
 namespace ArchSitePlan.UI
 {
@@ -237,7 +239,7 @@ namespace ArchSitePlan.UI
         #endregion
 
         #region COMMANDS
-        public ICommand RefreshRoads_Cmd { get; }
+        public ICommand AddOrUpdateRoads_Cmd { get; }
         public ICommand SelectRoadCurve_Cmd { get; }
         public ICommand VisualizeModel_Cmd { get; }
         public ICommand UpdateBuilding_Cmd { get; }
@@ -246,7 +248,7 @@ namespace ArchSitePlan.UI
 
         public MainViewModel()
         {
-            this.RefreshRoads_Cmd = new RelayCommand(RefreshRoads_Exec);
+            this.AddOrUpdateRoads_Cmd = new RelayCommand(AddOrUpdateRoads_Exec);
             this.SelectRoadCurve_Cmd = new RelayCommand(SelectRoadCurve_Exec);
             this.UpdateBuilding_Cmd = new RelayCommand(UpdateBuilding_Exec);
             this.AddStudyArea_Cmd = new RelayCommand(AddStudyArea_Exec);
@@ -332,6 +334,9 @@ namespace ArchSitePlan.UI
                 StudyAreaExpanderOpen = false;
             if (AppMode != AppMode.Export && ExportsExpanderOpen)
                 ExportsExpanderOpen = false;
+
+            if(expanderOpen)
+                CoreModelToRhino.ToggleLayerStateBasedOnAppMode(RhinoDoc.ActiveDoc, changedExpander);
         }
 
         private void UpdateSelectedLanduseColour(Landuse use)
@@ -354,9 +359,44 @@ namespace ArchSitePlan.UI
             }
         }
 
-        private void RefreshRoads_Exec(object obj)
+        private void AddOrUpdateRoads_Exec(object obj)
         {
+            try
+            {
+                RhinoDoc doc = RhinoDoc.ActiveDoc;
+                int roadLayerIndex = LayerHelpers.CreateOrGetLayerIndex(
+                    doc, 
+                    LayerConstants.RoadCLLayer,
+                    LayerConstants.RoadColour);
 
+                // Try to select a curve
+                var rhinoObjs = RhinoDoc.ActiveDoc.Objects.GetSelectedObjects(false, false)
+                    .Where(obj => obj.ObjectType == ObjectType.Curve)
+                    .ToList();
+
+                int roadIndex = Constants.RhinoObjAttributeConstants.RoadGeometryAttributes.LayerIndex;
+
+                List<(BH.oM.Geometry.Polyline, Guid, double)> plineObjs = new();
+
+                foreach(var rhinoObj in rhinoObjs)
+                {
+                    if (!(rhinoObj.Geometry as Curve).TryGetPolyline(out Polyline pline)) continue;
+
+                    plineObjs.Add((pline.ToBHoM(), rhinoObj.Id, RoadWidth));
+                    LayerHelpers.ChangeLayer(rhinoObj, roadLayerIndex);
+                }
+
+                if (!plineObjs.Any()) return;
+
+                CoreModelToRhino.ToggleLockModelLayers(doc, false);
+                RhinoToCoreModel.AddOrUpdateRoads(plineObjs);
+                CoreModelToRhino.OutputCoreModelToRhino(doc);
+                CoreModelToRhino.LockModelLayersExcept(doc, LayerConstants.RoadLayer.ObjectToList());
+            }
+            catch(Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
         }
 
         public void UpdateDisplayedStudyAreaData()

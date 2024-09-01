@@ -1,5 +1,6 @@
 ﻿using ArchSitePlan.UI.Constants;
 using Rhino;
+using Rhino.DocObjects;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -39,10 +40,9 @@ namespace ArchSitePlan.UI.Helpers
             string layer = layerName;
             int index = doc.Layers.FindByFullPath(layer, LayerConstants.DefaultLayerIndex);
 
-            if (index == LayerConstants.DefaultLayerIndex)
+            if (index != LayerConstants.DefaultLayerIndex)
                 doc.Layers[index].IsLocked = lockLayer;
         }
-
         public static string GetParcelRhinoLayerName(Landuse use)
         {
             return LayerConstants.ParcelsLayer + "::" + use.ToString();
@@ -51,6 +51,12 @@ namespace ArchSitePlan.UI.Helpers
         internal static void SetLayerColour(RhinoDoc doc, int layerIndex, Color color)
         {
             doc.Layers[layerIndex].Color = color;
+        }
+
+        public static void ChangeLayer(RhinoObject obj, int layerIndex)
+        {
+            obj.Attributes.LayerIndex = layerIndex;
+            obj.CommitChanges();
         }
     }
 
