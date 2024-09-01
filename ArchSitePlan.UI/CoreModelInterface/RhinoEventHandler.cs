@@ -46,8 +46,19 @@ namespace ArchSitePlan.UI.Actions
                         .Where(obj => obj.ObjectType == ObjectType.Curve)
                         .ToList();
 
-                    crvObjs.ForEach(obj => RhinoToCoreModel.AddRoad(obj, ViewModel.RoadWidth));
-                    CoreModelToRhino.OutputCoreModelToRhino(RhinoDoc.ActiveDoc);
+                    // Set active width as first roads width
+                    foreach (var crvObj in crvObjs)
+                    {
+                        bool roadExists = RhinoToCoreModel.TryFindRoad(crvObj.Id, out Road road);
+                        if(roadExists)
+                        {
+                            ViewModel.RoadWidth = road.Width;
+                            break;
+                        }
+                    }
+
+                    // crvObjs.ForEach(obj => RhinoToCoreModel.AddRoad(obj, ViewModel.RoadWidth));
+                    // CoreModelToRhino.OutputCoreModelToRhino(RhinoDoc.ActiveDoc);
                 }
 
                 else if(ViewModel.AppMode == AppMode.LandUse)
@@ -103,6 +114,7 @@ namespace ArchSitePlan.UI.Actions
 
         public static void OnRhinoDocObjectAddition(RhinoObjectEventArgs args)
         {
+            // Check if object was modified
             if (_lastDeletedId != args.ObjectId) return;
          
             if(ViewModel.AppMode == AppMode.Road)
@@ -125,6 +137,7 @@ namespace ArchSitePlan.UI.Actions
 
                     var activeStudyMetric = CoreModel.Studies.FirstOrDefault(s => s.Name == ViewModel.ActiveStudyAreaName);
                     ViewModel.UpdateDisplayedStudyAreaData();
+                    CoreModelToRhino.OutputCoreModelToRhino(RhinoDoc.ActiveDoc);
                 }
             }
         }

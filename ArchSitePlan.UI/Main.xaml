@@ -77,12 +77,12 @@
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="35"/>
-                    <RowDefinition Height="35"/>
                 </Grid.RowDefinitions>
 
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="50"/>
-                    <ColumnDefinition Width="250"/>
+                    <ColumnDefinition Width="200"/>
+                    <ColumnDefinition Width="15"/>
                     <ColumnDefinition Width="100"/>
                 </Grid.ColumnDefinitions>
 
@@ -106,6 +106,10 @@
                            Grid.Column="2"
                            VerticalAlignment="Center"
                            HorizontalAlignment="Left"/>
+
+                <Button Content="Add/Update"
+                        Grid.Column="3"
+                        Command="{Binding AddOrUpdateRoads_Cmd}"/>
 
             </Grid>
 
@@ -230,8 +234,9 @@
 
         <!--Study Area-->
         <Expander Grid.Row="4"
-          Grid.ColumnSpan="3"
-          Header="4. Study Area">
+                  Grid.ColumnSpan="3"
+                  Header="4. Study Area"
+                  IsExpanded="{Binding StudyAreaExpanderOpen, Mode=TwoWay}">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="35"/>

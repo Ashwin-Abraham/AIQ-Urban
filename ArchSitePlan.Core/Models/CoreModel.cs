@@ -219,6 +219,22 @@ namespace ArchSitePlan.Core.Models
             }
         }
 
+        public static void AddOrUpdateRoads(List<(Polyline, Guid, double)> centerLines)
+        {
+            foreach(var cl in centerLines)
+            {
+                var pCurve = Create.PolyCurve(cl.Item1.ObjectToList());
+                if (Road.TryCreateRoad(pCurve, cl.Item2, cl.Item3, out Road road))
+                {
+                    TryRemove(road.CenterLineId);
+                    _roads.Add(road);
+                    
+                }
+            }
+            UpdateParcelsAndRoWs();
+            RefreshStudyAreaMetrics();
+        }
+
         public static bool TryRemove(Guid roadId)
         {
             int removalIndex = _roads.FindIndex(r => r.CenterLineId.Equals(roadId));
@@ -290,6 +306,12 @@ namespace ArchSitePlan.Core.Models
             else
                 Studies.Add( new StudyArea(boundary, id, name));
             return true;
+        }
+
+        public static bool TryFindRoad(Guid id, out Road road)
+        {
+            road = Roads.FirstOrDefault(r => r.CenterLineId == id);
+            return road != null;
         }
     }
 }

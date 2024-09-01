@@ -76,8 +76,12 @@ namespace ArchSitePlan.UI.Actions
         internal static bool TryAddStudyArea(BH.oM.Geometry.Polyline boundary, 
             Guid id, 
             string name)
-        {
-            return CoreModel.TryAddOrUpdateStudyArea(boundary, id, name);
-        }
+            => CoreModel.TryAddOrUpdateStudyArea(boundary, id, name);
+
+        internal static bool TryFindRoad(Guid id, out Road road)
+            => CoreModel.TryFindRoad(id,out road);
+
+        internal static void AddOrUpdateRoads(List<(BH.oM.Geometry.Polyline, Guid, double)> plineObjs)
+            => CoreModel.AddOrUpdateRoads(plineObjs);
     }
 }
