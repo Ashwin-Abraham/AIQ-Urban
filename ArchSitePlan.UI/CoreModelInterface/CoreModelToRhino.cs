@@ -236,7 +236,7 @@ namespace ArchSitePlan.UI.Actions
             // Unlock app layers
             doc.Layers[mainLayer].IsLocked = false;
             foreach (var layer in appLayers)
-                layer.IsLocked = lockLayers;
+                layer.IsLocked = lockLayers; 
         }
 
         internal static void ToggleLayerStateBasedOnAppMode(RhinoDoc doc, AppMode appMode)
