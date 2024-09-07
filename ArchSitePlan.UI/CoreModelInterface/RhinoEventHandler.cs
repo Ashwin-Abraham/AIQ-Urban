@@ -1,5 +1,7 @@
-﻿using ArchSitePlan.Core.Metrics;
+﻿using ArchSitePlan.Core.Extensions;
+using ArchSitePlan.Core.Metrics;
 using ArchSitePlan.Core.Models;
+using ArchSitePlan.UI.Helpers;
 using ArchSitePlan.UI.Models;
 using ArchSitePlan.UI.RhinoBHoMInterop;
 using BH.Engine.Geometry;
@@ -10,6 +12,7 @@ using Rhino.Geometry;
 using System.Windows;
 using static ArchSitePlan.Core.Constants.Enums;
 using static ArchSitePlan.UI.Constants.Enums;
+using Mesh = BH.oM.Geometry.Mesh;
 using Vector = BH.oM.Geometry.Vector;
 
 namespace ArchSitePlan.UI.Actions
@@ -21,6 +24,9 @@ namespace ArchSitePlan.UI.Actions
         public static MainViewModel ViewModel;
         static RhinoEventHandler()
         {
+            EventHandler<RhinoReplaceObjectEventArgs> replaceRhinoObjectEvent = (sender, args) => OnRhinoDocObjectReplace(args);
+            RhinoDoc.ReplaceRhinoObject += replaceRhinoObjectEvent;
+
             EventHandler<RhinoObjectEventArgs> addRhinoObjectEvent = (sender, args) => OnRhinoDocObjectAddition(args);
             RhinoDoc.AddRhinoObject += addRhinoObjectEvent;
 
@@ -32,6 +38,42 @@ namespace ArchSitePlan.UI.Actions
 
             //ViewModel.LandUseGraphData = ViewModel.ComputeLandUseGraphData(CoreModel.ProjectMetrics);
         }
+
+        private static void OnRhinoDocObjectReplace(RhinoReplaceObjectEventArgs args)
+        {
+            RhinoDoc doc = RhinoDoc.ActiveDoc;
+            RhinoObject obj = args.NewRhinoObject;
+
+            if (ViewModel.AppMode == AppMode.Building)
+            {
+
+                if (!(obj.ObjectType == ObjectType.Curve 
+                    || obj.ObjectType == ObjectType.Brep
+                    || obj.ObjectType == ObjectType.Extrusion
+                    || obj.ObjectType == ObjectType.Mesh)) return;
+
+                CoreModelToRhino.ToggleLockModelLayers(doc, false);
+
+                if (!CoreModel.TryGetBuilding(obj.Id, obj.Id, out Building building)) return;
+
+                UpdateSelectedBuildings(obj.ObjectToList(),
+                        building.FloorCount,
+                        building.FloorToFloorHeight);
+
+                ViewModel.UpdateDisplayedStudyAreaData();
+                //CoreModelToRhino.OutputCoreModelToRhino(doc);
+                CoreModelToRhino.ToggleLayerStateBasedOnAppMode(doc, AppMode.Building);
+            }
+            else if(ViewModel.AppMode == AppMode.Road)
+            {
+                RhinoToCoreModel.AddRoad(obj, ViewModel.RoadWidth);
+                CoreModelToRhino.OutputCoreModelToRhino(RhinoDoc.ActiveDoc);
+
+                var activeStudyMetric = CoreModel.Studies.FirstOrDefault(s => s.Name == ViewModel.ActiveStudyAreaName);
+                ViewModel.UpdateDisplayedStudyAreaData();
+            }
+        }
+
         public static void ActivateRoadSelectionFilter(bool activate)
         {
             Rhino.ApplicationSettings.SelectionFilterSettings.OneShotGeometryFilter = ObjectType.Curve;
@@ -84,16 +126,18 @@ namespace ArchSitePlan.UI.Actions
                                             .Where(obj => (obj.Geometry as Curve).IsClosed)
                                             .ToList();
 
-                    var brepRhinoObjs = args.RhinoObjects
-                        .Where(obj => obj.ObjectType == ObjectType.Brep)
+                    var envelopeRhinoObjs = args.RhinoObjects
+                        .Where(obj => obj.ObjectType == ObjectType.Brep 
+                            || obj.ObjectType == ObjectType.Extrusion
+                            || obj.ObjectType == ObjectType.Mesh)
                         .ToList();
 
-                    var rhinoObjs = ViewModel.BuildingSelectorMode == BuildingSelectorMode.Footprint? crvRhinoObjs: brepRhinoObjs;
-                    var rhinoObjsGuids = rhinoObjs.Select(b => b.Id).ToList();
+                    var rhinoObjs = ViewModel.BuildingSelectorMode == BuildingSelectorMode.Footprint? crvRhinoObjs: envelopeRhinoObjs;
+                    var firstObj = rhinoObjs.FirstOrDefault(b => b.Id != Guid.Empty);
 
-                    var building = CoreModel.Buildings.FirstOrDefault(b => rhinoObjsGuids.Contains(b.Id));
-
-                    if (building == null) return;
+                    Building building = null;
+                    if (firstObj == null || !CoreModel.TryGetBuilding(firstObj.Id, firstObj.Id, out building))
+                        return;
 
                     ViewModel.ActiveBuildingFloorCount = building.FloorCount;
                     ViewModel.ActiveBuildingFloorHeight = building.FloorToFloorHeight;
@@ -114,22 +158,28 @@ namespace ArchSitePlan.UI.Actions
 
         public static void OnRhinoDocObjectAddition(RhinoObjectEventArgs args)
         {
-            // Check if object was modified
-            if (_lastDeletedId != args.ObjectId) return;
-         
-            if(ViewModel.AppMode == AppMode.Road)
-            {
-                RhinoToCoreModel.AddRoad(args.TheObject, ViewModel.RoadWidth);
-                CoreModelToRhino.OutputCoreModelToRhino(RhinoDoc.ActiveDoc);
+            //RhinoDoc doc = RhinoDoc.ActiveDoc;
 
-                var activeStudyMetric = CoreModel.Studies.FirstOrDefault(s => s.Name == ViewModel.ActiveStudyAreaName);
-                ViewModel.UpdateDisplayedStudyAreaData();
-            }
+            //// Check if object was modified
+            //if (_lastDeletedId != args.ObjectId) return;
+         
+            //if(ViewModel.AppMode == AppMode.Road)
+            //{
+            //    RhinoToCoreModel.AddRoad(args.TheObject, ViewModel.RoadWidth);
+            //    CoreModelToRhino.OutputCoreModelToRhino(RhinoDoc.ActiveDoc);
+
+            //    var activeStudyMetric = CoreModel.Studies.FirstOrDefault(s => s.Name == ViewModel.ActiveStudyAreaName);
+            //    ViewModel.UpdateDisplayedStudyAreaData();
+            //}
         }
 
         public static void OnRhinoDocObjectRemove(RhinoObjectEventArgs args)
         {
-             if (args.TheObject.IsDeleted && ViewModel.AppMode == AppMode.Road)
+            RhinoDoc doc = RhinoDoc.ActiveDoc;
+
+            if(!args.TheObject.IsDeleted) return;
+
+            if (ViewModel.AppMode == AppMode.Road)
             {
                 if(CoreModel.TryRemoveRoad(args.TheObject.Id))
                 {
@@ -137,35 +187,84 @@ namespace ArchSitePlan.UI.Actions
 
                     var activeStudyMetric = CoreModel.Studies.FirstOrDefault(s => s.Name == ViewModel.ActiveStudyAreaName);
                     ViewModel.UpdateDisplayedStudyAreaData();
-                    CoreModelToRhino.OutputCoreModelToRhino(RhinoDoc.ActiveDoc);
+                    CoreModelToRhino.OutputCoreModelToRhino(doc);
                 }
+            }
+            else if(ViewModel.AppMode== AppMode.Building)
+            {
+                CoreModelToRhino.ToggleLockModelLayers(doc, false);
+                CoreModelToRhino.TryDeleteBakedBuilding(args.ObjectId);
+                RhinoToCoreModel.TryRemoveBuilding(args.ObjectId);
+                //ViewModel.UpdateDisplayedStudyAreaData();
+                CoreModelToRhino.OutputCoreModelToRhino(doc);
+                CoreModelToRhino.ToggleLayerStateBasedOnAppMode(doc, AppMode.Building);
             }
         }
 
         internal static void UpdateSelectedBuildings(List<RhinoObject> rhinoObjs, 
-            ObjectType requiredType, 
             int floorCount, 
             double floorToFloorHt)
         {
+            RhinoDoc doc = RhinoDoc.ActiveDoc;
             foreach (var obj in rhinoObjs)
             {
-                bool buildingExists = CoreModel.Buildings.Any(b => b.Id == obj.Id);
-                var footPrint = GetFootPrint(obj);
-                Building building = null;
+                bool buildingExists = CoreModel.TryGetBuilding(obj.Id, obj.Id, out Building building);
+                Guid footPrintID = Guid.Empty;
+                Guid envelopeID = Guid.Empty;
+                
+                if (buildingExists)
+                    CoreModelToRhino.TryDeleteBakedBuilding(obj.Id);
 
-                if (!buildingExists)
+                CoreModel.TryRemoveBuilding(obj.Id);
+                Rhino.Geometry.Mesh rhinoMesh = null;
+
+                if(obj.ObjectType == ObjectType.Mesh)
                 {
-                    CoreModel.TryAddBuilding(obj.Id, footPrint, floorCount, floorToFloorHt);
-                    building = CoreModel.Buildings.Find(b => b.Id == obj.Id);
+                    envelopeID = obj.Id;
+                    rhinoMesh = obj.Geometry as Rhino.Geometry.Mesh;
+                }
+                else if (obj.ObjectType == ObjectType.Brep)
+                {
+                    envelopeID = obj.Id;
+                    rhinoMesh = GeometryHelpers.ConvertToMesh(obj.Geometry as Rhino.Geometry.Brep);
+                }
+                else if(obj.ObjectType == ObjectType.Extrusion)
+                {
+                    envelopeID = obj.Id;
+                    rhinoMesh = GeometryHelpers.ConvertToMesh(obj.Geometry as Rhino.Geometry.Extrusion);
+                }
+                else if (obj.ObjectType == ObjectType.Curve)
+                {
+                    footPrintID = obj.Id;
+                    var extrusion = Rhino.Geometry.Extrusion.Create(
+                        obj.Geometry as Curve,
+                        floorCount * floorToFloorHt,
+                        true);
+
+                    rhinoMesh = GeometryHelpers.ConvertToMesh(extrusion);
                 }
                 else
                 {
-                    building = CoreModel.Buildings.Find(b => b.Id == obj.Id);
-                    CoreModelToRhino.DeleteRhinoBuilding(building);
-                    CoreModel.UpdateBuilding(obj.Id, footPrint, floorCount, floorToFloorHt);
+                    continue;
                 }
 
+                var floorPlates = GeometryHelpers
+                    .GetContours(rhinoMesh, floorToFloorHt)
+                    .Select(c => c.ToBHoM())
+                    .Select(c => new PlanarSurface(c, new List<ICurve>()))
+                    .ToList();
+
+                var bhomMesh  = rhinoMesh.ToBHoM();
+                CoreModel.TryAddBuilding(bhomMesh,
+                    floorPlates,
+                    envelopeID,
+                    footPrintID,
+                    floorToFloorHt);
+
+                CoreModel.TryGetBuilding(footPrintID, envelopeID,out building);
+                //CoreModelToRhino.TryDeleteBakedBuilding(building.FootprintId, building.EnvelopeId);
                 CoreModelToRhino.BakeRhinoBuilding(building);
+                
             }
         }
 

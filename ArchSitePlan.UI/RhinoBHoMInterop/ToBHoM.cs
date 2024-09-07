@@ -31,11 +31,34 @@ namespace ArchSitePlan.UI.RhinoBHoMInterop
             return rhinoPoints.Select(pt => pt.ToBHoM());
         }
 
+        public static BHoM.Face ToBHoM(this MeshFace rhinoFace)
+        {
+            if(rhinoFace.C == rhinoFace.D)
+                return Create.Face(rhinoFace.A, rhinoFace.B, rhinoFace.C);
+            else
+                return Create.Face(rhinoFace.A, rhinoFace.B, rhinoFace.C, rhinoFace.D);
+        }
+
         public static BHoM.Polyline ToBHoM(this Polyline rhinoPline)
         {
             List<Point3d> pointList = rhinoPline.ToList();
             List<BHoM.Point> bhomPts = pointList.ToBHoM().ToList();
             return Create.Polyline(bhomPts);
+        }
+
+        public static BHoM.Mesh ToBHoM(this Mesh rhinoMesh)
+        {
+            List<BHoM.Point> bhomPts = rhinoMesh.Vertices.ToPoint3dArray().ToBHoM().ToList();
+            List<BHoM.Face> bhomFaces = rhinoMesh.Faces.Select(f => f.ToBHoM()).ToList();
+            return Create.Mesh(bhomPts, bhomFaces);
+        }
+
+        public static BHoM.ICurve ToBHoM(this Rhino.Geometry.Curve rhinoCrv)
+        {
+            if (rhinoCrv.TryGetPolyline(out Polyline pline))
+                return pline.ToBHoM();
+            else
+                return null;
         }
     }
 }

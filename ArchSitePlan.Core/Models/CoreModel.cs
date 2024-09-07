@@ -157,7 +157,7 @@ namespace ArchSitePlan.Core.Models
                     .Find(x => x.Item2 == road.CenterLineId)
                     .Item1;
 
-                AddRoad(newCL, road.CenterLineId, road.Width );
+                AddOrUpdateRoad(newCL, road.CenterLineId, road.Width );
                 _roads.Remove(road);
             }
 
@@ -207,15 +207,15 @@ namespace ArchSitePlan.Core.Models
             ROWs = roadSrfs;
         }
 
-        public static void AddRoad(Polyline centerLine, Guid id, double width)
+        public static void AddOrUpdateRoad(Polyline centerLine, Guid id, double width)
         {
+            TryRemoveRoad(id);
             var pCurve = Create.PolyCurve(centerLine.ObjectToList());
-            if(Road.TryCreateRoad(pCurve, id, width, out Road road))
+
+            if (Road.TryCreateRoad(pCurve, id, width, out Road road))
             {
-                TryRemove(road.CenterLineId);
+                //TryRemove(road.CenterLineId);
                 _roads.Add(road);
-                UpdateParcelsAndRoWs();
-                RefreshStudyAreaMetrics();
             }
         }
 
@@ -223,14 +223,9 @@ namespace ArchSitePlan.Core.Models
         {
             foreach(var cl in centerLines)
             {
-                var pCurve = Create.PolyCurve(cl.Item1.ObjectToList());
-                if (Road.TryCreateRoad(pCurve, cl.Item2, cl.Item3, out Road road))
-                {
-                    TryRemove(road.CenterLineId);
-                    _roads.Add(road);
-                    
-                }
+                AddOrUpdateRoad(cl.Item1, cl.Item2, cl.Item3);
             }
+
             UpdateParcelsAndRoWs();
             RefreshStudyAreaMetrics();
         }
@@ -256,33 +251,27 @@ namespace ArchSitePlan.Core.Models
             RefreshStudyAreaMetrics(false);
         }
 
-        public static IEnumerable<object> GetRoads()
-        {
-            throw new NotImplementedException();
-        }
-
-        public static bool TryAddBuilding(Guid id, 
-            PlanarSurface footPrint, 
-            int floorCount, 
+        public static bool TryAddBuilding(Mesh envelope,
+            List<PlanarSurface> floorPlates,
+            Guid envelopeID,
+            Guid footPrintId,
             double floorToFloorHt)
         {
-            if(!Buildings.Any(b => b.Id == id))
+
+            if (!TryGetBuilding(footPrintId, envelopeID, out Building building))
             {
-                var newBldg = new Building(footPrint, floorCount, floorToFloorHt, id);
+                var newBldg = new Building(
+                    envelope,
+                    floorPlates,
+                    floorToFloorHt,
+                    envelopeID,
+                    footPrintId);
+                
                 Buildings.Add(newBldg);
 
                 return true;
             }
             return false;
-        }
-
-        public static void UpdateBuilding(Guid id, PlanarSurface footPrint, int floorCount, double floorToFloorHt)
-        {
-            int i = Buildings.FindIndex(b => b.Id == id);
-
-            if (i == -1) return;
-
-            Buildings[i].UpdateProperties(footPrint, floorCount, floorToFloorHt);
         }
 
         public static bool TryGetStudyAreaAndMetric(Guid id, out StudyArea area)
@@ -312,6 +301,21 @@ namespace ArchSitePlan.Core.Models
         {
             road = Roads.FirstOrDefault(r => r.CenterLineId == id);
             return road != null;
+        }
+
+        public static bool TryRemoveBuilding(Guid id)
+        {
+            int count = Buildings.RemoveAll(b => b.FootprintId == id || b.EnvelopeId == id);
+            
+            return count > 0;
+        }
+
+        public static bool TryGetBuilding(Guid footPrintId, Guid massId, out Building building)
+        {
+            building = Buildings.FirstOrDefault(b =>
+            (footPrintId != Guid.Empty && b.FootprintId == footPrintId)
+            || (massId != Guid.Empty && b.EnvelopeId == massId));
+            return building != null;
         }
     }
 }

@@ -53,6 +53,7 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="200"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
         <Grid.ColumnDefinitions>
@@ -327,6 +328,9 @@
                             GraphTitle="Landuse Area"
                             />
 
+        <Button Content="Test"
+                Grid.Row="9"
+                Command="{Binding Test_Cmd}"/>
     </Grid>
 
 </UserControl>

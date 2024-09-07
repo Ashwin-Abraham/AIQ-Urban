@@ -20,11 +20,10 @@ namespace ArchSitePlan.UI.Actions
             if (curve.Degree > 2)
                 throw new Exception("Curve degree is too high, please select line, polyline or arc only");
 
-
             if (curve.TryGetPolyline(out Polyline polyline))
             {
                 var bhom = polyline.ToBHoM();
-                CoreModel.AddRoad(bhom, id, width);
+                CoreModel.AddOrUpdateRoads((bhom, id, width).ObjectToList());
             }
         }
 
@@ -83,5 +82,11 @@ namespace ArchSitePlan.UI.Actions
 
         internal static void AddOrUpdateRoads(List<(BH.oM.Geometry.Polyline, Guid, double)> plineObjs)
             => CoreModel.AddOrUpdateRoads(plineObjs);
+
+        internal static void TryRemoveBuilding(Guid objectId)
+        {
+            CoreModel.TryRemoveBuilding(objectId);
+        }
+
     }
 }
