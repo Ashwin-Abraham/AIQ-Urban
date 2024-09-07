@@ -1,4 +1,5 @@
-﻿using BH.Engine.Geometry;
+﻿using ArchSitePlan.Core.Extensions;
+using BH.Engine.Geometry;
 using BH.oM.Geometry;
 using System;
 using System.Collections.Generic;
@@ -10,55 +11,64 @@ namespace ArchSitePlan.Core.Models
 {
     public class Building
     {
-        public PlanarSurface BaseOutline { get; set; }
         public int FloorCount { get; set; }
         public double FloorToFloorHeight { get; set;}
-        public Guid Id { get; init;}
-        public Guid OutputMassId { get; set;} = Guid.Empty;
+        public Guid FootprintId { get; init;}
+        public Guid EnvelopeId { get; set;} = Guid.Empty;
+        public Point Origin { get; private set; }
+        public Mesh Envelope { get; private set; }
 
         public List<(PlanarSurface Profile, Guid Id)> FloorPlates { get; set; }
 
         public Building(
-            PlanarSurface baseOutline, 
-            int floorCount, 
+            Mesh envelope,
+            List<PlanarSurface> floorPlates,
             double floorToFloorHeight,
-            Guid id)
+            Guid envelopeId,
+            Guid footprintId = default)
         {
-            BaseOutline = baseOutline;
-            FloorCount = floorCount;
+            Envelope = envelope;
             FloorToFloorHeight = floorToFloorHeight;
-            FloorPlates = CreateFloorPlates();
-            Id = id;
+            FloorPlates = floorPlates.Select(f => (f, Guid.Empty)).ToList();
+            FootprintId = footprintId;
+            EnvelopeId = envelopeId;
+            Origin = Envelope.Bounds().Centre();
         }
 
-        private List<(PlanarSurface, Guid)> CreateFloorPlates()
-        {
-            var floorPlates = new List<(PlanarSurface,Guid)>();
+        //private List<(PlanarSurface, Guid)> CreateFloorPlates(PlanarSurface baseOutline)
+        //{
+        //    var floorPlates = new List<(PlanarSurface,Guid)>();
 
-            for(int i = 0; i < FloorCount; i++)
-            {
-                var mover = Create.Vector(0,0, i * FloorToFloorHeight);
-                var floor = BaseOutline.Translate(mover);
-                floorPlates.Add((floor, Guid.Empty));
-            }
-            return floorPlates;
-        }
+        //    for(int i = 0; i < FloorCount; i++)
+        //    {
+        //        var mover = Create.Vector(0,0, i * FloorToFloorHeight);
+        //        var floor = baseOutline.Translate(mover);
+        //        floorPlates.Add((floor, Guid.Empty));
+        //    }
+        //    return floorPlates;
+        //}
+        //public Mesh GetEnvelope()
+        //{
+        //    if (BaseOutline != null)
+        //    {
+        //        var extr = Create.Extrusion(
+        //            BaseOutline.ExternalBoundary,
+        //            Create.Vector(0, 0, FloorToFloorHeight * FloorCount),
+        //            true);
 
-        public Extrusion GetExtruded3D()
-        {
-            Extrusion extrudedMass = Create.Extrusion(
-                BaseOutline.ExternalBoundary, 
-                Create.Vector(0, 0, FloorToFloorHeight * FloorCount),
-                true);
-
-            return extrudedMass;
-        }
-        public void UpdateProperties(PlanarSurface footPrint, int floorCount, double floorToFloorHeight)
-        {
-            BaseOutline = footPrint;
-            FloorCount = floorCount;
-            FloorToFloorHeight = floorToFloorHeight;
-            FloorPlates = CreateFloorPlates();
-        }
+        //        return extr.ToMesh();
+        //    }
+        //    else
+        //    {
+        //        return Envelope;
+        //    }
+        //}
+        //public void UpdateProperties(PlanarSurface footPrint, int floorCount, double floorToFloorHeight)
+        //{
+        //    BaseOutline = footPrint;
+        //    FloorCount = floorCount;
+        //    FloorToFloorHeight = floorToFloorHeight;
+        //    FloorPlates = CreateFloorPlates(footPrint);
+        //}
     }
 }

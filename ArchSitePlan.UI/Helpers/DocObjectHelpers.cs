@@ -1,4 +1,5 @@
 ﻿using Rhino;
+using Rhino.DocObjects;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,14 +12,15 @@ namespace ArchSitePlan.UI.Helpers
     {
         public static void DeleteRhinoObjectsIfPresent(RhinoDoc doc, IEnumerable<Guid> ids)
         {
-            var objs = ids.Where(id => id != null || id != Guid.Empty)
-                .Select(id => doc.Objects.FindId(id))
-                .Where(obj => obj != null)
-                .ToList();
+            var objIds = ids.Where(id => id != null && id != Guid.Empty).ToArray();
 
-            if (!objs.Any()) return;
+            if (!objIds.Any()) return;
 
-            objs.ForEach(obj => doc.Objects.Delete(obj, true, true));
+            doc.Objects.Delete(objIds, true);
+        }
+        public static void DeleteRhinoObjectsIfPresent(RhinoDoc doc, RhinoObject obj)
+        {
+            doc.Objects.Delete(obj, true);
         }
     }
 }

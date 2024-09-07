@@ -177,7 +177,7 @@ namespace ArchSitePlan.UI
         public BuildingSelectorMode BuildingSelectorMode = BuildingSelectorMode.None;
         
 
-        private bool _buildingFootprintSelectorModeActive = false;
+        private bool _buildingFootprintSelectorModeActive = true;
         public bool BuildingFootprintSelectorModeActive
         {
             get => _buildingFootprintSelectorModeActive;
@@ -244,6 +244,7 @@ namespace ArchSitePlan.UI
         public ICommand VisualizeModel_Cmd { get; }
         public ICommand UpdateBuilding_Cmd { get; }
         public ICommand AddStudyArea_Cmd { get; }
+        public ICommand Test_Cmd { get; }
         #endregion
 
         public MainViewModel()
@@ -252,6 +253,24 @@ namespace ArchSitePlan.UI
             this.SelectRoadCurve_Cmd = new RelayCommand(SelectRoadCurve_Exec);
             this.UpdateBuilding_Cmd = new RelayCommand(UpdateBuilding_Exec);
             this.AddStudyArea_Cmd = new RelayCommand(AddStudyArea_Exec);
+            this.Test_Cmd = new RelayCommand(Test_Exec);
+        }
+
+        private void Test_Exec(object obj)
+        {
+            try
+            {
+                var result = RhinoGet.GetOneObject("Select an object",
+                true,
+                ObjectType.Mesh,
+                out ObjRef objRef);
+
+                var bhomMesh = (objRef.Object().Geometry as Mesh).ToBHoM();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
         }
 
         private void AddStudyArea_Exec(object o)
@@ -296,18 +315,48 @@ namespace ArchSitePlan.UI
 
         private void UpdateBuilding_Exec(object obj)
         {
-            var requiredType = BuildingFootprintSelectorModeActive ? ObjectType.Curve : ObjectType.Brep;
+            try
+            {
+                RhinoDoc doc = RhinoDoc.ActiveDoc;
 
-            var rhinoObjs = RhinoDoc.ActiveDoc.Objects.GetSelectedObjects(false, false)
-                .Where(obj => obj.ObjectType == requiredType)
-                .ToList();
+                List<ObjectType> allowedTypes = new();
+                string layerName;
+                Color layerColor;
 
-            RhinoEventHandler.UpdateSelectedBuildings(rhinoObjs, 
-                requiredType, 
-                ActiveBuildingFloorCount, 
-                ActiveBuildingFloorHeight);
+                if (BuildingFootprintSelectorModeActive)
+                {
+                    allowedTypes = GeneralConstants.BuildingFootprintObjectTypes;
+                    //layerName = LayerConstants.BuildingFootprintLayer;
+                    //layerColor = LayerConstants.BuildingFootprintColour;
+                }
+                else
+                {
+                    allowedTypes = GeneralConstants.BuildingEnvelopeObjectTypes;
+                    //layerName = LayerConstants.BuildingMassLayer;
+                    //layerColor = LayerConstants.BuildingMassColour;
+                }
 
-            doc.Views.Redraw();
+                var rhinoObjs = RhinoDoc.ActiveDoc.Objects.GetSelectedObjects(false, false)
+                    .Where(obj => allowedTypes.Contains(obj.ObjectType))
+                    .ToList();
+
+                //int index = LayerHelpers.CreateOrGetLayerIndex(doc, layerName, layerColor);
+                //rhinoObjs.ForEach(o => LayerHelpers.ChangeLayer(o, index));
+
+                CoreModelToRhino.ToggleLockModelLayers(doc, false);
+                DocObjectHelpers.DeleteRhinoObjectsIfPresent(doc, rhinoObjs.Select(o => o.Id));
+                RhinoEventHandler.UpdateSelectedBuildings(rhinoObjs,
+                    ActiveBuildingFloorCount,
+                    ActiveBuildingFloorHeight);
+
+                CoreModelToRhino.ToggleLayerStateBasedOnAppMode(doc, AppMode.Building);
+                doc.Views.Redraw();
+            }
+            catch(Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+            
         }
 
         private void SetSelectionMode(AppMode changedExpander, bool expanderOpen)
@@ -317,6 +366,9 @@ namespace ArchSitePlan.UI
             {
                 // If expander is closed while the app mode is unchanged, it means wwe have closed all expanders
                 if (AppMode == changedExpander) AppMode = AppMode.None;
+                if (AppMode == AppMode.None)
+                    CoreModelToRhino.ToggleLockModelLayers(RhinoDoc.ActiveDoc, true);
+
                 // Early return to avoid cyclic SetSelectionMode calls for expander closure
                 return;
             }

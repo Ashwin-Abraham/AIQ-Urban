@@ -150,24 +150,20 @@ namespace ArchSitePlan.UI.Actions
 
         internal static void BakeRhinoBuilding(Building building)
         {
-            var extrusion = building.GetExtruded3D();
-
-            var ex = Rhino.Geometry.Extrusion.Create(extrusion.Curve.ToRhino(),
-                extrusion.Direction.Length(),
-                extrusion.Capped);
-            
+            var rhinoMesh = building.Envelope.ToRhino();
             RhinoDoc doc = RhinoDoc.ActiveDoc;
-
+            
             // Create new building
-            building.OutputMassId = doc.Objects.AddExtrusion(ex, RhinoObjAttributeConstants.BuildingGeometryAttributes);
-            for(int i =0; i< building.FloorPlates.Count; i++)
+            building.EnvelopeId = doc.Objects.AddMesh(rhinoMesh, RhinoObjAttributeConstants.BuildingGeometryAttributes);
+
+            for (int i = 0; i < building.FloorPlates.Count; i++)
             {
                 building.FloorPlates[i] =
                     (Profile: building.FloorPlates[i].Profile,
                     Id: BakeToRhino(
-                    building.FloorPlates[i].Profile,
-                    doc,
-                    RhinoObjAttributeConstants.BuildingFloorPlateAttributes));
+                        building.FloorPlates[i].Profile,
+                        doc,
+                        RhinoObjAttributeConstants.BuildingFloorPlateAttributes));
             }
         }
 
@@ -183,7 +179,7 @@ namespace ArchSitePlan.UI.Actions
             RhinoDoc doc = RhinoDoc.ActiveDoc;
 
             // Find guids
-            var guids = building.OutputMassId.ObjectToList();
+            var guids = building.EnvelopeId.ObjectToList();
             guids.AddRange(building.FloorPlates.Select(f => f.Id));
 
             // Delete rhino objects
@@ -242,19 +238,44 @@ namespace ArchSitePlan.UI.Actions
         internal static void ToggleLayerStateBasedOnAppMode(RhinoDoc doc, AppMode appMode)
         {
             List<string> layersToUnlock = new();
+            List<string> additionalLayersToLock = new();
 
             switch (appMode)
             {
                 case AppMode.Road:  layersToUnlock.Add(LayerConstants.RoadLayer); break;
                 case AppMode.LandUse:  layersToUnlock.Add(LayerConstants.ParcelsLayer); break;
-                case AppMode.Building:  layersToUnlock.Add(LayerConstants.BuildingLayer); break;
+                case AppMode.Building:
+                    {
+                        layersToUnlock.Add(LayerConstants.BuildingLayer);
+                        additionalLayersToLock.Add(LayerConstants.BuildingFloorOutlineLayer);
+                    }
+                    break;
                 case AppMode.StudyArea:  layersToUnlock.Add(LayerConstants.StudyAreaLayer); break;
             }
 
+            // Manipulate layer lock states
             LockModelLayersExcept(doc, layersToUnlock);
+            additionalLayersToLock.ForEach(layer => LayerHelpers.ToggleLockLayer(doc, layer, true));
 
             // Deselects selected objects
             doc.Views.Redraw();
+        }
+
+        internal static void TryDeleteBakedBuilding(params Guid[] ids)
+        {
+            ids = ids.Where(id => id!=Guid.Empty).ToArray();
+            List<Guid> buildingIdsToDelete = new();
+
+            var buildings = CoreModel.Buildings.FindAll(b => ids.Contains(b.FootprintId) || ids.Contains(b.EnvelopeId));
+
+            foreach(var building in buildings)
+            {
+                buildingIdsToDelete.Add(building.FootprintId);
+                buildingIdsToDelete.Add(building.EnvelopeId);
+                buildingIdsToDelete.AddRange(building.FloorPlates.Select(f => f.Id));
+            }
+
+            DocObjectHelpers.DeleteRhinoObjectsIfPresent(RhinoDoc.ActiveDoc, buildingIdsToDelete);
         }
     }
 }

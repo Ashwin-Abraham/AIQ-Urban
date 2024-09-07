@@ -1,7 +1,6 @@
 ﻿using ArchSitePlan.Core.Extensions;
 using ArchSitePlan.DebugModel;
 using BH.Engine.Geometry;
-using BH.Engine.Spatial;
 using BH.oM.Geometry;
 
 namespace ArchSitePlan.UI.RhinoBHoMInterop
@@ -41,6 +40,28 @@ namespace ArchSitePlan.UI.RhinoBHoMInterop
         {
             var result = curve.Select(c => c.ToRhino());
             return result;
+        }
+
+        public static Rhino.Geometry.Mesh ToRhino(this Mesh mesh)
+        {
+            List<Rhino.Geometry.MeshFace> rhFaces = new();
+            foreach(var face in mesh.Faces)
+            {
+                if (face.D == -1)
+                    rhFaces.Add(new Rhino.Geometry.MeshFace(face.A, face.B, face.C));
+                else
+                    rhFaces.Add(new Rhino.Geometry.MeshFace(face.A, face.B, face.C, face.D));
+            }
+
+            List<Rhino.Geometry.Point3d> rhVerts = mesh.Vertices
+                .Select(pt => pt.ToRhino())
+                .ToList();
+
+            var rhinoMesh = new Rhino.Geometry.Mesh();
+            rhinoMesh.Vertices.AddVertices(rhVerts);
+            rhinoMesh.Faces.AddFaces(rhFaces);
+
+            return rhinoMesh;
         }
     }
 }

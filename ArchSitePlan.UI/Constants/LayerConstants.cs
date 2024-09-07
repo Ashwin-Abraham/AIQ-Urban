@@ -12,6 +12,7 @@ namespace ArchSitePlan.UI.Constants
         public const string MainLayer = "ArchSitePlan";
         private const string _sep_ = "::";
         public static string StudyAreaLayer = $"{MainLayer}{_sep_}Study Area";
+        public static string BuildingFootprintLayer = $"{BuildingLayer}{_sep_}Footprint";
         public static string BuildingFloorOutlineLayer = $"{BuildingLayer}{_sep_}Floor Plate Outline";
         public static string BuildingMassLayer = $"{BuildingLayer}{_sep_}Mass";
         public const string BuildingLayer = $"{MainLayer}{_sep_}Buildings";
@@ -22,7 +23,8 @@ namespace ArchSitePlan.UI.Constants
         public const int DefaultLayerIndex = -1;
         public static Color RoadColour = Color.DarkGray;
         public static Color BuildingMassColour = Color.LightGray;
-        public static Color BuildingFloorOutlineColour = Color.Black;
+        public static Color BuildingFloorOutlineColour = Color.DarkGray;
+        public static Color BuildingFootprintColour = Color.DarkRed;
         public static Color StudyAreaColour = Color.IndianRed;
     }
 }
