@@ -27,11 +27,27 @@ namespace ArchSitePlan.Core.Models
 
             for (int i = 0; i < Studies.Count; i++) 
             {
-                var parcelsInArea = Parcels
-                    .Where(p => Studies[i].Boundary.IsContaining(p.Boundary.Centroid().ObjectToList()))
-                    .ToList();
+                if (Studies[i].Boundary == null)
+                {
+                    Studies[i] = new StudyArea(Studies[i], Parcels, Buildings);
+                }
+                else
+                {
+                    var parcelsInArea = Parcels
+                   .Where(p => Studies[i].Boundary.IsContaining(p.Boundary.Centroid().ObjectToList()))
+                   .ToList();
 
-                Studies[i] = new StudyArea(Studies[i], parcelsInArea);
+                    var buildingsInArea = Buildings
+                        .Where(bldg =>
+                        {
+                            var boundaryPt = Studies[i].Boundary.StartPoint();
+                            var bldgPt = bldg.Origin.Project(Create.Plane(boundaryPt, Vector.ZAxis));
+                            return Studies[i].Boundary.IsContaining(bldgPt.ObjectToList());
+                        })
+                        .ToList();
+
+                    Studies[i] = new StudyArea(Studies[i], parcelsInArea, buildingsInArea);
+                }
             }
         }
         private static void SplitCoreModelByStudyAreas()
@@ -107,10 +123,13 @@ namespace ArchSitePlan.Core.Models
         private static void SplitParcelsByStudyAreas()
         {
             var splitters = Studies.Select(sa => sa.Boundary)
+                .Where(crv => crv != null)
                 .SelectMany(pline => pline.Segments())
                 .ToList();
 
-            var studyBoundaries = Studies.Select(sa => sa.Boundary).ToList();
+            var studyBoundaries = Studies.Select(sa => sa.Boundary)
+                .Where(crv=> crv!=null)
+                .ToList();
 
 
             foreach(var boundary in studyBoundaries)
@@ -290,10 +309,10 @@ namespace ArchSitePlan.Core.Models
             if (Studies.Any(s => s.Id == id))
             {
                 int index = Studies.FindIndex(s => s.Id == id);
-                Studies[index] = new StudyArea(boundary, id, name);
+                Studies[index] = new StudyArea(boundary, id, name, Parcels, Buildings);
             }
             else
-                Studies.Add( new StudyArea(boundary, id, name));
+                Studies.Add(new StudyArea(boundary, id, name, Parcels, Buildings));
             return true;
         }
 

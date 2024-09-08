@@ -60,17 +60,21 @@ namespace ArchSitePlan.UI.Actions
                         building.FloorCount,
                         building.FloorToFloorHeight);
 
-                ViewModel.UpdateDisplayedStudyAreaData();
+                CoreModel.RefreshStudyAreaMetrics();
+                ViewModel.RefreshActiveStudy();
                 //CoreModelToRhino.OutputCoreModelToRhino(doc);
                 CoreModelToRhino.ToggleLayerStateBasedOnAppMode(doc, AppMode.Building);
             }
             else if(ViewModel.AppMode == AppMode.Road)
             {
+                CoreModelToRhino.ToggleLockModelLayers(doc, false);
                 RhinoToCoreModel.AddRoad(obj, ViewModel.RoadWidth);
                 CoreModelToRhino.OutputCoreModelToRhino(RhinoDoc.ActiveDoc);
-
+                CoreModel.RefreshStudyAreaMetrics();
+                ViewModel.RefreshActiveStudy();
                 var activeStudyMetric = CoreModel.Studies.FirstOrDefault(s => s.Name == ViewModel.ActiveStudyAreaName);
-                ViewModel.UpdateDisplayedStudyAreaData();
+                ViewModel.RefreshActiveStudy();
+                CoreModelToRhino.ToggleLayerStateBasedOnAppMode(doc, AppMode.Road);
             }
         }
 
@@ -115,7 +119,7 @@ namespace ArchSitePlan.UI.Actions
                         CoreModelToRhino.OutputParcelsToRhino(RhinoDoc.ActiveDoc);
                     }
                 
-                    ViewModel.UpdateDisplayedStudyAreaData();
+                    ViewModel.RefreshActiveStudy();
                 }
 
                 else if(ViewModel.AppMode == AppMode.Building)
@@ -186,17 +190,20 @@ namespace ArchSitePlan.UI.Actions
                     _lastDeletedId = args.TheObject.Id;
 
                     var activeStudyMetric = CoreModel.Studies.FirstOrDefault(s => s.Name == ViewModel.ActiveStudyAreaName);
-                    ViewModel.UpdateDisplayedStudyAreaData();
+                    ViewModel.RefreshActiveStudy();
                     CoreModelToRhino.OutputCoreModelToRhino(doc);
                 }
             }
             else if(ViewModel.AppMode== AppMode.Building)
             {
+                if (!CoreModel.TryGetBuilding(args.ObjectId, args.ObjectId, out Building building))
+                    return;
+
                 CoreModelToRhino.ToggleLockModelLayers(doc, false);
                 CoreModelToRhino.TryDeleteBakedBuilding(args.ObjectId);
                 RhinoToCoreModel.TryRemoveBuilding(args.ObjectId);
                 //ViewModel.UpdateDisplayedStudyAreaData();
-                CoreModelToRhino.OutputCoreModelToRhino(doc);
+                //CoreModelToRhino.OutputCoreModelToRhino(doc);
                 CoreModelToRhino.ToggleLayerStateBasedOnAppMode(doc, AppMode.Building);
             }
         }

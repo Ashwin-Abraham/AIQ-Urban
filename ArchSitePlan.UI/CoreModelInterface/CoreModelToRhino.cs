@@ -102,7 +102,7 @@ namespace ArchSitePlan.UI.Actions
                 .ToList();
 
             var studiesAndMetrics = CoreModel.Studies
-                .Where(s => !rhinoGuidsInLayer.Contains(s.Id))
+                .Where(s => !rhinoGuidsInLayer.Contains(s.Id) && s.Boundary != null)
                 .ToList();
 
             foreach( var studyAndMetric in studiesAndMetrics )
