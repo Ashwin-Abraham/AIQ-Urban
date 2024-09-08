@@ -21,18 +21,23 @@ namespace ArchSitePlan.Core.Models
             Polyline boundary, 
             Guid id, 
             string name,
-            List<Parcel> parcels = null)
+            List<Parcel> parcels,
+            List<Building> buildings)
         {
             Boundary = boundary;
             Id = id;
             Name = name;
-            Area = Math.Abs(boundary.Area());
-            Metrics = new StudyAreaMetrics(parcels?? new List<Parcel>());
+            Area = Math.Abs(boundary?.Area()?? 0);
+            Metrics = new StudyAreaMetrics(
+                boundary,
+                parcels,
+                buildings);
         }
 
         public StudyArea(
             StudyArea study,
-            List<Parcel> parcels): this(study.Boundary, study.Id, study.Name, parcels)
+            List<Parcel> parcels,
+            List<Building> buildings) : this(study.Boundary, study.Id, study.Name, parcels, buildings)
         { }
     }
 }

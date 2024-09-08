@@ -1,4 +1,7 @@
-﻿using ArchSitePlan.Core.Models;
+﻿using ArchSitePlan.Core.Constants;
+using ArchSitePlan.Core.Models;
+using BH.Engine.Data;
+using BH.Engine.Geometry;
 using BH.oM.Geometry;
 
 namespace ArchSitePlan.Core.Metrics
@@ -6,12 +9,18 @@ namespace ArchSitePlan.Core.Metrics
     public class StudyAreaMetrics
     {
         public double BoundedArea { get; private set; } = 25;
+        public double BoundedArea_Display { get; private set; } = 25;
         public double FAR { get; private set; } = 12;
+        public double FAR_Display { get; private set; } = 12;
         public double DevelopableArea { get; private set; } = 5;
+        public double DevelopableArea_Display { get; private set; } = 5;
         public double BuiltArea { get; private set; } = 2;
+        public double BuiltArea_Display { get; private set; } = 2;
         public List<ParcelMetrics> ParcelMetrics = new();
         //public RoadMetrics RoadMetric = new();
-        private void UpdateParcelMetrics(List<Parcel> parcels)
+        private void UpdateParcelMetrics(ICurve boundary, 
+            List<Parcel> parcels, 
+            List<Building> buildings)
         {
             ParcelMetrics = new();
 
@@ -20,15 +29,29 @@ namespace ArchSitePlan.Core.Metrics
                 ParcelMetrics.Add(new ParcelMetrics(p));
             }
 
-            BoundedArea = ParcelMetrics.Sum(p => p.Area);
+            BoundedArea = Math.Abs(boundary?.IArea()?? 0);
+            DevelopableArea = ParcelMetrics.Sum(p => p.Area);
+            BuiltArea = buildings.SelectMany(b => b.FloorPlates)
+                .Sum(flr => Math.Abs(flr.Profile.Area()));
+            FAR = BuiltArea / DevelopableArea;
+
+            PopulateDisplayAreas();
         }
 
-        public StudyAreaMetrics(List<Parcel> parcels)
+        private void PopulateDisplayAreas()
+        {
+            BoundedArea_Display = BoundedArea.Round();
+            FAR_Display = FAR.Round(GeneralConstants.DecimalPts);
+            DevelopableArea_Display = DevelopableArea.Round();
+            BuiltArea_Display = BuiltArea.Round();
+        }
+
+        public StudyAreaMetrics(ICurve boundary, List<Parcel> parcels, List<Building> buildings)
             //List<Building> buildings, 
             //List<Road> roads,
             //List<PlanarSurface> roadRoWs) 
         {
-            UpdateParcelMetrics(parcels);
+            UpdateParcelMetrics(boundary, parcels, buildings);
         }
     }
 }

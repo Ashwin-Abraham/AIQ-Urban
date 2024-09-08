@@ -225,14 +225,14 @@ namespace ArchSitePlan.UI
             }
         }
 
-        private StudyArea _activeStudy = null;
+        private StudyArea _activeStudy;
         public StudyArea ActiveStudy
         {
             get => _activeStudy;
             set
             {
                 _activeStudy = value;
-                UpdateDisplayedStudyAreaData();
+                UpdateDisplayedStudyAreaData(_activeStudy);
                 OnPropertyChanged(nameof(ActiveStudy));
             }
         }
@@ -254,6 +254,16 @@ namespace ArchSitePlan.UI
             this.UpdateBuilding_Cmd = new RelayCommand(UpdateBuilding_Exec);
             this.AddStudyArea_Cmd = new RelayCommand(AddStudyArea_Exec);
             this.Test_Cmd = new RelayCommand(Test_Exec);
+
+            Guid allStudyId = Guid.NewGuid();
+            RhinoToCoreModel.TryAddStudyArea(
+                null,
+                allStudyId,
+                "All");
+
+            ActiveStudy = CoreModel.Studies.FirstOrDefault(s => allStudyId == s.Id);
+            StudyAreasNames = CoreModel.Studies.Select(s => s.Name).ToList();
+            ActiveStudyAreaName = ActiveStudy.Name;
         }
 
         private void Test_Exec(object obj)
@@ -301,10 +311,11 @@ namespace ArchSitePlan.UI
                         rhinoObj.Id,
                         ActiveStudyAreaName);
 
+                ActiveStudy = CoreModel.Studies.FirstOrDefault(s => rhinoObj.Id == s.Id);
                 CoreModelToRhino.RefreshStudyAreaMetrics();
 
                 CoreModelToRhino.OutputCoreModelToRhino(RhinoDoc.ActiveDoc);
-
+                RefreshActiveStudy();
                 StudyAreasNames = CoreModel.Studies.Select(s => s.Name).ToList();
             }
             catch (Exception ex)
@@ -442,8 +453,10 @@ namespace ArchSitePlan.UI
 
                 CoreModelToRhino.ToggleLockModelLayers(doc, false);
                 RhinoToCoreModel.AddOrUpdateRoads(plineObjs);
+                CoreModel.RefreshStudyAreaMetrics();
+                RefreshActiveStudy();
                 CoreModelToRhino.OutputCoreModelToRhino(doc);
-                CoreModelToRhino.LockModelLayersExcept(doc, LayerConstants.RoadLayer.ObjectToList());
+                CoreModelToRhino.ToggleLayerStateBasedOnAppMode(doc, AppMode.Road);
             }
             catch(Exception ex)
             {
@@ -451,10 +464,17 @@ namespace ArchSitePlan.UI
             }
         }
 
-        public void UpdateDisplayedStudyAreaData()
+        private void UpdateDisplayedStudyAreaData(StudyArea study)
         {
-            CoreModel.TryGetStudyAreaAndMetric(_activeStudy.Id, out _activeStudy);
-            UpdateLandUseGraphData(_activeStudy.Metrics);
+            UpdateLandUseGraphData(study.Metrics);
+        }
+
+        public void RefreshActiveStudy()
+        {
+            if(CoreModel.TryGetStudyAreaAndMetric(_activeStudy.Id, out StudyArea study))
+                ActiveStudy = study;
+
+            UpdateDisplayedStudyAreaData(ActiveStudy);
         }
 
         private void UpdateLandUseGraphData(StudyAreaMetrics studyAndMetric)

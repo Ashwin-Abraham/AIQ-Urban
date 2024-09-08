@@ -306,20 +306,20 @@
                     Orientation="Horizontal"
                     HorizontalAlignment="Center">
             <uc:MetricBox MetricName="Total Bounded Area"
-                          Value="{Binding ActiveStudy.Metrics.BoundedArea}"
+                          Value="{Binding ActiveStudy.Metrics.BoundedArea_Display }"
                           Unit="sq m"/>
             
             <uc:MetricBox MetricName="Developable Area"
-                          Value="{Binding ActiveStudy.Metrics.DevelopableArea}"
+                          Value="{Binding ActiveStudy.Metrics.DevelopableArea_Display }"
                           Unit="sq m"/>
             
             <uc:MetricBox MetricName="Built Area"
-                          Value="{Binding ActiveStudy.Metrics.BuiltArea}"
+                          Value="{Binding ActiveStudy.Metrics.BuiltArea_Display }"
                           Unit="sq m"/>
 
             <uc:MetricBox MetricName="FAR"                                                    
-                          Value="{Binding ActiveStudy.Metrics.FAR}"
-                          Unit="sq m"/>
+                          Value="{Binding ActiveStudy.Metrics.FAR_Display }"
+                          />
         </StackPanel>
 
         <uc:HorizontalGraph Grid.Row="8"
@@ -328,9 +328,9 @@
                             GraphTitle="Landuse Area"
                             />
 
-        <Button Content="Test"
+        <!--<Button Content="Test"
                 Grid.Row="9"
-                Command="{Binding Test_Cmd}"/>
+                Command="{Binding Test_Cmd}"/>-->
     </Grid>
 
 </UserControl>

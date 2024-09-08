@@ -32,7 +32,7 @@ namespace ArchSitePlan.Core.Models
             FloorPlates = floorPlates.Select(f => (f, Guid.Empty)).ToList();
             FootprintId = footprintId;
             EnvelopeId = envelopeId;
-            Origin = Envelope.Bounds().Centre();
+            Origin = Envelope.Bounds().Centre().ProjectToXY();
         }
 
         //private List<(PlanarSurface, Guid)> CreateFloorPlates(PlanarSurface baseOutline)
