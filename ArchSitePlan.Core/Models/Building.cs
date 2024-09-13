@@ -15,6 +15,7 @@ namespace ArchSitePlan.Core.Models
         public double FloorToFloorHeight { get; set;}
         public Guid FootprintId { get; init;}
         public Guid EnvelopeId { get; set;} = Guid.Empty;
+        public Guid HostParcelId { get; set;} = Guid.Empty;
         public Point Origin { get; private set; }
         public Mesh Envelope { get; private set; }
 
@@ -29,10 +30,26 @@ namespace ArchSitePlan.Core.Models
         {
             Envelope = envelope;
             FloorToFloorHeight = floorToFloorHeight;
-            FloorPlates = floorPlates.Select(f => (f, Guid.Empty)).ToList();
+            
+            FloorPlates = floorPlates
+                .OrderBy(p => p.Centroid().Z)
+                .Select(f => (f, Guid.Empty))
+                .ToList();
+            
             FootprintId = footprintId;
             EnvelopeId = envelopeId;
             Origin = Envelope.Bounds().Centre().ProjectToXY();
+        }
+
+        public double BUA()
+        {
+            return FloorPlates.Sum(p => Math.Abs(p.Profile.ExternalBoundary.IArea()));
+        }
+
+        public double FootprintArea()
+        {
+            var area = FloorPlates.First().Profile.Area();
+            return Math.Abs(area);
         }
 
         //private List<(PlanarSurface, Guid)> CreateFloorPlates(PlanarSurface baseOutline)

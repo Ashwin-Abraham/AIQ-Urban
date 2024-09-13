@@ -1,4 +1,5 @@
-﻿using BH.oM.Geometry;
+﻿using BH.Engine.Geometry;
+using BH.oM.Geometry;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,6 +22,11 @@ namespace ArchSitePlan.Core.Models
         internal Parcel(Parcel parcel, PlanarSurface boundary):this(boundary, parcel.LandUse)
         {
             OriginalObjectID = parcel.OriginalObjectID;
+        }
+
+        public double Area()
+        {
+            return Math.Abs(Boundary.Area());
         }
     }
 }

@@ -113,13 +113,8 @@ namespace ArchSitePlan.UI.Actions
                         .Where(obj => obj.ObjectType == ObjectType.Brep)
                         .ToList();
 
-                    foreach( var obj in srfObjs)
-                    {
-                        RhinoToCoreModel.TryUpdateParcelUse(obj, ViewModel.SelectedLandUse);
-                        CoreModelToRhino.OutputParcelsToRhino(RhinoDoc.ActiveDoc);
-                    }
-                
-                    ViewModel.RefreshActiveStudy();
+                    if(srfObjs.Any())
+                        UpdateSelectedParcelsMetrics(srfObjs);
                 }
 
                 else if(ViewModel.AppMode == AppMode.Building)
@@ -158,6 +153,38 @@ namespace ArchSitePlan.UI.Actions
                 MessageBox.Show(ex.Message);
             }
             
+        }
+
+        private static void UpdateSelectedParcelsMetrics(List<RhinoObject> selectedBreps)
+        {
+            if(selectedBreps == null || selectedBreps.Count == 0) return;
+
+            RhinoToCoreModel.RecalculateBuildingHostParcelIDs();
+
+            // Check that they are parcels
+            var guids = selectedBreps.Select(obj => obj.Id).ToList();
+            var parcels = RhinoToCoreModel.GetParcel(guids).ToList();
+            var containedBuildings = RhinoToCoreModel.FindBuildingsInParcels(parcels);
+
+            // Aggregate metrics
+            double parcelsArea = parcels.Sum(p => p.Area());
+            double parcelsBuiltArea = containedBuildings.Sum(b => b.BUA());
+            double parcelsCoverage = containedBuildings.Sum(b => b.FootprintArea()) / parcelsArea * 100;
+            double parcelsFAR = parcelsBuiltArea / parcelsArea;
+
+            string use;
+            if (parcels.GroupBy(p => p.LandUse).Count() > 1)
+                use = "Mixed";
+            else
+                use = parcels.First().LandUse.ToString();
+
+            // Change viewmodel variables
+            ViewModel.ActiveParcelMetrics = new VMActiveParcelsDetails(
+                Use: use,
+                TotalArea: Math.Round(parcelsArea).ToString(),
+                BUA: Math.Round(parcelsBuiltArea).ToString(),
+                CoveragePctg: Math.Round(parcelsCoverage, 1).ToString(),
+                FAR: Math.Round(parcelsFAR, 2).ToString());
         }
 
         public static void OnRhinoDocObjectAddition(RhinoObjectEventArgs args)
@@ -245,6 +272,7 @@ namespace ArchSitePlan.UI.Actions
                     footPrintID = obj.Id;
                     var extrusion = Rhino.Geometry.Extrusion.Create(
                         obj.Geometry as Curve,
+                        Rhino.Geometry.Plane.WorldXY,
                         floorCount * floorToFloorHt,
                         true);
 

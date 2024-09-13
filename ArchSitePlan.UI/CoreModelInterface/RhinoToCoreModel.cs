@@ -88,5 +88,25 @@ namespace ArchSitePlan.UI.Actions
             CoreModel.TryRemoveBuilding(objectId);
         }
 
+        internal static List<Parcel> GetParcel(List<Guid> ids)
+        {
+            if (ids == null) return new List<Parcel>();
+
+            List<Parcel> list = CoreModel.Parcels?
+                .Where(parcel => ids.Contains(parcel.OriginalObjectID))
+                .ToList();
+            
+            return list?? new List<Parcel>();
+        }
+
+        internal static void RecalculateBuildingHostParcelIDs()
+        {
+            CoreModel.RecalculateBuildingHostParcelIDs();
+        }
+
+        internal static List<Building> FindBuildingsInParcels(List<Parcel> parcels)
+        {
+            return CoreModel.FindBuildingsInParcels(parcels);
+        }
     }
 }

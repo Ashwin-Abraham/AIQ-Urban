@@ -23,15 +23,16 @@ namespace ArchSitePlan.UI.Helpers
 
         public static int CreateOrGetLayerIndex(RhinoDoc doc,
             string layerName,
-            Color layerColor)
+            Color? layerColor = null)
         {
+            layerColor = layerColor ?? GeneralConstants.DefaultColor;
             string layer = layerName;
             int index = doc.Layers.FindByFullPath(layer, LayerConstants.DefaultLayerIndex);
             
             if (index == LayerConstants.DefaultLayerIndex)
                 index = doc.Layers.AddPath(layer);
 
-            doc.Layers[index].Color = layerColor;
+            doc.Layers[index].Color = (Color)layerColor;
             return index;
         }
 

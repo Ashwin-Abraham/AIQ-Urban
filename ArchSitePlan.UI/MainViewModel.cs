@@ -18,13 +18,33 @@ using Rhino.Geometry;
 using ArchSitePlan.UI.RhinoBHoMInterop;
 using ArchSitePlan.UI.Constants;
 using ArchSitePlan.Core.Extensions;
+using LiveCharts;
+using LiveCharts.Wpf;
 
 namespace ArchSitePlan.UI
 {
+    public record VMActiveParcelsDetails(
+        string Use,
+        string TotalArea,
+        string BUA,
+        string CoveragePctg,
+        string FAR);
+
     public class MainViewModel:ViewModelBase,INotifyPropertyChanged
     {
         #region VARIABLES
         public static RhinoDoc doc = RhinoDoc.ActiveDoc;
+
+        private VMActiveParcelsDetails _activeParcelsMetrics;
+        public VMActiveParcelsDetails ActiveParcelMetrics
+        {
+            get => _activeParcelsMetrics;
+            set
+            {
+                _activeParcelsMetrics = value;
+                OnPropertyChanged(nameof(ActiveParcelMetrics));
+            }
+        }
         private bool _buttonToggle = true;
         public string ButtonToggle
         {
@@ -236,24 +256,79 @@ namespace ArchSitePlan.UI
                 OnPropertyChanged(nameof(ActiveStudy));
             }
         }
+        private SeriesCollection _roadLengthSeries;
+        public SeriesCollection RoadLengthSeries
+        { 
+            get => _roadLengthSeries;
+            set
+            {
+                _roadLengthSeries = value;
+                OnPropertyChanged(nameof(RoadLengthSeries));
+            }
+        }
+
+        private SeriesCollection _roadAreaSeries;
+        public SeriesCollection RoadAreaSeries
+        {
+            get => _roadAreaSeries;
+            set
+            {
+                _roadAreaSeries = value;
+                OnPropertyChanged(nameof(RoadAreaSeries));
+            }
+        }
+
+        private SeriesCollection _parcelSeriesCollection;
+        public SeriesCollection ParcelSeriesCollection
+        {
+            get => _parcelSeriesCollection;
+            set
+            {
+                _parcelSeriesCollection = value;
+                OnPropertyChanged(nameof(ParcelSeriesCollection));
+            }
+        }
+
+        private double _graphHeight = 100;
+        public double GraphHeight
+        {
+            get => _graphHeight;
+            set
+            {
+                _graphHeight = value;
+                OnPropertyChanged(nameof(GraphHeight));
+            }
+        }
+
+        private bool _parcelsOrTransit;
+        private bool ParcelsOrTransit
+        {
+            get => _parcelsOrTransit;
+            set
+            {
+                _parcelsOrTransit = value;
+                OnPropertyChanged(nameof(ActiveStudyAreaName));
+            }
+        }
+
         #endregion
 
         #region COMMANDS
         public ICommand AddOrUpdateRoads_Cmd { get; }
-        public ICommand SelectRoadCurve_Cmd { get; }
         public ICommand VisualizeModel_Cmd { get; }
         public ICommand UpdateBuilding_Cmd { get; }
         public ICommand AddStudyArea_Cmd { get; }
+        public ICommand ChangeParcelUse_Cmd { get; }
         public ICommand Test_Cmd { get; }
         #endregion
 
         public MainViewModel()
         {
             this.AddOrUpdateRoads_Cmd = new RelayCommand(AddOrUpdateRoads_Exec);
-            this.SelectRoadCurve_Cmd = new RelayCommand(SelectRoadCurve_Exec);
             this.UpdateBuilding_Cmd = new RelayCommand(UpdateBuilding_Exec);
             this.AddStudyArea_Cmd = new RelayCommand(AddStudyArea_Exec);
             this.Test_Cmd = new RelayCommand(Test_Exec);
+            this.ChangeParcelUse_Cmd = new RelayCommand(ChangeParcelUse_Exec);
 
             Guid allStudyId = Guid.NewGuid();
             RhinoToCoreModel.TryAddStudyArea(
@@ -264,8 +339,114 @@ namespace ArchSitePlan.UI
             ActiveStudy = CoreModel.Studies.FirstOrDefault(s => allStudyId == s.Id);
             StudyAreasNames = CoreModel.Studies.Select(s => s.Name).ToList();
             ActiveStudyAreaName = ActiveStudy.Name;
+
+            //InitializeChart();
         }
 
+        private void ChangeParcelUse_Exec(object o)
+        {
+            RhinoDoc doc = RhinoDoc.ActiveDoc;
+            int parcelLayerIndex = LayerHelpers.CreateOrGetLayerIndex(
+                doc,
+                LayerConstants.ParcelsLayer);
+
+            // Try to select a curve
+            var srfObjs = RhinoDoc.ActiveDoc.Objects.GetSelectedObjects(false, false)
+                .Where(obj => obj.ObjectType == ObjectType.Brep
+                || obj.ObjectType == ObjectType.Surface)
+                .ToList();
+
+            foreach (var obj in srfObjs)
+            {
+                RhinoToCoreModel.TryUpdateParcelUse(obj, SelectedLandUse);
+            }
+
+            CoreModelToRhino.OutputParcelsToRhino(RhinoDoc.ActiveDoc);
+            RefreshActiveStudy();
+        }
+
+        private void UpdateLandUseGraphData(StudyAreaMetrics metrics)
+        {
+            var groupedByUse = metrics.ParcelMetrics.GroupBy(p => p.Use);
+            ParcelSeriesCollection = new SeriesCollection();
+
+            foreach(var landUseGroup in groupedByUse)
+            {
+                var area = Math.Round(landUseGroup.Sum(p => p.Area));
+                var use = landUseGroup.First().Use;
+
+                var newRow = new ColumnSeries()
+                {
+                    Title = landUseGroup.First().Use.ToString(),
+                    Values = new ChartValues<double> { area },
+                    Fill = new SolidColorBrush(Defaults.LandUseColours[use].ToWindowsColor()),
+                    Height = 40
+                };
+
+                ParcelSeriesCollection.Add(newRow);
+            }
+            GraphHeight = groupedByUse.Count() * 12 + 50;
+        }
+
+        private void UpdateRoadLengthGraphData(StudyAreaMetrics metrics)
+        {
+            var groupedByWidth = metrics.TransitMetrics.GroupBy(p => Math.Round(p.RoadWidth,1));
+            RoadLengthSeries = new SeriesCollection();
+
+            foreach (var transitGroup in groupedByWidth)
+            {
+                var length = Math.Round(transitGroup.Sum(p => p.RunningLength));
+                var label = "Width (" + Math.Round(transitGroup.First().RoadWidth, 1).ToString() +"m)";
+
+                var newRow = new PieSeries()
+                {
+                    Title = label,
+                    Values = new ChartValues<double> { length },
+                };
+
+                RoadLengthSeries.Add(newRow);
+            }
+        }
+
+        private void UpdateRoadAreaGraphData(StudyAreaMetrics metrics)
+        {
+            var groupedByWidth = metrics.TransitMetrics.GroupBy(p => Math.Round(p.RoadWidth, 1));
+            RoadAreaSeries = new SeriesCollection();
+
+            foreach (var transitGroup in groupedByWidth)
+            {
+                var area = Math.Round(transitGroup.Sum(p => p.Area));
+                var label = "Width (" + Math.Round(transitGroup.First().RoadWidth, 1).ToString() + "m)";
+
+                var newRow = new PieSeries()
+                {
+                    Title = label,
+                    Values = new ChartValues<double> { area },
+                };
+
+                RoadAreaSeries.Add(newRow);
+            }
+        }
+
+
+        private void InitializeChart()
+        {
+            ParcelSeriesCollection = new SeriesCollection
+            {
+                new RowSeries
+                {
+                    Title = "2015",
+                    Values = new ChartValues<double> { 10, 50, 39, 50 }
+                }
+            };
+
+            //adding series will update and animate the chart automatically
+            ParcelSeriesCollection.Add(new RowSeries
+            {
+                Title = "2016",
+                Values = new ChartValues<double> { 11, 56, 42 }
+            });
+        }
         private void Test_Exec(object obj)
         {
             try
@@ -410,17 +591,6 @@ namespace ArchSitePlan.UI
                 SelectedLandUseColour = new SolidColorBrush(Defaults.LandUseColours[Landuse.Undefined]
                     .ToWindowsColor());
         }
-        private void SelectRoadCurve_Exec(object obj)
-        {
-            try
-            {
-               
-            }
-            catch (Exception ex) 
-            {
-                MessageBox.Show(ex.Message);
-            }
-        }
 
         private void AddOrUpdateRoads_Exec(object obj)
         {
@@ -466,7 +636,17 @@ namespace ArchSitePlan.UI
 
         private void UpdateDisplayedStudyAreaData(StudyArea study)
         {
-            UpdateLandUseGraphData(study.Metrics);
+            try
+            {
+                UpdateLandUseGraphData(study.Metrics);
+                UpdateRoadLengthGraphData(study.Metrics);
+                UpdateRoadAreaGraphData(study.Metrics);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+
         }
 
         public void RefreshActiveStudy()
@@ -477,7 +657,7 @@ namespace ArchSitePlan.UI
             UpdateDisplayedStudyAreaData(ActiveStudy);
         }
 
-        private void UpdateLandUseGraphData(StudyAreaMetrics studyAndMetric)
+        private void UpdateLandUseGraphData_OLD(StudyAreaMetrics studyAndMetric)
         { 
             var allUses = Enum.GetValues<Landuse>();
             List<HorizontalGraphData> graphData = new();
@@ -509,7 +689,5 @@ namespace ArchSitePlan.UI
 
             LandUseGraphData = graphData;
         }
-
-       
     }
 }
