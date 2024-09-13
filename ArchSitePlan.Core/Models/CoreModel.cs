@@ -20,16 +20,26 @@ namespace ArchSitePlan.Core.Models
         public static void AddStudyArea(StudyArea studyArea) => Studies.Add(studyArea);
         public static void RemoveStudyArea(StudyArea studyArea) => Studies.Remove(studyArea);
 
+        public static void RecalculateBuildingHostParcelIDs()
+        {
+            foreach(var building in Buildings)
+            {
+                var parcel = Parcels.FirstOrDefault(p => p.Boundary.ExternalBoundary.IIsContaining(building.Origin.ObjectToList()));
+                building.HostParcelId = parcel?.OriginalObjectID?? Guid.Empty;
+            }
+        }
         public static void RefreshStudyAreaMetrics(bool RecalculatModelSplit = true)
         {
-            if (RecalculatModelSplit) 
+            if (RecalculatModelSplit)
+            {
                 SplitCoreModelByStudyAreas();
+            }
 
             for (int i = 0; i < Studies.Count; i++) 
             {
                 if (Studies[i].Boundary == null)
                 {
-                    Studies[i] = new StudyArea(Studies[i], Parcels, Buildings);
+                    Studies[i] = new StudyArea(Studies[i], Parcels, Buildings, Roads.ToList());
                 }
                 else
                 {
@@ -46,7 +56,7 @@ namespace ArchSitePlan.Core.Models
                         })
                         .ToList();
 
-                    Studies[i] = new StudyArea(Studies[i], parcelsInArea, buildingsInArea);
+                    Studies[i] = new StudyArea(Studies[i], parcelsInArea, buildingsInArea, Roads.ToList());
                 }
             }
         }
@@ -309,10 +319,10 @@ namespace ArchSitePlan.Core.Models
             if (Studies.Any(s => s.Id == id))
             {
                 int index = Studies.FindIndex(s => s.Id == id);
-                Studies[index] = new StudyArea(boundary, id, name, Parcels, Buildings);
+                Studies[index] = new StudyArea(boundary, id, name, Parcels, Buildings, Roads.ToList());
             }
             else
-                Studies.Add(new StudyArea(boundary, id, name, Parcels, Buildings));
+                Studies.Add(new StudyArea(boundary, id, name, Parcels, Buildings, Roads.ToList()));
             return true;
         }
 
@@ -335,6 +345,14 @@ namespace ArchSitePlan.Core.Models
             (footPrintId != Guid.Empty && b.FootprintId == footPrintId)
             || (massId != Guid.Empty && b.EnvelopeId == massId));
             return building != null;
+        }
+
+        public static List<Building> FindBuildingsInParcels(List<Parcel> parcels)
+        {
+            var parcelGuids = parcels.Select(p => p.OriginalObjectID).ToList();
+            var buildings = Buildings.Where(b => parcelGuids.Contains(b.HostParcelId)).ToList();
+
+            return buildings;
         }
     }
 }

@@ -22,7 +22,8 @@ namespace ArchSitePlan.Core.Models
             Guid id, 
             string name,
             List<Parcel> parcels,
-            List<Building> buildings)
+            List<Building> buildings,
+            List<Road> transitRoutes)
         {
             Boundary = boundary;
             Id = id;
@@ -31,13 +32,16 @@ namespace ArchSitePlan.Core.Models
             Metrics = new StudyAreaMetrics(
                 boundary,
                 parcels,
-                buildings);
+                buildings,
+                transitRoutes);
         }
 
         public StudyArea(
             StudyArea study,
             List<Parcel> parcels,
-            List<Building> buildings) : this(study.Boundary, study.Id, study.Name, parcels, buildings)
+            List<Building> buildings,
+            List<Road> transitRoutes) 
+            : this(study.Boundary, study.Id, study.Name, parcels, buildings, transitRoutes)
         { }
     }
 }

@@ -23,7 +23,7 @@ namespace ArchSitePlan.Core.Constants
             Transit
         }
 
-        public enum RoadType
+        public enum TransitType
         {
             Primary,
             Secondary,

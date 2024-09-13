@@ -1,9 +1,5 @@
 ﻿using Rhino.DocObjects;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Drawing;
 
 namespace ArchSitePlan.UI.Constants
 {
@@ -19,5 +15,7 @@ namespace ArchSitePlan.UI.Constants
             ObjectType.Brep,
             ObjectType.Mesh
         };
-}
+
+        public static readonly Color DefaultColor = Color.Gray;
+    }
 }

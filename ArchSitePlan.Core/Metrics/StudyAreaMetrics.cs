@@ -17,17 +17,14 @@ namespace ArchSitePlan.Core.Metrics
         public double BuiltArea { get; private set; } = 2;
         public double BuiltArea_Display { get; private set; } = 2;
         public List<ParcelMetrics> ParcelMetrics = new();
-        //public RoadMetrics RoadMetric = new();
+        public List<TransitMetrics> TransitMetrics = new();
         private void UpdateParcelMetrics(ICurve boundary, 
             List<Parcel> parcels, 
-            List<Building> buildings)
+            List<Building> buildings,
+            List<Road> transitRoutes)
         {
-            ParcelMetrics = new();
-
-            foreach(Parcel p in parcels)
-            {
-                ParcelMetrics.Add(new ParcelMetrics(p));
-            }
+            CalculateParcelMetrics(parcels);
+            CalculateTransitMetrics(transitRoutes);
 
             BoundedArea = Math.Abs(boundary?.IArea()?? 0);
             DevelopableArea = ParcelMetrics.Sum(p => p.Area);
@@ -38,6 +35,27 @@ namespace ArchSitePlan.Core.Metrics
             PopulateDisplayAreas();
         }
 
+        private void CalculateParcelMetrics(List<Parcel> parcels)
+        {
+            ParcelMetrics = new();
+
+            foreach (Parcel p in parcels)
+            {
+                ParcelMetrics.Add(new ParcelMetrics(p));
+            }
+        }
+
+        private void CalculateTransitMetrics(List<Road> transitRoutes)
+        {
+            var groupedByWidth = transitRoutes.GroupBy(b =>  Math.Round(b.Width, GeneralConstants.TransitRouteWidthPrecision));
+            TransitMetrics.Clear();
+
+            foreach(var roadType in groupedByWidth)
+            {
+                TransitMetrics.Add(new TransitMetrics(roadType));
+            }    
+        }
+
         private void PopulateDisplayAreas()
         {
             BoundedArea_Display = BoundedArea.Round();
@@ -46,12 +64,16 @@ namespace ArchSitePlan.Core.Metrics
             BuiltArea_Display = BuiltArea.Round();
         }
 
-        public StudyAreaMetrics(ICurve boundary, List<Parcel> parcels, List<Building> buildings)
+        public StudyAreaMetrics(
+            ICurve boundary, 
+            List<Parcel> parcels, 
+            List<Building> buildings,
+            List<Road> transitRoutes)
             //List<Building> buildings, 
             //List<Road> roads,
             //List<PlanarSurface> roadRoWs) 
         {
-            UpdateParcelMetrics(boundary, parcels, buildings);
+            UpdateParcelMetrics(boundary, parcels, buildings, transitRoutes);
         }
     }
 }

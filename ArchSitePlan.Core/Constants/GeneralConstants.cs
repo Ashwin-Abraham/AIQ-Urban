@@ -9,5 +9,6 @@ namespace ArchSitePlan.Core.Constants
     public static class GeneralConstants
     {
         public const int DecimalPts = 2;
+        public const int TransitRouteWidthPrecision = 1;
     }
 }
