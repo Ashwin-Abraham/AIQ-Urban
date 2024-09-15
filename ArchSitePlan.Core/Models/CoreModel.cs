@@ -214,7 +214,11 @@ namespace ArchSitePlan.Core.Models
                 .Where(pCrv => pCrv.IsContainingAny(roadPoints))
                 .ToList();
 
+            /// TODO: More detailed road ROWs
+            // var roadNetwork = new RoadNetwork(Roads);
+
             var parcels = union.Where(pCrv => !roads.Contains(pCrv))
+                //.Select(p => p.ExternalBoundary.Fillet())
                 .Cast<ICurve>()
                 .ToList();
 

@@ -93,5 +93,64 @@ namespace ArchSitePlan.Test
 
             var offset = pCrv.Offset(1, Vector.ZAxis);
         }
+
+        [Fact]
+        public void CanFilletPolyLine()
+        {
+            var points = new List<Point>()
+            {
+                Point.Origin,
+                Create.Point(2,5),
+                Create.Point(12,8),
+                Create.Point(12,15),
+            };
+
+            Polyline pline = Create.Polyline(points);
+            PolyCurve filletted = pline.Fillet(2);
+
+            //DEBUGMODEL.AddBoundedCurve(ToHyparInterop.ToHypar(pline));
+            DEBUGMODEL.AddBoundedCurves(ToHyparInterop.ToHypar(filletted), DebugMaterials.Red);
+            DEBUGMODEL.OpenAsGlb();
+        }
+
+        [Fact]
+        public void CanFillet2Lines()
+        {
+            //Line a = Create.Line(Point.Origin, Create.Point(1, 1));
+            //Line b = Create.Line(Create.Point(1, 1), Create.Point(1,0));
+
+            Line a = Create.Line(Point.Origin, Create.Point(5, 4));
+            Line b = Create.Line(Create.Point(5, 4), Create.Point(12,0));
+
+            var result = a.ArcBetweenLinesThatMeet(b, 0.3);
+
+            //DEBUGMODEL.AddBoundedCurve(ToHyparInterop.ToHypar(pline));
+            DEBUGMODEL.AddBoundedCurves(ToHyparInterop.ToHypar(result), DebugMaterials.Red);
+            DEBUGMODEL.OpenAsGlb();
+        }
+
+        [InlineData(0,0,0,0)]
+        [InlineData(0,0,1)]
+        [InlineData(33.0,3.0,1)]
+        [InlineData(33.0,3.0,-100)]
+        [Theory]
+        public void CanUnitizeVector(double x, double y, double z, double result = 1)
+        {
+            Vector v = Create.Vector(x,y,z).Unitized();
+
+            Assert.Equal(result, v.Length(), 1E-05);
+        }
+
+        [Fact]
+        public void CanCreateArc()
+        {
+            var arc = Create.Arc(
+                Point.Origin, 
+                Create.Point(1),
+                Create.Point(0,1));
+
+            DEBUGMODEL.AddBoundedCurve(ToHyparInterop.ToHypar(arc));
+            DEBUGMODEL.OpenAsGlb();
+        }
     }
 }

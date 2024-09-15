@@ -37,13 +37,27 @@ namespace ArchSitePlan.DebugModel.BHoMExtensions
 
         public static Elements.Geometry.Arc ToHypar(this Arc arc)
         {
-            return new Elements.Geometry.Arc(
-                arc.Centre().ToHypar(),
+            var arcTransform = new Elements.Geometry.Transform(
+                origin: arc.CoordinateSystem.Origin.ToHypar(),
+                xAxis: arc.CoordinateSystem.X.ToHypar(),
+                yAxis: arc.CoordinateSystem.Y.ToHypar(),
+                zAxis: arc.CoordinateSystem.Z.ToHypar());
+
+            var hyparArc = new Elements.Geometry.Arc(
+                arcTransform,
                 arc.Radius,
-                arc.StartAngle.RadiansToDegrees(),
-                arc.EndAngle.RadiansToDegrees());
+                0,
+                arc.EndAngle);
+
+            var test1 = arc.PointAtParameter(0.5);
+            var test2 = hyparArc.PointAtNormalized(0.5);
+            return hyparArc;
         }
 
+        public static Elements.Geometry.Vector3 ToHypar(this Vector v)
+        {
+            return new Elements.Geometry.Vector3(v.X, v.Y, v.Z);
+        }
         public static Elements.Geometry.Polyline ToHypar(this Polyline pline)
         {
             var points = pline.ControlPoints.Select(pt => ToHypar(pt)).ToList();
