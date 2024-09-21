@@ -373,49 +373,6 @@ namespace ArchSitePlan.Core.Models
                 worksheet.Cell(r, 10).SetContents(_studyAreasSummary[i].FAR, AreaLengthDataStyle);
             }
 
-            // Totals
-            rowOffset += _studyAreasSummary.Count;
-            totalStartRow = rowOffset - _studyAreasSummary.Count;
-            totalEndRow = rowOffset - 1;
-
-            worksheet.Cell(rowOffset, 1).SetContents("Total", TableSubHeadingStyle_StudyArea);
-            worksheet.Cell(rowOffset, 2).SetContents("", TableSubHeadingStyle_StudyArea);
-
-            // Bounded Area Total
-            worksheet.Cell(rowOffset, 3).SetContents("",
-                TableSubHeadingStyle_StudyArea,
-                BuildTotalFormula(totalStartRow, totalEndRow, 3));
-            // Parcel Area total
-            worksheet.Cell(rowOffset, 4).SetContents("",
-                TableSubHeadingStyle_StudyArea,
-                BuildTotalFormula(totalStartRow, totalEndRow, 4));
-            // Parcel Area Percentage Total
-            worksheet.Cell(rowOffset, 5).SetContents("",
-                TableSubHeadingStyle_Pctg_StudyArea,
-                BuildTotalFormula(totalStartRow, totalEndRow, 5));
-            // Transit Area Total
-            worksheet.Cell(rowOffset, 6).SetContents("",
-                TableSubHeadingStyle_StudyArea,
-                BuildTotalFormula(totalStartRow, totalEndRow, 6));
-            // Transit Area Percentage Total
-            worksheet.Cell(rowOffset, 7).SetContents("",
-                TableSubHeadingStyle_Pctg_StudyArea,
-                BuildTotalFormula(totalStartRow, totalEndRow, 7));
-            // Built Area Total
-            worksheet.Cell(rowOffset, 8).SetContents("",
-                TableSubHeadingStyle_StudyArea,
-                BuildTotalFormula(totalStartRow, totalEndRow, 8));
-            // Built Area Percentage Total
-            worksheet.Cell(rowOffset, 9).SetContents("",
-                TableSubHeadingStyle_Pctg_StudyArea,
-                BuildTotalFormula(totalStartRow, totalEndRow, 9));
-            // FAR Total
-            worksheet.Cell(rowOffset, 10).SetContents("",
-                TableSubHeadingStyle_StudyArea,
-                BuildTotalFormula(totalStartRow, totalEndRow, 10));
-
-            rowOffset += 1;
-
             //////////////// SHEET POST PROCESSING/ STYLING //////////////////
             // Set Cell Widths
             worksheet.ColumnWidth = 12;
