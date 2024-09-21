@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <PackageReference Include="BHoM.Engine" Version="7.2.2-alpha" />
+    <PackageReference Include="ClosedXML" Version="0.104.0-preview2" />
     <PackageReference Include="DeepCloner" Version="0.10.0" />
   </ItemGroup>
 

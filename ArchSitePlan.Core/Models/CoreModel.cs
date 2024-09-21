@@ -307,15 +307,10 @@ namespace ArchSitePlan.Core.Models
             return false;
         }
 
-        public static bool TryGetStudyAreaAndMetric(Guid id, out StudyArea area)
+        public static bool TryGetStudyArea(Guid id, out StudyArea study)
         {
-            area = null;
-            var studyAndMetric = Studies.Find(s => s.Id == id);
-
-            if (studyAndMetric == null) return false;
-
-            area = studyAndMetric;
-            return true;
+            study = Studies.Find(s => s.Id == id);
+            return study != null;
         }
 
         public static bool TryAddOrUpdateStudyArea(Polyline boundary, Guid id, string name)

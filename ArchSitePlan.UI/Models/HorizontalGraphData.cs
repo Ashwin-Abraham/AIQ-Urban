@@ -17,7 +17,7 @@ namespace ArchSitePlan.UI.Models
             Area = Math.Round(area,0);
             Name = name;
             Color = new SolidColorBrush(color.ToWindowsColor());
-            BarHeight = SetBarHeight(Area, maxArea, GeneralConstants.MaxGraphBarSize);
+            BarHeight = SetBarHeight(Area, maxArea, RHGeneralConstants.MaxGraphBarSize);
         }
 
         private double SetBarHeight(double area, double maxArea, double maxGraphHeight)

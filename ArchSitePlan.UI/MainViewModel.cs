@@ -20,6 +20,11 @@ using ArchSitePlan.UI.Constants;
 using ArchSitePlan.Core.Extensions;
 using LiveCharts;
 using LiveCharts.Wpf;
+using System.Windows.Forms;
+using MessageBox = System.Windows.Forms.MessageBox;
+using System.IO;
+using ClosedXML.Excel;
+using ArchSitePlan.Core.Constants;
 
 namespace ArchSitePlan.UI
 {
@@ -301,13 +306,24 @@ namespace ArchSitePlan.UI
         }
 
         private bool _parcelsOrTransit;
-        private bool ParcelsOrTransit
+        public bool ParcelsOrTransit
         {
             get => _parcelsOrTransit;
             set
             {
                 _parcelsOrTransit = value;
-                OnPropertyChanged(nameof(ActiveStudyAreaName));
+                OnPropertyChanged(nameof(ParcelsOrTransit));
+            }
+        }
+
+        private string _excelPath;
+        public string ExcelPath
+        {
+            get => _excelPath;
+            set
+            {
+                _excelPath = value;
+                OnPropertyChanged(nameof(ExcelPath));
             }
         }
 
@@ -319,6 +335,8 @@ namespace ArchSitePlan.UI
         public ICommand UpdateBuilding_Cmd { get; }
         public ICommand AddStudyArea_Cmd { get; }
         public ICommand ChangeParcelUse_Cmd { get; }
+        public ICommand ExportExcel_Cmd { get; }
+        public ICommand SetExcelPath_Cmd { get; }
         public ICommand Test_Cmd { get; }
         #endregion
 
@@ -329,18 +347,57 @@ namespace ArchSitePlan.UI
             this.AddStudyArea_Cmd = new RelayCommand(AddStudyArea_Exec);
             this.Test_Cmd = new RelayCommand(Test_Exec);
             this.ChangeParcelUse_Cmd = new RelayCommand(ChangeParcelUse_Exec);
+            this.ExportExcel_Cmd = new RelayCommand(ExportExcel_Exec);
+            this.SetExcelPath_Cmd = new RelayCommand(SetExcelPath_Exec);
 
             Guid allStudyId = Guid.NewGuid();
             RhinoToCoreModel.TryAddStudyArea(
                 null,
                 allStudyId,
-                "All");
+                CoreGeneralConstants.FullProjectStudyName);
 
             ActiveStudy = CoreModel.Studies.FirstOrDefault(s => allStudyId == s.Id);
             StudyAreasNames = CoreModel.Studies.Select(s => s.Name).ToList();
             ActiveStudyAreaName = ActiveStudy.Name;
 
             //InitializeChart();
+        }
+
+        private void SetExcelPath_Exec(object obj)
+        {
+            try
+            {
+                using (FolderBrowserDialog folderBrowserDialog = new FolderBrowserDialog())
+                {
+                    folderBrowserDialog.Description = "Set export location";
+                    folderBrowserDialog.ShowNewFolderButton = false;  
+
+                    if (folderBrowserDialog.ShowDialog() == DialogResult.OK)
+                    {
+                        // Get the selected folder path
+                        ExcelPath = Path.Combine(
+                            folderBrowserDialog.SelectedPath,
+                            "ProjectReport.xlsx");
+                    }
+                }
+            }
+            catch(Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        }
+
+        private void ExportExcel_Exec(object obj)
+        {
+            try
+            {
+                var pr = new ProjectReport(ExcelPath, CoreModel.Parcels, CoreModel.Studies);
+                pr.WriteExcelFile();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
         }
 
         private void ChangeParcelUse_Exec(object o)
@@ -517,13 +574,13 @@ namespace ArchSitePlan.UI
 
                 if (BuildingFootprintSelectorModeActive)
                 {
-                    allowedTypes = GeneralConstants.BuildingFootprintObjectTypes;
+                    allowedTypes = RHGeneralConstants.BuildingFootprintObjectTypes;
                     //layerName = LayerConstants.BuildingFootprintLayer;
                     //layerColor = LayerConstants.BuildingFootprintColour;
                 }
                 else
                 {
-                    allowedTypes = GeneralConstants.BuildingEnvelopeObjectTypes;
+                    allowedTypes = RHGeneralConstants.BuildingEnvelopeObjectTypes;
                     //layerName = LayerConstants.BuildingMassLayer;
                     //layerColor = LayerConstants.BuildingMassColour;
                 }
@@ -651,7 +708,7 @@ namespace ArchSitePlan.UI
 
         public void RefreshActiveStudy()
         {
-            if(CoreModel.TryGetStudyAreaAndMetric(_activeStudy.Id, out StudyArea study))
+            if(CoreModel.TryGetStudyArea(_activeStudy.Id, out StudyArea study))
                 ActiveStudy = study;
 
             UpdateDisplayedStudyAreaData(ActiveStudy);

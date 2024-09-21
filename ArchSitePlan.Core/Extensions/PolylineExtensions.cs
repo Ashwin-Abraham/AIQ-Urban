@@ -25,26 +25,7 @@ namespace ArchSitePlan.Core.Extensions
             {
                 var filletted = segments[i].ArcBetweenLinesThatMeet(segments[i+1], radius);
                 polyCurveSegments.AddRange(filletted.Curves);
-
-                //if (segments[i].Length() < radius || segments[i + 1].Length() < radius)
-                //{
-                    
-                //    continue;
-                //}
-
-                //var bisectorDirection = (segments[i].Direction().Reverse() + segments[i + 1].Direction()) / 2;
-                //var center = segments[i].End + (bisectorDirection * radius * 2);
-                //var middle = center - bisectorDirection * radius;
-
-                //segments[i] = segments[i].Extend(0, -radius);
-                //segments[i + 1] = segments[i+1].Extend(-radius, 0);
-                //var filletArc = Create.ArcByCentre(center, segments[i].End, segments[i+1].Start);
-
-                //polyCurveSegments.Add(segments[i]);
-                //polyCurveSegments.Add(filletArc);
             }
-
-            //polyCurveSegments.Add(segments.Last());
 
             return Create.PolyCurve(polyCurveSegments);
         }

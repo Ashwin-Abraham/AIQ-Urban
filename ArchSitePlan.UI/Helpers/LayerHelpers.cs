@@ -25,7 +25,7 @@ namespace ArchSitePlan.UI.Helpers
             string layerName,
             Color? layerColor = null)
         {
-            layerColor = layerColor ?? GeneralConstants.DefaultColor;
+            layerColor = layerColor ?? RHGeneralConstants.DefaultColor;
             string layer = layerName;
             int index = doc.Layers.FindByFullPath(layer, LayerConstants.DefaultLayerIndex);
             
