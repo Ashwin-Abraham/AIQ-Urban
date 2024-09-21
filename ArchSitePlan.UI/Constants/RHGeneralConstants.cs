@@ -3,7 +3,7 @@ using System.Drawing;
 
 namespace ArchSitePlan.UI.Constants
 {
-    public static class GeneralConstants
+    public static class RHGeneralConstants
     {
         public static int MaxGraphBarSize = 200;
 

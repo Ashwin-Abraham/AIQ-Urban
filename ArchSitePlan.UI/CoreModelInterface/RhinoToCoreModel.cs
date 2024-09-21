@@ -69,7 +69,7 @@ namespace ArchSitePlan.UI.Actions
 
         internal static bool TryGetStudyAreaAndMetric(Guid id, out StudyArea area)
         {
-           return CoreModel.TryGetStudyAreaAndMetric(id, out area);
+           return CoreModel.TryGetStudyArea(id, out area);
         }
 
         internal static bool TryAddStudyArea(BH.oM.Geometry.Polyline boundary, 

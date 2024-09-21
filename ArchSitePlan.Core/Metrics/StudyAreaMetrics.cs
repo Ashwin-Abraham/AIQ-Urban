@@ -47,7 +47,7 @@ namespace ArchSitePlan.Core.Metrics
 
         private void CalculateTransitMetrics(List<Road> transitRoutes)
         {
-            var groupedByWidth = transitRoutes.GroupBy(b =>  Math.Round(b.Width, GeneralConstants.TransitRouteWidthPrecision));
+            var groupedByWidth = transitRoutes.GroupBy(b =>  Math.Round(b.Width, CoreGeneralConstants.TransitRouteWidthPrecision));
             TransitMetrics.Clear();
 
             foreach(var roadType in groupedByWidth)
@@ -59,7 +59,7 @@ namespace ArchSitePlan.Core.Metrics
         private void PopulateDisplayAreas()
         {
             BoundedArea_Display = BoundedArea.Round();
-            FAR_Display = FAR.Round(GeneralConstants.DecimalPts);
+            FAR_Display = FAR.Round(CoreGeneralConstants.DecimalPts);
             DevelopableArea_Display = DevelopableArea.Round();
             BuiltArea_Display = BuiltArea.Round();
         }
