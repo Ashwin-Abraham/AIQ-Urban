@@ -1,13 +1,13 @@
-﻿using ArchSitePlan.Core.Extensions;
+﻿using ArchSitePlan.Core.Constants;
+using ArchSitePlan.Core.Extensions;
 using ArchSitePlan.Core.Models;
 using ArchSitePlan.UI.Constants;
 using ArchSitePlan.UI.Helpers;
 using ArchSitePlan.UI.RhinoBHoMInterop;
-using BH.Engine.Geometry;
+using BH.Engine.Data;
 using BH.oM.Geometry;
 using Rhino;
 using Rhino.DocObjects;
-using Rhino.Geometry;
 using static ArchSitePlan.Core.Constants.Enums;
 using static ArchSitePlan.UI.Constants.Enums;
 
@@ -49,9 +49,7 @@ namespace ArchSitePlan.UI.Actions
         {
             // Get Attributes
             var parcelGeometryAttributes = GetParcelAttributesForAllUses(doc);
-            var parcelLayerNames = Enum.GetValues<Landuse>()
-                .Select(use => LayerHelpers.GetParcelRhinoLayerName(use))
-                .ToList();
+            var parcelLayerNames = LayerHelpers.GetParcelRhinoLayerNames();
 
             var layerNames = doc.Layers.Select(l => l.Name).ToList();
 
@@ -60,10 +58,8 @@ namespace ArchSitePlan.UI.Actions
                 .SelectMany(lay => doc.Objects.FindByLayer(lay))
                 .ToList();
 
-            var parcelGuids = parcelObjs.Select(obj => obj.Id);
-
-            doc.Objects.Delete(parcelGuids, true);
-
+            parcelObjs.ForEach(obj => doc.Objects.Delete(obj, true, true));
+            
             // Bake model to rhino
             foreach(var parcel in CoreModel.Parcels)
             {
@@ -76,9 +72,9 @@ namespace ArchSitePlan.UI.Actions
 
         public static void OutputCoreModelToRhino(RhinoDoc doc)
         {
-            OutputRoadsToRhino(doc);
+            OutputRoadOutlinesToRhino(doc);
             OutputParcelsToRhino(doc);
-            MoveStudyAreasToCorrectRhinoLayer(doc);
+            //MoveStudyAreasToCorrectRhinoLayer(doc);
         }
 
         private static void MoveStudyAreasToCorrectRhinoLayer(RhinoDoc doc)
@@ -115,22 +111,22 @@ namespace ArchSitePlan.UI.Actions
             doc.Views.Redraw();
         }
 
-        private static void OutputRoadsToRhino(RhinoDoc doc)
+        private static void OutputRoadOutlinesToRhino(RhinoDoc doc)
         {
             // Get Attributes
-            LayerHelpers.EnsureLayerExists(doc, LayerConstants.RoadLayer);
+            LayerHelpers.EnsureLayerExists(doc, LayerConstants.RoadOutlineLayer);
 
-            ObjectAttributes roadGeometryAttributes = new ObjectAttributes()
+            ObjectAttributes roadOutlineObjAttributes = new ObjectAttributes()
             {
                 LayerIndex = LayerHelpers.CreateOrGetLayerIndex(
                     RhinoDoc.ActiveDoc, 
-                    LayerConstants.RoadLayer,
+                    LayerConstants.RoadOutlineLayer,
                     LayerConstants.RoadColour)
             };
 
             // Delete Existing Objects
             var guids = doc.Objects
-                .Where(obj => obj.Attributes.LayerIndex == roadGeometryAttributes.LayerIndex)
+                .Where(obj => obj.Attributes.LayerIndex == roadOutlineObjAttributes.LayerIndex)
                 .Select(obj => obj.Id)
                 .ToList();
 
@@ -143,7 +139,47 @@ namespace ArchSitePlan.UI.Actions
 
             rhinoSurfaces
                 .ToList()
-                .ForEach(brep => doc.Objects.AddBrep(brep, roadGeometryAttributes));
+                .ForEach(brep => doc.Objects.AddBrep(brep, roadOutlineObjAttributes));
+
+            // ROAD CENTERLINES
+            // Find Layer info and ensure existence
+            var roadClLayerNames = CoreModel.Roads
+                .Select(r => r.Width.Round(CoreGeneralConstants.TransitRouteWidthPrecision))
+                .Select(width => LayerHelpers.GenerateRoadCLLayer(width))
+                .ToList();
+
+            roadClLayerNames.ForEach(name => LayerHelpers.EnsureLayerExists(doc, name));
+
+            var roadCLLayers = doc.Layers
+                .Where(lay => roadClLayerNames.Contains(lay.FullPath))
+                .ToList();
+
+            // Find road CL rhino objects
+            var coreModelClGuids = CoreModel.Roads.Select(r => r.CenterLineId).ToList();
+
+            var rhinoCLs = doc.Objects
+                .Where(obj => coreModelClGuids.Contains(obj.Id))
+                .ToList();
+
+            var roadAndLayer = rhinoCLs.Select(obj =>
+                (rhinoObj: obj,
+                layer: CoreModel.Roads.FirstOrDefault(r => r.CenterLineId == obj.Id)))
+                .ToList();
+
+            // Ensure each CL is on required layer
+            foreach (var obj in rhinoCLs)
+            {
+                double width = CoreModel.Roads.FirstOrDefault(r => r.CenterLineId == obj.Id)
+                    .Width.Round(CoreGeneralConstants.TransitRouteWidthPrecision);
+                string layerName = LayerHelpers.GenerateRoadCLLayer(width);
+                
+                int? layerIndex = roadCLLayers
+                    .FirstOrDefault(lay => lay.FullPath == layerName)?
+                    .Index;
+
+                if(layerIndex.HasValue)
+                    LayerHelpers.ChangeLayer(obj, layerIndex.Value);
+            }
 
             doc.Views.Redraw();
         }
@@ -259,6 +295,12 @@ namespace ArchSitePlan.UI.Actions
 
             // Deselects selected objects
             doc.Views.Redraw();
+        }
+
+        internal static void TryDeleteBakedBuilding(RhinoDoc doc, params RhinoObject[] objects)
+        {
+            foreach (var obj in objects)
+                doc.Objects.Delete(obj, true, true);
         }
 
         internal static void TryDeleteBakedBuilding(params Guid[] ids)

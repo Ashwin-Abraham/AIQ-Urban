@@ -1,9 +1,13 @@
 ﻿using ArchSitePlan.Core.Constants;
 using ArchSitePlan.Core.Extensions;
 using ArchSitePlan.Core.Models;
+using ArchSitePlan.UI.Constants;
+using ArchSitePlan.UI.Helpers;
 using ArchSitePlan.UI.RhinoBHoMInterop;
+using BH.Engine.Data;
 using BH.Engine.Geometry;
 using BH.oM.Geometry;
+using Rhino;
 using Rhino.DocObjects;
 using Rhino.Geometry;
 using static ArchSitePlan.Core.Constants.Enums;
@@ -107,6 +111,69 @@ namespace ArchSitePlan.UI.Actions
         internal static List<Building> FindBuildingsInParcels(List<Parcel> parcels)
         {
             return CoreModel.FindBuildingsInParcels(parcels);
+        }
+
+        internal static void ReloadProjectFromRhino(RhinoDoc doc)
+        {
+            // RESET MODEL
+            // Clear Core Model
+            CoreModel.ClearModel();
+
+            // PARCELS
+            // Read parcel Objects and store center points
+            var parcelLayIndices = LayerHelpers
+                .GetParcelRhinoLayerNames()
+                .Select(name => doc.Layers.FindByFullPath(name, -1))
+                .ToList();
+
+            var rhinoParcelCenters = doc.Objects
+                .Where(obj => parcelLayIndices.Contains(obj.Attributes.LayerIndex)
+                    && obj.ObjectType == ObjectType.Surface)
+                .Select(srf => (srf.Geometry as Surface))
+                .Select(srf => VolumeMassProperties.Compute(srf).Centroid);
+
+            // TRANSIT
+            ReloadTransitFromRhino(doc);
+
+            // STUDY AREAS
+            // Read study area objects
+            CoreModel.ResetStudyAreas();
+
+            // BUILDINGS
+            // Read building objects
+        }
+
+        private static void ReloadTransitFromRhino(RhinoDoc doc)
+        {
+            // TRANSIT
+            // Read Road CL objects
+            int roadCLMainLayerIndex = doc.Layers.FindByFullPath(LayerConstants.RoadCLLayer, true);
+
+            if (roadCLMainLayerIndex == -1) return;
+
+            var roadCLLayerIndices = doc.Layers[roadCLMainLayerIndex].GetChildren().Select(lay => lay.Index).ToList();
+
+            foreach (var index in roadCLLayerIndices)
+            {
+                var roadCLs = doc.Objects.Where(o => o.Attributes.LayerIndex == index).ToList();
+
+                if (!Double.TryParse(doc.Layers[index].Name, out double roadWidth))
+                    continue;
+
+                roadWidth = roadWidth.Round(CoreGeneralConstants.TransitRouteWidthPrecision);
+
+                roadCLs.ForEach(obj => AddRoad(obj, roadWidth));
+            }
+        }
+
+        internal static void ResetStudyAreas()
+        {
+            CoreModel.ResetStudyAreas();
+        }
+
+        internal static bool TryRemoveRoad(Guid id)
+        {
+            return CoreModel.TryRemoveRoad(id);
         }
     }
 }

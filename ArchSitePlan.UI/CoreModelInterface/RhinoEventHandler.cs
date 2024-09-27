@@ -61,7 +61,7 @@ namespace ArchSitePlan.UI.Actions
                         building.FloorToFloorHeight);
 
                 CoreModel.RefreshStudyAreaMetrics();
-                ViewModel.RefreshActiveStudy();
+                ViewModel.RefreshActiveStudyAndMetrics();
                 //CoreModelToRhino.OutputCoreModelToRhino(doc);
                 CoreModelToRhino.ToggleLayerStateBasedOnAppMode(doc, AppMode.Building);
             }
@@ -71,9 +71,9 @@ namespace ArchSitePlan.UI.Actions
                 RhinoToCoreModel.AddRoad(obj, ViewModel.RoadWidth);
                 CoreModelToRhino.OutputCoreModelToRhino(RhinoDoc.ActiveDoc);
                 CoreModel.RefreshStudyAreaMetrics();
-                ViewModel.RefreshActiveStudy();
+                ViewModel.RefreshActiveStudyAndMetrics();
                 var activeStudyMetric = CoreModel.Studies.FirstOrDefault(s => s.Name == ViewModel.ActiveStudyAreaName);
-                ViewModel.RefreshActiveStudy();
+                ViewModel.RefreshActiveStudyAndMetrics();
                 CoreModelToRhino.ToggleLayerStateBasedOnAppMode(doc, AppMode.Road);
             }
         }
@@ -189,19 +189,6 @@ namespace ArchSitePlan.UI.Actions
 
         public static void OnRhinoDocObjectAddition(RhinoObjectEventArgs args)
         {
-            //RhinoDoc doc = RhinoDoc.ActiveDoc;
-
-            //// Check if object was modified
-            //if (_lastDeletedId != args.ObjectId) return;
-         
-            //if(ViewModel.AppMode == AppMode.Road)
-            //{
-            //    RhinoToCoreModel.AddRoad(args.TheObject, ViewModel.RoadWidth);
-            //    CoreModelToRhino.OutputCoreModelToRhino(RhinoDoc.ActiveDoc);
-
-            //    var activeStudyMetric = CoreModel.Studies.FirstOrDefault(s => s.Name == ViewModel.ActiveStudyAreaName);
-            //    ViewModel.UpdateDisplayedStudyAreaData();
-            //}
         }
 
         public static void OnRhinoDocObjectRemove(RhinoObjectEventArgs args)
@@ -210,16 +197,31 @@ namespace ArchSitePlan.UI.Actions
 
             if(!args.TheObject.IsDeleted) return;
 
-            if (ViewModel.AppMode == AppMode.Road)
+            switch(ViewModel.AppMode)
             {
-                if(CoreModel.TryRemoveRoad(args.TheObject.Id))
-                {
+                case AppMode.Road:
+                    if (!RhinoToCoreModel.TryRemoveRoad(args.TheObject.Id)) break;
                     _lastDeletedId = args.TheObject.Id;
 
-                    var activeStudyMetric = CoreModel.Studies.FirstOrDefault(s => s.Name == ViewModel.ActiveStudyAreaName);
-                    ViewModel.RefreshActiveStudy();
+                    CoreModel.RefreshStudyAreaMetrics();
+                    ViewModel.RefreshActiveStudyAndMetrics();
+                    // Output again because the parcels also may have been edited
                     CoreModelToRhino.OutputCoreModelToRhino(doc);
-                }
+                    break;
+
+                case AppMode.Building:
+                    if (!CoreModel.TryGetBuilding(args.ObjectId, args.ObjectId, out Building building)) break;
+                    CoreModelToRhino.TryDeleteBakedBuilding(doc, args.TheObject);
+                    RhinoToCoreModel.TryRemoveBuilding(args.ObjectId);
+                    ViewModel.RefreshActiveStudyAndMetrics();
+                    //ViewModel.UpdateDisplayedStudyAreaData();
+                    //CoreModelToRhino.OutputCoreModelToRhino(doc);
+                    break;
+
+            }
+            if (ViewModel.AppMode == AppMode.Road)
+            {
+                
             }
             else if(ViewModel.AppMode== AppMode.Building)
             {

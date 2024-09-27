@@ -10,16 +10,17 @@ namespace ArchSitePlan.UI.Constants
     public static class LayerConstants
     {
         public const string MainLayer = "ArchSitePlan";
-        private const string _sep_ = "::";
-        public static string StudyAreaLayer = $"{MainLayer}{_sep_}Study Area";
-        public static string BuildingFootprintLayer = $"{BuildingLayer}{_sep_}Footprint";
-        public static string BuildingFloorOutlineLayer = $"{BuildingLayer}{_sep_}Floor Plate Outline";
-        public static string BuildingMassLayer = $"{BuildingLayer}{_sep_}Mass";
-        public const string BuildingLayer = $"{MainLayer}{_sep_}Buildings";
-        public const string ParcelsLayer = $"{MainLayer}{_sep_}Parcels";
-        public const string RoadLayer = $"{MainLayer}{_sep_}Roads";
-        public const string RoadCLLayer = $"{RoadLayer}{_sep_}CL";
-        public const string RoadROWLayer = $"{RoadLayer}{_sep_}RoW";
+        public const string _Sep_ = "::";
+        public static string StudyAreaLayer = $"{MainLayer}{_Sep_}Study Area";
+        public static string BuildingFootprintLayer = $"{BuildingLayer}{_Sep_}Footprint";
+        public static string BuildingFloorOutlineLayer = $"{BuildingLayer}{_Sep_}Floor Plate Outline";
+        public static string BuildingMassLayer = $"{BuildingLayer}{_Sep_}Mass";
+        public const string BuildingLayer = $"{MainLayer}{_Sep_}Buildings";
+        public const string ParcelsLayer = $"{MainLayer}{_Sep_}Parcels";
+        public const string RoadLayer = $"{MainLayer}{_Sep_}Roads";
+        public const string RoadOutlineLayer = $"{RoadLayer}{_Sep_}Outline";
+        public const string RoadCLLayer = $"{RoadLayer}{_Sep_}CL";
+        public const string RoadROWLayer = $"{RoadLayer}{_Sep_}RoW";
         public const int DefaultLayerIndex = -1;
         public static Color RoadColour = Color.DarkGray;
         public static Color BuildingMassColour = Color.LightGray;

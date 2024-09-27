@@ -196,6 +196,7 @@ namespace ArchSitePlan.Core.Models
         public static bool TryRemoveRoad(Guid roadCLId)
         {
             int count = _roads.RemoveAll(r => r.CenterLineId == roadCLId);
+            UpdateParcelsAndRoWs();
             return count > 0;
         }
 
@@ -352,6 +353,27 @@ namespace ArchSitePlan.Core.Models
             var buildings = Buildings.Where(b => parcelGuids.Contains(b.HostParcelId)).ToList();
 
             return buildings;
+        }
+
+        public static void ClearModel()
+        {
+            _roads = new();
+            ROWs = new();
+            Buildings = new();
+            Parcels= new();
+            ResetStudyAreas();
+        }
+
+        public static void ResetStudyAreas()
+        {
+            Studies = new();
+            AddStudyArea(new StudyArea(
+                null,
+                Guid.NewGuid(),
+                CoreGeneralConstants.FullProjectStudyName,
+                new List<Parcel>(),
+                new List<Building>(),
+                new List<Road>()));
         }
     }
 }

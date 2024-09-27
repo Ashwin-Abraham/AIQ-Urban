@@ -42,10 +42,49 @@
 
     </UserControl.Resources>
 
-    <Grid Margin="5"
-          >
+    <StackPanel>
+
+        <Grid Background="{StaticResource MainBlue}"
+              Grid.ColumnSpan="2"
+              Height="60">
+
+            <Grid.RowDefinitions>
+                <RowDefinition Height="2*"/>
+                <RowDefinition Height="3*"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="2*"/>
+                <ColumnDefinition Width="4*"/>
+            </Grid.ColumnDefinitions>
+
+            <Image Source="C:\Users\AshwinAbraham\source\repos\ArchSitePlan\ArchSitePlan.Core\Resources\LOGO.png"
+           Margin="9"
+           Grid.RowSpan="2"/>
+
+            <TextBlock Text="AIQ Urban"
+               Grid.Column="2"
+               FontSize="25"
+               TextAlignment="Left"
+               VerticalAlignment="Center"
+               Margin="14,0,0,0"
+               Foreground="White"/>
+
+            <mah:ToggleSwitch Grid.Row="1"
+                        Grid.Column="2"
+                        HorizontalContentAlignment="Center"
+                        Margin="10,0,0,0"
+                        OnCommand="{Binding ToggleEnableApp_Cmd}"
+                        OffCommand="{Binding ToggleEnableApp_Cmd}"
+                              OffContent="Disabled"
+                              OnContent="Enabled"
+                      />
+        </Grid>
+        
+        <Grid Margin="5"
+              IsEnabled="{Binding AppEnabled, Mode=TwoWay}">
+            
         <Grid.RowDefinitions>
-            <RowDefinition Height="40"/>
+                <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
@@ -55,8 +94,7 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="150"/>
-            <RowDefinition Height="140
-"/>
+            <RowDefinition Height="140"/>
         </Grid.RowDefinitions>
 
         <Grid.ColumnDefinitions>
@@ -64,13 +102,7 @@
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
-        <TextBlock Text="Parametric Site Capacity"
-                   FontSize="20"
-                   TextAlignment="Center"
-                   Grid.ColumnSpan="3"
-                   Background="{StaticResource MainBlue}"
-                   Foreground="White"/>
-
+        
 
         <!--Road Width Expander-->
         <Expander Grid.Row="1"
@@ -285,8 +317,6 @@
                               Grid.Column="1"
                               Command="{Binding AddStudyArea_Cmd}"/>
             </Grid>
-
-
         </Expander>
 
         <!--Exports-->
@@ -400,23 +430,23 @@
             />
 
         <TextBlock Text="Road Area"
-                   TextWrapping="Wrap"
-                   TextAlignment="Center"
-                   Width="50"
-                   Grid.Row="10"
-                   Grid.Column="1"
-                   VerticalAlignment="Center"
-                   HorizontalAlignment="Center"/>
+            TextWrapping="Wrap"
+            TextAlignment="Center"
+            Width="50"
+            Grid.Row="10"
+            Grid.Column="1"
+            VerticalAlignment="Center"
+            HorizontalAlignment="Center"/>
 
         <lvc:PieChart 
-                    DisableAnimations="True"
+            DisableAnimations="True"
             HorizontalAlignment="Stretch"
-                    Margin="5"
-                    Grid.Row="10"
-                    Grid.Column="1"
-                    Series="{Binding RoadAreaSeries}"
-                    FontSize="10"
-                    InnerRadius="40"/>
+            Margin="5"
+            Grid.Row="10"
+            Grid.Column="1"
+            Series="{Binding RoadAreaSeries}"
+            FontSize="10"
+            InnerRadius="40"/>
 
 
         <!--<uc:HorizontalGraph Grid.Row="8"
@@ -429,5 +459,6 @@
                 Grid.Row="9"
                 Command="{Binding Test_Cmd}"/>-->
     </Grid>
+    </StackPanel>
 
 </UserControl>

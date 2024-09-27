@@ -80,6 +80,17 @@ namespace ArchSitePlan.UI
         }
         public AppMode AppMode = AppMode.None;
 
+        private bool _appEnabled  = false;
+        public bool AppEnabled
+        {
+            get => _appEnabled;
+            set
+            {
+                _appEnabled = value;
+                OnPropertyChanged(nameof(AppEnabled));
+            }
+        }
+
         private bool _roadExpanderOpen = false;
         public bool RoadExpanderOpen
         {
@@ -338,6 +349,7 @@ namespace ArchSitePlan.UI
         public ICommand ExportExcel_Cmd { get; }
         public ICommand SetExcelPath_Cmd { get; }
         public ICommand Test_Cmd { get; }
+        public ICommand ToggleEnableApp_Cmd { get; }
         #endregion
 
         public MainViewModel()
@@ -348,19 +360,33 @@ namespace ArchSitePlan.UI
             this.Test_Cmd = new RelayCommand(Test_Exec);
             this.ChangeParcelUse_Cmd = new RelayCommand(ChangeParcelUse_Exec);
             this.ExportExcel_Cmd = new RelayCommand(ExportExcel_Exec);
+            this.ToggleEnableApp_Cmd = new RelayCommand(ToggleEnableApp_Exec);
             this.SetExcelPath_Cmd = new RelayCommand(SetExcelPath_Exec);
 
-            Guid allStudyId = Guid.NewGuid();
-            RhinoToCoreModel.TryAddStudyArea(
-                null,
-                allStudyId,
-                CoreGeneralConstants.FullProjectStudyName);
-
-            ActiveStudy = CoreModel.Studies.FirstOrDefault(s => allStudyId == s.Id);
+            RhinoToCoreModel.ResetStudyAreas();
+            ActiveStudy = CoreModel.Studies.FirstOrDefault();
             StudyAreasNames = CoreModel.Studies.Select(s => s.Name).ToList();
             ActiveStudyAreaName = ActiveStudy.Name;
+        }
 
-            //InitializeChart();
+        private void ToggleEnableApp_Exec(object obj)
+        {
+            try
+            {
+                AppEnabled = !AppEnabled;
+
+                if (!AppEnabled) return;
+
+                RhinoToCoreModel.ReloadProjectFromRhino(RhinoDoc.ActiveDoc);
+                ActiveStudy = CoreModel.Studies.First();
+                ActiveStudyAreaName = ActiveStudy.Name;
+                CoreModelToRhino.OutputCoreModelToRhino(RhinoDoc.ActiveDoc);
+            }
+            catch(Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+            
         }
 
         private void SetExcelPath_Exec(object obj)
@@ -419,7 +445,7 @@ namespace ArchSitePlan.UI
             }
 
             CoreModelToRhino.OutputParcelsToRhino(RhinoDoc.ActiveDoc);
-            RefreshActiveStudy();
+            RefreshActiveStudyAndMetrics();
         }
 
         private void UpdateLandUseGraphData(StudyAreaMetrics metrics)
@@ -485,25 +511,6 @@ namespace ArchSitePlan.UI
             }
         }
 
-
-        private void InitializeChart()
-        {
-            ParcelSeriesCollection = new SeriesCollection
-            {
-                new RowSeries
-                {
-                    Title = "2015",
-                    Values = new ChartValues<double> { 10, 50, 39, 50 }
-                }
-            };
-
-            //adding series will update and animate the chart automatically
-            ParcelSeriesCollection.Add(new RowSeries
-            {
-                Title = "2016",
-                Values = new ChartValues<double> { 11, 56, 42 }
-            });
-        }
         private void Test_Exec(object obj)
         {
             try
@@ -553,7 +560,7 @@ namespace ArchSitePlan.UI
                 CoreModelToRhino.RefreshStudyAreaMetrics();
 
                 CoreModelToRhino.OutputCoreModelToRhino(RhinoDoc.ActiveDoc);
-                RefreshActiveStudy();
+                RefreshActiveStudyAndMetrics();
                 StudyAreasNames = CoreModel.Studies.Select(s => s.Name).ToList();
             }
             catch (Exception ex)
@@ -681,7 +688,7 @@ namespace ArchSitePlan.UI
                 CoreModelToRhino.ToggleLockModelLayers(doc, false);
                 RhinoToCoreModel.AddOrUpdateRoads(plineObjs);
                 CoreModel.RefreshStudyAreaMetrics();
-                RefreshActiveStudy();
+                RefreshActiveStudyAndMetrics();
                 CoreModelToRhino.OutputCoreModelToRhino(doc);
                 CoreModelToRhino.ToggleLayerStateBasedOnAppMode(doc, AppMode.Road);
             }
@@ -695,6 +702,8 @@ namespace ArchSitePlan.UI
         {
             try
             {
+                if (study == null) return;
+
                 UpdateLandUseGraphData(study.Metrics);
                 UpdateRoadLengthGraphData(study.Metrics);
                 UpdateRoadAreaGraphData(study.Metrics);
@@ -706,7 +715,7 @@ namespace ArchSitePlan.UI
 
         }
 
-        public void RefreshActiveStudy()
+        public void RefreshActiveStudyAndMetrics()
         {
             if(CoreModel.TryGetStudyArea(_activeStudy.Id, out StudyArea study))
                 ActiveStudy = study;
