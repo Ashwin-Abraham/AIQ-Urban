@@ -49,6 +49,15 @@ namespace ArchSitePlan.UI.Helpers
             return LayerConstants.ParcelsLayer + "::" + use.ToString();
         }
 
+        public static List<string> GetParcelRhinoLayerNames()
+        {
+            var parcelLayerNames = Enum.GetValues<Landuse>()
+                .Select(use => LayerHelpers.GetParcelRhinoLayerName(use))
+                .ToList();
+
+            return parcelLayerNames;
+        }
+
         internal static void SetLayerColour(RhinoDoc doc, int layerIndex, Color color)
         {
             doc.Layers[layerIndex].Color = color;
@@ -58,6 +67,16 @@ namespace ArchSitePlan.UI.Helpers
         {
             obj.Attributes.LayerIndex = layerIndex;
             obj.CommitChanges();
+        }
+
+        internal static object GetTransitLayerNames()
+        {
+            throw new NotImplementedException();
+        }
+
+        internal static string GenerateRoadCLLayer(double width)
+        {
+            return LayerConstants.RoadCLLayer + LayerConstants._Sep_ + width.ToString();
         }
     }
 
