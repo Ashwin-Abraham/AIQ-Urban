@@ -74,40 +74,41 @@ namespace ArchSitePlan.UI.Actions
         {
             OutputRoadOutlinesToRhino(doc);
             OutputParcelsToRhino(doc);
-            //MoveStudyAreasToCorrectRhinoLayer(doc);
+            OutputStudyAreasToRhino(doc);
         }
 
-        private static void MoveStudyAreasToCorrectRhinoLayer(RhinoDoc doc)
+        private static void OutputStudyAreasToRhino(RhinoDoc doc)
         {
-            // Get Attributes
-            LayerHelpers.EnsureLayerExists(doc, LayerConstants.StudyAreaLayer);
-            int studyAreasLayerIndex = LayerHelpers.CreateOrGetLayerIndex(
-                RhinoDoc.ActiveDoc, 
-                LayerConstants.StudyAreaLayer,
-                LayerConstants.StudyAreaColour);
+            var studies = CoreModel.Studies;
 
-            ObjectAttributes studyAreasAttributes = new ObjectAttributes()
+            foreach(var study in studies)
             {
-                LayerIndex = studyAreasLayerIndex
-            };
+                string layerName = LayerConstants.StudyAreaLayer + LayerConstants._Sep_ + study.Name;
+                LayerHelpers.EnsureLayerExists(doc, layerName);
 
-            // Delete Existing Objects
-            var rhinoGuidsInLayer = doc.Objects
-                .Where(obj => obj.Attributes.LayerIndex == studyAreasLayerIndex)
-                .Select(obj => obj.Id)
-                .ToList();
+                // Get Attributes
+                int studyAreasLayerIndex = LayerHelpers.CreateOrGetLayerIndex(
+                    RhinoDoc.ActiveDoc,
+                    layerName,
+                    LayerConstants.StudyAreaColour);
 
-            var studiesAndMetrics = CoreModel.Studies
-                .Where(s => !rhinoGuidsInLayer.Contains(s.Id) && s.Boundary != null)
-                .ToList();
+                ObjectAttributes studyAreasAttributes = new ObjectAttributes()
+                {
+                    LayerIndex = studyAreasLayerIndex,
+                };
 
-            foreach( var studyAndMetric in studiesAndMetrics )
-            {
-                var studyAreaObj = doc.Objects.FindId(studyAndMetric.Id);
-                studyAreaObj.Attributes.LayerIndex = studyAreasLayerIndex;
-                studyAreaObj.CommitChanges();
+                // Delete existing boundary objects
+                var studyObjs = doc.Objects.Where(obj => obj.Attributes.LayerIndex == studyAreasLayerIndex).ToList();
+                studyObjs.Add(doc.Objects.FindId(study.Id));
+                studyObjs.RemoveAll(o => o == null);
+                studyObjs.ForEach(o => doc.Objects.Delete(o, true, true));
+
+                // Bake boundary
+                if (study.Boundary == null) continue;
+                var boundary = study.Boundary.ToRhino();
+                doc.Objects.Add(boundary, studyAreasAttributes);
             }
-
+            
             doc.Views.Redraw();
         }
 
@@ -287,6 +288,7 @@ namespace ArchSitePlan.UI.Actions
                     }
                     break;
                 case AppMode.StudyArea:  layersToUnlock.Add(LayerConstants.StudyAreaLayer); break;
+                case AppMode.None:  layersToUnlock.Add(LayerConstants.MainLayer); break;
             }
 
             // Manipulate layer lock states

@@ -375,12 +375,25 @@ namespace ArchSitePlan.UI
             {
                 AppEnabled = !AppEnabled;
 
-                if (!AppEnabled) return;
+                bool expanderOpen = AppMode != AppMode.None;
+                AppMode = AppMode.None;
+
+                SetSelectionMode(AppMode, expanderOpen);
+
+                if (!AppEnabled)
+                {
+                    // Hard lock to avoid complex refactor
+                    CoreModelToRhino.ToggleLockModelLayers(RhinoDoc.ActiveDoc, AppEnabled);
+                    return;
+                }
 
                 RhinoToCoreModel.ReloadProjectFromRhino(RhinoDoc.ActiveDoc);
                 ActiveStudy = CoreModel.Studies.First();
                 ActiveStudyAreaName = ActiveStudy.Name;
+                StudyAreasNames = CoreModel.Studies.Select(s => s.Name).ToList();
+                CoreModelToRhino.RefreshStudyAreaMetrics(true);
                 CoreModelToRhino.OutputCoreModelToRhino(RhinoDoc.ActiveDoc);
+
             }
             catch(Exception ex)
             {
@@ -623,7 +636,7 @@ namespace ArchSitePlan.UI
                 // If expander is closed while the app mode is unchanged, it means wwe have closed all expanders
                 if (AppMode == changedExpander) AppMode = AppMode.None;
                 if (AppMode == AppMode.None)
-                    CoreModelToRhino.ToggleLockModelLayers(RhinoDoc.ActiveDoc, true);
+                    CoreModelToRhino.ToggleLockModelLayers(RhinoDoc.ActiveDoc, false);
 
                 // Early return to avoid cyclic SetSelectionMode calls for expander closure
                 return;

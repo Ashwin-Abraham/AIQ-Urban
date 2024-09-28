@@ -7,6 +7,7 @@ using ArchSitePlan.UI.RhinoBHoMInterop;
 using BH.Engine.Data;
 using BH.Engine.Geometry;
 using BH.oM.Geometry;
+using BH.oM.Matter.Options;
 using Rhino;
 using Rhino.DocObjects;
 using Rhino.Geometry;
@@ -119,28 +120,82 @@ namespace ArchSitePlan.UI.Actions
             // Clear Core Model
             CoreModel.ClearModel();
 
+            // TRANSIT
+            ReloadTransitFromRhino(doc);
+
             // PARCELS
             // Read parcel Objects and store center points
+            var landuseData = ExtractRhinoLanduseData(doc);
+            CoreModel.UpdateParcelUses(landuseData);
+
+            // STUDY AREAS
+            // Read study area objects
+            ReloadStudyAreasFromRhino(doc);
+
+            // BUILDINGS
+            // Read building objects
+        }
+
+        private static void ReloadStudyAreasFromRhino(RhinoDoc doc)
+        {
+            CoreModel.ResetStudyAreas();
+
+            // STUDY AREAS
+            // Read boundary objects
+            int studyLayer = doc.Layers.FindByFullPath(LayerConstants.StudyAreaLayer, true);
+
+            if (studyLayer == -1) return;
+
+            var studyLayerIndices = doc.Layers[studyLayer].GetChildren().Select(lay => lay.Index).ToList();
+
+            foreach (var index in studyLayerIndices)
+            {
+                var studyObj = doc.Objects
+                    .Where(o => o.Attributes.LayerIndex == index)
+                    .FirstOrDefault(s =>
+                    {
+                        var crv = s.Geometry as Curve;
+                        if (crv == null) return false;
+                        return crv.TryGetPolyline(out var _);
+                    });
+
+                if (studyObj == null) continue;
+                (studyObj.Geometry as Curve).TryGetPolyline(out var pline);
+
+                TryAddStudyArea(pline.ToBHoM(), studyObj.Id, doc.Layers[index].Name);
+            }
+        }
+
+        private static List<(BH.oM.Geometry.Point point, Landuse use)> ExtractRhinoLanduseData(RhinoDoc doc)
+        {
             var parcelLayIndices = LayerHelpers
                 .GetParcelRhinoLayerNames()
                 .Select(name => doc.Layers.FindByFullPath(name, -1))
                 .ToList();
 
-            var rhinoParcelCenters = doc.Objects
+            var rhinoParcelObjs = doc.Objects
                 .Where(obj => parcelLayIndices.Contains(obj.Attributes.LayerIndex)
-                    && obj.ObjectType == ObjectType.Surface)
-                .Select(srf => (srf.Geometry as Surface))
-                .Select(srf => VolumeMassProperties.Compute(srf).Centroid);
+                    && obj.ObjectType == ObjectType.Brep)
+                .ToList();
 
-            // TRANSIT
-            ReloadTransitFromRhino(doc);
+            var outputs = new List<(BH.oM.Geometry.Point point, Landuse use)>();
+            foreach(var obj in rhinoParcelObjs)
+            {
+                var center = AreaMassProperties.Compute(obj.Geometry as Brep).Centroid;
+                string layerName = doc.Layers[obj.Attributes.LayerIndex].Name;
 
-            // STUDY AREAS
-            // Read study area objects
-            CoreModel.ResetStudyAreas();
+                outputs.Add((center.ToBHoM(), ParseLanduse(layerName)));
+            }
 
-            // BUILDINGS
-            // Read building objects
+            return outputs;
+        }
+
+        private static Landuse ParseLanduse(string use)
+        {
+            if (Enum.TryParse<Landuse>(use, out var landuse))
+                return landuse;
+            else
+                return Landuse.Undefined;
         }
 
         private static void ReloadTransitFromRhino(RhinoDoc doc)

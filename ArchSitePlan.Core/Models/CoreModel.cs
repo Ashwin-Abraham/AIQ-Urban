@@ -375,5 +375,14 @@ namespace ArchSitePlan.Core.Models
                 new List<Building>(),
                 new List<Road>()));
         }
+
+        public static void UpdateParcelUses(List<(Point point, Landuse use)> landuseData)
+        {
+            foreach(var p in Parcels)
+            {
+                var closestRhinoData = landuseData.MinBy(data => data.point.Distance(p.Boundary.Centroid()));
+                p.LandUse = closestRhinoData.use;
+            }
+        }
     }
 }

@@ -218,22 +218,9 @@ namespace ArchSitePlan.UI.Actions
                     //CoreModelToRhino.OutputCoreModelToRhino(doc);
                     break;
 
-            }
-            if (ViewModel.AppMode == AppMode.Road)
-            {
-                
-            }
-            else if(ViewModel.AppMode== AppMode.Building)
-            {
-                if (!CoreModel.TryGetBuilding(args.ObjectId, args.ObjectId, out Building building))
-                    return;
+                case AppMode.StudyArea:
+                    break;
 
-                CoreModelToRhino.ToggleLockModelLayers(doc, false);
-                CoreModelToRhino.TryDeleteBakedBuilding(args.ObjectId);
-                RhinoToCoreModel.TryRemoveBuilding(args.ObjectId);
-                //ViewModel.UpdateDisplayedStudyAreaData();
-                //CoreModelToRhino.OutputCoreModelToRhino(doc);
-                CoreModelToRhino.ToggleLayerStateBasedOnAppMode(doc, AppMode.Building);
             }
         }
 
