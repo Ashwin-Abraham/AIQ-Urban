@@ -12,6 +12,7 @@ using Rhino;
 using Rhino.DocObjects;
 using Rhino.Geometry;
 using static ArchSitePlan.Core.Constants.Enums;
+using Mesh = Rhino.Geometry.Mesh;
 using Polyline = Rhino.Geometry.Polyline;
 namespace ArchSitePlan.UI.Actions
 {
@@ -123,17 +124,69 @@ namespace ArchSitePlan.UI.Actions
             // TRANSIT
             ReloadTransitFromRhino(doc);
 
+            // STUDY AREAS
+            // Read study area objects
+            ReloadStudyAreasFromRhino(doc);
+            CoreModel.RefreshStudyAreaMetrics();
+
             // PARCELS
             // Read parcel Objects and store center points
             var landuseData = ExtractRhinoLanduseData(doc);
             CoreModel.UpdateParcelUses(landuseData);
 
-            // STUDY AREAS
-            // Read study area objects
-            ReloadStudyAreasFromRhino(doc);
-
             // BUILDINGS
             // Read building objects
+            ReloadBuildingsFromRhino(doc);
+        }
+
+        private static void ReloadBuildingsFromRhino(RhinoDoc doc)
+        {
+            CoreModel.Buildings = new();
+
+            // Read mesh envelope objects
+            int envelopeLayer = doc.Layers.FindByFullPath(LayerConstants.BuildingMassLayer, true);
+            int floorLayer = doc.Layers.FindByFullPath(LayerConstants.BuildingFloorOutlineLayer, true);
+
+            if (envelopeLayer == -1 || floorLayer == -1) return;
+
+            var meshEnvelopeObjs = doc.Objects
+                .Where(o => o.Attributes.LayerIndex == envelopeLayer && o.ObjectType == ObjectType.Mesh)
+                .ToList();
+
+            var floorOutlines = doc.Objects
+                .Where(o => o.Attributes.LayerIndex == floorLayer && o.ObjectType == ObjectType.Curve)
+                .ToList();
+
+            // Group mesh and floor outlines together
+            Dictionary<RhinoObject, List<RhinoObject>> buildingEnvelopeAndFloors = new();
+            foreach(var floor in floorOutlines)
+            {
+                var testPoint = (floor.Geometry as Curve).PointAtStart;
+                var nearestMesh = meshEnvelopeObjs.MinBy(m => (m.Geometry as Mesh).ClosestPoint(testPoint).DistanceTo(testPoint));
+
+                if (buildingEnvelopeAndFloors.ContainsKey(nearestMesh))
+                    buildingEnvelopeAndFloors[nearestMesh].Append(floor);
+                else
+                    buildingEnvelopeAndFloors.Add(nearestMesh, floor.ObjectToList());
+            }
+
+            // Add a building for each dictionary entry
+            foreach(var entry in buildingEnvelopeAndFloors)
+            {
+                var envelope = (entry.Key.Geometry as Mesh).ToBHoM();
+                var floors = entry.Value
+                    .Select(f => (f.Geometry as Curve).ToBHoM())
+                    .Select(c => new PlanarSurface(c, new List<ICurve>()))
+                    .ToList();
+
+                double ffHt = floors.Count > 1?
+                    floors[0].IBounds().Min.Z - floors[1].IBounds().Min.Z
+                    :envelope.Bounds().Height();
+
+                ffHt = Math.Abs(ffHt);
+
+                CoreModel.TryAddBuilding(envelope, floors, entry.Key.Id, Guid.Empty, ffHt);
+            }
         }
 
         private static void ReloadStudyAreasFromRhino(RhinoDoc doc)
