@@ -294,11 +294,17 @@ namespace ArchSitePlan.Core.Models
 
             if (!TryGetBuilding(footPrintId, envelopeID, out Building building))
             {
+                var origin = Building.CalculateOrigin(envelope);
+
+                var nearest = Parcels.FirstOrDefault(p => p.Boundary.ExternalBoundary.IIsContaining(origin.ObjectToList()));
+                var use = nearest != null ? nearest.LandUse : Landuse.Undefined;
+
                 var newBldg = new Building(
                     envelope,
                     floorPlates,
                     floorToFloorHt,
                     envelopeID,
+                    use,
                     footPrintId);
                 
                 Buildings.Add(newBldg);
@@ -384,5 +390,8 @@ namespace ArchSitePlan.Core.Models
                 p.LandUse = closestRhinoData.use;
             }
         }
+
+        public static StudyArea ProjectWideStudy()
+            => Studies.FirstOrDefault(s => s.Name == CoreGeneralConstants.FullProjectStudyName);
     }
 }

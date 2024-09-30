@@ -13,10 +13,10 @@ namespace ArchSitePlan.Core.Models
             string Landuse,
             double Area,
             Color Colour,
-            string AreaPctg,
+            double AreaPctg,
             double BuiltArea,
-            string BuiltPctg,
-            string FAR);
+            double BuiltPctg,
+            double FAR);
 
         private record TransitSummaryDataRow(
             string TransitType,
@@ -40,7 +40,7 @@ namespace ArchSitePlan.Core.Models
 
         // Variables
         public string ExcelPath { get; set; }
-        public List<Parcel> Parcels { get; set; }
+        public StudyAreaMetrics ProjectWideStudy { get; set; }
         private List<LandUseSummaryDataRow> _landUseSummary { get; set; }
         private List<TransitSummaryDataRow> _transitSummary { get; set; }
         private List<StudySummaryDataRow> _studyAreasSummary { get; set; }
@@ -48,13 +48,13 @@ namespace ArchSitePlan.Core.Models
         // etc
         public ProjectReport(
             string excelFilePath, 
-            List<Parcel> parcels,
+            StudyAreaMetrics projectWideStudy,
             List<StudyArea> studies)
         {
-            Parcels = parcels;
+            ProjectWideStudy = projectWideStudy;
             ExcelPath = excelFilePath;
 
-            BuildLandUseData(parcels);
+            BuildLandUseData(projectWideStudy);
             BuildTransitData(studies.First(s => s.Name == CoreGeneralConstants.FullProjectStudyName));
             BuildStudyAreasData(studies);
         }
@@ -117,22 +117,28 @@ namespace ArchSitePlan.Core.Models
             }
         }
 
-        private void BuildLandUseData(List<Parcel> parcels)
+        private void BuildLandUseData(StudyAreaMetrics projectWideStudy)
         {
             // Landuse summary is grouped by landuse
-            var landUseGroups = parcels.GroupBy(p => p.LandUse);
+            var landUseGroups = projectWideStudy.ParcelMetrics.GroupBy(p => p.Use);
             _landUseSummary = new();
+            
+            double totalLandArea = landUseGroups.Sum(grp => grp.Sum(parcel => parcel.Area));
+            double totalBuiltArea = landUseGroups.Sum(grp => grp.Sum(parcel => parcel.BUA));
 
-            foreach (var use in landUseGroups)
+            foreach (var useGroup in landUseGroups)
             {
+                double landArea = useGroup.Sum(grp => grp.Area);
+                double builtArea= useGroup.Sum(grp => grp.BUA);
+
                 var row = new LandUseSummaryDataRow(
-                    Landuse: use.First().LandUse.ToString(),
-                    Area: use.Sum(p => p.Area()),
-                    AreaPctg: "X",
-                    BuiltArea: 0,
-                    BuiltPctg:"X",
-                    FAR: "X",
-                    Colour: Defaults.LandUseColours[use.First().LandUse]
+                    Landuse: useGroup.Key.ToString(),
+                    Area: landArea,
+                    AreaPctg: Math.Clamp(landArea/ totalLandArea, 0,1),
+                    BuiltArea: builtArea,
+                    BuiltPctg: Math.Clamp(builtArea / totalBuiltArea, 0, 1),
+                    FAR: totalBuiltArea/totalLandArea,
+                    Colour: Defaults.LandUseColours[useGroup.Key]
                     );
 
                 _landUseSummary.Add( row );

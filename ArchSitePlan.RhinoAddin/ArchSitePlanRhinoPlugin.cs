@@ -3,6 +3,8 @@ using ArchSitePlan.UI.Actions;
 using Eto.Forms;
 using Rhino;
 using System;
+using System.Drawing;
+using System.IO;
 using System.Runtime.InteropServices;
 
 namespace ArchSitePlan.RhinoAddin
@@ -27,16 +29,18 @@ namespace ArchSitePlan.RhinoAddin
         protected override Rhino.PlugIns.LoadReturnCode OnLoad(ref string errorMessage)
         {
             Type mainPanel = typeof(MainViewHost);
-
+            var outPutDirectory = Path.GetDirectoryName(Assembly.Location);
+            string path = outPutDirectory + "\\EmbeddedResources\\LOGO.ico";
+            Icon icon = new Icon(path, new Size(16,16));
             Rhino.UI.Panels.RegisterPanel(this,
                 mainPanel,
                 "SiteArchitecturePlanner",
-                null);
+                icon);
 
             Rhino.UI.Panels.RegisterPanel(this,
                 typeof(LiveChartsTestHost),
                "LVC Tes",
-               null);
+               icon);
 
             //System.Drawing.Icon.ExtractAssociatedIcon(null));
 

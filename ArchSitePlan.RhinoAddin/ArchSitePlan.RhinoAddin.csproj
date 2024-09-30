@@ -13,6 +13,11 @@
   <ItemGroup>
     <EmbeddedResource Include="EmbeddedResources\**\*" />
   </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="EmbeddedResources\LOGO.ico" />
+    <None Remove="EmbeddedResources\LOGO.png" />
+  </ItemGroup>
   
   <ItemGroup>
     <PackageReference Include="BHoM" Version="7.2.2-alpha" />
@@ -32,6 +37,21 @@
 		<Reference Include="WindowsFormsIntegration">
 			<HintPath>C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.8\WindowsFormsIntegration.dll</HintPath>
 		</Reference>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Compile Update="OpenSitePlannerRhinoCommand.cs">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </Compile>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <EmbeddedResource Update="EmbeddedResources\LOGO.ico">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </EmbeddedResource>
+	  <EmbeddedResource Update="EmbeddedResources\LOGO.png">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </EmbeddedResource>
 	</ItemGroup>
   
 </Project>

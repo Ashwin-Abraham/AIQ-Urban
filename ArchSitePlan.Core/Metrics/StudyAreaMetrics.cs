@@ -1,4 +1,5 @@
 ﻿using ArchSitePlan.Core.Constants;
+using ArchSitePlan.Core.Extensions;
 using ArchSitePlan.Core.Models;
 using BH.Engine.Data;
 using BH.Engine.Geometry;
@@ -23,7 +24,7 @@ namespace ArchSitePlan.Core.Metrics
             List<Building> buildings,
             List<Road> transitRoutes)
         {
-            CalculateParcelMetrics(parcels);
+            CalculateParcelMetrics(parcels, buildings);
             CalculateTransitMetrics(transitRoutes);
 
             BoundedArea = Math.Abs(boundary?.IArea()?? 0);
@@ -35,13 +36,17 @@ namespace ArchSitePlan.Core.Metrics
             PopulateDisplayAreas();
         }
 
-        private void CalculateParcelMetrics(List<Parcel> parcels)
+        private void CalculateParcelMetrics(List<Parcel> parcels, List<Building> buildings)
         {
             ParcelMetrics = new();
 
             foreach (Parcel p in parcels)
             {
-                ParcelMetrics.Add(new ParcelMetrics(p));
+                var buildingsOnParcel = buildings
+                    .Where(b => p.Boundary.ExternalBoundary.IIsContaining(b.Origin.ObjectToList()))
+                    .ToList();
+
+                ParcelMetrics.Add(new ParcelMetrics(p, buildingsOnParcel));
             }
         }
 
