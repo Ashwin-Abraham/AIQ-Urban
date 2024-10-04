@@ -243,7 +243,7 @@
                 <Slider Grid.Column="1"
                         Value="{Binding ActiveBuildingFloorCount, Mode=TwoWay}"
                         Minimum="1"
-                        Maximum="100"/>
+                        Maximum="40"/>
                 
                 <TextBox Text="{Binding ActiveBuildingFloorCount}"
                            Grid.Column="2"
@@ -257,8 +257,8 @@
 
                 <Slider Grid.Column="1"
                         Grid.Row="1"
-                        Minimum="1.50"
-                        Maximum="20.00"
+                        Minimum="1.00"
+                        Maximum="10.00"
                         Value="{Binding ActiveBuildingFloorHeight, Mode=TwoWay}"/>
 
                 <TextBox Text="{Binding ActiveBuildingFloorHeight}"
