@@ -37,7 +37,6 @@
                    Source="Resources\Line.png"
                    Height="20"
                    Width="20"/>
-
         </ResourceDictionary>
 
     </UserControl.Resources>
@@ -57,10 +56,11 @@
                 <ColumnDefinition Width="4*"/>
             </Grid.ColumnDefinitions>
 
-            <Image Source="C:\Users\AshwinAbraham\source\repos\ArchSitePlan\ArchSitePlan.Core\Resources\LOGO.png"
-           Margin="9"
-           Grid.RowSpan="2"/>
 
+            <Image  Source="Resources\LOGO.png"
+                    Margin="9"
+                    Grid.RowSpan="2"/>
+            
             <TextBlock Text="AIQ Urban"
                Grid.Column="2"
                FontSize="25"
@@ -76,8 +76,7 @@
                         OnCommand="{Binding ToggleEnableApp_Cmd}"
                         OffCommand="{Binding ToggleEnableApp_Cmd}"
                               OffContent="Disabled"
-                              OnContent="Enabled"
-                      />
+                              OnContent="Enabled"/>
         </Grid>
         
         <Grid Margin="5"
@@ -94,6 +93,7 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="150"/>
+            <RowDefinition Height="30"/>
             <RowDefinition Height="140"/>
         </Grid.RowDefinitions>
 
@@ -243,7 +243,7 @@
                 <Slider Grid.Column="1"
                         Value="{Binding ActiveBuildingFloorCount, Mode=TwoWay}"
                         Minimum="1"
-                        Maximum="100"/>
+                        Maximum="40"/>
                 
                 <TextBox Text="{Binding ActiveBuildingFloorCount}"
                            Grid.Column="2"
@@ -257,8 +257,8 @@
 
                 <Slider Grid.Column="1"
                         Grid.Row="1"
-                        Minimum="1.50"
-                        Maximum="20.00"
+                        Minimum="1.00"
+                        Maximum="10.00"
                         Value="{Binding ActiveBuildingFloorHeight, Mode=TwoWay}"/>
 
                 <TextBox Text="{Binding ActiveBuildingFloorHeight}"
@@ -402,25 +402,33 @@
                           />
         </StackPanel>
 
-        <lvc:CartesianChart 
+            <lvc:CartesianChart 
             Grid.Row="9"
             Grid.ColumnSpan="2"
             Series="{Binding ParcelSeriesCollection}"
             DisableAnimations="True"
-            FontSize="10"
-                />
+            FontSize="10"/>
 
-        <TextBlock Text="Road Length"
-                   TextWrapping="Wrap"
-                   TextAlignment="Center"
-                   Width="50"
-                   Grid.Row="10"
-                   VerticalAlignment="Center"
-                   HorizontalAlignment="Center"/>
-        
-        <lvc:PieChart 
+
+
+            <mah:ToggleSwitch Grid.Row="10"
+                    Grid.ColumnSpan="3"
+                    HorizontalAlignment="Center"
+                    OnContent="Built Up Area"
+                    OffContent="Land Area"
+                    IsOn="{Binding BuiltOrLandArea, Mode=TwoWay}"/>
+
+            <TextBlock Text="Road Length"
+                TextWrapping="Wrap"
+                TextAlignment="Center"
+                Width="50"
+                Grid.Row="11"
+                VerticalAlignment="Center"
+                HorizontalAlignment="Center"/>
+
+            <lvc:PieChart 
             Margin="5"
-            Grid.Row="10"
+            Grid.Row="11"
             Grid.Column="0"
             Series="{Binding RoadLengthSeries}"
             FontSize="10"
@@ -433,7 +441,7 @@
             TextWrapping="Wrap"
             TextAlignment="Center"
             Width="50"
-            Grid.Row="10"
+            Grid.Row="11"
             Grid.Column="1"
             VerticalAlignment="Center"
             HorizontalAlignment="Center"/>
@@ -442,7 +450,7 @@
             DisableAnimations="True"
             HorizontalAlignment="Stretch"
             Margin="5"
-            Grid.Row="10"
+            Grid.Row="11"
             Grid.Column="1"
             Series="{Binding RoadAreaSeries}"
             FontSize="10"

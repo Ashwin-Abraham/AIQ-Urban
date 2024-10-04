@@ -14,5 +14,16 @@ namespace ArchSitePlan.UI.Extensions
 
             return windowsColor;
         }
+        public static System.Windows.Media.Color Dim(this System.Windows.Media.Color colour, double pctg)
+        {
+            pctg = Math.Clamp(pctg, 0, 1);
+            var newColour = new System.Windows.Media.Color();
+            newColour.A = colour.A;
+            newColour.R = (byte)(colour.R * pctg);
+            newColour.G = (byte)(colour.G * pctg);
+            newColour.B = (byte)(colour.B * pctg);
+
+            return newColour;
+        }
     }
 }

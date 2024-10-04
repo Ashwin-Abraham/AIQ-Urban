@@ -10,6 +10,7 @@
   <ItemGroup>
     <None Remove="Resources\Cursor.png" />
     <None Remove="Resources\Line.png" />
+    <None Remove="Resources\LOGO.png" />
     <None Remove="Resources\Pline.png" />
   </ItemGroup>
 
@@ -40,7 +41,10 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Resource>
     <Resource Include="Resources\Line.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\LOGO.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
     <Resource Include="Resources\Pline.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

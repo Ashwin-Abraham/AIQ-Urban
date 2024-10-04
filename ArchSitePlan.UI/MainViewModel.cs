@@ -337,7 +337,17 @@ namespace ArchSitePlan.UI
                 OnPropertyChanged(nameof(ExcelPath));
             }
         }
-
+        private bool _builtOrLandArea = false;
+        public bool BuiltOrLandArea
+        {
+            get => _builtOrLandArea;
+            set
+            {
+                _builtOrLandArea = value;
+                OnPropertyChanged(nameof(BuiltOrLandArea));
+                UpdateDisplayedStudyAreaData(_activeStudy);
+            }
+        }
         #endregion
 
         #region COMMANDS
@@ -369,6 +379,7 @@ namespace ArchSitePlan.UI
             ActiveStudyAreaName = ActiveStudy.Name;
         }
 
+      
         private void ToggleEnableApp_Exec(object obj)
         {
             try
@@ -430,7 +441,7 @@ namespace ArchSitePlan.UI
         {
             try
             {
-                var pr = new ProjectReport(ExcelPath, CoreModel.Parcels, CoreModel.Studies);
+                var pr = new ProjectReport(ExcelPath, CoreModel.ProjectWideStudy().Metrics, CoreModel.Studies);
                 pr.WriteExcelFile();
             }
             catch (Exception ex)
@@ -465,21 +476,21 @@ namespace ArchSitePlan.UI
         {
             var groupedByUse = metrics.ParcelMetrics.GroupBy(p => p.Use);
             ParcelSeriesCollection = new SeriesCollection();
-
             foreach(var landUseGroup in groupedByUse)
             {
-                var area = Math.Round(landUseGroup.Sum(p => p.Area));
+                var area = _builtOrLandArea ?
+                    Math.Round(landUseGroup.Sum(p => p.BUA))
+                    : Math.Round(landUseGroup.Sum(p => p.Area));
                 var use = landUseGroup.First().Use;
-
-                var newRow = new ColumnSeries()
+                
+                ParcelSeriesCollection.Add(new ColumnSeries()
                 {
                     Title = landUseGroup.First().Use.ToString(),
                     Values = new ChartValues<double> { area },
                     Fill = new SolidColorBrush(Defaults.LandUseColours[use].ToWindowsColor()),
-                    Height = 40
-                };
-
-                ParcelSeriesCollection.Add(newRow);
+                    Height = 40,
+                    
+                });
             }
             GraphHeight = groupedByUse.Count() * 12 + 50;
         }

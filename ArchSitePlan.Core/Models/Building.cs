@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static ArchSitePlan.Core.Constants.Enums;
 
 namespace ArchSitePlan.Core.Models
 {
@@ -18,6 +19,7 @@ namespace ArchSitePlan.Core.Models
         public Guid HostParcelId { get; set;} = Guid.Empty;
         public Point Origin { get; private set; }
         public Mesh Envelope { get; private set; }
+        public Landuse Use { get; private set; }
 
         public List<(PlanarSurface Profile, Guid Id)> FloorPlates { get; set; }
 
@@ -26,8 +28,10 @@ namespace ArchSitePlan.Core.Models
             List<PlanarSurface> floorPlates,
             double floorToFloorHeight,
             Guid envelopeId,
+            Landuse use,
             Guid footprintId = default)
         {
+            Use = use;
             Envelope = envelope;
             FloorToFloorHeight = floorToFloorHeight;
             
@@ -38,7 +42,12 @@ namespace ArchSitePlan.Core.Models
             
             FootprintId = footprintId;
             EnvelopeId = envelopeId;
-            Origin = Envelope.Bounds().Centre().ProjectToXY();
+            Origin = CalculateOrigin(envelope);
+        }
+
+        public static Point CalculateOrigin(Mesh envelope)
+        {
+            return envelope.Bounds().Centre().ProjectToXY();
         }
 
         public double BUA()
