@@ -21,11 +21,13 @@ namespace ArchSitePlan.UI.Constants
         public const string RoadOutlineLayer = $"{RoadLayer}{_Sep_}Outline";
         public const string RoadCLLayer = $"{RoadLayer}{_Sep_}CL";
         public const string RoadROWLayer = $"{RoadLayer}{_Sep_}RoW";
+        public const string ParcelDividerLayer = $"{MainLayer}{_Sep_}ParcelDivider";
         public const int DefaultLayerIndex = -1;
         public static Color RoadColour = Color.DarkGray;
         public static Color BuildingMassColour = Color.LightGray;
-        public static Color BuildingFloorOutlineColour = Color.DarkGray;
+        public static Color BuildingFloorOutlineColour = Color.Black;
         public static Color BuildingFootprintColour = Color.DarkRed;
         public static Color StudyAreaColour = Color.IndianRed;
+        public static Color ParcelDividerColour = Color.DarkViolet;
     }
 }

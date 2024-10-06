@@ -35,7 +35,7 @@ namespace ArchSitePlan.UI
         string CoveragePctg,
         string FAR);
 
-    public class MainViewModel:ViewModelBase,INotifyPropertyChanged
+    public class MainViewModel : ViewModelBase, INotifyPropertyChanged
     {
         #region VARIABLES
         public static RhinoDoc doc = RhinoDoc.ActiveDoc;
@@ -80,7 +80,7 @@ namespace ArchSitePlan.UI
         }
         public AppMode AppMode = AppMode.None;
 
-        private bool _appEnabled  = false;
+        private bool _appEnabled = false;
         public bool AppEnabled
         {
             get => _appEnabled;
@@ -174,7 +174,7 @@ namespace ArchSitePlan.UI
         }
 
         public List<Landuse> LandUses { get; set; } = Enum.GetValues(typeof(Landuse)).Cast<Landuse>().ToList();
-        
+
         private Landuse _selectedLanduse = Landuse.Undefined;
         public Landuse SelectedLandUse
         {
@@ -211,7 +211,7 @@ namespace ArchSitePlan.UI
         }
 
         public BuildingSelectorMode BuildingSelectorMode = BuildingSelectorMode.None;
-        
+
 
         private bool _buildingFootprintSelectorModeActive = true;
         public bool BuildingFootprintSelectorModeActive
@@ -274,7 +274,7 @@ namespace ArchSitePlan.UI
         }
         private SeriesCollection _roadLengthSeries;
         public SeriesCollection RoadLengthSeries
-        { 
+        {
             get => _roadLengthSeries;
             set
             {
@@ -360,6 +360,7 @@ namespace ArchSitePlan.UI
         public ICommand SetExcelPath_Cmd { get; }
         public ICommand Test_Cmd { get; }
         public ICommand ToggleEnableApp_Cmd { get; }
+        public ICommand AddParcelDivider_Cmd { get; }
         #endregion
 
         public MainViewModel()
@@ -372,6 +373,7 @@ namespace ArchSitePlan.UI
             this.ExportExcel_Cmd = new RelayCommand(ExportExcel_Exec);
             this.ToggleEnableApp_Cmd = new RelayCommand(ToggleEnableApp_Exec);
             this.SetExcelPath_Cmd = new RelayCommand(SetExcelPath_Exec);
+            this.AddParcelDivider_Cmd = new RelayCommand(AddParcelDivider_Exec);
 
             RhinoToCoreModel.ResetStudyAreas();
             ActiveStudy = CoreModel.Studies.FirstOrDefault();
@@ -379,7 +381,44 @@ namespace ArchSitePlan.UI
             ActiveStudyAreaName = ActiveStudy.Name;
         }
 
-      
+        private void AddParcelDivider_Exec(object obj)
+        {
+            try
+            {
+                RhinoDoc doc = RhinoDoc.ActiveDoc;
+                int parcelDividerLayerIndex = LayerHelpers.CreateOrGetLayerIndex(
+                    doc,
+                    LayerConstants.ParcelDividerLayer,
+                    LayerConstants.ParcelDividerColour);
+
+                // Try to select a curve
+                var rhinoObjs = doc.Objects.GetSelectedObjects(false, false)
+                    .Where(obj => obj.ObjectType == ObjectType.Curve)
+                    .ToList();
+
+                List<(BH.oM.Geometry.Polyline, Guid)> plineObjs = new();
+
+                foreach (var rhinoObj in rhinoObjs)
+                {
+                    if (!(rhinoObj.Geometry as Curve).TryGetPolyline(out Polyline pline)) continue;
+
+                    plineObjs.Add((pline.ToBHoM(), rhinoObj.Id));
+                    LayerHelpers.ChangeLayer(rhinoObj, parcelDividerLayerIndex);
+                }
+
+                if (!plineObjs.Any()) return;
+
+                RhinoToCoreModel.AddOrUpdateParcelDivider(plineObjs);
+                CoreModel.RefreshStudyAreaMetrics();
+                RefreshActiveStudyAndMetrics();
+                CoreModelToRhino.OutputCoreModelToRhino(doc);
+            }
+            catch(Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        }
+
         private void ToggleEnableApp_Exec(object obj)
         {
             try
@@ -620,15 +659,12 @@ namespace ArchSitePlan.UI
                     .Where(obj => allowedTypes.Contains(obj.ObjectType))
                     .ToList();
 
-                //int index = LayerHelpers.CreateOrGetLayerIndex(doc, layerName, layerColor);
-                //rhinoObjs.ForEach(o => LayerHelpers.ChangeLayer(o, index));
-
                 CoreModelToRhino.ToggleLockModelLayers(doc, false);
-                DocObjectHelpers.DeleteRhinoObjectsIfPresent(doc, rhinoObjs.Select(o => o.Id));
                 RhinoEventHandler.UpdateSelectedBuildings(rhinoObjs,
                     ActiveBuildingFloorCount,
                     ActiveBuildingFloorHeight);
-
+                CoreModel.RefreshStudyAreaMetrics();
+                RefreshActiveStudyAndMetrics();
                 CoreModelToRhino.ToggleLayerStateBasedOnAppMode(doc, AppMode.Building);
                 doc.Views.Redraw();
             }
@@ -709,12 +745,9 @@ namespace ArchSitePlan.UI
 
                 if (!plineObjs.Any()) return;
 
-                CoreModelToRhino.ToggleLockModelLayers(doc, false);
                 RhinoToCoreModel.AddOrUpdateRoads(plineObjs);
-                CoreModel.RefreshStudyAreaMetrics();
                 RefreshActiveStudyAndMetrics();
                 CoreModelToRhino.OutputCoreModelToRhino(doc);
-                CoreModelToRhino.ToggleLayerStateBasedOnAppMode(doc, AppMode.Road);
             }
             catch(Exception ex)
             {

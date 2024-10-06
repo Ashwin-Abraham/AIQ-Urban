@@ -160,6 +160,7 @@
             <Grid Margin="5,0,0,0">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="40"/>
+                    <RowDefinition Height="40"/>
                     <RowDefinition Height="20"/>
                     <RowDefinition Height="80"/>
                 </Grid.RowDefinitions>
@@ -188,10 +189,18 @@
                         VerticalAlignment="Center"
                         Command="{Binding ChangeParcelUse_Cmd}"/>
 
-                <TextBlock Text="Active parcel metrics"
-                           Grid.Row="1"/>
+                    <Button Content="Add parcel divider"
+                        Grid.Row="1"
+                        Grid.ColumnSpan="3"
+                        VerticalAlignment="Center"
+                        Command="{Binding AddParcelDivider_Cmd}"/>
 
-                <StackPanel Grid.Row="2"
+
+
+                    <TextBlock Text="Active parcel metrics"
+                           Grid.Row="2"/>
+
+                <StackPanel Grid.Row="3"
                             Grid.ColumnSpan="4"
                             Orientation="Horizontal"
                             HorizontalAlignment="Center">

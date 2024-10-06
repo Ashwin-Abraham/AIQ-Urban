@@ -11,6 +11,14 @@ namespace ArchSitePlan.UI.Constants
 {
     public static class RhinoObjAttributeConstants
     {
+        public static ObjectAttributes ParcelDividerGeometryAttributes = new ObjectAttributes()
+        {
+            LayerIndex = LayerHelpers.CreateOrGetLayerIndex(
+                RhinoDoc.ActiveDoc,
+                LayerConstants.ParcelDividerLayer,
+                LayerConstants.ParcelDividerColour)
+        };
+
         public static ObjectAttributes RoadGeometryAttributes = new ObjectAttributes()
         {
             LayerIndex = LayerHelpers.CreateOrGetLayerIndex(

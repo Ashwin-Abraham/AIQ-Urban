@@ -283,5 +283,23 @@ namespace ArchSitePlan.UI.Actions
         {
             return CoreModel.TryRemoveRoad(id);
         }
+
+        internal static void AddOrUpdateParcelDivider(List<(BH.oM.Geometry.Polyline Pline, Guid Id)> plineObjs)
+        {
+            foreach(var plineObj in plineObjs)
+            {
+                CoreModel.AddOrUpdateParcelDivider(plineObj.Pline, plineObj.Id);
+            }
+        }
+
+        internal static bool TryDeleteParcelDivider(Guid objectId)
+        {
+            var divider = CoreModel.Dividers.FirstOrDefault(div => div.Id == objectId);
+            bool found = divider != null;
+            if (found)
+                CoreModel.Dividers.Remove(divider);
+
+            return found;
+        }
     }
 }
