@@ -12,10 +12,34 @@ namespace ArchSitePlan.DebugModel.BHoMExtensions
 {
     public static class ToHyparInterop
     {
-        public static List<BoundedCurve> ToHypar(this PolyCurve polyCurve)
+        public static Elements.Geometry.Polyline ToHyparPolyline(this ICurve curve)
         {
-            var curves = polyCurve.Curves;
+            var verts = curve.IControlPoints()
+                .Select(pt => pt.ToHypar())
+                .ToList();
+
+            return new Elements.Geometry.Polyline(verts);
+               
+        }
+
+        public static IEnumerable<Elements.Geometry.Polyline> ToHyparPolylines(
+            this IEnumerable<ICurve> curves)
+        {
+            return curves.Select(crv => crv.ToHyparPolyline());
+        }
+
+        public static List<BoundedCurve> ToHypar(this ICurve curve)
+        {
             List<BoundedCurve> hyparCrvs = new List<BoundedCurve>();
+            var curves = new List<ICurve>();
+
+            if (curve == null) return hyparCrvs;
+
+            if (curve is PolyCurve) 
+                curves.AddRange((curve as PolyCurve).Curves);
+            else
+                curves.Add(curve);
+
 
             foreach (var crv in curves)
             {
@@ -29,7 +53,7 @@ namespace ArchSitePlan.DebugModel.BHoMExtensions
 
                 Arc arc = crv as Arc;
                 if (arc != null)
-                    hyparCrvs.Add(ToHyparInterop.ToHypar(arc));
+                    hyparCrvs.Add(ToHypar(arc));
             }
 
             return hyparCrvs;

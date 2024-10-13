@@ -64,7 +64,9 @@ namespace ArchSitePlan.UI.Actions
             foreach(var parcel in CoreModel.Parcels)
             {
                 var rhinoSrf = parcel.Boundary.ToRhino();
-                parcel.OriginalObjectID = doc.Objects.AddBrep(rhinoSrf, parcelGeometryAttributes[parcel.LandUse]);
+                if (rhinoSrf != null) 
+                    parcel.OriginalObjectID 
+                        = doc.Objects.AddBrep(rhinoSrf, parcelGeometryAttributes[parcel.LandUse]);
             }
 
             doc.Views.Redraw();

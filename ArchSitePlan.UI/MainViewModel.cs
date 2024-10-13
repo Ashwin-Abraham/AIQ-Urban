@@ -1,30 +1,26 @@
 ﻿using ArchSitePlan.Core.Metrics;
 using ArchSitePlan.Core.Models;
+using ArchSitePlan.UI.Actions;
+using ArchSitePlan.UI.Constants;
 using ArchSitePlan.UI.Extensions;
 using ArchSitePlan.UI.Helpers;
 using ArchSitePlan.UI.Models;
-using Rhino;
-using System.ComponentModel;
-using System.Drawing;
-using System.Windows;
-using System.Windows.Input;
-using SolidColorBrush =  System.Windows.Media.SolidColorBrush;
-using static ArchSitePlan.Core.Constants.Enums;
-using static ArchSitePlan.UI.Constants.Enums;
-using ArchSitePlan.UI.Actions;
-using Rhino.DocObjects;
-using Rhino.Input;
-using Rhino.Geometry;
 using ArchSitePlan.UI.RhinoBHoMInterop;
-using ArchSitePlan.UI.Constants;
-using ArchSitePlan.Core.Extensions;
 using LiveCharts;
 using LiveCharts.Wpf;
-using System.Windows.Forms;
-using MessageBox = System.Windows.Forms.MessageBox;
+using Rhino;
+using Rhino.DocObjects;
+using Rhino.Geometry;
+using Rhino.Input;
+using System.ComponentModel;
+using System.Drawing;
 using System.IO;
-using ClosedXML.Excel;
-using ArchSitePlan.Core.Constants;
+using System.Windows.Forms;
+using System.Windows.Input;
+using static ArchSitePlan.Core.Constants.Enums;
+using static ArchSitePlan.UI.Constants.Enums;
+using MessageBox = System.Windows.Forms.MessageBox;
+using SolidColorBrush = System.Windows.Media.SolidColorBrush;
 
 namespace ArchSitePlan.UI
 {
