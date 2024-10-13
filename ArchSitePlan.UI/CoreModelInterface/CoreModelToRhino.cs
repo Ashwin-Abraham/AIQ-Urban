@@ -64,7 +64,9 @@ namespace ArchSitePlan.UI.Actions
             foreach(var parcel in CoreModel.Parcels)
             {
                 var rhinoSrf = parcel.Boundary.ToRhino();
-                parcel.OriginalObjectID = doc.Objects.AddBrep(rhinoSrf, parcelGeometryAttributes[parcel.LandUse]);
+                if (rhinoSrf != null) 
+                    parcel.OriginalObjectID 
+                        = doc.Objects.AddBrep(rhinoSrf, parcelGeometryAttributes[parcel.LandUse]);
             }
 
             doc.Views.Redraw();
@@ -280,7 +282,7 @@ namespace ArchSitePlan.UI.Actions
             switch (appMode)
             {
                 case AppMode.Road:  layersToUnlock.Add(LayerConstants.RoadLayer); break;
-                case AppMode.LandUse:  layersToUnlock.Add(LayerConstants.ParcelsLayer); break;
+                case AppMode.LandUse:  layersToUnlock.AddRange(new string[] { LayerConstants.ParcelsLayer, LayerConstants.ParcelDividerLayer }); break;
                 case AppMode.Building:
                     {
                         layersToUnlock.Add(LayerConstants.BuildingLayer);
@@ -320,6 +322,11 @@ namespace ArchSitePlan.UI.Actions
             }
 
             DocObjectHelpers.DeleteRhinoObjectsIfPresent(RhinoDoc.ActiveDoc, buildingIdsToDelete);
+        }
+
+        internal static bool TryDeleteParcelDivider(RhinoDoc doc, RhinoObject obj)
+        {
+            return doc.Objects.Delete(obj, true, true);
         }
     }
 }

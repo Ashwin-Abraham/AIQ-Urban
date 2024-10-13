@@ -15,6 +15,7 @@ namespace ArchSitePlan.Core.Models
         public static List<Parcel> Parcels = new List<Parcel>();
         public static List<Building> Buildings = new List<Building>();
         public static List<StudyArea> Studies = new ();
+        public static List<ParcelDivider> Dividers = new ();
         static CoreModel() { }
 
         public static void AddStudyArea(StudyArea studyArea) => Studies.Add(studyArea);
@@ -31,9 +32,7 @@ namespace ArchSitePlan.Core.Models
         public static void RefreshStudyAreaMetrics(bool RecalculatModelSplit = true)
         {
             if (RecalculatModelSplit)
-            {
-                SplitCoreModelByStudyAreas();
-            }
+                SplitCoreModel();
 
             for (int i = 0; i < Studies.Count; i++) 
             {
@@ -44,8 +43,8 @@ namespace ArchSitePlan.Core.Models
                 else
                 {
                     var parcelsInArea = Parcels
-                   .Where(p => Studies[i].Boundary.IsContaining(p.Boundary.Centroid().ObjectToList()))
-                   .ToList();
+                        .Where(p => Studies[i].Boundary.IsContaining(p.Boundary.ControlPointCentroid().ObjectToList()))
+                        .ToList();
 
                     var buildingsInArea = Buildings
                         .Where(bldg =>
@@ -60,13 +59,44 @@ namespace ArchSitePlan.Core.Models
                 }
             }
         }
-        private static void SplitCoreModelByStudyAreas()
+        private static void SplitCoreModel()
         {
-            SplitParcelsByStudyAreas();
-            //SplitRoadsByStudyAreas();
-            //SplitRoadRoWsByStudyAreas();
+            var studyBoundaries = Studies.Select(sa => sa.Boundary)
+                .Where(crv => crv != null && crv.IsClosed())
+                .Cast<ICurve>()
+                .ToList();
+
+            var dividerCrvs = Dividers
+                .Select(d => d.Curve)
+                .Cast<ICurve>()
+                .ToList();
+
+            dividerCrvs.AddRange(studyBoundaries);
+
+            var splitParcels = new List<Parcel>();
+            foreach(var parcel in Parcels)
+            {
+                var fragments = SplitParcelsByPolylines(
+                    parcel.Boundary.ObjectToList(),
+                    dividerCrvs);
+
+                splitParcels.AddRange(fragments.Select(f => new Parcel(parcel, f)));
+            }
+
+            Parcels = splitParcels;
         }
 
+        private static List<PlanarSurface> SplitParcelsByPolylines(
+            List<PlanarSurface> parcels, 
+            List<ICurve> dividers)
+        {
+            var splitParcels = parcels.Select(p => p.ExternalBoundary)
+                .SelectMany(crv => crv.Split(dividers))
+                .Select(crv => new PlanarSurface(crv, new List<ICurve>()))
+                .ToList();
+
+            return splitParcels;
+        }
         private static void SplitRoadRoWsByStudyAreas()
         {
             //var studyBoundaries = StudyAreas.Select(sa => sa.Boundary).ToList();
@@ -130,48 +160,7 @@ namespace ArchSitePlan.Core.Models
                 _roads = splitRoads;
             }
         }
-        private static void SplitParcelsByStudyAreas()
-        {
-            var splitters = Studies.Select(sa => sa.Boundary)
-                .Where(crv => crv != null)
-                .SelectMany(pline => pline.Segments())
-                .ToList();
-
-            var studyBoundaries = Studies.Select(sa => sa.Boundary)
-                .Where(crv=> crv!=null)
-                .ToList();
-
-
-            foreach(var boundary in studyBoundaries)
-            {
-                // For each study boundary recalculate the split parcels
-                var splitParcels = new List<Parcel>();
-
-                foreach (var parcel in Parcels)
-                {
-                    var insideStudy = Compute.BooleanIntersection(parcel.Boundary.ExternalBoundary, boundary);
-
-                    if (insideStudy.Any())
-                    {
-                        var outsideStudy = Compute.BooleanDifference(parcel.Boundary.ExternalBoundary, boundary.ObjectToList());
-
-                        List<PolyCurve> splitBoundaries = insideStudy.Concat(outsideStudy).ToList();
-                        var parcelFragments = insideStudy
-                            .Concat(outsideStudy)
-                            .Select(b => new Parcel(parcel, new PlanarSurface((ICurve)b, new List<ICurve>())));
-
-                        splitParcels.AddRange(parcelFragments);
-                    }
-                    else
-                    {
-                        splitParcels.Add(parcel);
-                    }
-                }
-
-                Parcels = splitParcels;
-            }
-        }
-
+       
         public static bool TryUpdateSomeRoads(List<(Polyline,Guid)> newGuidAndCL)
         {
             var guids = newGuidAndCL.Select(x => x.Item2).ToList();
@@ -220,10 +209,30 @@ namespace ArchSitePlan.Core.Models
 
             var parcels = union.Where(pCrv => !roads.Contains(pCrv))
                 //.Select(p => p.ExternalBoundary.Fillet())
-                .Cast<ICurve>()
+                .Select(p => p.ToPolycurve())
                 .ToList();
 
-            var roadSrfs = roads.Select(r => Create.PlanarSurface(r, parcels)).ToList();
+            var studyCrvs = Studies
+                .Select(s => s.Boundary)
+                .Where(crv => crv is not null)
+                .ToList();
+
+            union.AddRange(studyCrvs.Select(p => p.ToPolycurve()));
+
+            var dividers = Dividers.Select(d => d.Curve).ToList();
+            dividers.AddRange(studyCrvs);
+
+            // Divide created parcels
+            parcels = parcels
+                .SelectMany(p => p.Split(dividers.Cast<ICurve>().ToList()))
+                .Select(p => p.ToPolycurve())
+                .ToList();
+            
+            var roadSrfs = roads
+                .Select(r => Create.PlanarSurface(
+                    r, 
+                    parcels.Cast<ICurve>().ToList()))
+                .ToList();
 
             List<Parcel> newParcels = new();
             foreach(var pCrv in union)
@@ -231,7 +240,7 @@ namespace ArchSitePlan.Core.Models
                 if (roads.Contains(pCrv)) continue;
 
                 Landuse nearestUse = Parcels.Any()?
-                    Parcels.MinBy(p => p.Boundary.Centroid().Distance(pCrv.Centroid())).LandUse
+                    Parcels.MinBy(p => p.Boundary.ControlPointCentroid().Distance(pCrv.ControlPointCentroid())).LandUse
                     :Landuse.Undefined;
 
                 newParcels.Add(new Parcel(Create.PlanarSurface(pCrv), nearestUse));
@@ -367,6 +376,7 @@ namespace ArchSitePlan.Core.Models
             ROWs = new();
             Buildings = new();
             Parcels= new();
+            Dividers= new();
             ResetStudyAreas();
         }
 
@@ -384,6 +394,8 @@ namespace ArchSitePlan.Core.Models
 
         public static void UpdateParcelUses(List<(Point point, Landuse use)> landuseData)
         {
+            if (landuseData.Count == 0) return;
+
             foreach(var p in Parcels)
             {
                 var closestRhinoData = landuseData.MinBy(data => data.point.Distance(p.Boundary.Centroid()));
@@ -393,5 +405,23 @@ namespace ArchSitePlan.Core.Models
 
         public static StudyArea ProjectWideStudy()
             => Studies.FirstOrDefault(s => s.Name == CoreGeneralConstants.FullProjectStudyName);
+
+        public static void AddOrUpdateParcelDivider(Polyline pline, Guid id)
+        {
+            if (pline == null || id == Guid.Empty) return;
+
+            var divider = Dividers.Find(d => d.Id == id);
+
+            if (divider != null)
+                Dividers.Remove(divider);
+
+            Dividers.Add(new ParcelDivider(pline, id));
+        }
+
+        public static bool TryGetParcelDivider(Guid objectId, out ParcelDivider divider)
+        {
+            divider = Dividers.FirstOrDefault(div => div.Id == objectId);
+            return divider != null;
+        }
     }
 }

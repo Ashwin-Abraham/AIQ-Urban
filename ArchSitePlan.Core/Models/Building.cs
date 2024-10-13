@@ -1,5 +1,6 @@
 ﻿using ArchSitePlan.Core.Extensions;
 using BH.Engine.Geometry;
+using BH.Engine.Spatial;
 using BH.oM.Geometry;
 using System;
 using System.Collections.Generic;
@@ -36,13 +37,15 @@ namespace ArchSitePlan.Core.Models
             FloorToFloorHeight = floorToFloorHeight;
             
             FloorPlates = floorPlates
+                .Where(p => p!=null && Math.Abs(p.Area()) > 1E-06)
                 .OrderBy(p => p.Centroid().Z)
                 .Select(f => (f, Guid.Empty))
                 .ToList();
-            
+
             FootprintId = footprintId;
             EnvelopeId = envelopeId;
             Origin = CalculateOrigin(envelope);
+            FloorCount = floorPlates.Count;
         }
 
         public static Point CalculateOrigin(Mesh envelope)
@@ -57,7 +60,10 @@ namespace ArchSitePlan.Core.Models
 
         public double FootprintArea()
         {
-            var area = FloorPlates.First().Profile.Area();
+            double area = 0;
+            if(FloorPlates.Any())
+                area = FloorPlates.First().Profile.Area();
+
             return Math.Abs(area);
         }
 
