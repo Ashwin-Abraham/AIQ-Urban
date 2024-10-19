@@ -38,21 +38,20 @@ namespace ArchSitePlan.Core.Models
         internal static bool TryCreateRoad(PolyCurve centerline, 
             Guid id,
             double width, 
-            out Road road)
+            out Road? road)
         {
             road = null;
             var segments = centerline.Curves;
-            for (int i = 0; i < segments.Count - 1; i++) 
+            
+            if(centerline.ValidateContinuity())
             {
-                var currentCrvEnd = segments[i].IEndPoint();
-                var nextCrvStart = segments[i].IStartPoint();
-
-                if (!currentCrvEnd.IsEqual(nextCrvStart))
-                    return false;
+                road = new Road(centerline, id, width);
+                return true;
             }
-
-            road = new Road(centerline, id, width);
-            return true;
+            else
+            {
+                return false;
+            }
         }
 
         private static PlanarSurface CalculateRoWs(PolyCurve centerline, double width)

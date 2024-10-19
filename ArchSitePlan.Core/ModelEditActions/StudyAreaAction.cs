@@ -1,0 +1,67 @@
+﻿using ArchSitePlan.Core.Extensions;
+using ArchSitePlan.Core.Models;
+using BH.Engine.Geometry;
+using BH.oM.Geometry;
+using static ArchSitePlan.Core.Constants.Enums;
+
+namespace ArchSitePlan.Core.ModelEditActions
+{
+    public class StudyAreaAction:IModelEditAction
+    {
+        public static void Run(
+            List<(Polyline Crv, Guid Id, string Name)> studyData,
+           EditType editType)
+        {
+            switch (editType)
+            {
+                case EditType.Remove:
+                    RemoveFromCoreModel(studyData.Select(s => s.Id).ToList());
+                    break;
+
+                case EditType.Add or EditType.Edit:
+                    RemoveFromCoreModel(studyData.Select(s => s.Id).ToList());
+                    AddToCoreModel(studyData);
+                    break;
+
+                default:
+                    throw new NotImplementedException(nameof(StudyAreaAction) + $" Edit mode:{editType}");
+            }
+        }
+
+        private static void AddToCoreModel(List<(Polyline Boundary, Guid Id, string Name)> studyData)
+        {
+            var newStudies = new List<StudyArea>();
+
+            foreach(var data  in studyData)
+            {
+                var parcelsWithin = CoreModel.Parcels
+                    .Where(p => data.Boundary.IsContaining(p.Boundary.ControlPointCentroid().ObjectToList()))
+                    .ToList();
+
+                var buildingsWithin = CoreModel.Buildings
+                    .Where(bldg => data.Boundary.IsContaining(bldg.Origin.ObjectToList()))
+                    .ToList();
+
+                var roadsWithin = CoreModel.Roads
+                    .Where(r => data.Boundary.IsContaining(r.Centerline.PointAtParameter(0.5).ObjectToList()))
+                    .ToList();
+
+                var study = new StudyArea(data.Boundary,
+                    data.Id,
+                    data.Name,
+                    parcelsWithin,
+                    buildingsWithin,
+                    roadsWithin);
+
+                newStudies.Add(study);
+            }
+
+            CoreModel.Studies.AddRange(newStudies);
+        }
+
+        private static void RemoveFromCoreModel(List<Guid> ids)
+        {
+            int removed = CoreModel.Studies.RemoveAll(study => ids.Contains(study.Id));
+        }
+    }
+}

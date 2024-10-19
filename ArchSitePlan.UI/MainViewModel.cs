@@ -1,7 +1,9 @@
-﻿using ArchSitePlan.Core.Metrics;
+﻿using ArchSitePlan.Core.Extensions;
+using ArchSitePlan.Core.Metrics;
 using ArchSitePlan.Core.Models;
 using ArchSitePlan.UI.Actions;
 using ArchSitePlan.UI.Constants;
+using ArchSitePlan.UI.CoreModelInterface;
 using ArchSitePlan.UI.Extensions;
 using ArchSitePlan.UI.Helpers;
 using ArchSitePlan.UI.Models;
@@ -392,22 +394,23 @@ namespace ArchSitePlan.UI
                     .Where(obj => obj.ObjectType == ObjectType.Curve)
                     .ToList();
 
-                List<(BH.oM.Geometry.Polyline, Guid)> plineObjs = new();
+                List<(BH.oM.Geometry.Polyline?, Guid)> plineObjs = new();
 
                 foreach (var rhinoObj in rhinoObjs)
                 {
-                    if (!(rhinoObj.Geometry as Curve).TryGetPolyline(out Polyline pline)) continue;
+                    Curve? crv = rhinoObj.Geometry as Curve;
+                    Polyline? pline = null;
 
-                    plineObjs.Add((pline.ToBHoM(), rhinoObj.Id));
+                    if (crv is not null && 
+                        !crv.TryGetPolyline(out pline)) continue;
+
+                    plineObjs.Add((pline?.ToBHoM(), rhinoObj.Id));
                     LayerHelpers.ChangeLayer(rhinoObj, parcelDividerLayerIndex);
                 }
 
                 if (!plineObjs.Any()) return;
 
-                RhinoToCoreModel.AddOrUpdateParcelDivider(plineObjs);
-                CoreModel.RefreshStudyAreaMetrics();
-                RefreshActiveStudyAndMetrics();
-                CoreModelToRhino.OutputCoreModelToRhino(doc);
+                ModelBuilderPipelines.AddOrUpdateParcelDividerPipeline(doc, plineObjs);
             }
             catch(Exception ex)
             {
@@ -437,9 +440,8 @@ namespace ArchSitePlan.UI
                 ActiveStudy = CoreModel.Studies.First();
                 ActiveStudyAreaName = ActiveStudy.Name;
                 StudyAreasNames = CoreModel.Studies.Select(s => s.Name).ToList();
-                CoreModelToRhino.RefreshStudyAreaMetrics(true);
-                CoreModelToRhino.OutputCoreModelToRhino(RhinoDoc.ActiveDoc);
-
+                ModelBuilderPipelines.RefreshStudyAreaMetricsPipeline();
+                ModelBuilderPipelines.ReplaceRhinoModelPipeline(doc);
             }
             catch(Exception ex)
             {
@@ -498,12 +500,10 @@ namespace ArchSitePlan.UI
                 || obj.ObjectType == ObjectType.Surface)
                 .ToList();
 
-            foreach (var obj in srfObjs)
-            {
-                RhinoToCoreModel.TryUpdateParcelUse(obj, SelectedLandUse);
-            }
-
-            CoreModelToRhino.OutputParcelsToRhino(RhinoDoc.ActiveDoc);
+            ModelBuilderPipelines.ChangeParcelUsePipeline(doc, 
+                srfObjs.Select(s => s.Id).ToList(),
+                SelectedLandUse);
+            
             RefreshActiveStudyAndMetrics();
         }
 
@@ -610,15 +610,13 @@ namespace ArchSitePlan.UI
                 if (!boundary.TryGetPolyline(out Polyline rhinoPline))
                     throw new Exception("Select polylines only");
 
-                RhinoToCoreModel.TryAddStudyArea(
-                        rhinoPline.ToBHoM(),
+
+                ModelBuilderPipelines.AddStudyAreaPipeline(doc: doc,
+                    studyData: (rhinoPline.ToBHoM(),
                         rhinoObj.Id,
-                        ActiveStudyAreaName);
-
+                        ActiveStudyAreaName).ObjectToList());
                 ActiveStudy = CoreModel.Studies.FirstOrDefault(s => rhinoObj.Id == s.Id);
-                CoreModelToRhino.RefreshStudyAreaMetrics();
 
-                CoreModelToRhino.OutputCoreModelToRhino(RhinoDoc.ActiveDoc);
                 RefreshActiveStudyAndMetrics();
                 StudyAreasNames = CoreModel.Studies.Select(s => s.Name).ToList();
             }
@@ -655,14 +653,11 @@ namespace ArchSitePlan.UI
                     .Where(obj => allowedTypes.Contains(obj.ObjectType))
                     .ToList();
 
-                CoreModelToRhino.ToggleLockModelLayers(doc, false);
                 RhinoEventHandler.UpdateSelectedBuildings(rhinoObjs,
                     ActiveBuildingFloorCount,
                     ActiveBuildingFloorHeight);
-                CoreModel.RefreshStudyAreaMetrics();
+
                 RefreshActiveStudyAndMetrics();
-                CoreModelToRhino.ToggleLayerStateBasedOnAppMode(doc, AppMode.Building);
-                doc.Views.Redraw();
             }
             catch(Exception ex)
             {
@@ -729,21 +724,21 @@ namespace ArchSitePlan.UI
 
                 int roadIndex = Constants.RhinoObjAttributeConstants.RoadGeometryAttributes.LayerIndex;
 
-                List<(BH.oM.Geometry.Polyline, Guid, double)> plineObjs = new();
+                List<(BH.oM.Geometry.Polyline?, Guid)> plineObjs = new();
 
                 foreach(var rhinoObj in rhinoObjs)
                 {
                     if (!(rhinoObj.Geometry as Curve).TryGetPolyline(out Polyline pline)) continue;
 
-                    plineObjs.Add((pline.ToBHoM(), rhinoObj.Id, RoadWidth));
+                    plineObjs.Add((pline.ToBHoM(), rhinoObj.Id));
                     LayerHelpers.ChangeLayer(rhinoObj, roadLayerIndex);
                 }
 
                 if (!plineObjs.Any()) return;
 
-                RhinoToCoreModel.AddOrUpdateRoads(plineObjs);
+                ModelBuilderPipelines.AddOrUpdateRoadPipeline(doc, plineObjs, RoadWidth);
                 RefreshActiveStudyAndMetrics();
-                CoreModelToRhino.OutputCoreModelToRhino(doc);
+                ModelBuilderPipelines.ReplaceRhinoModelPipeline(doc);
             }
             catch(Exception ex)
             {
