@@ -28,11 +28,12 @@ namespace ArchSitePlan.Test
                 Point.Origin,
                 Create.Point(12,5),
                 Create.Point(-12,5),
-                Create.Point(0,15),
+                //Create.Point(0,15),
             };
 
             Polyline pline = Create.Polyline(points);
-            Polyline offset = pline.Offset(1, Vector.ZAxis);
+            //Polyline offset = pline.Offset(1, Vector.ZAxis);
+            Polyline offset = pline.IOffset(1, Vector.ZAxis) as Polyline;
 
             DEBUGMODEL.AddBoundedCurve(ToHyparInterop.ToHypar(pline));
             DEBUGMODEL.AddBoundedCurve(ToHyparInterop.ToHypar(offset), DebugMaterials.Red);

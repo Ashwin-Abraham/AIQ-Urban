@@ -29,18 +29,36 @@ namespace ArchSitePlan.Core.Extensions
             bool tangentExtensions = false,
             double tolerance = 1E-06)
         {
+            var type = curve.GetType();
             switch(cap)
             {
 
                 case EndCapType.Round:
                     throw new NotImplementedException();
 
+                // EndCapType.Butt and None:
                 default:
-                    // EndCapType.Butt and None:
-                    var curve1 = curve.IOffset(offset, normal, tangentExtensions, tolerance);
-                    var curve2 = curve
-                        .IOffset(-offset, normal, tangentExtensions, tolerance)
-                        .IFlip();
+                    ICurve curve1, curve2;
+
+                    if(curve is Polyline && curve.IControlPoints().Count == 2)
+                    {
+                        var line = Create.Line(curve.IStartPoint(), curve.IEndPoint());
+
+                        // TODO: Wrap this in the IOffset method as an extension
+                        curve1 = line.Offset(offset, normal, tangentExtensions, tolerance);
+
+                        curve2 = line
+                            .Offset(-offset, normal, tangentExtensions, tolerance)
+                            .Flip();
+                    }
+                    else
+                    {
+                        curve1 = curve.IOffset(offset, normal, tangentExtensions, tolerance);
+                        curve2 = curve
+                            .IOffset(-offset, normal, tangentExtensions, tolerance)
+                            .IFlip();
+                    }
+                    
 
                     var cap1 = Create.Line(curve1.IEndPoint(), curve2.IStartPoint());
                     var cap2 = Create.Line(curve2.IEndPoint(), curve1.IStartPoint());

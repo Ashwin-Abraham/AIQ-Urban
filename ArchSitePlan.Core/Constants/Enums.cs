@@ -33,5 +33,13 @@ namespace ArchSitePlan.Core.Constants
             Rail,
             Cycleway
         }
+        public enum EditType
+        {
+            Add,
+            Remove,
+            Edit,
+            Divide,
+            ClearAll
+        }
     }
 }
