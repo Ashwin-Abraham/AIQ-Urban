@@ -130,13 +130,18 @@ namespace ArchSitePlan.Core.Models
             {
                 double landArea = useGroup.Sum(grp => grp.Area);
                 double builtArea= useGroup.Sum(grp => grp.BUA);
+                double areaPctg = Math.Clamp(landArea / totalLandArea, 0, 1);
+                areaPctg = double.IsNaN(areaPctg) ? 0 : areaPctg;
+
+                double builtPctg = Math.Clamp(builtArea / totalBuiltArea, 0, 1);
+                builtPctg = double.IsNaN(builtPctg)? 0: builtPctg;
 
                 var row = new LandUseSummaryDataRow(
                     Landuse: useGroup.Key.ToString(),
                     Area: landArea,
-                    AreaPctg: Math.Clamp(landArea/ totalLandArea, 0,1),
+                    AreaPctg: areaPctg,
                     BuiltArea: builtArea,
-                    BuiltPctg: Math.Clamp(builtArea / totalBuiltArea, 0, 1),
+                    BuiltPctg: builtPctg,
                     FAR: totalBuiltArea/totalLandArea,
                     Colour: Defaults.LandUseColours[useGroup.Key]
                     );
@@ -237,6 +242,7 @@ namespace ArchSitePlan.Core.Models
             for (int i = 0; i < _landUseSummary.Count;i++ )
             {
                 int r = i + rowOffset;
+                int rTotals = r + _landUseSummary.Count - i -1;
 
                 worksheet.Cell(r, 1).Value = _landUseSummary[i].Landuse; 
                 worksheet.Cell(r, 2).Style.Fill
@@ -244,10 +250,19 @@ namespace ArchSitePlan.Core.Models
                 worksheet.Cell(r, 3).SetContents(_landUseSummary[i].Area, AreaLengthDataStyle);
                 var s = worksheet.Cell(r, 3).GetFormattedString();
 
-                worksheet.Cell(r, 4).SetContents(_landUseSummary[i].AreaPctg, PercentageDatasStyle);
-            worksheet.Cell(r, 5).SetContents(_landUseSummary[i].BuiltArea, AreaLengthDataStyle);
-                worksheet.Cell(r, 6).SetContents(_landUseSummary[i].BuiltPctg, PercentageDatasStyle); 
-                worksheet.Cell(r, 7).SetContents(_landUseSummary[i].FAR, AreaLengthDataStyle);
+                worksheet.Cell(r, 4).SetContents("",
+                    PercentageDatasStyle,
+                    BuildPercentageFormula(r,3,rowOffset, rTotals, 3));
+
+                worksheet.Cell(r, 5).SetContents(_landUseSummary[i].BuiltArea, AreaLengthDataStyle);
+
+                worksheet.Cell(r, 6).SetContents("",
+                    PercentageDatasStyle,
+                    BuildPercentageFormula(r, 5, rowOffset, rTotals, 5));
+
+                worksheet.Cell(r, 7).SetContents("",
+                    AreaLengthDataStyle,
+                    BuildRatioFormula(r, 5, r, 3));
             }
 
             rowOffset += _landUseSummary.Count;
@@ -302,14 +317,19 @@ namespace ArchSitePlan.Core.Models
             for (int i = 0; i < _transitSummary.Count; i++)
             {
                 int r = i + rowOffset;
-
+                int totalsRow = rowOffset + _transitSummary.Count;
                 worksheet.Cell(r, 1).Value = _transitSummary[i].TransitType;
                 worksheet.Cell(r, 2).Style.Fill
                     .SetBackgroundColor(XLColor.FromColor(_transitSummary[i].Colour));
                 worksheet.Cell(r, 3).SetContents(_transitSummary[i].RunningLength, AreaLengthDataStyle);
-                worksheet.Cell(r, 4).SetContents(_transitSummary[i].RunningLengthPctg, PercentageDatasStyle);
+                worksheet.Cell(r, 4).SetContents("",
+                    PercentageDatasStyle,
+                    BuildPercentageFormula(r, 3, totalsRow, totalsRow, 3));
+
                 worksheet.Cell(r, 5).SetContents(_transitSummary[i].TransitArea, AreaLengthDataStyle);
-                worksheet.Cell(r, 6).SetContents(_transitSummary[i].TransitAreaPctg, PercentageDatasStyle);
+                worksheet.Cell(r, 6).SetContents("",
+                    PercentageDatasStyle,
+                    BuildPercentageFormula(r, 5, totalsRow, totalsRow, 5));
             }
             rowOffset += _transitSummary.Count;
 
@@ -353,30 +373,43 @@ namespace ArchSitePlan.Core.Models
             worksheet.Cell(0 + rowOffset, 2).SetContents("Colour", TableSubHeadingStyle_StudyArea);
             worksheet.Cell(0 + rowOffset, 3).SetContents("Bounded Area", TableSubHeadingStyle_StudyArea);
             worksheet.Cell(0 + rowOffset, 4).SetContents("Parcel Area", TableSubHeadingStyle_StudyArea);
-            worksheet.Cell(0 + rowOffset, 5).SetContents("Parcel Area Percentage", TableSubHeadingStyle_StudyArea);
+            worksheet.Cell(0 + rowOffset, 5).SetContents("Parcel Area Percentage (of entire proect)", TableSubHeadingStyle_StudyArea);
             worksheet.Cell(0 + rowOffset, 6).SetContents("Transit Area", TableSubHeadingStyle_StudyArea);
-            worksheet.Cell(0 + rowOffset, 7).SetContents("Transit Area Percentage", TableSubHeadingStyle_StudyArea);
+            worksheet.Cell(0 + rowOffset, 7).SetContents("Transit Area Percentage (of entire proect)", TableSubHeadingStyle_StudyArea);
             worksheet.Cell(0 + rowOffset, 8).SetContents("Built Area", TableSubHeadingStyle_StudyArea);
-            worksheet.Cell(0 + rowOffset, 9).SetContents("Built Area Percentage", TableSubHeadingStyle_StudyArea);
-            worksheet.Cell(0 + rowOffset, 10).SetContents("FAR", TableSubHeadingStyle_StudyArea);
+            worksheet.Cell(0 + rowOffset, 9).SetContents("Built Area Percentage (of entire proect)", TableSubHeadingStyle_StudyArea);
+            worksheet.Cell(0 + rowOffset, 10).SetContents("FAR (of this study area)", TableSubHeadingStyle_StudyArea);
             rowOffset += 1;
 
             // Table body
             for (int i = 0; i < _studyAreasSummary.Count; i++)
             {
                 int r = i + rowOffset;
+                int totalsRow = rowOffset;
 
                 worksheet.Cell(r, 1).Value = _studyAreasSummary[i].StudyName;
                 worksheet.Cell(r, 2).Style.Fill
                     .SetBackgroundColor(XLColor.FromColor(_studyAreasSummary[i].Colour));
                 worksheet.Cell(r, 3).SetContents(_studyAreasSummary[i].BoundedArea, AreaLengthDataStyle);
                 worksheet.Cell(r, 4).SetContents(_studyAreasSummary[i].ParcelArea, AreaLengthDataStyle);
-                worksheet.Cell(r, 5).SetContents(_studyAreasSummary[i].ParcelAreaPctg, PercentageDatasStyle);
+                worksheet.Cell(r, 5).SetContents("",
+                    PercentageDatasStyle,
+                    BuildPercentageFormula(r, 4, totalsRow, totalsRow, 4));
+
                 worksheet.Cell(r, 6).SetContents(_studyAreasSummary[i].TransitArea, AreaLengthDataStyle);
-                worksheet.Cell(r, 7).SetContents(_studyAreasSummary[i].TransitAreaPctg, PercentageDatasStyle);
+                worksheet.Cell(r, 7).SetContents("",
+                    PercentageDatasStyle,
+                    BuildPercentageFormula(r, 6, totalsRow, totalsRow, 6));
+
                 worksheet.Cell(r, 8).SetContents(_studyAreasSummary[i].BuiltArea, AreaLengthDataStyle);
-                worksheet.Cell(r, 9).SetContents(_studyAreasSummary[i].BuiltAreaPctg, PercentageDatasStyle);
+                worksheet.Cell(r, 9).SetContents("",
+                    PercentageDatasStyle,
+                    BuildPercentageFormula(r, 8, totalsRow, totalsRow, 8));
+
                 worksheet.Cell(r, 10).SetContents(_studyAreasSummary[i].FAR, AreaLengthDataStyle);
+                worksheet.Cell(r, 10).SetContents("",
+                    AreaLengthDataStyle,
+                    BuildRatioFormula(r, 8, r, 4));
             }
 
             //////////////// SHEET POST PROCESSING/ STYLING //////////////////
@@ -387,6 +420,23 @@ namespace ArchSitePlan.Core.Models
 
             // Save the workbook to a file
             wb.SaveAs(ExcelPath);
+        }
+
+        private string BuildRatioFormula(int numeratorRow, 
+            int numeratorCol, 
+            int denominatorRow, 
+            int denominatorCol)
+        {
+            return $"R{numeratorRow}C{numeratorCol}/R{denominatorRow}C{denominatorCol}";
+        }
+
+        private string BuildPercentageFormula(int itemRow,
+            int itemColumn,
+            int totalStartRow, 
+            int totalEndRow,
+            int totalColumn)
+        {
+            return $"R{itemRow}C{itemColumn}/{BuildTotalFormula(totalStartRow, totalEndRow, totalColumn)}";
         }
 
         private string BuildTotalFormula(int startRow, int endRow, int column)

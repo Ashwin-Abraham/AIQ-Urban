@@ -55,7 +55,7 @@ namespace ArchSitePlan.Core.Models
 
         public double BUA()
         {
-            return FloorPlates.Sum(p => Math.Abs(p.Profile.ExternalBoundary.IArea()));
+            return FloorPlates.Sum(p => Math.Abs(p.Profile.IArea()));
         }
 
         public double FootprintArea()

@@ -1,5 +1,6 @@
 ﻿using Rhino;
 using Rhino.DocObjects;
+using Rhino.Geometry;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,6 +22,15 @@ namespace ArchSitePlan.UI.Helpers
         public static void DeleteRhinoObjectsIfPresent(RhinoDoc doc, RhinoObject obj)
         {
             doc.Objects.Delete(obj, true);
+        }
+        public static Polyline? TryExtractPolyline(RhinoObject obj)
+        {
+            var crv = obj.Geometry as Curve;
+            
+            if (crv != null && crv.TryGetPolyline(out Polyline pline))
+                return pline;
+            else
+                return null;
         }
     }
 }

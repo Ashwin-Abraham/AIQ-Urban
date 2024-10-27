@@ -436,12 +436,10 @@ namespace ArchSitePlan.UI
                     return;
                 }
 
-                RhinoToCoreModel.ReloadProjectFromRhino(RhinoDoc.ActiveDoc);
+                ModelBuilderPipelines.ReloadAppPipeline(RhinoDoc.ActiveDoc);
                 ActiveStudy = CoreModel.Studies.First();
                 ActiveStudyAreaName = ActiveStudy.Name;
                 StudyAreasNames = CoreModel.Studies.Select(s => s.Name).ToList();
-                ModelBuilderPipelines.RefreshStudyAreaMetricsPipeline();
-                ModelBuilderPipelines.ReplaceRhinoModelPipeline(doc);
             }
             catch(Exception ex)
             {
@@ -478,6 +476,9 @@ namespace ArchSitePlan.UI
         {
             try
             {
+                if (!Path.Exists(ExcelPath))
+                    throw new Exception($"Excel path - {ExcelPath} is invalid. Please select a valid export location.");
+
                 var pr = new ProjectReport(ExcelPath, CoreModel.ProjectWideStudy().Metrics, CoreModel.Studies);
                 pr.WriteExcelFile();
             }
@@ -610,8 +611,12 @@ namespace ArchSitePlan.UI
                 if (!boundary.TryGetPolyline(out Polyline rhinoPline))
                     throw new Exception("Select polylines only");
 
+                var study = CoreModel.Studies.Find(s => s.Name == ActiveStudyAreaName);
+                if(study!=null && study.Id != rhinoObj.Id)
+                    throw new Exception($"Another study named \"{ActiveStudyAreaName}\" already exists.");
 
-                ModelBuilderPipelines.AddStudyAreaPipeline(doc: doc,
+                RhinoDoc doc2 = RhinoDoc.ActiveDoc;
+                ModelBuilderPipelines.AddStudyAreaPipeline(doc: doc2,
                     studyData: (rhinoPline.ToBHoM(),
                         rhinoObj.Id,
                         ActiveStudyAreaName).ObjectToList());
@@ -674,7 +679,7 @@ namespace ArchSitePlan.UI
                 // If expander is closed while the app mode is unchanged, it means wwe have closed all expanders
                 if (AppMode == changedExpander) AppMode = AppMode.None;
                 if (AppMode == AppMode.None)
-                    CoreModelToRhino.ToggleLockModelLayers(RhinoDoc.ActiveDoc, false);
+                    CoreModelToRhino.ToggleLockModelLayers(RhinoDoc.ActiveDoc, true);
 
                 // Early return to avoid cyclic SetSelectionMode calls for expander closure
                 return;
@@ -765,43 +770,16 @@ namespace ArchSitePlan.UI
 
         public void RefreshActiveStudyAndMetrics()
         {
-            if(CoreModel.TryGetStudyArea(_activeStudy.Id, out StudyArea study))
+            StudyAreasNames = CoreModel.Studies.Select(s => s.Name).ToList();
+
+            if (_activeStudy != null
+                && CoreModel.TryGetStudyArea(_activeStudy.Id, out StudyArea study))
                 ActiveStudy = study;
+            else if(CoreModel.Studies.Exists(s => s !=null))
+                ActiveStudy = CoreModel.Studies[0];
 
+            ActiveStudyAreaName = ActiveStudy.Name;
             UpdateDisplayedStudyAreaData(ActiveStudy);
-        }
-
-        private void UpdateLandUseGraphData_OLD(StudyAreaMetrics studyAndMetric)
-        { 
-            var allUses = Enum.GetValues<Landuse>();
-            List<HorizontalGraphData> graphData = new();
-
-            if(!studyAndMetric.ParcelMetrics.Any()) return;
-
-            var areaPerUse = studyAndMetric.ParcelMetrics
-                .GroupBy(p => p.Use)
-                .ToDictionary(grp => grp.Key, grp => grp.Sum(p => p.Area));
-
-            double maxArea = areaPerUse.Max(kvp => kvp.Value);
-
-            foreach(var use in allUses)
-            {
-                double useArea = studyAndMetric.ParcelMetrics.Where(p => p.Use == use)
-                    .Sum(p => p.Area);
-
-                Color useColor = Defaults.LandUseColours[Landuse.Undefined];
-
-                if (Defaults.LandUseColours.TryGetValue(use, out Color color))
-                    useColor = color;
-
-                graphData.Add( new HorizontalGraphData(
-                    useArea, 
-                    use.ToString(), 
-                    color,
-                    maxArea));
-            }
-
-            LandUseGraphData = graphData;
         }
     }
 }

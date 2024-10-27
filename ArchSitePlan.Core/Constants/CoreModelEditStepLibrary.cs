@@ -8,8 +8,40 @@ using static ArchSitePlan.Core.ModelEditActions.BuildingAction;
 
 namespace ArchSitePlan.Core.Constants
 {
+    public record StudyCreationData(
+            BH.oM.Geometry.Polyline Boundary,
+            Guid Id,
+            string Name);
+
+    public record TransitCreationData(
+        BH.oM.Geometry.Polyline? Centerline,
+        Guid Id,
+        double RoadWidth);
+
+    public record BuildingCreationData(
+        Mesh? Envelope, 
+        List<PlanarSurface> Floors, 
+        Guid EnvelopeId, 
+        Guid FloorId, 
+        double FloorHt);
+
+    public record DividerCreationData(
+        Polyline? Polyline, 
+        Guid Id);
     public class CoreModelEditStepLibrary
     {
+        public static void EditParcelUsesByClosestPoint(
+            List<(Point point, Landuse use)> landuseData)
+        {
+            if (landuseData.Count == 0) return;
+
+            foreach (var p in CoreModel.Parcels)
+            {
+                var closestRhinoData = landuseData.MinBy(data => data.point.Distance(p.Boundary.ControlPointCentroid()));
+                p.LandUse = closestRhinoData.use;
+            }
+        }
+        public static void ClearCoreModel() => CoreModel.ClearModel();
         //public record ModelEditStep(
         //   EditType EditMode,
         //   List<IModelEditAction> ActionSequence);
@@ -60,6 +92,19 @@ namespace ArchSitePlan.Core.Constants
                 editType: EditType.Divide,
                 dividers: dividers);
         }
+        public static void AddOrUpdateRoad(List<TransitCreationData> transitData)
+        {
+            var groupedByWidths = transitData.GroupBy(data => data.RoadWidth);
+            foreach(var group in groupedByWidths)
+            {
+                List<(Polyline? centerLine, Guid id)> centerLineAndIds = group
+                    .AsEnumerable()
+                    .Select(g => (g.Centerline, g.Id))
+                    .ToList();
+
+                AddOrUpdateRoad(centerLineAndIds, group.Key);
+            }
+        }
         public static void AddOrUpdateRoad(
            List<(Polyline? centerLine, Guid id)> centerLineAndIds,
            double width)
@@ -105,12 +150,23 @@ namespace ArchSitePlan.Core.Constants
             var roadCrvs = roadUnion
                 .Where(pCrv => roadPoints.Any(pt => pCrv.IsContaining(new List<Point>() { pt })))
                 .ToList();
-
+                
             var parcelCrvs = roadUnion
                 .Where(pCrv => !roadCrvs.Contains(pCrv))
                 .Select(p => p.ToPolycurve())
                 .Where(crv => crv is not null)
                 .Cast<PolyCurve>()
+                .ToList();
+
+            var studyBoundaries = CoreModel.Studies
+                .Where(s => s.Boundary != null)
+                .Select(s => s.Boundary)
+                .ToList();
+
+            var studiesCombined = Compute.BooleanUnion(studyBoundaries);
+
+            var unenclosedParcels = studiesCombined.
+                SelectMany(crv => Compute.BooleanDifference(crv, roadUnion))
                 .ToList();
 
             var roadSrfs = roadCrvs
@@ -119,7 +175,7 @@ namespace ArchSitePlan.Core.Constants
                     parcelCrvs.Cast<ICurve>().ToList()))
                 .ToList();
 
-            parcelBoundaries = parcelCrvs ?? new();
+            parcelBoundaries = parcelCrvs.Concat(unenclosedParcels).ToList();
             roadRoWs = roadSrfs;
         }
 
@@ -135,6 +191,14 @@ namespace ArchSitePlan.Core.Constants
             return CoreModel.Dividers.Count < initialCount;
         }
 
+        public static void AddDivders(List<DividerCreationData> divData)
+        {
+            AddDivders(
+                divData
+                .Select(d => (d.Polyline, d.Id))
+                .ToList()
+                );
+        }
         public static void AddDivders(List<(Polyline?, Guid)> plineObjs) =>
             new DividerAction().Run(plineObjs, EditType.Add);
 
@@ -167,7 +231,40 @@ namespace ArchSitePlan.Core.Constants
             return deleted > 0;
         }
 
-        public static void AddOrUpdateStudyArea(List<(Polyline, Guid, string)> studyData) =>
+        public static void AddOrUpdateStudyArea(List<StudyCreationData> studyData) =>
+            AddOrUpdateStudyArea(
+                studyData.Select(d => (d.Boundary, d.Id, d.Name)).ToList());
+
+        public static void AddOrUpdateStudyArea(List<(Polyline?, Guid, string)> studyData) =>
             StudyAreaAction.Run(studyData, EditType.Edit);
+
+        public static void DeleteStudyAreas(List<Guid> guids)
+        {
+            List<(Polyline?, Guid, string)> studyData = new();
+            guids.ForEach(id => studyData.Add((null, id, string.Empty)));
+            StudyAreaAction.Run(studyData, EditType.Remove);
+        }
+
+        public static List<(Polyline, Guid, string)> BuildStudyDataForValidStudies(
+            List<(Polyline Crv, Guid Id)> plineObjs)
+        {
+            var ids = CoreModel.Studies.Select(s => s.Id).ToList();
+            var studyObjs = new List<(Polyline, Guid, string)>();
+
+            foreach (var pline in plineObjs)
+            {
+                if (CoreModel.TryGetStudyArea(pline.Id, out StudyArea study))
+                    studyObjs.Add((pline.Crv, pline.Id, study.Name));
+            }
+            return studyObjs;
+        }
+
+        public static void AddOrUpdateBulding(List<BuildingCreationData> buildingData)
+        {
+            buildingData.ForEach(data =>AddOrUpdateBulding(
+                (data.Envelope, data.EnvelopeId, data.Floors).ObjectToList(),
+                data.FloorHt,
+                data.Floors.Count));
+        }
     }
 }

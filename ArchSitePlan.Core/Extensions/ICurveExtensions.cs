@@ -83,9 +83,13 @@ namespace ArchSitePlan.Core.Extensions
             Vector normal = curve.INormal(tolerance);
             double toleranceEnhancer = 0.01;
 
-            var splittersExploded = splitters
+            var splittersAsArcsLinesAndPlines = splitters
                 .SelectMany(s => s.ToArcsLinesPolylines())
                 .Where(x => x is not null)
+                .ToList();
+
+            var openSplittersThickened = splittersAsArcsLinesAndPlines
+                .Where(crv => crv is not null && !crv.IIsClosed())
                 .Select(s => s.Thicken(
                     offset: tolerance,
                     cap: EndCapType.Butt,
@@ -93,11 +97,48 @@ namespace ArchSitePlan.Core.Extensions
                     normal: normal))
                 .ToList();
 
-            var fragments = curve.BooleanDifference(
-                splittersExploded, 
+            
+            var fragments1 = curve.BooleanDifference(
+                openSplittersThickened, 
                 tolerance * toleranceEnhancer);
 
-            return fragments;
+            var closedSplitters = splittersAsArcsLinesAndPlines
+                .Where(crv => crv is not null && crv is Polyline && crv.IIsClosed())
+                .ToList();
+
+            //return fragments1;
+
+///////////////////////////////////////////////////
+
+            List<PolyCurve> fragments2 = new();
+            foreach(var splitter in closedSplitters)
+            {
+                List<PolyCurve> ongoingSplit = new();
+                for(int i = 0; i< fragments1.Count; i++)
+                {
+                    var p1 = fragments1[i].BooleanDifference(
+                    splitter.ObjectToList(),
+                    tolerance);
+
+                    if (p1 != null) ongoingSplit.AddRange(p1);
+
+                    var p2 = fragments1[i].BooleanIntersection(
+                    splitter,
+                    tolerance);
+
+                    if (p2 != null) ongoingSplit.AddRange(p2);
+                }
+
+                fragments1 = ongoingSplit;
+            }
+            return fragments1;
+        }
+        public static List<ICurve> OffsetBothSides(this ICurve curve, double offset)
+        {
+            var c1 = curve.IOffset(offset);
+            var c2 = curve.IOffset(-offset);
+
+            return new List<ICurve>() { c1, c2 };
         }
         public static PolyCurve? ToPolycurve(this ICurve curve)
         {
@@ -139,6 +180,8 @@ namespace ArchSitePlan.Core.Extensions
 
             return arcsLinesPolylines;
         }
+
+        
         //public static List<ICurve> Split(
         //    this ICurve curve,
         //    ICurve divider,
