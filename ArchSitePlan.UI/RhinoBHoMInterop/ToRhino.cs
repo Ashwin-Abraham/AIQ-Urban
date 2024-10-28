@@ -9,12 +9,12 @@ namespace ArchSitePlan.UI.RhinoBHoMInterop
     {
         public static Rhino.Geometry.Brep ToRhino(this PlanarSurface bhomSurface)
         {
-            var rhinoPoints = bhomSurface.ExternalBoundary.IControlPoints().ToRhino();
+            //var rhinoPoints = bhomSurface.ExternalBoundary.IControlPoints().ToRhino();
 
             var crvList = bhomSurface.ExternalBoundary.ObjectToList();
             crvList.AddRange(bhomSurface.InternalBoundaries);
 
-            var brep = Rhino.Geometry.Brep.CreatePlanarBreps(crvList.ToRhino()).First();
+            var brep = Rhino.Geometry.Brep.CreatePlanarBreps(crvList.ToRhino(), 1E-06).First();
             return brep;
         }
 
@@ -28,12 +28,55 @@ namespace ArchSitePlan.UI.RhinoBHoMInterop
             return points.Select(pt => pt.ToRhino());
         }
 
-        public static Rhino.Geometry.Curve ToRhino(this ICurve curve)
+        public static Rhino.Geometry.Arc ToRhinoArc(this Arc arc)
         {
-            var rhinoPts = curve.IControlPoints().ToRhino();
-            var rhinoCrv = Rhino.Geometry.Curve.CreateControlPointCurve(rhinoPts, 1);
+            var rhinoArc = new Rhino.Geometry.Arc(arc.StartPoint().ToRhino(), 
+                arc.Mid().ToRhino(), 
+                arc.EndPoint().ToRhino());
+
+            return rhinoArc;
+        }
+        public static Rhino.Geometry.PolyCurve BoundarycurveToRhino(this BoundaryCurve curve)
+        {
+            Rhino.Geometry.PolyCurve rhinoCrv = new();
+
+            foreach (var bhomCrv in curve.Curves)
+                rhinoCrv.Append(bhomCrv.ToRhino());
 
             return rhinoCrv;
+        }
+        public static Rhino.Geometry.PolyCurve PolycurveToRhino(this PolyCurve curve)
+        {
+            Rhino.Geometry.PolyCurve rhinoCrv = new();
+
+            foreach (var bhomCrv in curve.Curves)
+                rhinoCrv.Append(bhomCrv.ToRhino());
+
+            return rhinoCrv;
+        }
+        public static Rhino.Geometry.Curve ToRhino(this ICurve curve)
+        {
+            var arcCrv = curve as Arc;
+            if(arcCrv is not null)
+            {
+                Rhino.Geometry.Arc rhinoArc = arcCrv.ToRhinoArc();
+                return rhinoArc.ToNurbsCurve();
+            }
+            else if (curve is PolyCurve pCrv)
+            {
+                return pCrv.PolycurveToRhino();
+            }
+            else if (curve is BoundaryCurve bCrv)
+            {
+                return bCrv.BoundarycurveToRhino();
+            }
+            else
+            {
+                var rhinoPts = curve.IControlPoints().ToRhino();
+                var rhinoCrv = Rhino.Geometry.Curve.CreateControlPointCurve(rhinoPts, 1);
+
+                return rhinoCrv;
+            }
         }
 
         public static IEnumerable<Rhino.Geometry.Curve> ToRhino(this IEnumerable<ICurve> curve)

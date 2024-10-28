@@ -66,7 +66,7 @@ namespace ArchSitePlan.Core.Constants
         public static bool TryRemoveRoad(IEnumerable<Guid> ids)
         {
             int initialRoadCount = CoreModel.Roads.Count;
-            List<(Polyline?, Guid)> centerLineAndIds = new();
+            List<(ICurve?, Guid)> centerLineAndIds = new();
             foreach (var id in ids)
                 centerLineAndIds.Add((null, id));
 
@@ -97,16 +97,16 @@ namespace ArchSitePlan.Core.Constants
             var groupedByWidths = transitData.GroupBy(data => data.RoadWidth);
             foreach(var group in groupedByWidths)
             {
-                List<(Polyline? centerLine, Guid id)> centerLineAndIds = group
+                List<(ICurve? centerLine, Guid id)> centerLineAndIds = group
                     .AsEnumerable()
-                    .Select(g => (g.Centerline, g.Id))
+                    .Select(g => (g.Centerline as ICurve, g.Id))
                     .ToList();
 
                 AddOrUpdateRoad(centerLineAndIds, group.Key);
             }
         }
         public static void AddOrUpdateRoad(
-           List<(Polyline? centerLine, Guid id)> centerLineAndIds,
+           List<(ICurve? centerLine, Guid id)> centerLineAndIds,
            double width)
         {
             RoadAction.Run(centerLineAndIds, EditType.Add, width);

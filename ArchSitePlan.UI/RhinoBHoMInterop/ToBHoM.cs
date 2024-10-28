@@ -13,7 +13,11 @@ namespace ArchSitePlan.UI.RhinoBHoMInterop
     {
         public static BHoM.Arc ToBHoM(this Arc rhinoArc)
         {
-            return null;
+            var bhomArc = Create.ArcByCentre(
+                rhinoArc.Center.ToBHoM(), 
+                rhinoArc.StartPoint.ToBHoM(), 
+                rhinoArc.EndPoint.ToBHoM());
+            return bhomArc;
         }
 
         public static BHoM.Line ToBHoM(this Line rhinoLine)
@@ -53,10 +57,26 @@ namespace ArchSitePlan.UI.RhinoBHoMInterop
             return Create.Mesh(bhomPts, bhomFaces);
         }
 
+        public static BHoM.PolyCurve ToBHoM(this Rhino.Geometry.PolyCurve polyCurve)
+        {
+            var segments = polyCurve.DuplicateSegments();
+            List<BHoM.ICurve> bhomSegments = new();
+
+            foreach (var crv in segments)
+            {
+                if (crv != null)
+                    bhomSegments.Add(crv.ToBHoM());
+            }
+            return Create.PolyCurve(bhomSegments);
+        }
         public static BHoM.ICurve ToBHoM(this Rhino.Geometry.Curve rhinoCrv)
         {
             if (rhinoCrv.TryGetPolyline(out Polyline pline))
                 return pline.ToBHoM();
+            else if (rhinoCrv is PolyCurve pCrv)
+                return pCrv.ToBHoM();
+            else if (rhinoCrv.TryGetArc(out Arc arc))
+                return arc.ToBHoM();
             else
                 return null;
         }

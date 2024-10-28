@@ -729,19 +729,27 @@ namespace ArchSitePlan.UI
 
                 int roadIndex = Constants.RhinoObjAttributeConstants.RoadGeometryAttributes.LayerIndex;
 
-                List<(BH.oM.Geometry.Polyline?, Guid)> plineObjs = new();
+                List<(BH.oM.Geometry.ICurve?, Guid)> CLAndID = new();
 
                 foreach(var rhinoObj in rhinoObjs)
                 {
-                    if (!(rhinoObj.Geometry as Curve).TryGetPolyline(out Polyline pline)) continue;
+                    if ((rhinoObj.Geometry as Curve).TryGetPolyline(out Polyline pline))
+                        CLAndID.Add((pline.ToBHoM(), rhinoObj.Id));
+                    else if ((rhinoObj.Geometry as Curve).TryGetArc(out Arc arc))
+                        CLAndID.Add((arc.ToBHoM(), rhinoObj.Id));
+                    else if (rhinoObj.Geometry is PolyCurve polyCurve)
+                        CLAndID.Add((
+                            polyCurve.ToBHoM(), 
+                            rhinoObj.Id));
 
-                    plineObjs.Add((pline.ToBHoM(), rhinoObj.Id));
+                    continue;
+
                     LayerHelpers.ChangeLayer(rhinoObj, roadLayerIndex);
                 }
 
-                if (!plineObjs.Any()) return;
+                if (!CLAndID.Any()) return;
 
-                ModelBuilderPipelines.AddOrUpdateRoadPipeline(doc, plineObjs, RoadWidth);
+                ModelBuilderPipelines.AddOrUpdateRoadPipeline(doc, CLAndID, RoadWidth);
                 RefreshActiveStudyAndMetrics();
                 ModelBuilderPipelines.ReplaceRhinoModelPipeline(doc);
             }

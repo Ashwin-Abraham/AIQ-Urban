@@ -27,7 +27,7 @@ namespace ArchSitePlan.Core.Extensions
 
         public static PolyCurve OffsetSafe(this PolyCurve curve, double distance, Vector normal)
         {
-            if (curve.Curves.Count == 1 && curve.Curves.First().IIsLinear())
+            if (curve.Curves.Count == 1 && curve.Curves[0].IIsLinear())
             {
                 var firstCurve = curve.Curves.First();
                 Line line = Create.Line(firstCurve.IStartPoint(), firstCurve.IEndPoint());

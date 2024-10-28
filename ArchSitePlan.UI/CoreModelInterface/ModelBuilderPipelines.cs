@@ -12,7 +12,7 @@ namespace ArchSitePlan.UI.CoreModelInterface
     {
 
         public static void AddOrUpdateRoadPipeline(RhinoDoc doc,
-            List<(Polyline? centerLine, Guid id)> centerLineAndIds,
+            List<(ICurve? centerLine, Guid id)> centerLineAndIds,
             double width)
         {
             CoreModelEditStepLibrary.TryRemoveRoad(centerLineAndIds.Select(x => x.id));

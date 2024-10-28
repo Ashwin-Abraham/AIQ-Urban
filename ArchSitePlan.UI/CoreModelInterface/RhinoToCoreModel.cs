@@ -1,38 +1,34 @@
-﻿using ArchSitePlan.Core.Constants;
-using ArchSitePlan.Core.Extensions;
-using ArchSitePlan.Core.ModelEditActions;
-using ArchSitePlan.Core.Models;
-using ArchSitePlan.UI.Constants;
-using ArchSitePlan.UI.CoreModelInterface;
-using ArchSitePlan.UI.Helpers;
+﻿using ArchSitePlan.Core.Models;
 using ArchSitePlan.UI.RhinoBHoMInterop;
-using BH.Engine.Data;
-using BH.Engine.Geometry;
-using BH.oM.Geometry;
-using Rhino;
 using Rhino.DocObjects;
 using Rhino.Geometry;
-using static ArchSitePlan.Core.Constants.Enums;
-using Mesh = Rhino.Geometry.Mesh;
+using Arc = Rhino.Geometry.Arc;
 using Polyline = Rhino.Geometry.Polyline;
 namespace ArchSitePlan.UI.Actions
 {
     public static class RhinoToCoreModel
     {
-        public static bool TryExtractBHoMPolyline(
+        public static bool TryExtractBHoMDeg2Crv(
             RhinoObject obj,
-            out BH.oM.Geometry.Polyline? bhomPline)
+            out BH.oM.Geometry.ICurve? bhomCrv)
         {
-            Curve curve = obj.Geometry as Curve;
-            bhomPline = null;
+            Curve? curve = obj.Geometry! as Curve;
+            bhomCrv = null;
 
+            if (curve == null)
+                throw new Exception("Not a curve");
             if (curve.Degree > 2)
                 throw new Exception("Curve degree is too high, please select line, polyline or arc only");
 
             if (curve.TryGetPolyline(out Polyline polyline))
             {
-                bhomPline = polyline.ToBHoM();
-                return bhomPline != null;
+                bhomCrv = polyline.ToBHoM();
+                return bhomCrv != null;
+            }
+            if (curve.TryGetArc(out Arc arc))
+            {
+                bhomCrv = arc.ToBHoM();
+                return bhomCrv != null;
             }
 
             return false;

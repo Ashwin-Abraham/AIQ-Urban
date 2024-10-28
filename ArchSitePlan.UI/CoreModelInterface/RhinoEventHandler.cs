@@ -81,7 +81,7 @@ namespace ArchSitePlan.UI.Actions
                 else if (ViewModel.AppMode == AppMode.Road)
                 {
                     if (!CoreModel.TryFindRoad(args.ObjectId, out _)
-                        || !RhinoToCoreModel.TryExtractBHoMPolyline(obj, out BH.oM.Geometry.Polyline? pline))
+                        || !RhinoToCoreModel.TryExtractBHoMDeg2Crv(obj, out BH.oM.Geometry.ICurve? pline))
                         return ;
 
                     ModelBuilderPipelines.AddOrUpdateRoadPipeline(
