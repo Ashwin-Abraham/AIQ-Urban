@@ -9,7 +9,7 @@ namespace ArchSitePlan.Core.ModelEditActions
     public class StudyAreaAction:IModelEditAction
     {
         public static void Run(
-            List<(Polyline Crv, Guid Id, string Name)> studyData,
+            List<(Polyline? Crv, Guid Id, string Name)> studyData,
            EditType editType)
         {
             switch (editType)

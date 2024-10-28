@@ -45,7 +45,21 @@ namespace ArchSitePlan.Test
             DEBUGMODEL.AddBoundedCurves(ToHyparInterop.ToHyparPolylines(fragments), DebugMaterials.Blue, 0.5);
             DEBUGMODEL.OpenAsGlb();
         }
+        [Fact]
+        public void CanSplitCurve_SameCurveTwice()
+        {
+            var splitter = _rectangle;
 
+            var fragments = (_rectangle).Split(splitter.ObjectToList<ICurve>());
+
+            DEBUGMODEL.AddBoundedCurve(ToHyparInterop.ToHypar(_rectangle));
+            DEBUGMODEL.AddBoundedCurves(ToHyparInterop.ToHyparPolylines(fragments), DebugMaterials.Blue, 0.5);
+            DEBUGMODEL.OpenAsGlb();
+
+            Assert.Equal(1, fragments.Count);
+            Assert.Equal(Math.Abs(_rectangle.Area()),
+                Math.Abs(fragments[0].Area()));
+        }
         [Fact]
         public void CanSplitCurve_WithPolyline2()
         {
@@ -60,6 +74,8 @@ namespace ArchSitePlan.Test
             DEBUGMODEL.AddBoundedCurve(ToHyparInterop.ToHypar(_rectangle));
             DEBUGMODEL.AddBoundedCurves(ToHyparInterop.ToHyparPolylines(fragments), DebugMaterials.Blue, 0.5);
             DEBUGMODEL.OpenAsGlb();
+
+            Assert.Equal(2, fragments.Count);
         }
 
         [Fact]

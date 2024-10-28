@@ -340,30 +340,34 @@
                 </Grid.RowDefinitions>
 
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="50"/>
                     <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="50"/>
+                    <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
 
-                <Button Content="Excel"
+                <Button Content="Export Excel"
                         Command="{Binding ExportExcel_Cmd}"
-                        VerticalAlignment="Center"/>
+                        VerticalAlignment="Center"
+                        Grid.Row="1"
+                        Width="100"/>
 
                 <TextBlock Text="{Binding ExcelPath, FallbackValue=Excel_Path}"
-                           Grid.Column="1"
                            VerticalAlignment="Center"
                            Margin="5"
                            Background="LightSteelBlue"
-                           TextWrapping="Wrap"/>
+                           TextWrapping="Wrap"
+                           Grid.ColumnSpan="2"/>
 
-                <Button Content="Path"
-                        Grid.Column="2"
+                <Button Content="Set Export Location"
                         VerticalAlignment="Center"
-                        Command="{Binding SetExcelPath_Cmd}"/>
+                        Command="{Binding SetExcelPath_Cmd}"
+                        Grid.Row="1"
+                        Grid.Column="1"
+                        Width="150"/>
 
             </Grid>
         </Expander>
         
+        <!--Active Study Area-->
         <!--Active Study Area-->
         <!--<Grid Grid.Row="6"
               Grid.ColumnSpan="5">

@@ -1,4 +1,6 @@
 ﻿using ArchSitePlan.Core.Constants;
+using ArchSitePlan.Core.Models;
+using ArchSitePlan.UI.Actions;
 using BH.Engine.Reflection;
 using BH.oM.Geometry;
 using Rhino;
@@ -86,6 +88,48 @@ namespace ArchSitePlan.UI.CoreModelInterface
             CoreModelEditStepLibrary.DivideParcels();
             CoreModelEditStepLibrary.RefreshStudyAreaMetrics();
             RhinoModelEditStepLibrary.ReplaceRhinoModel(doc, true);
+        }
+
+        internal static void DeleteStudyAreaPipeline(RhinoDoc doc, List<Guid> guids)
+        {
+            CoreModelEditStepLibrary.DeleteStudyAreas(guids);
+            CoreModelEditStepLibrary.RecalculateParcelsAndRoadRoWs();
+            CoreModelEditStepLibrary.DivideParcels();
+            CoreModelEditStepLibrary.RefreshStudyAreaMetrics();
+            RhinoModelEditStepLibrary.ReplaceRhinoModel(doc, true);
+        }
+
+        internal static void UpdateStudyAreas(RhinoDoc doc, List<(Polyline Crv, Guid Id)> plineObjs)
+        {
+            var studyData = CoreModelEditStepLibrary.BuildStudyDataForValidStudies(plineObjs);
+
+            if (studyData.Count == 0) return;
+
+            AddStudyAreaPipeline(doc, studyData);
+        }
+
+        internal static void ReloadAppPipeline(RhinoDoc doc)
+        {
+            // Extract required data
+            var landuseData = RhinoModelEditStepLibrary.ExtractRhinoLanduseData(doc);
+            var transitData = RhinoModelEditStepLibrary.ExtractTransitFromRhino(doc);
+            var studyData = RhinoModelEditStepLibrary.ExtractStudyAreasFromRhino(doc);
+            var buildingData = RhinoModelEditStepLibrary.ExtractBuildingCreationDataFromRhino(doc);
+            var dividerData = RhinoModelEditStepLibrary.ExtractDividerData(doc);
+
+            // Edit Core Model
+            CoreModelEditStepLibrary.ClearCoreModel();
+            CoreModelEditStepLibrary.AddOrUpdateRoad(transitData);
+            CoreModelEditStepLibrary.AddOrUpdateStudyArea(studyData);
+            CoreModelEditStepLibrary.AddOrUpdateBulding(buildingData);
+            CoreModelEditStepLibrary.RecalculateParcelsAndRoadRoWs();
+            CoreModelEditStepLibrary.EditParcelUsesByClosestPoint(landuseData);
+            CoreModelEditStepLibrary.AddDivders(dividerData);
+            CoreModelEditStepLibrary.DivideParcels();
+
+            //Output
+            RhinoModelEditStepLibrary.ReplaceRhinoModel(doc, true);
+            CoreModelEditStepLibrary.RefreshStudyAreaMetrics();
         }
     }
 }

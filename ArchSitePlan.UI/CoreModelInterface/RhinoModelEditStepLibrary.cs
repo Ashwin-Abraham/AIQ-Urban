@@ -1,10 +1,12 @@
 ﻿using ArchSitePlan.Core.Constants;
 using ArchSitePlan.Core.Extensions;
 using ArchSitePlan.Core.Models;
+using ArchSitePlan.UI.Actions;
 using ArchSitePlan.UI.Constants;
 using ArchSitePlan.UI.Helpers;
 using ArchSitePlan.UI.RhinoBHoMInterop;
 using BH.Engine.Data;
+using BH.Engine.Geometry;
 using BH.oM.Geometry;
 using Rhino;
 using Rhino.DocObjects;
@@ -15,16 +17,192 @@ namespace ArchSitePlan.UI.CoreModelInterface
 {
     internal class RhinoModelEditStepLibrary
     {
+        public static List<DividerCreationData> ExtractDividerData(RhinoDoc doc)
+        {
+            List<DividerCreationData> dividerData = new();
+
+            // STUDY AREAS
+            // Read boundary objects
+            int dividerLayerIndex = doc.Layers.FindByFullPath(
+                LayerConstants.ParcelDividerLayer, 
+                -1);
+
+            if (dividerLayerIndex == -1) return dividerData;
+
+            var dividerObjs = doc.Objects
+                .Where(o => o.Attributes.LayerIndex == dividerLayerIndex)
+                .ToList();
+
+            foreach(var obj in dividerObjs)
+            {
+                var geo = obj.Geometry as Curve;
+                if (geo is null) continue;
+
+                if (!geo.TryGetPolyline(out var pline)) continue;
+
+                var divData = new DividerCreationData(
+                    pline.ToBHoM(),
+                    obj.Id);
+
+                dividerData.Add(divData);
+            }
+
+            return dividerData;
+        }
+        public static List<BuildingCreationData> ExtractBuildingCreationDataFromRhino(RhinoDoc doc)
+        {
+            List<BuildingCreationData> buildingData = new();
+            CoreModel.Buildings = new();
+
+            // Read mesh envelope objects
+            int envelopeLayer = doc.Layers.FindByFullPath(LayerConstants.BuildingMassLayer, true);
+            int floorLayer = doc.Layers.FindByFullPath(LayerConstants.BuildingFloorOutlineLayer, true);
+
+            if (envelopeLayer == -1 || floorLayer == -1) return buildingData;
+
+            var meshEnvelopeObjs = doc.Objects
+                .Where(o => o.Attributes.LayerIndex == envelopeLayer && o.ObjectType == ObjectType.Mesh)
+                .ToList();
+
+            var floorOutlines = doc.Objects
+                .Where(o => o.Attributes.LayerIndex == floorLayer && o.ObjectType == ObjectType.Curve)
+                .ToList();
+
+            // Group mesh and floor outlines together
+            Dictionary<RhinoObject, List<RhinoObject>> buildingEnvelopeAndFloors = new();
+            foreach (var floor in floorOutlines)
+            {
+                var testPoint = (floor.Geometry as Curve).PointAtStart;
+                var nearestMesh = meshEnvelopeObjs.MinBy(m => (m.Geometry as Rhino.Geometry.Mesh).ClosestPoint(testPoint).DistanceTo(testPoint));
+
+                if (buildingEnvelopeAndFloors.ContainsKey(nearestMesh))
+                    buildingEnvelopeAndFloors[nearestMesh].Append(floor);
+                else
+                    buildingEnvelopeAndFloors.Add(nearestMesh, floor.ObjectToList());
+            }
+
+            // Add a building for each dictionary entry
+            foreach (var entry in buildingEnvelopeAndFloors)
+            {
+                var envelope = (entry.Key.Geometry as Rhino.Geometry.Mesh).ToBHoM();
+                var floors = entry.Value
+                    .Select(f => (f.Geometry as Curve).ToBHoM())
+                    .Select(c => new PlanarSurface(c, new List<ICurve>()))
+                    .ToList();
+
+                double ffHt = floors.Count > 1 ?
+                    floors[0].IBounds().Min.Z - floors[1].IBounds().Min.Z
+                    : envelope.Bounds().Height();
+
+                ffHt = Math.Abs(ffHt);
+
+                var data = new BuildingCreationData(envelope, floors, entry.Key.Id, Guid.Empty, ffHt);
+                buildingData.Add(data);
+            }
+
+            return buildingData;
+        }
+        public static List<StudyCreationData> ExtractStudyAreasFromRhino(RhinoDoc doc)
+        {
+            CoreModel.ResetStudyAreas();
+            List<StudyCreationData> studyData = new();
+
+            // STUDY AREAS
+            // Read boundary objects
+            int studyLayer = doc.Layers.FindByFullPath(LayerConstants.StudyAreaLayer, true);
+
+            if (studyLayer == -1) return studyData;
+
+            var studyLayerIndices = doc.Layers[studyLayer].GetChildren().Select(lay => lay.Index).ToList();
+
+            foreach (var index in studyLayerIndices)
+            {
+                var studyObj = doc.Objects
+                    .Where(o => o.Attributes.LayerIndex == index)
+                    .FirstOrDefault(s =>
+                    {
+                        var crv = s.Geometry as Curve;
+                        if (crv == null) return false;
+                        return crv.TryGetPolyline(out var _);
+                    });
+
+                if (studyObj == null) continue;
+                (studyObj.Geometry as Curve).TryGetPolyline(out var pline);
+
+                studyData.Add(new StudyCreationData
+                    (pline.ToBHoM(),
+                    studyObj.Id,
+                    doc.Layers[index].Name));
+            }
+
+            return studyData;
+        }
+        public static List<TransitCreationData> ExtractTransitFromRhino(RhinoDoc doc)
+        {
+            List<TransitCreationData> transitData = new();
+
+            // TRANSIT
+            // Read Road CL objects
+            int roadCLMainLayerIndex = doc.Layers.FindByFullPath(LayerConstants.RoadCLLayer, true);
+
+            if (roadCLMainLayerIndex == -1) return transitData;
+
+            var roadCLLayerIndices = doc.Layers[roadCLMainLayerIndex].GetChildren().Select(lay => lay.Index).ToList();
+
+            foreach (var index in roadCLLayerIndices)
+            {
+                var roadCLs = doc.Objects.Where(o => o.Attributes.LayerIndex == index).ToList();
+
+                if (!Double.TryParse(doc.Layers[index].Name, out double roadWidth))
+                    continue;
+
+                roadWidth = roadWidth.Round(CoreGeneralConstants.TransitRouteWidthPrecision);
+
+                foreach (var obj in roadCLs)
+                {
+                    if (TryExtractBHoMPolyline(obj, out BH.oM.Geometry.Polyline? pline))
+                        transitData.Add(new TransitCreationData
+                            (pline!, obj.Id, roadWidth));
+                }
+
+            }
+            return transitData;
+        }
+        private static bool TryExtractBHoMPolyline(
+            RhinoObject obj,
+            out BH.oM.Geometry.Polyline? bhomPline)
+        {
+            Curve curve = obj.Geometry as Curve;
+            bhomPline = null;
+
+            if (curve.Degree > 2)
+                throw new Exception("Curve degree is too high, please select line, polyline or arc only");
+
+            if (curve.TryGetPolyline(out Rhino.Geometry.Polyline polyline))
+            {
+                bhomPline = polyline.ToBHoM();
+                return bhomPline != null;
+            }
+
+            return false;
+        }
         public static void ReplaceRhinoModel(RhinoDoc doc, bool includingBuildings = false)
         {
+
+            RhinoEventHandler.RemovalEventLock = true;
+            //LayerHelpers.DeleteObjectsInLayer();
+
+
             OutputRoadOutlinesToRhino(doc);
             OutputParcelsToRhino(doc);
             OutputStudyAreasToRhino(doc);
+            //OutputParcelDividersToRhino(doc);
 
             if (includingBuildings)
                 BakeRhinoBuilding(doc);
 
             doc.Views.Redraw();
+            RhinoEventHandler.RemovalEventLock = false;
         }
         public static void DeleteRhinoBuilding(RhinoDoc doc, List<Guid> envelopeIds)
         {
@@ -41,7 +219,10 @@ namespace ArchSitePlan.UI.CoreModelInterface
         }
         internal static void BakeRhinoBuilding(RhinoDoc doc)
         {
-            foreach(var building in CoreModel.Buildings)
+            var buildingIds = CoreModel.Buildings.Select(b => b.EnvelopeId).ToList();
+            DeleteRhinoBuilding(doc, buildingIds);
+
+            foreach (var building in CoreModel.Buildings)
             {
                 var rhinoMesh = building.Envelope.ToRhino();
 
@@ -168,9 +349,9 @@ namespace ArchSitePlan.UI.CoreModelInterface
                 if (study.Boundary == null) continue;
                 var boundary = study.Boundary.ToRhino();
                 studyBoundaries.Add((boundary, studyAreasAttributes));
-            }
 
-            studyBoundaries.ForEach(s => doc.Objects.Add(s.Item1, s.Item2));
+                study.Id = doc.Objects.Add(boundary, studyAreasAttributes);
+            }
         }
 
         private static void OutputParcelsToRhino(RhinoDoc doc)
@@ -229,6 +410,36 @@ namespace ArchSitePlan.UI.CoreModelInterface
             return parcelGeometryAttributes;
         }
 
+        internal static List<(BH.oM.Geometry.Point point, Landuse use)> ExtractRhinoLanduseData(RhinoDoc doc)
+        {
+            var parcelLayIndices = LayerHelpers
+                .GetParcelRhinoLayerNames()
+                .Select(name => doc.Layers.FindByFullPath(name, -1))
+                .ToList();
 
+            var rhinoParcelObjs = doc.Objects
+                .Where(obj => parcelLayIndices.Contains(obj.Attributes.LayerIndex)
+                    && obj.ObjectType == ObjectType.Brep)
+                .ToList();
+
+            var outputs = new List<(BH.oM.Geometry.Point point, Landuse use)>();
+            foreach (var obj in rhinoParcelObjs)
+            {
+                var center = AreaMassProperties.Compute(obj.Geometry as Brep).Centroid;
+                string layerName = doc.Layers[obj.Attributes.LayerIndex].Name;
+
+                outputs.Add((center.ToBHoM(), ParseLanduse(layerName)));
+            }
+
+            return outputs;
+        }
+
+        private static Landuse ParseLanduse(string use)
+        {
+            if (Enum.TryParse<Landuse>(use, out var landuse))
+                return landuse;
+            else
+                return Landuse.Undefined;
+        }
     }
 }
