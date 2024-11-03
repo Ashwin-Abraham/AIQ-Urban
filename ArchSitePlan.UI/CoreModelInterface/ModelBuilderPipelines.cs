@@ -12,7 +12,7 @@ namespace ArchSitePlan.UI.CoreModelInterface
     {
 
         public static void AddOrUpdateRoadPipeline(RhinoDoc doc,
-            List<(Polyline? centerLine, Guid id)> centerLineAndIds,
+            List<(ICurve? centerLine, Guid id)> centerLineAndIds,
             double width)
         {
             CoreModelEditStepLibrary.TryRemoveRoad(centerLineAndIds.Select(x => x.id));
@@ -130,6 +130,16 @@ namespace ArchSitePlan.UI.CoreModelInterface
             //Output
             RhinoModelEditStepLibrary.ReplaceRhinoModel(doc, true);
             CoreModelEditStepLibrary.RefreshStudyAreaMetrics();
+        }
+
+        internal static void RemoveRoadPipeline(List<Guid> roadIDs, 
+            RhinoDoc doc)
+        {
+            CoreModelEditStepLibrary.TryRemoveRoad(roadIDs);
+            CoreModelEditStepLibrary.RecalculateParcelsAndRoadRoWs();
+            CoreModelEditStepLibrary.DivideParcels();
+            CoreModelEditStepLibrary.RefreshStudyAreaMetrics();
+            RhinoModelEditStepLibrary.ReplaceRhinoModel(doc);
         }
     }
 }

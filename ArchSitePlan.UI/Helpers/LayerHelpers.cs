@@ -78,6 +78,23 @@ namespace ArchSitePlan.UI.Helpers
         {
             return LayerConstants.RoadCLLayer + LayerConstants._Sep_ + width.ToString();
         }
+
+        internal static void DeleteLayerAndChildrenIfEmpty(RhinoDoc doc, Layer layer)
+        {
+            var children = layer.GetChildren(false);
+
+            if (children is not null && children.Length > 0)
+            {
+                foreach (var childLayer in children)
+                    DeleteLayerAndChildrenIfEmpty(doc, childLayer);
+            }
+
+            var remainingChildren = layer.GetChildren(false);
+            int objectCount = doc.Objects.Count(obj => obj.Attributes.LayerIndex == layer.Index);
+            
+            if (remainingChildren is null && objectCount == 0)
+                doc.Layers.Delete(layer, true);
+        }
     }
 
 }

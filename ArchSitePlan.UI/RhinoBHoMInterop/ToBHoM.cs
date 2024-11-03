@@ -11,9 +11,29 @@ namespace ArchSitePlan.UI.RhinoBHoMInterop
 {
     public static class ToBHoMExtensions
     {
+        public static BHoM.ICurve? ToBHoM2DegreeCrv(this Curve rhinoCrv)
+        {
+            if (rhinoCrv.TryGetPolyline(out Polyline pline))
+            {
+                if (pline.IsClosed)
+                    return pline.ToBHoMPolygon();
+                else
+                    return pline.ToBHoMPolyline();
+            }
+            else if (rhinoCrv.TryGetArc(out Arc arc))
+                return arc.ToBHoM();
+            else if (rhinoCrv is PolyCurve polyCurve)
+                return polyCurve.ToBHoM();
+            else
+                return null;
+        }
         public static BHoM.Arc ToBHoM(this Arc rhinoArc)
         {
-            return null;
+            var bhomArc = Create.Arc(start: rhinoArc.StartPoint.ToBHoM(),
+                middle: rhinoArc.MidPoint.ToBHoM(),
+                end: rhinoArc.EndPoint.ToBHoM());
+
+            return bhomArc;
         }
 
         public static BHoM.Line ToBHoM(this Line rhinoLine)
@@ -39,11 +59,17 @@ namespace ArchSitePlan.UI.RhinoBHoMInterop
                 return Create.Face(rhinoFace.A, rhinoFace.B, rhinoFace.C, rhinoFace.D);
         }
 
-        public static BHoM.Polyline ToBHoM(this Polyline rhinoPline)
+        public static BHoM.Polyline ToBHoMPolyline(this Polyline rhinoPline)
         {
             List<Point3d> pointList = rhinoPline.ToList();
             List<BHoM.Point> bhomPts = pointList.ToBHoM().ToList();
             return Create.Polyline(bhomPts);
+        }
+        public static BHoM.Polygon ToBHoMPolygon(this Polyline rhinoPline)
+        {
+            List<Point3d> pointList = rhinoPline.ToList();
+            List<BHoM.Point> bhomPts = pointList.ToBHoM().ToList();
+            return Create.Polygon(bhomPts);
         }
 
         public static BHoM.Mesh ToBHoM(this Mesh rhinoMesh)
@@ -53,10 +79,26 @@ namespace ArchSitePlan.UI.RhinoBHoMInterop
             return Create.Mesh(bhomPts, bhomFaces);
         }
 
-        public static BHoM.ICurve ToBHoM(this Rhino.Geometry.Curve rhinoCrv)
+        public static BHoM.PolyCurve ToBHoM(this Rhino.Geometry.PolyCurve polyCurve)
+        {
+            var segments = polyCurve.DuplicateSegments();
+            List<BHoM.ICurve> bhomSegments = new();
+
+            foreach (var crv in segments)
+            {
+                if (crv != null)
+                    bhomSegments.Add(crv.ToBHoM());
+            }
+            return Create.PolyCurve(bhomSegments);
+        }
+        public static BHoM.ICurve? ToBHoM(this Rhino.Geometry.Curve rhinoCrv)
         {
             if (rhinoCrv.TryGetPolyline(out Polyline pline))
-                return pline.ToBHoM();
+                return pline.ToBHoMPolyline();
+            else if (rhinoCrv is PolyCurve pCrv)
+                return pCrv.ToBHoM();
+            else if (rhinoCrv.TryGetArc(out Arc arc))
+                return arc.ToBHoM();
             else
                 return null;
         }

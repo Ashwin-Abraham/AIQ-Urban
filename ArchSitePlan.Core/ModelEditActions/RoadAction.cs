@@ -8,7 +8,7 @@ namespace ArchSitePlan.Core.ModelEditActions
 {
     internal class RoadAction:IModelEditAction
     {
-        internal static void Run(List<(Polyline? centerLine, Guid id)> centerLineAndIds, 
+        internal static void Run(List<(ICurve? centerLine, Guid id)> centerLineAndIds, 
             EditType editType, 
             double? roadWidth)
         {
@@ -43,7 +43,9 @@ namespace ArchSitePlan.Core.ModelEditActions
             }
         }
 
-        private static void AddToCoreModel(List<(Polyline centerLine, Guid id)> centerLineAndIds, double width)
+        private static void AddToCoreModel(
+            List<(ICurve centerLine, Guid id)> centerLineAndIds, 
+            double width)
         {
             foreach(var clAndId in centerLineAndIds)
             {
@@ -53,7 +55,8 @@ namespace ArchSitePlan.Core.ModelEditActions
             }
         }
 
-        private static void RemoveFromCoreModel(List<(Polyline centerLine, Guid id)> centerLineAndIds)
+        private static void RemoveFromCoreModel(
+            List<(ICurve? centerLine, Guid id)> centerLineAndIds)
         {
             var ids = centerLineAndIds.Select(x => x.id).ToList();
             CoreModel.Roads.RemoveAll(r => ids.Contains(r.CenterLineId));
