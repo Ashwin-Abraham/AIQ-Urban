@@ -22,7 +22,7 @@ namespace ArchSitePlan.UI.Actions
 
             if (curve.TryGetPolyline(out Polyline polyline))
             {
-                bhomCrv = polyline.ToBHoM();
+                bhomCrv = polyline.ToBHoMPolyline();
                 return bhomCrv != null;
             }
             if (curve.TryGetArc(out Arc arc))

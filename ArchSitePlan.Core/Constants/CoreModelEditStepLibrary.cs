@@ -14,7 +14,7 @@ namespace ArchSitePlan.Core.Constants
             string Name);
 
     public record TransitCreationData(
-        BH.oM.Geometry.Polyline? Centerline,
+        BH.oM.Geometry.ICurve? Centerline,
         Guid Id,
         double RoadWidth);
 
@@ -120,9 +120,9 @@ namespace ArchSitePlan.Core.Constants
 
             CalculateParcelAndRoadBoundaries(
                 out List<PlanarSurface> roadSrfs,
-                out List<PolyCurve> parcelBoundaries);
+                out List<ICurve> parcelBoundaries);
 
-            var parcels = parcelBoundaries.Select(x => (x as ICurve, Guid.Empty)).ToList();
+            var parcels = parcelBoundaries.Select(x => (x, Guid.Empty)).ToList();
             new ParcelAction().Run(
                 editType: EditType.Add,
                 boundaryAndIds: parcels,
@@ -137,10 +137,32 @@ namespace ArchSitePlan.Core.Constants
 
         private static void CalculateParcelAndRoadBoundaries(
             out List<PlanarSurface> roadRoWs,
-            out List<PolyCurve> parcelBoundaries)
+            out List<ICurve> parcelBoundaries)
         {
-            var roadBoundaries = CoreModel.Roads.Select(r => r.RoW.ExternalBoundary);
-            var roadUnion = Compute.BooleanUnion(roadBoundaries)
+            var roadOuterBoundaries = CoreModel.Roads.Select(r => r.RoW.ExternalBoundary);
+            var roadInnerBoundaries = CoreModel
+                .Roads
+                .SelectMany(r => r.RoW.InternalBoundaries)
+                .ToList();
+
+            List<ICurve> innerBoundaries = new();
+            foreach(var innerBoundary in roadInnerBoundaries)
+            {
+                var clash = roadOuterBoundaries
+                    .Where(b => b.ICurveIntersections(innerBoundary).Count > 0)
+                    .ToList();
+
+                if (clash.Count > 0)
+                {
+                    var newInnerBoundary = innerBoundary.BooleanDifference(clash).ToList();
+                    innerBoundaries.AddRange(newInnerBoundary);
+                }
+                else
+                    innerBoundaries.Add(innerBoundary);
+            }
+            roadInnerBoundaries = innerBoundaries;
+
+            var roadUnion = Compute.BooleanUnion(roadOuterBoundaries)
                 .ToList();
 
             var roadPoints = CoreModel.Roads
@@ -153,10 +175,11 @@ namespace ArchSitePlan.Core.Constants
                 
             var parcelCrvs = roadUnion
                 .Where(pCrv => !roadCrvs.Contains(pCrv))
-                .Select(p => p.ToPolycurve())
                 .Where(crv => crv is not null)
-                .Cast<PolyCurve>()
+                .Cast<ICurve>()
                 .ToList();
+
+            parcelCrvs.AddRange(roadInnerBoundaries);
 
             var studyBoundaries = CoreModel.Studies
                 .Where(s => s.Boundary != null)
@@ -172,7 +195,7 @@ namespace ArchSitePlan.Core.Constants
             var roadSrfs = roadCrvs
                 .Select(r => Create.PlanarSurface(
                     r,
-                    parcelCrvs.Cast<ICurve>().ToList()))
+                    parcelCrvs))
                 .ToList();
 
             parcelBoundaries = parcelCrvs.Concat(unenclosedParcels).ToList();

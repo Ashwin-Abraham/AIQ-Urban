@@ -41,7 +41,7 @@ namespace ArchSitePlan.UI.CoreModelInterface
                 if (!geo.TryGetPolyline(out var pline)) continue;
 
                 var divData = new DividerCreationData(
-                    pline.ToBHoM(),
+                    pline.ToBHoMPolyline(),
                     obj.Id);
 
                 dividerData.Add(divData);
@@ -130,7 +130,7 @@ namespace ArchSitePlan.UI.CoreModelInterface
                 (studyObj.Geometry as Curve).TryGetPolyline(out var pline);
 
                 studyData.Add(new StudyCreationData
-                    (pline.ToBHoM(),
+                    (pline.ToBHoMPolyline(),
                     studyObj.Id,
                     doc.Layers[index].Name));
             }
@@ -160,50 +160,46 @@ namespace ArchSitePlan.UI.CoreModelInterface
 
                 foreach (var obj in roadCLs)
                 {
-                    if (TryExtractBHoMPolyline(obj, out BH.oM.Geometry.Polyline? pline))
-                        transitData.Add(new TransitCreationData
-                            (pline!, obj.Id, roadWidth));
+                    var curve = obj.Geometry as Curve;
+                    if (curve == null) continue;
+
+                    var bhomCrv = curve.ToBHoM2DegreeCrv();
+                    if (bhomCrv == null) continue;
+
+                    transitData.Add(new TransitCreationData
+                        (bhomCrv!, obj.Id, roadWidth));
                 }
 
             }
             return transitData;
         }
-        private static bool TryExtractBHoMPolyline(
-            RhinoObject obj,
-            out BH.oM.Geometry.Polyline? bhomPline)
-        {
-            Curve curve = obj.Geometry as Curve;
-            bhomPline = null;
-
-            if (curve.Degree > 2)
-                throw new Exception("Curve degree is too high, please select line, polyline or arc only");
-
-            if (curve.TryGetPolyline(out Rhino.Geometry.Polyline polyline))
-            {
-                bhomPline = polyline.ToBHoM();
-                return bhomPline != null;
-            }
-
-            return false;
-        }
         public static void ReplaceRhinoModel(RhinoDoc doc, bool includingBuildings = false)
         {
 
             RhinoEventHandler.RemovalEventLock = true;
-            //LayerHelpers.DeleteObjectsInLayer();
-
 
             OutputRoadOutlinesToRhino(doc);
             OutputParcelsToRhino(doc);
             OutputStudyAreasToRhino(doc);
-            //OutputParcelDividersToRhino(doc);
 
             if (includingBuildings)
                 BakeRhinoBuilding(doc);
 
+            RemoveEmptyAppLayers(doc);
             doc.Views.Redraw();
             RhinoEventHandler.RemovalEventLock = false;
         }
+
+        private static void RemoveEmptyAppLayers(RhinoDoc doc)
+        {
+            LayerHelpers.EnsureLayerExists(doc, LayerConstants.MainLayer);
+
+            var mainLayer = doc.Layers.FindName(LayerConstants.MainLayer);
+
+            var allAppLayers = mainLayer.GetChildren(true);
+            LayerHelpers.DeleteLayerAndChildrenIfEmpty(doc, mainLayer);
+        }
+
         public static void DeleteRhinoBuilding(RhinoDoc doc, List<Guid> envelopeIds)
         {
             // Find all building guids
@@ -232,7 +228,7 @@ namespace ArchSitePlan.UI.CoreModelInterface
                 for (int i = 0; i < building.FloorPlates.Count; i++)
                 {
                     building.FloorPlates[i] =
-                        (Profile: building.FloorPlates[i].Profile,
+                        (building.FloorPlates[i].Profile,
                         Id: BakeToRhino(
                             building.FloorPlates[i].Profile,
                             doc,

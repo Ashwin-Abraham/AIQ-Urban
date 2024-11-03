@@ -63,30 +63,17 @@ namespace ArchSitePlan.UI.Actions
                             building.FloorCount,
                             building.FloorToFloorHeight);
 
-                    //var buildingData 
-                    //    = (building.Envelope, 
-                    //    building.EnvelopeId, 
-                    //    building.FloorPlates.Select(f => f.Profile).ToList());
-
-                    //_removalEventLock = true;
-                    //ModelBuilderPipelines.DeleteBuildingPipeline(doc, building.EnvelopeId.ObjectToList());
-                    //ModelBuilderPipelines.AddOrUpdateBuldingPipeline(doc,
-                    //    buildingData.ObjectToList(),
-                    //    ViewModel.ActiveBuildingFloorHeight,
-                    //    ViewModel.ActiveBuildingFloorCount);
-                    //_removalEventLock = false;
-
                     ViewModel.RefreshActiveStudyAndMetrics();
                 }
                 else if (ViewModel.AppMode == AppMode.Road)
                 {
                     if (!CoreModel.TryFindRoad(args.ObjectId, out _)
-                        || !RhinoToCoreModel.TryExtractBHoMDeg2Crv(obj, out BH.oM.Geometry.ICurve? pline))
+                        || !RhinoToCoreModel.TryExtractBHoMDeg2Crv(obj, out BH.oM.Geometry.ICurve? plineArc))
                         return ;
 
                     ModelBuilderPipelines.AddOrUpdateRoadPipeline(
                         doc,
-                        (pline, obj.Id).ObjectToList(), 
+                        (plineArc, obj.Id).ObjectToList(), 
                         ViewModel.RoadWidth);
                     
                     ViewModel.RefreshActiveStudyAndMetrics();
@@ -97,7 +84,7 @@ namespace ArchSitePlan.UI.Actions
                     if (!CoreModel.TryGetParcelDivider(obj.Id, out _)
                         || pline is null) return;
 
-                    var plineObjs = (pline.ToBHoM(), obj.Id).ObjectToList();
+                    var plineObjs = (pline.ToBHoMPolyline(), obj.Id).ObjectToList();
                     ModelBuilderPipelines.AddOrUpdateParcelDividerPipeline(RhinoDoc.ActiveDoc, plineObjs);
                     ViewModel.RefreshActiveStudyAndMetrics();
                 }
@@ -107,7 +94,7 @@ namespace ArchSitePlan.UI.Actions
                     if (!CoreModel.TryGetStudyArea(obj.Id, out _)
                         || pline is null) return;
 
-                    var plineObjs = (pline.ToBHoM(), obj.Id).ObjectToList();
+                    var plineObjs = (pline.ToBHoMPolyline(), obj.Id).ObjectToList();
                     ModelBuilderPipelines.UpdateStudyAreas(RhinoDoc.ActiveDoc, plineObjs);
                     ViewModel.RefreshActiveStudyAndMetrics();
                 }
@@ -256,16 +243,12 @@ namespace ArchSitePlan.UI.Actions
                 switch (ViewModel.AppMode)
                 {
                     case AppMode.Road:
-                        
-                        if (!CoreModelEditStepLibrary
-                            .TryRemoveRoad(args.TheObject.Id.ObjectToList()))
-                            break;
-                        
-                        _lastReplacedId = args.TheObject.Id;
-                        ModelBuilderPipelines.RefreshStudyAreaMetricsPipeline();
+
+                        ModelBuilderPipelines.RemoveRoadPipeline(
+                            args.TheObject.Id.ObjectToList(),
+                            doc);
+
                         ViewModel.RefreshActiveStudyAndMetrics();
-                        // Output again because the parcels also may have been edited
-                        ModelBuilderPipelines.ReplaceRhinoModelPipeline(doc);
                         break;
 
                     case AppMode.Building:
@@ -396,7 +379,7 @@ namespace ArchSitePlan.UI.Actions
 
             if (curve != null && curve.TryGetPolyline(out Rhino.Geometry.Polyline polyline)
                 && polyline.IsClosed)
-                bhom = polyline.ToBHoM();
+                bhom = polyline.ToBHoMPolyline();
             else
                 return null;
 

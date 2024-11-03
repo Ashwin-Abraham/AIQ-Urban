@@ -56,11 +56,23 @@ namespace ArchSitePlan.Core.Models
 
         private static PlanarSurface CalculateRoWs(PolyCurve centerline, double width)
         {
-            PolyCurve boundary = centerline
+            var boundaries = centerline
                 //.Extend(width/4, width/4)
-                .OffsetBothSides(width/2, Vector.ZAxis);
-            PlanarSurface surface = Create.PlanarSurface(boundary);
-            return surface;
+                .OffsetBothSides(width / 2, Vector.ZAxis)
+                .OrderByDescending(c => c.Length())
+                .ToList();
+
+            if (centerline.IsClosed())
+            {
+
+                var outer = boundaries[0];
+                var inner = boundaries.Skip(1);
+                return Create.PlanarSurface(outer, inner.Cast<ICurve>().ToList());
+            }
+            else
+            {
+                return Create.PlanarSurface(boundaries[0], new List<ICurve>());
+            }
         }
 
         public  void ResetRoW()

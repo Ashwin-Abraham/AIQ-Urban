@@ -404,7 +404,7 @@ namespace ArchSitePlan.UI
                     if (crv is not null && 
                         !crv.TryGetPolyline(out pline)) continue;
 
-                    plineObjs.Add((pline?.ToBHoM(), rhinoObj.Id));
+                    plineObjs.Add((pline?.ToBHoMPolyline(), rhinoObj.Id));
                     LayerHelpers.ChangeLayer(rhinoObj, parcelDividerLayerIndex);
                 }
 
@@ -617,7 +617,7 @@ namespace ArchSitePlan.UI
 
                 RhinoDoc doc2 = RhinoDoc.ActiveDoc;
                 ModelBuilderPipelines.AddStudyAreaPipeline(doc: doc2,
-                    studyData: (rhinoPline.ToBHoM(),
+                    studyData: (rhinoPline.ToBHoMPolyline(),
                         rhinoObj.Id,
                         ActiveStudyAreaName).ObjectToList());
                 ActiveStudy = CoreModel.Studies.FirstOrDefault(s => rhinoObj.Id == s.Id);
@@ -727,23 +727,19 @@ namespace ArchSitePlan.UI
                     .Where(obj => obj.ObjectType == ObjectType.Curve)
                     .ToList();
 
-                int roadIndex = Constants.RhinoObjAttributeConstants.RoadGeometryAttributes.LayerIndex;
+                int roadIndex = RhinoObjAttributeConstants.RoadGeometryAttributes.LayerIndex;
 
                 List<(BH.oM.Geometry.ICurve?, Guid)> CLAndID = new();
 
                 foreach(var rhinoObj in rhinoObjs)
                 {
-                    if ((rhinoObj.Geometry as Curve).TryGetPolyline(out Polyline pline))
-                        CLAndID.Add((pline.ToBHoM(), rhinoObj.Id));
-                    else if ((rhinoObj.Geometry as Curve).TryGetArc(out Arc arc))
-                        CLAndID.Add((arc.ToBHoM(), rhinoObj.Id));
-                    else if (rhinoObj.Geometry is PolyCurve polyCurve)
-                        CLAndID.Add((
-                            polyCurve.ToBHoM(), 
-                            rhinoObj.Id));
+                    var curve = rhinoObj.Geometry as Curve;
+                    if (curve == null) continue;
 
-                    continue;
+                    var bhomCrv = curve.ToBHoM2DegreeCrv();
+                    if (bhomCrv == null) continue;
 
+                    CLAndID.Add((bhomCrv, rhinoObj.Id));
                     LayerHelpers.ChangeLayer(rhinoObj, roadLayerIndex);
                 }
 
@@ -751,7 +747,6 @@ namespace ArchSitePlan.UI
 
                 ModelBuilderPipelines.AddOrUpdateRoadPipeline(doc, CLAndID, RoadWidth);
                 RefreshActiveStudyAndMetrics();
-                ModelBuilderPipelines.ReplaceRhinoModelPipeline(doc);
             }
             catch(Exception ex)
             {

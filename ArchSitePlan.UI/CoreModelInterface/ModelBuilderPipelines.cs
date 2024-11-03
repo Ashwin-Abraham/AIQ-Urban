@@ -131,5 +131,15 @@ namespace ArchSitePlan.UI.CoreModelInterface
             RhinoModelEditStepLibrary.ReplaceRhinoModel(doc, true);
             CoreModelEditStepLibrary.RefreshStudyAreaMetrics();
         }
+
+        internal static void RemoveRoadPipeline(List<Guid> roadIDs, 
+            RhinoDoc doc)
+        {
+            CoreModelEditStepLibrary.TryRemoveRoad(roadIDs);
+            CoreModelEditStepLibrary.RecalculateParcelsAndRoadRoWs();
+            CoreModelEditStepLibrary.DivideParcels();
+            CoreModelEditStepLibrary.RefreshStudyAreaMetrics();
+            RhinoModelEditStepLibrary.ReplaceRhinoModel(doc);
+        }
     }
 }
