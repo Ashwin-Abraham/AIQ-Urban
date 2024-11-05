@@ -23,7 +23,7 @@ namespace ArchSitePlan.Test
                 Create.Point(2,-1),
                 Create.Point(2,11));
 
-            var fragments = (_rectangle as ICurve).Split(new() { splitter });
+            var fragments = (_rectangle as ICurve).Split(new List<ICurve>() { splitter });
             
             DEBUGMODEL.AddBoundedCurve(ToHyparInterop.ToHypar(_rectangle));
             DEBUGMODEL.AddBoundedCurves(ToHyparInterop.ToHyparPolylines(fragments), DebugMaterials.Blue, 0.5);
@@ -100,7 +100,7 @@ namespace ArchSitePlan.Test
                 Create.Point(5, -1),
                 Create.Point(5, 11));
 
-            var fragments = (_rectangle as ICurve).Split(new() { splitter });
+            var fragments = (_rectangle as ICurve).Split(new List<ICurve>() { splitter });
 
             DEBUGMODEL.AddBoundedCurve(ToHyparInterop.ToHypar(_rectangle));
             DEBUGMODEL.AddBoundedCurves(ToHyparInterop.ToHyparPolylines(fragments), DebugMaterials.Blue, 0.5);
@@ -114,7 +114,7 @@ namespace ArchSitePlan.Test
                 Create.Point(2, 0),
                 Create.Point(2, 10));
 
-            var fragments = (_rectangle as ICurve).Split(new() { splitter });
+            var fragments = (_rectangle as ICurve).Split(new List<ICurve>() { splitter });
 
             DEBUGMODEL.AddBoundedCurve(ToHyparInterop.ToHypar(_rectangle));
             DEBUGMODEL.AddBoundedCurves(ToHyparInterop.ToHyparPolylines(fragments), DebugMaterials.Blue, 0.5);

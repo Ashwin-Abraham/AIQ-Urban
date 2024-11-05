@@ -178,7 +178,7 @@ namespace ArchSitePlan.UI.CoreModelInterface
 
             RhinoEventHandler.RemovalEventLock = true;
 
-            OutputRoadOutlinesToRhino(doc);
+            OutputRoadsToRhino(doc);
             OutputParcelsToRhino(doc);
             OutputStudyAreasToRhino(doc);
 
@@ -245,8 +245,11 @@ namespace ArchSitePlan.UI.CoreModelInterface
             Guid id = doc.Objects.AddCurve(curve, attrib);
             return id;
         }
-        private static void OutputRoadOutlinesToRhino(RhinoDoc doc)
+        private static void OutputRoadsToRhino(RhinoDoc doc)
         {
+            // Delete Existing Objects
+            LayerHelpers.DeleteLayerAndChildren(doc, LayerConstants.RoadLayer);
+
             // Get Attributes
             LayerHelpers.EnsureLayerExists(doc, LayerConstants.RoadOutlineLayer);
 
@@ -258,13 +261,6 @@ namespace ArchSitePlan.UI.CoreModelInterface
                     LayerConstants.RoadColour)
             };
 
-            // Delete Existing Objects
-            var rhinoObjs = doc.Objects
-                .Where(obj => obj.Attributes.LayerIndex == roadOutlineObjAttributes.LayerIndex)
-                .ToList();
-
-            rhinoObjs.ForEach(obj => doc.Objects.Delete(obj, true, true));
-
             // Bake model to rhino
             var rhinoSurfaces = CoreModel.ROWs
                 .Select(row => row.ToRhino())
@@ -275,43 +271,20 @@ namespace ArchSitePlan.UI.CoreModelInterface
                 .ForEach(brep => doc.Objects.AddBrep(brep, roadOutlineObjAttributes));
 
             // ROAD CENTERLINES
-            // Find Layer info and ensure existence
-            var roadClLayerNames = CoreModel.Roads
-                .Select(r => r.Width.Round(CoreGeneralConstants.TransitRouteWidthPrecision))
-                .Select(width => LayerHelpers.GenerateRoadCLLayer(width))
-                .ToList();
-
-            roadClLayerNames.ForEach(name => LayerHelpers.EnsureLayerExists(doc, name));
-
-            var roadCLLayers = doc.Layers
-                .Where(lay => roadClLayerNames.Contains(lay.FullPath))
-                .ToList();
-
-            // Find road CL rhino objects
-            var coreModelClGuids = CoreModel.Roads.Select(r => r.CenterLineId).ToList();
-
-            var rhinoCLs = doc.Objects
-                .Where(obj => coreModelClGuids.Contains(obj.Id))
-                .ToList();
-
-            //var roadAndLayer = rhinoCLs.Select(obj =>
-            //    (rhinoObj: obj,
-            //    layer: CoreModel.Roads.FirstOrDefault(r => r.CenterLineId == obj.Id)))
-            //    .ToList();
-
-            // Ensure each CL is on required layer
-            foreach (var obj in rhinoCLs)
+            // Output road cls
+            foreach (var road in CoreModel.Roads)
             {
-                double width = CoreModel.Roads.FirstOrDefault(r => r.CenterLineId == obj.Id)
-                    .Width.Round(CoreGeneralConstants.TransitRouteWidthPrecision);
+                double width = road.Width
+                    .Round(CoreGeneralConstants.TransitRouteWidthPrecision);
+
                 string layerName = LayerHelpers.GenerateRoadCLLayer(width);
+                int layerIndex =  LayerHelpers.EnsureLayerExists(doc, layerName);
 
-                int? layerIndex = roadCLLayers
-                    .FirstOrDefault(lay => lay.FullPath == layerName)?
-                    .Index;
-
-                if (layerIndex.HasValue)
-                    LayerHelpers.ChangeLayer(obj, layerIndex.Value);
+                ObjectAttributes attrib = new ObjectAttributes()
+                {
+                    LayerIndex = layerIndex
+                };
+                road.CenterLineId = doc.Objects.AddCurve(road.Centerline.ToRhino(), attrib);
             }
         }
 

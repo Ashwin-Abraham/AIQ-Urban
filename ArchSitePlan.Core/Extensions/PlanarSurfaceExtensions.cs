@@ -13,5 +13,28 @@ namespace ArchSitePlan.Core.Extensions
         public static Point ControlPointCentroid(this PlanarSurface surface)
         => surface.ExternalBoundary.ControlPointCentroid();
 
+        public static List<PlanarSurface> Split(
+            this PlanarSurface surface,
+            IEnumerable<ICurve> splitters,
+            double tolerance = 1E-06)
+        {
+            var externalBoundaries = surface.ExternalBoundary.Split(splitters, tolerance);
+            var internalBoundaries = surface.InternalBoundaries
+                .SelectMany(c => c.Split(splitters, tolerance))
+                .Cast<ICurve>()
+                .Where(x => x is not null)
+                .ToList();
+
+            var splitSrfs = new List<PlanarSurface>();
+
+            foreach (var curve in externalBoundaries)
+            {
+                var fragment = Create.PlanarSurface(curve, internalBoundaries);
+
+                if (fragment is not null)
+                    splitSrfs.Add(fragment);
+            }
+            return splitSrfs;
+        }
     }
 }

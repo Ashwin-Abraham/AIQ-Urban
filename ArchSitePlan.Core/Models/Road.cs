@@ -8,7 +8,7 @@ namespace ArchSitePlan.Core.Models
 {
     public class Road
     {
-        public Guid CenterLineId { get; init; }
+        public Guid CenterLineId { get; set; }
 
         /// <summary>
         /// Contains a list of arcs and lines representing the centerline

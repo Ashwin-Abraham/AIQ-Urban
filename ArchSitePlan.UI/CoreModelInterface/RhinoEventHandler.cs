@@ -51,7 +51,6 @@ namespace ArchSitePlan.UI.Actions
 
                 if (ViewModel.AppMode == AppMode.Building)
                 {
-
                     if (!(obj.ObjectType == ObjectType.Curve
                         || obj.ObjectType == ObjectType.Brep
                         || obj.ObjectType == ObjectType.Extrusion

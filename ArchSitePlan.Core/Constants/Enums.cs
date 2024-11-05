@@ -11,16 +11,21 @@ namespace ArchSitePlan.Core.Constants
         public enum Landuse
         {
             Undefined,
-            Residential,
-            Commercial,
+            Resi_Low_Density,
+            Resi_High_Density,
+            Parking,
+            Transit,
             Retail,
-            EntertainmentAndCulture,
-            FoodAndBeverage,
-            Sport,
-            Hospitality,
+            Office,
+            Food_And_Beverage,
             Religious,
+            Medical,
+            Mixed_Use,
             Civic,
-            Transit
+            Sport,
+            Parks_And_Open_Space,
+            Forest,
+            Water
         }
 
         public enum TransitType

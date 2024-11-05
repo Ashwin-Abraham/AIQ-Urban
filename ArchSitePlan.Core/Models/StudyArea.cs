@@ -11,7 +11,7 @@ namespace ArchSitePlan.Core.Models
 {
     public class StudyArea
     {
-        public Polyline Boundary { get; private set; }
+        public Polyline? Boundary { get; private set; }
         public Guid Id { get; set; }
         public string Name { get; private set; }
         public double Area { get; private set; }

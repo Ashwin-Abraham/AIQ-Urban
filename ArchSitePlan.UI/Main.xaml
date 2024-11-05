@@ -8,9 +8,12 @@
              xmlns:mah="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
              xmlns:lvc="clr-namespace:LiveCharts.Wpf;assembly=LiveCharts.Wpf"
              mc:Ignorable="d" 
-             d:DesignHeight="500" d:DesignWidth="250"
+             d:DesignHeight="500" d:DesignWidth="350"
              d:DataContext="{d:DesignInstance local:MainViewModel}"
-             Background="White">
+             Background="White"
+             Height="700"
+             VerticalAlignment="Top"
+             >
     <UserControl.Resources>
 
         <ResourceDictionary>
@@ -78,10 +81,13 @@
                               OffContent="Disabled"
                               OnContent="Enabled"/>
         </Grid>
-        
-        <Grid Margin="5"
+
+        <ScrollViewer VerticalScrollBarVisibility="Auto" 
+                      Height="600">
+            <Grid Margin="5"
               IsEnabled="{Binding AppEnabled, Mode=TwoWay}">
             
+        
         <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
@@ -157,26 +163,26 @@
                   Header="2. Land Use"
                   IsExpanded="{Binding LanduseExpanderOpen, Mode=TwoWay}">
 
-            <Grid Margin="5,0,0,0">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="40"/>
-                    <RowDefinition Height="40"/>
-                    <RowDefinition Height="20"/>
-                    <RowDefinition Height="80"/>
-                </Grid.RowDefinitions>
+                    <Grid Margin="5,0,0,0">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="40"/>
+                            <RowDefinition Height="40"/>
+                            <RowDefinition Height="20"/>
+                            <RowDefinition Height="80"/>
+                        </Grid.RowDefinitions>
 
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="200"/>
-                    <ColumnDefinition Width="30"/>
-                    <ColumnDefinition Width="100"/>
-                </Grid.ColumnDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="200"/>
+                            <ColumnDefinition Width="30"/>
+                            <ColumnDefinition Width="100"/>
+                        </Grid.ColumnDefinitions>
 
-                <ComboBox VerticalAlignment="Center"
+                        <ComboBox VerticalAlignment="Center"
                           ItemsSource="{Binding LandUses}"
                           SelectedItem="{Binding SelectedLandUse}"
                           />
 
-                <TextBlock Background="{Binding SelectedLandUseColour, Mode=TwoWay}"
+                        <TextBlock Background="{Binding SelectedLandUseColour, Mode=TwoWay}"
                            Grid.Column="1"
                            Width="25"
                            Height="25"
@@ -184,12 +190,12 @@
                            HorizontalAlignment="Left"
                            VerticalAlignment="Center"/>
 
-                <Button Content="Change Use"
+                        <Button Content="Change Use"
                         Grid.Column="2"
                         VerticalAlignment="Center"
                         Command="{Binding ChangeParcelUse_Cmd}"/>
 
-                    <Button Content="Add parcel divider"
+                        <Button Content="Add parcel divider"
                         Grid.Row="1"
                         Grid.ColumnSpan="3"
                         VerticalAlignment="Center"
@@ -197,34 +203,40 @@
 
 
 
-                    <TextBlock Text="Active parcel metrics"
+                        <TextBlock Text="Active parcel metrics"
                            Grid.Row="2"/>
 
-                <StackPanel Grid.Row="3"
+                        <StackPanel Grid.Row="3"
                             Grid.ColumnSpan="4"
                             Orientation="Horizontal"
                             HorizontalAlignment="Center">
 
-                    <uc:MetricBox MetricName="Parcel Area"
+                            <uc:MetricBox MetricName="Parcel Area"
                                    Value="{Binding ActiveParcelMetrics.TotalArea }"
                                    Unit="sq m"/>
 
-                    <uc:MetricBox MetricName="Built Area"
+                            <uc:MetricBox MetricName="Built Area"
                    Value="{Binding ActiveParcelMetrics.BUA }"
                    Unit="sq m"/>
 
-                    <uc:MetricBox MetricName="Ground Coverage"
+                            <uc:MetricBox MetricName="Ground Coverage"
                    Value="{Binding ActiveParcelMetrics.CoveragePctg }"
                    Unit="%"/>
 
-                    <uc:MetricBox MetricName="FAR"                                                    
-                   Value="{Binding ActiveParcelMetrics.FAR }"
-                   />
-                </StackPanel>
+                            <uc:MetricBox MetricName="FAR"                                                    
+                   Value="{Binding ActiveParcelMetrics.FAR }"/>
+                        </StackPanel>
+
+                        <Button Content="TEST"
+                            Grid.Row="2"
+                            Grid.Column="1"
+                            Grid.ColumnSpan="2"
+                            VerticalAlignment="Center"
+                                Command="{Binding Test_Cmd}"/>
 
 
-            </Grid>
-        </Expander>
+                    </Grid>
+                </Expander>
 
 
         <!--Buildings Expander-->
@@ -479,7 +491,9 @@
         <!--<Button Content="Test"
                 Grid.Row="9"
                 Command="{Binding Test_Cmd}"/>-->
-    </Grid>
+        </Grid>
+        </ScrollViewer>
+
     </StackPanel>
 
 </UserControl>

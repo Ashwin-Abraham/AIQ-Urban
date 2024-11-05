@@ -1,4 +1,5 @@
-﻿using ArchSitePlan.UI.Constants;
+﻿using ArchSitePlan.Core.Extensions;
+using ArchSitePlan.UI.Constants;
 using Rhino;
 using Rhino.DocObjects;
 using System;
@@ -13,12 +14,14 @@ namespace ArchSitePlan.UI.Helpers
 {
     public static class LayerHelpers
     {
-        public static void EnsureLayerExists(RhinoDoc doc, string layerName)
+        public static int EnsureLayerExists(RhinoDoc doc, string layerName)
         {
             int result = doc.Layers.FindByFullPath(layerName, -1);
 
-            if(result == -1)
-                doc.Layers.AddPath(layerName);
+            if (result == -1)
+                result = doc.Layers.AddPath(layerName);
+
+            return result;
         }
 
         public static int CreateOrGetLayerIndex(RhinoDoc doc,
@@ -28,7 +31,7 @@ namespace ArchSitePlan.UI.Helpers
             layerColor = layerColor ?? RHGeneralConstants.DefaultColor;
             string layer = layerName;
             int index = doc.Layers.FindByFullPath(layer, LayerConstants.DefaultLayerIndex);
-            
+
             if (index == LayerConstants.DefaultLayerIndex)
                 index = doc.Layers.AddPath(layer);
 
@@ -91,9 +94,32 @@ namespace ArchSitePlan.UI.Helpers
 
             var remainingChildren = layer.GetChildren(false);
             int objectCount = doc.Objects.Count(obj => obj.Attributes.LayerIndex == layer.Index);
-            
+
             if (remainingChildren is null && objectCount == 0)
                 doc.Layers.Delete(layer, true);
+        }
+
+        internal static void DeleteLayerAndChildren(RhinoDoc doc, string layerName)
+        {
+            int index = doc.Layers.FindByFullPath(layerName, -1);
+            if (index != -1)
+                DeleteLayerAndChildren(doc, doc.Layers[index]);
+        }
+        internal static void DeleteLayerAndChildren(RhinoDoc doc, Layer layer)
+        {
+            var layerIndicesToDelete = layer.Index.ObjectToList();
+            layer.GetChildren(true)
+                .ToList()
+                .ForEach(lay => layerIndicesToDelete.Add(lay.Index));
+
+            var objectsToDelete = doc.Objects
+                .Where(o => layerIndicesToDelete.Contains(o.Attributes.LayerIndex))
+                .ToList();
+
+            foreach (var obj in objectsToDelete)
+            {
+                doc.Objects.Delete(obj, true, true);
+            }
         }
     }
 
