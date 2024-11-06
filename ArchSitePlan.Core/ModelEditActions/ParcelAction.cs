@@ -49,7 +49,7 @@ namespace ArchSitePlan.Core.ModelEditActions
         {
             var ids = boundaryAndIds.Select(x => x.id).ToList();
 
-            CoreModel.Parcels.Where(p => ids.Contains(p.OriginalObjectID))
+            CoreModel.Parcels.Where(p => ids.Contains(p.Id))
                 .ToList()
                 .ForEach(p => p.LandUse = use);
             
@@ -67,7 +67,7 @@ namespace ArchSitePlan.Core.ModelEditActions
 
             foreach(var id in ids)
             {
-                var parcel = CoreModel.Parcels.Find(p => p.OriginalObjectID == id);
+                var parcel = CoreModel.Parcels.Find(p => p.Id == id);
                 if (parcel is null) return false;
 
                 var boundary = parcel.Boundary.ExternalBoundary;
@@ -114,7 +114,7 @@ namespace ArchSitePlan.Core.ModelEditActions
         private static bool TryRemoveFromCoreModel(List<(ICurve? boundary, Guid id)> boundaryAndIds)
         {
             var ids = boundaryAndIds.Select(x => x.id).ToList();
-            int count = CoreModel.Parcels.RemoveAll(p => ids.Contains(p.OriginalObjectID));
+            int count = CoreModel.Parcels.RemoveAll(p => ids.Contains(p.Id));
             return count > 0;
         }
     }

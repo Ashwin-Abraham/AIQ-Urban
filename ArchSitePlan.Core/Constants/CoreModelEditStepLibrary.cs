@@ -84,7 +84,7 @@ namespace ArchSitePlan.Core.Constants
 
             dividers.AddRange(CoreModel.Studies.Select(s => s.Boundary));
             var parcelBoundaryAndIds = CoreModel.Parcels
-                .Select(p => (p.Boundary.ExternalBoundary, p.OriginalObjectID))
+                .Select(p => (p.Boundary.ExternalBoundary, p.Id))
                 .ToList();
 
             new ParcelAction().Run(

@@ -67,6 +67,12 @@ namespace ArchSitePlan.Core.Models
             return Math.Abs(area);
         }
 
+        public Landuse FindHostParcelUse()
+        {
+            var host = CoreModel.Parcels.Find(p => p.Boundary.ExternalBoundary.IIsContaining(Origin.ObjectToList()));
+            return host?.LandUse?? Landuse.Undefined;
+        }
+
         //private List<(PlanarSurface, Guid)> CreateFloorPlates(PlanarSurface baseOutline)
         //{
         //    var floorPlates = new List<(PlanarSurface,Guid)>();

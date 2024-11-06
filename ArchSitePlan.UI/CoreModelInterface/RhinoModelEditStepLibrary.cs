@@ -343,7 +343,7 @@ namespace ArchSitePlan.UI.CoreModelInterface
             {
                 var rhinoSrf = parcel.Boundary.ToRhino();
                 if (rhinoSrf != null)
-                    parcel.OriginalObjectID
+                    parcel.Id
                         = doc.Objects.AddBrep(rhinoSrf, parcelGeometryAttributes[parcel.LandUse]);
             }
         }

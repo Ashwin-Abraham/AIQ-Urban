@@ -25,7 +25,7 @@ namespace ArchSitePlan.Core.Models
             foreach(var building in Buildings)
             {
                 var parcel = Parcels.FirstOrDefault(p => p.Boundary.ExternalBoundary.IIsContaining(building.Origin.ObjectToList()));
-                building.HostParcelId = parcel?.OriginalObjectID?? Guid.Empty;
+                building.HostParcelId = parcel?.Id?? Guid.Empty;
             }
         }
         internal static void RefreshStudyAreaMetrics()
@@ -295,7 +295,7 @@ namespace ArchSitePlan.Core.Models
 
         public static List<Building> FindBuildingsInParcels(List<Parcel> parcels)
         {
-            var parcelGuids = parcels.Select(p => p.OriginalObjectID).ToList();
+            var parcelGuids = parcels.Select(p => p.Id).ToList();
             var buildings = Buildings.Where(b => parcelGuids.Contains(b.HostParcelId)).ToList();
 
             return buildings;

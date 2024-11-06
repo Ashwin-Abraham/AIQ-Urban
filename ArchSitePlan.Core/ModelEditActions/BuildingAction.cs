@@ -70,7 +70,7 @@ namespace ArchSitePlan.Core.ModelEditActions
         {
             var parcel = CoreModel.Parcels
                 .FirstOrDefault(p => p.Boundary.ExternalBoundary.IIsContaining(building.Origin.ObjectToList()));
-            building.HostParcelId = parcel?.OriginalObjectID ?? Guid.Empty;
+            building.HostParcelId = parcel?.Id ?? Guid.Empty;
 
             return building.HostParcelId == Guid.Empty;
         }

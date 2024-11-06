@@ -610,30 +610,42 @@ namespace ArchSitePlan.UI
                     .WorldToClient(selectedObjectCenter)
                     + new Point2d(viewTopLeft.X, viewTopLeft.Y);
 
-                using (Form dialog = new Form())
-                {
-                    dialog.Text = "Dialog at Center Point";
-                    dialog.Size = new System.Drawing.Size(200, 100);
-                    dialog.StartPosition = FormStartPosition.Manual;
-                    dialog.Location = new System.Drawing.Point(
-                        (int)viewportPoint.X,
-                        (int)viewportPoint.Y);
-                    //dialog.Location = new System.Drawing.Point(50, 50);
-                    dialog.FormBorderStyle = FormBorderStyle.None;
-                    dialog.AllowTransparency = true;
-                    dialog.Opacity = 0.75;
+                // Create the dialog window
+                TestPopUp dialog = new();
+                //{
+                //    Left = 50,
+                //    Top = 50,
+                //    Width = 300,
+                //    Height = 200
+                //};
 
-                    Label label = new Label
-                    {
-                        Text = "Hello Harshitha!",
-                        Dock = DockStyle.Fill,
-                        TextAlign = System.Drawing.ContentAlignment.MiddleCenter
-                    };
-                    dialog.Controls.Add(label);
+                // Show the dialog
+                dialog.ShowDialog();
 
-                    // Show the dialog
-                    dialog.ShowDialog();
-                }
+                //using (Form dialog = new Form())
+                //{
+                //    dialog.Text = "Dialog at Center Point";
+                //    dialog.Size = new System.Drawing.Size(200, 100);
+                //    dialog.StartPosition = FormStartPosition.Manual;
+                //    dialog.Location = new System.Drawing.Point(
+                //        (int)viewportPoint.X,
+                //        (int)viewportPoint.Y);
+                //    //dialog.Location = new System.Drawing.Point(50, 50);
+                //    dialog.FormBorderStyle = FormBorderStyle.None;
+                //    dialog.AllowTransparency = true;
+                //    dialog.Opacity = 0.75;
+
+                //    Label label = new Label
+                //    {
+                //        Text = "Hello Harshitha!",
+                //        Dock = DockStyle.Fill,
+                //        TextAlign = System.Drawing.ContentAlignment.MiddleCenter
+                //    };
+                //    dialog.Controls.Add(label);
+
+                //    // Show the dialog
+                //    dialog.ShowDialog();
+                //}
             }
             catch (Exception ex)
             {
