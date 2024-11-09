@@ -1,4 +1,5 @@
-﻿using ArchSitePlan.Core.Extensions;
+﻿using ArchSitePlan.Core.Comparer;
+using ArchSitePlan.Core.Extensions;
 using ArchSitePlan.Core.Metrics;
 using ArchSitePlan.Core.Models;
 using ArchSitePlan.UI.Actions;
@@ -8,15 +9,20 @@ using ArchSitePlan.UI.Extensions;
 using ArchSitePlan.UI.Helpers;
 using ArchSitePlan.UI.Models;
 using ArchSitePlan.UI.RhinoBHoMInterop;
+using KellermanSoftware.CompareNetObjects.TypeComparers;
 using LiveCharts;
 using LiveCharts.Wpf;
 using Rhino;
+using Rhino.Display;
 using Rhino.DocObjects;
 using Rhino.Geometry;
 using Rhino.Input;
+using Rhino.UI;
 using System.ComponentModel;
 using System.Drawing;
 using System.IO;
+using System.Reflection;
+using System.Windows;
 using System.Windows.Forms;
 using System.Windows.Input;
 using static ArchSitePlan.Core.Constants.Enums;
@@ -36,7 +42,16 @@ namespace ArchSitePlan.UI
     public class MainViewModel : ViewModelBase, INotifyPropertyChanged
     {
         #region VARIABLES
-        public static RhinoDoc doc = RhinoDoc.ActiveDoc;
+        private bool _enableFloorCountSlider = true;
+        public bool EnableFloorCountSlider
+        {
+            get => _enableFloorCountSlider;
+            set
+            {
+                _enableFloorCountSlider = value;
+                OnPropertyChanged(nameof(EnableFloorCountSlider));
+            }
+        }
 
         private VMActiveParcelsDetails _activeParcelsMetrics;
         public VMActiveParcelsDetails ActiveParcelMetrics
@@ -186,7 +201,7 @@ namespace ArchSitePlan.UI
         }
 
         private SolidColorBrush _selectedLandUseColour = new SolidColorBrush(
-            Defaults.LandUseColours[Landuse.Undefined].ToWindowsColor());
+            Defaults.LandUseColours[Landuse.Undefined].ToWindowsMediaColor());
         public SolidColorBrush SelectedLandUseColour
         {
             get => _selectedLandUseColour;
@@ -232,6 +247,8 @@ namespace ArchSitePlan.UI
                 BuildingSelectorMode = BuildingSelectorMode.Mass;
                 _buildingMassSelectorModeActive = value;
                 OnPropertyChanged(nameof(BuildingMassSelectorModeActive));
+
+                EnableFloorCountSlider = !_buildingMassSelectorModeActive;
             }
         }
 
@@ -243,7 +260,10 @@ namespace ArchSitePlan.UI
             set
             {
                 _activeStudyAreaName = value;
-                ActiveStudy = CoreModel.Studies.Find(s => s.Name == value);
+                var study = CoreModel.Studies.Find(s => s.Name == value);
+                if (study is not null)
+                    ActiveStudy = study;
+
                 OnPropertyChanged(nameof(ActiveStudyAreaName));
             }
         }
@@ -459,10 +479,14 @@ namespace ArchSitePlan.UI
 
                     if (folderBrowserDialog.ShowDialog() == DialogResult.OK)
                     {
+                        string rhinoName = RhinoDoc.ActiveDoc.Name;
+                        rhinoName = rhinoName is null || rhinoName == "" ? 
+                            "Untitled" : rhinoName;
+
                         // Get the selected folder path
                         ExcelPath = Path.Combine(
                             folderBrowserDialog.SelectedPath,
-                            "ProjectReport.xlsx");
+                            $"{rhinoName}ProjectReport.xlsx");
                     }
                 }
             }
@@ -476,7 +500,8 @@ namespace ArchSitePlan.UI
         {
             try
             {
-                if (!Path.Exists(ExcelPath))
+                var location = Path.GetDirectoryName(ExcelPath);
+                if (!Path.Exists(location))
                     throw new Exception($"Excel path - {ExcelPath} is invalid. Please select a valid export location.");
 
                 var pr = new ProjectReport(ExcelPath, CoreModel.ProjectWideStudy().Metrics, CoreModel.Studies);
@@ -523,7 +548,7 @@ namespace ArchSitePlan.UI
                 {
                     Title = landUseGroup.First().Use.ToString(),
                     Values = new ChartValues<double> { area },
-                    Fill = new SolidColorBrush(Defaults.LandUseColours[use].ToWindowsColor()),
+                    Fill = new SolidColorBrush(Defaults.LandUseColours[use].ToWindowsMediaColor()),
                     Height = 40,
                     
                 });
@@ -535,6 +560,7 @@ namespace ArchSitePlan.UI
         {
             var groupedByWidth = metrics.TransitMetrics.GroupBy(p => Math.Round(p.RoadWidth,1));
             RoadLengthSeries = new SeriesCollection();
+            var widthColors = CoreModel.SetRoadColorsByWidth();
 
             foreach (var transitGroup in groupedByWidth)
             {
@@ -547,25 +573,37 @@ namespace ArchSitePlan.UI
                     Values = new ChartValues<double> { length },
                 };
 
+                widthColors.TryGetValue(transitGroup.Key, out Color color);
+                if (color != default)
+                    newRow.Fill = new SolidColorBrush(color.ToWindowsMediaColor());
+
                 RoadLengthSeries.Add(newRow);
             }
         }
 
+        
         private void UpdateRoadAreaGraphData(StudyAreaMetrics metrics)
         {
             var groupedByWidth = metrics.TransitMetrics.GroupBy(p => Math.Round(p.RoadWidth, 1));
             RoadAreaSeries = new SeriesCollection();
 
+            var widthColors = CoreModel.SetRoadColorsByWidth();
+
             foreach (var transitGroup in groupedByWidth)
             {
                 var area = Math.Round(transitGroup.Sum(p => p.Area));
                 var label = "Width (" + Math.Round(transitGroup.First().RoadWidth, 1).ToString() + "m)";
+                
 
                 var newRow = new PieSeries()
                 {
                     Title = label,
                     Values = new ChartValues<double> { area },
                 };
+
+                widthColors.TryGetValue(transitGroup.Key, out Color color);
+                if (color != default)
+                    newRow.Fill = new SolidColorBrush(color.ToWindowsMediaColor());
 
                 RoadAreaSeries.Add(newRow);
             }
@@ -575,12 +613,55 @@ namespace ArchSitePlan.UI
         {
             try
             {
-                var result = RhinoGet.GetOneObject("Select an object",
-                true,
-                ObjectType.Mesh,
-                out ObjRef objRef);
+                var doc = RhinoDoc.ActiveDoc;
+                var selectedObjectCenter = doc.Objects.GetSelectedObjects(false, false)
+                    .First()
+                    .Geometry
+                    .GetBoundingBox(false)
+                    .Center;
 
-                var bhomMesh = (objRef.Object().Geometry as Mesh).ToBHoM();
+                var viewTopLeft = doc.Views.ActiveView.ActiveViewport.ClientToScreen(new Point2d(0,0));
+                //var viewTopLeft = new Point2d(viewportRect.Left, viewportRect.Top);
+                var viewportPoint = doc.Views.ActiveView.ActiveViewport
+                    .WorldToClient(selectedObjectCenter)
+                    + new Point2d(viewTopLeft.X, viewTopLeft.Y);
+
+                // Create the dialog window
+                TestPopUp dialog = new();
+                //{
+                //    Left = 50,
+                //    Top = 50,
+                //    Width = 300,
+                //    Height = 200
+                //};
+
+                // Show the dialog
+                dialog.ShowDialog();
+
+                //using (Form dialog = new Form())
+                //{
+                //    dialog.Text = "Dialog at Center Point";
+                //    dialog.Size = new System.Drawing.Size(200, 100);
+                //    dialog.StartPosition = FormStartPosition.Manual;
+                //    dialog.Location = new System.Drawing.Point(
+                //        (int)viewportPoint.X,
+                //        (int)viewportPoint.Y);
+                //    //dialog.Location = new System.Drawing.Point(50, 50);
+                //    dialog.FormBorderStyle = FormBorderStyle.None;
+                //    dialog.AllowTransparency = true;
+                //    dialog.Opacity = 0.75;
+
+                //    Label label = new Label
+                //    {
+                //        Text = "Hello Harshitha!",
+                //        Dock = DockStyle.Fill,
+                //        TextAlign = System.Drawing.ContentAlignment.MiddleCenter
+                //    };
+                //    dialog.Controls.Add(label);
+
+                //    // Show the dialog
+                //    dialog.ShowDialog();
+                //}
             }
             catch (Exception ex)
             {
@@ -706,10 +787,10 @@ namespace ArchSitePlan.UI
         private void UpdateSelectedLanduseColour(Landuse use)
         {
             if (Defaults.LandUseColours.TryGetValue(use, out Color color))
-                SelectedLandUseColour = new SolidColorBrush(color.ToWindowsColor());
+                SelectedLandUseColour = new SolidColorBrush(color.ToWindowsMediaColor());
             else
                 SelectedLandUseColour = new SolidColorBrush(Defaults.LandUseColours[Landuse.Undefined]
-                    .ToWindowsColor());
+                    .ToWindowsMediaColor());
         }
 
         private void AddOrUpdateRoads_Exec(object obj)
@@ -773,6 +854,8 @@ namespace ArchSitePlan.UI
 
         public void RefreshActiveStudyAndMetrics()
         {
+            
+
             StudyAreasNames = CoreModel.Studies.Select(s => s.Name).ToList();
 
             if (_activeStudy != null

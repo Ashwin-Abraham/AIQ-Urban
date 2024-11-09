@@ -78,6 +78,7 @@ namespace ArchSitePlan.Core.Models
                 double parcelPctg = totalDevArea.AlmostEquals(0) ?
                     0 : study.Metrics.DevelopableArea / totalDevArea;
 
+                double transitArea = study.Metrics.TransitMetrics.Sum(tm => tm.Area);
 
                 var row = new StudySummaryDataRow(
                     StudyName: study.Name,
@@ -85,8 +86,8 @@ namespace ArchSitePlan.Core.Models
                     BoundedArea: study.Metrics.BoundedArea,
                     ParcelArea: study.Metrics.DevelopableArea,
                     ParcelAreaPctg: parcelPctg,
-                    TransitArea: 0,
-                    TransitAreaPctg: 0,
+                    TransitArea: transitArea,
+                    TransitAreaPctg: transitArea/ study.Metrics.BoundedArea,
                     BuiltArea: study.Metrics.BuiltArea,
                     BuiltAreaPctg: builtPctg,
                     FAR: study.Metrics.FAR);
@@ -436,7 +437,15 @@ namespace ArchSitePlan.Core.Models
             int totalEndRow,
             int totalColumn)
         {
-            return $"R{itemRow}C{itemColumn}/{BuildTotalFormula(totalStartRow, totalEndRow, totalColumn)}";
+            string formula =  $"R{itemRow}C{itemColumn}/{BuildTotalFormula(totalStartRow, totalEndRow, totalColumn)}";
+            formula = AddIfError(formula, 0);
+            return formula;
+        }
+
+        private string AddIfError(string formula, double returnValue)
+        {
+            formula = $"IFERROR({formula},{returnValue})";
+            return formula;
         }
 
         private string BuildTotalFormula(int startRow, int endRow, int column)

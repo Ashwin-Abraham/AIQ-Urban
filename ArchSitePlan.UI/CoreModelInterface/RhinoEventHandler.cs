@@ -1,12 +1,13 @@
-﻿using ArchSitePlan.Core.Constants;
-using ArchSitePlan.Core.Extensions;
+﻿using ArchSitePlan.Core.Extensions;
 using ArchSitePlan.Core.Models;
 using ArchSitePlan.UI.CoreModelInterface;
+using ArchSitePlan.UI.Extensions;
 using ArchSitePlan.UI.Helpers;
 using ArchSitePlan.UI.RhinoBHoMInterop;
 using BH.Engine.Geometry;
 using BH.oM.Geometry;
 using Rhino;
+using Rhino.Display;
 using Rhino.DocObjects;
 using Rhino.Geometry;
 using System.Windows;
@@ -36,9 +37,27 @@ namespace ArchSitePlan.UI.Actions
             EventHandler<RhinoObjectEventArgs> removedRhinoObjectEvent = (sender, args) => OnRhinoDocObjectRemove(args);
             RhinoDoc.DeleteRhinoObject += removedRhinoObjectEvent;
 
-            EventHandler<RhinoObjectSelectionEventArgs> selectedRhinoObjectsEvent = (sender, args) => OnRhinoDocObjectSelection(args);
+            EventHandler<RhinoObjectSelectionEventArgs> selectedRhinoObjectsEvent = (sender, args) 
+                => OnRhinoDocObjectSelection(args);
             RhinoDoc.SelectObjects += selectedRhinoObjectsEvent;
+
+            EventHandler<RhinoObjectSelectionEventArgs> deselectedRhinoObjectsEvent = (sender, args) => OnRhinoDocObjectDeSelection(args);
+            RhinoDoc.DeselectObjects += deselectedRhinoObjectsEvent;
+
+            EventHandler<RhinoDeselectAllObjectsEventArgs> deselectedAllRhinoObjectsEvent = (sender, args) => OnAllRhinoDocObjectDeSelection(args);
+            RhinoDoc.DeselectAllObjects += deselectedAllRhinoObjectsEvent;
         }
+
+        private static void OnAllRhinoDocObjectDeSelection(RhinoDeselectAllObjectsEventArgs args)
+        {
+            _popUp.Close();
+        }
+
+        private static void OnRhinoDocObjectDeSelection(RhinoObjectSelectionEventArgs args)
+        {
+            _popUp.Close();
+        }
+
         private static void OnRhinoDocObjectReplace(RhinoReplaceObjectEventArgs args)
         {
             try
@@ -51,7 +70,6 @@ namespace ArchSitePlan.UI.Actions
 
                 if (ViewModel.AppMode == AppMode.Building)
                 {
-
                     if (!(obj.ObjectType == ObjectType.Curve
                         || obj.ObjectType == ObjectType.Brep
                         || obj.ObjectType == ObjectType.Extrusion
@@ -110,7 +128,148 @@ namespace ArchSitePlan.UI.Actions
         {
             Rhino.ApplicationSettings.SelectionFilterSettings.OneShotGeometryFilter = ObjectType.Curve;
         }
+        private 
+        static TestPopUp _popUp = new TestPopUp();
+
+
+        private static Point3d CalculateObjectsCenter(IEnumerable<RhinoObject> objs)
+        {
+            var centers = objs.Select(obj => obj.Geometry.GetBoundingBox(false).Center)
+                .ToList();
+
+            return centers.AveragePoint();
+        }
+        private static System.Drawing.Point ToScreenPoint(Point3d modelPoint, RhinoViewport viewport)
+        {
+            var viewportPoint = viewport.WorldToClient(modelPoint);
+            var screenPoint1 = viewport.ClientToScreen(viewportPoint);
+            var point = viewport.ParentView.ClientToScreen(viewportPoint);
+
+            var screenPoint2 = new System.Drawing.Point((int)point.X, (int)point.Y);
+
+            return screenPoint2;
+        }
         private static void OnRhinoDocObjectSelection(RhinoObjectSelectionEventArgs args)
+        {
+            try
+            {
+                _popUp.Close();
+
+                RhinoDoc doc = RhinoDoc.ActiveDoc;
+                var ids = doc.Objects
+                    .GetSelectedObjects(false, false)
+                    .Select(obj => obj.Id).ToList();
+                
+                List<Guid> coreModelIds = FindCoreModelObjs(ids, ViewModel.AppMode);
+
+                if (!ViewModel.AppEnabled || ids.Count == 0) return;
+
+                // Find screen point
+                var selectedObjects = doc.Objects.Where(obj => coreModelIds.Contains(obj.Id));
+                var center = CalculateObjectsCenter(selectedObjects);
+                var pointOnScreen = ToScreenPoint(center, doc.Views.ActiveView.ActiveViewport);
+
+                // Position window
+                _popUp = new();
+
+                switch (ViewModel.AppMode)
+                {
+                    case AppMode.Road:
+                        var roads = CoreModel.Roads.Where(rd => coreModelIds.Contains(rd.CenterLineId)).ToList();
+                        if (roads.Count == 0) break;
+                        PopUpViewModel.ConfigureRoadsInPopUp(_popUp, roads);
+                        _popUp.Show();
+                        break;
+
+                    case AppMode.LandUse:
+                        var parcels = CoreModel.Parcels.Where(p => coreModelIds.Contains(p.Id)).ToList();
+                        if (parcels.Count == 0) break;
+                        PopUpViewModel.ConfigureLandUseInPopUp(_popUp, parcels);
+                        _popUp.Show();
+                        break;
+
+                    case AppMode.Building:
+                        var buildings = CoreModel.Buildings
+                            .Where(bldg => coreModelIds.Contains(bldg.EnvelopeId))
+                            .ToList();
+                        if (buildings.Count == 0) break;
+                        PopUpViewModel.ConfigureBuildingsInPopUp(_popUp, buildings);
+                        _popUp.Show();
+                        break;
+                }
+                var dpi = System.Windows.Media.VisualTreeHelper.GetDpi(_popUp);
+                _popUp.Left = pointOnScreen.X / dpi.DpiScaleX;
+                _popUp.Top = pointOnScreen.Y / dpi.DpiScaleY;
+
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        }
+
+        private static void ConfigureRoadsInPopUp(TestPopUp popUp, List<Road> roads)
+        {
+            bool singleWidth = roads.GroupBy(r => r.RoW.Area(3)).Count() == 1;
+            int roundingDigits = 2;
+
+            // Title
+            popUp.Title.Text = "ROAD DETAILS";
+            popUp.SelectionCount.Text =  roads.Count.ToString();
+
+            // Data 1
+            popUp.DataTitle1.Text = "Width";
+            if(singleWidth)
+                popUp.DataContent1.Text = Math.Round(roads[0].Width, roundingDigits).ToString();
+            else
+                popUp.DataContent1.Text = "varies";
+
+            // Data 2
+            popUp.DataTitle2.Text = "Length";
+            double totalLength = roads.Sum(r => r.Centerline.Length());
+            popUp.DataContent2.Text = Math.Round(totalLength, roundingDigits).ToString();
+
+            // Data 3
+            popUp.DataTitle3.Text = "Area";
+            double area = roads.Sum(r => r.RoW.Area());
+            popUp.DataContent3.Text = Math.Round(area, roundingDigits).ToString();
+
+            // Data 4
+            popUp.DataTitle4.Text = string.Empty;
+            popUp.DataContent4.Text = string.Empty;
+        }
+
+        private static List<Guid> FindCoreModelObjs(List<Guid> selectedIds, AppMode mode)
+        {
+            switch(mode)
+            {
+                case AppMode.Road:
+                    return CoreModel.Roads
+                        .Where(rd => selectedIds.Contains(rd.CenterLineId))
+                        .Select(rd => rd.CenterLineId)
+                        .ToList();
+
+                case AppMode.LandUse: return CoreModel.Parcels
+                        .Where(p => selectedIds.Contains(p.Id))
+                        .Select(p => p.Id)
+                        .ToList();
+
+                case AppMode.Building: return CoreModel.Buildings
+                        .Where(b => selectedIds.Contains(b.EnvelopeId))
+                        .Select(b => b.EnvelopeId)
+                        .ToList();
+
+                case AppMode.StudyArea:
+                    return CoreModel.Studies
+                        .Where(st => selectedIds.Contains(st.Id))
+                        .Select(b => b.Id)
+                        .ToList();
+
+                default: return new();
+            }
+        }
+
+        private static void OnRhinoDocObjectSelection_old(RhinoObjectSelectionEventArgs args)
         {
             try
             {
@@ -253,7 +412,7 @@ namespace ArchSitePlan.UI.Actions
 
                     case AppMode.Building:
                         ModelBuilderPipelines.DeleteBuildingPipeline(doc, args.ObjectId.ObjectToList());
-;                        ViewModel.RefreshActiveStudyAndMetrics();
+                        ViewModel.RefreshActiveStudyAndMetrics();
                         break;
 
                     case AppMode.StudyArea:
@@ -392,3 +551,4 @@ namespace ArchSitePlan.UI.Actions
         }
     }
 }
+    

@@ -67,18 +67,33 @@ namespace ArchSitePlan.Core.Extensions
             }
         }
         public static List<PolyCurve>? Split(this ICurve curve,
-            List<ICurve> splitters,
+            IEnumerable<ICurve> splitters,
             double tolerance = 1E-06)
         {
+
+
             splitters = splitters.Where(c => c != null).ToList();
 
             if (curve == null) return null;
 
-            if (splitters.Count == 0)
+            if (splitters.Count() == 0)
                 return new List<PolyCurve> { curve.ToPolycurve() };
 
             if (!curve.IIsPlanar(tolerance))
-                throw new Exception("Non planar curves cannot be split");
+                return Create.PolyCurve(curve.ObjectToList()).ObjectToList();
+
+            if (!curve.IIsClosed())
+            {
+                var points = splitters
+                    .SelectMany(crv => curve.ICurveIntersections(crv))
+                    .ToList();
+
+                var fragments = curve.ISplitAtPoints(points)
+                    .Select(crv => Create.PolyCurve(crv.ObjectToList()))
+                    .ToList();
+
+                return fragments;
+            }
 
             Vector normal = curve.INormal(tolerance);
             double toleranceEnhancer = 0.01;

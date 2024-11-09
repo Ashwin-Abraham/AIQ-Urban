@@ -37,14 +37,6 @@ namespace ArchSitePlan.RhinoAddin
                 "SiteArchitecturePlanner",
                 icon);
 
-            Rhino.UI.Panels.RegisterPanel(this,
-                typeof(LiveChartsTestHost),
-               "LVC Tes",
-               icon);
-
-            //System.Drawing.Icon.ExtractAssociatedIcon(null));
-
-            // InitializePython();
             return Rhino.PlugIns.LoadReturnCode.Success;
         }
     }
@@ -69,15 +61,6 @@ namespace ArchSitePlan.RhinoAddin
             {
                 return typeof(MainViewHost).GUID;
             }
-        }
-    }
-
-    [Guid("0874C191-A023-4C05-9E31-96C2C63F7C7E")]
-    public class LiveChartsTestHost : RhinoWindows.Controls.WpfElementHost
-
-    {
-        public LiveChartsTestHost() : base(new LVCTest(), new LVCTestViewModel())
-        {
         }
     }
 }

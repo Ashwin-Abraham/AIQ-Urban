@@ -75,7 +75,7 @@ namespace ArchSitePlan.Core.Constants
             return initialRoadCount > CoreModel.Roads.Count;
         }
 
-        public static void DivideParcels()
+        public static void DivideParcelsAndTransit()
         {
             var dividers = CoreModel.Dividers
                 .Select(d => d.Curve)
@@ -83,14 +83,26 @@ namespace ArchSitePlan.Core.Constants
                 .ToList();
 
             dividers.AddRange(CoreModel.Studies.Select(s => s.Boundary));
-            var boundaryAndIds = CoreModel.Parcels
-                .Select(p => (p.Boundary.ExternalBoundary, p.OriginalObjectID))
+            var parcelBoundaryAndIds = CoreModel.Parcels
+                .Select(p => (p.Boundary.ExternalBoundary, p.Id))
                 .ToList();
 
             new ParcelAction().Run(
-                boundaryAndIds,
+                parcelBoundaryAndIds,
                 editType: EditType.Divide,
                 dividers: dividers);
+
+            var roadsAndIds = CoreModel.Roads
+                .Select(rd => (rd.Centerline as ICurve, rd.CenterLineId))
+                .ToList();
+
+            // Divide Roads
+            RoadAction.Run(roadsAndIds, 
+                EditType.Divide,
+                0);
+
+            RoadAction.Run(CoreModel.ROWs, 
+                EditType.Divide);
         }
         public static void AddOrUpdateRoad(List<TransitCreationData> transitData)
         {
@@ -117,6 +129,7 @@ namespace ArchSitePlan.Core.Constants
 
             // Recalculate Parcels
             CoreModel.Parcels.Clear();
+            CoreModel.ROWs.Clear();
 
             CalculateParcelAndRoadBoundaries(
                 out List<PlanarSurface> roadSrfs,

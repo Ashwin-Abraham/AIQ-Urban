@@ -42,7 +42,7 @@ namespace ArchSitePlan.UI.Actions
             if (ids == null) return new List<Parcel>();
 
             List<Parcel> list = CoreModel.Parcels?
-                .Where(parcel => ids.Contains(parcel.OriginalObjectID))
+                .Where(parcel => ids.Contains(parcel.Id))
                 .ToList();
             
             return list?? new List<Parcel>();
