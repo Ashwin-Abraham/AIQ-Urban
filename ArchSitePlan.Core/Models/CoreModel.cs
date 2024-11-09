@@ -1,8 +1,10 @@
-﻿using ArchSitePlan.Core.Constants;
+﻿using ArchSitePlan.Core.Comparer;
+using ArchSitePlan.Core.Constants;
 using ArchSitePlan.Core.Extensions;
 using ArchSitePlan.Core.Metrics;
 using BH.Engine.Geometry;
 using BH.oM.Geometry;
+using System.Drawing;
 using static ArchSitePlan.Core.Constants.Enums;
 
 namespace ArchSitePlan.Core.Models
@@ -51,7 +53,13 @@ namespace ArchSitePlan.Core.Models
                         })
                         .ToList();
 
-                    Studies[i] = new StudyArea(Studies[i], parcelsInArea, buildingsInArea, Roads.ToList());
+                    var roadsInArea = Roads.Where(road =>
+                    {
+                        var roadPoint = road.Centerline.PointAtParameter(0.5);
+                        return Studies[i].Boundary.IsContaining(roadPoint.ObjectToList());
+                    }).ToList();
+
+                    Studies[i] = new StudyArea(Studies[i], parcelsInArea, buildingsInArea, roadsInArea);
                 }
             }
         }
@@ -328,22 +336,29 @@ namespace ArchSitePlan.Core.Models
         public static StudyArea ProjectWideStudy()
             => Studies.FirstOrDefault(s => s.Name == CoreGeneralConstants.FullProjectStudyName);
 
-        //public static void AddOrUpdateParcelDivider(Polyline pline, Guid id)
-        //{
-        //    if (pline == null || id == Guid.Empty) return;
-
-        //    var divider = Dividers.Find(d => d.Id == id);
-
-        //    if (divider != null)
-        //        Dividers.Remove(divider);
-
-        //    Dividers.Add(new ParcelDivider(pline, id));
-        //}
-
         public static bool TryGetParcelDivider(Guid objectId, out ParcelDivider divider)
         {
             divider = Dividers.FirstOrDefault(div => div.Id == objectId);
             return divider != null;
+        }
+
+        public static Dictionary<double, Color> SetRoadColorsByWidth()
+        {
+            var widths = Roads
+                .GroupBy(r => r.Width, new DoubleAsDecimalComparer())
+                .Select(x => x.Key)
+                .OrderBy(x => x)
+                .ToList();
+
+            Dictionary<double, Color> widthColors = new();
+            for (int i = 0; i < widths.Count; i++)
+            {
+                int cIndex = Math.Min(i, Defaults.StandardColors.Count - 1);
+                var color = Defaults.StandardColors[cIndex];
+                widthColors.Add(widths[i], Defaults.StandardColors[cIndex]);
+            }
+
+            return widthColors;
         }
     }
 }

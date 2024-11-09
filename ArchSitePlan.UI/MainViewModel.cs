@@ -1,4 +1,5 @@
-﻿using ArchSitePlan.Core.Extensions;
+﻿using ArchSitePlan.Core.Comparer;
+using ArchSitePlan.Core.Extensions;
 using ArchSitePlan.Core.Metrics;
 using ArchSitePlan.Core.Models;
 using ArchSitePlan.UI.Actions;
@@ -8,6 +9,7 @@ using ArchSitePlan.UI.Extensions;
 using ArchSitePlan.UI.Helpers;
 using ArchSitePlan.UI.Models;
 using ArchSitePlan.UI.RhinoBHoMInterop;
+using KellermanSoftware.CompareNetObjects.TypeComparers;
 using LiveCharts;
 using LiveCharts.Wpf;
 using Rhino;
@@ -19,6 +21,7 @@ using Rhino.UI;
 using System.ComponentModel;
 using System.Drawing;
 using System.IO;
+using System.Reflection;
 using System.Windows;
 using System.Windows.Forms;
 using System.Windows.Input;
@@ -198,7 +201,7 @@ namespace ArchSitePlan.UI
         }
 
         private SolidColorBrush _selectedLandUseColour = new SolidColorBrush(
-            Defaults.LandUseColours[Landuse.Undefined].ToWindowsColor());
+            Defaults.LandUseColours[Landuse.Undefined].ToWindowsMediaColor());
         public SolidColorBrush SelectedLandUseColour
         {
             get => _selectedLandUseColour;
@@ -545,7 +548,7 @@ namespace ArchSitePlan.UI
                 {
                     Title = landUseGroup.First().Use.ToString(),
                     Values = new ChartValues<double> { area },
-                    Fill = new SolidColorBrush(Defaults.LandUseColours[use].ToWindowsColor()),
+                    Fill = new SolidColorBrush(Defaults.LandUseColours[use].ToWindowsMediaColor()),
                     Height = 40,
                     
                 });
@@ -557,6 +560,7 @@ namespace ArchSitePlan.UI
         {
             var groupedByWidth = metrics.TransitMetrics.GroupBy(p => Math.Round(p.RoadWidth,1));
             RoadLengthSeries = new SeriesCollection();
+            var widthColors = CoreModel.SetRoadColorsByWidth();
 
             foreach (var transitGroup in groupedByWidth)
             {
@@ -569,25 +573,37 @@ namespace ArchSitePlan.UI
                     Values = new ChartValues<double> { length },
                 };
 
+                widthColors.TryGetValue(transitGroup.Key, out Color color);
+                if (color != default)
+                    newRow.Fill = new SolidColorBrush(color.ToWindowsMediaColor());
+
                 RoadLengthSeries.Add(newRow);
             }
         }
 
+        
         private void UpdateRoadAreaGraphData(StudyAreaMetrics metrics)
         {
             var groupedByWidth = metrics.TransitMetrics.GroupBy(p => Math.Round(p.RoadWidth, 1));
             RoadAreaSeries = new SeriesCollection();
 
+            var widthColors = CoreModel.SetRoadColorsByWidth();
+
             foreach (var transitGroup in groupedByWidth)
             {
                 var area = Math.Round(transitGroup.Sum(p => p.Area));
                 var label = "Width (" + Math.Round(transitGroup.First().RoadWidth, 1).ToString() + "m)";
+                
 
                 var newRow = new PieSeries()
                 {
                     Title = label,
                     Values = new ChartValues<double> { area },
                 };
+
+                widthColors.TryGetValue(transitGroup.Key, out Color color);
+                if (color != default)
+                    newRow.Fill = new SolidColorBrush(color.ToWindowsMediaColor());
 
                 RoadAreaSeries.Add(newRow);
             }
@@ -771,10 +787,10 @@ namespace ArchSitePlan.UI
         private void UpdateSelectedLanduseColour(Landuse use)
         {
             if (Defaults.LandUseColours.TryGetValue(use, out Color color))
-                SelectedLandUseColour = new SolidColorBrush(color.ToWindowsColor());
+                SelectedLandUseColour = new SolidColorBrush(color.ToWindowsMediaColor());
             else
                 SelectedLandUseColour = new SolidColorBrush(Defaults.LandUseColours[Landuse.Undefined]
-                    .ToWindowsColor());
+                    .ToWindowsMediaColor());
         }
 
         private void AddOrUpdateRoads_Exec(object obj)
@@ -850,9 +866,6 @@ namespace ArchSitePlan.UI
 
             ActiveStudyAreaName = ActiveStudy.Name;
             UpdateDisplayedStudyAreaData(ActiveStudy);
-
-            
-
         }
     }
 }
