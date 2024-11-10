@@ -9,7 +9,7 @@ namespace ArchSitePlan.Core.ModelEditActions
     public class StudyAreaAction:IModelEditAction
     {
         public static void Run(
-            List<(Polyline? Crv, Guid Id, string Name)> studyData,
+            List<(ICurve? ICurve, Guid Id, string Name)> studyData,
            EditType editType)
         {
             switch (editType)
@@ -28,22 +28,22 @@ namespace ArchSitePlan.Core.ModelEditActions
             }
         }
 
-        private static void AddToCoreModel(List<(Polyline Boundary, Guid Id, string Name)> studyData)
+        private static void AddToCoreModel(List<(ICurve Boundary, Guid Id, string Name)> studyData)
         {
             var newStudies = new List<StudyArea>();
 
             foreach(var data  in studyData)
             {
                 var parcelsWithin = CoreModel.Parcels
-                    .Where(p => data.Boundary.IsContaining(p.Boundary.ControlPointCentroid().ObjectToList()))
+                    .Where(p => data.Boundary.IIsContaining(p.Boundary.ControlPointCentroid().ObjectToList()))
                     .ToList();
 
                 var buildingsWithin = CoreModel.Buildings
-                    .Where(bldg => data.Boundary.IsContaining(bldg.Origin.ObjectToList()))
+                    .Where(bldg => data.Boundary.IIsContaining(bldg.Origin.ObjectToList()))
                     .ToList();
 
                 var roadsWithin = CoreModel.Roads
-                    .Where(r => data.Boundary.IsContaining(r.Centerline.PointAtParameter(0.5).ObjectToList()))
+                    .Where(r => data.Boundary.IIsContaining(r.Centerline.PointAtParameter(0.5).ObjectToList()))
                     .ToList();
 
                 var study = new StudyArea(data.Boundary,

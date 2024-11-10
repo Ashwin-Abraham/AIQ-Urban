@@ -98,22 +98,28 @@ namespace ArchSitePlan.UI.Actions
                 }
                 else if (ViewModel.AppMode == AppMode.LandUse)
                 {
-                    var pline = DocObjectHelpers.TryExtractPolyline(obj);
-                    if (!CoreModel.TryGetParcelDivider(obj.Id, out _)
-                        || pline is null) return;
+                    if (obj.ObjectType != ObjectType.Curve) return;
 
-                    var plineObjs = (pline.ToBHoMPolyline(), obj.Id).ObjectToList();
+                    var bhomCrv = (obj.Geometry as Curve)!.ToBHoM2DegreeCrv();
+                    
+                    if (!CoreModel.TryGetParcelDivider(obj.Id, out _)
+                        || bhomCrv is null) return;
+
+                    var plineObjs = (bhomCrv, obj.Id).ObjectToList();
                     ModelBuilderPipelines.AddOrUpdateParcelDividerPipeline(RhinoDoc.ActiveDoc, plineObjs);
                     ViewModel.RefreshActiveStudyAndMetrics();
                 }
                 else if (ViewModel.AppMode == AppMode.StudyArea)
                 {
-                    var pline = DocObjectHelpers.TryExtractPolyline(obj);
+                    var curve = obj.Geometry as Curve;
                     if (!CoreModel.TryGetStudyArea(obj.Id, out _)
-                        || pline is null) return;
+                        || curve is null) return;
 
-                    var plineObjs = (pline.ToBHoMPolyline(), obj.Id).ObjectToList();
-                    ModelBuilderPipelines.UpdateStudyAreas(RhinoDoc.ActiveDoc, plineObjs);
+                    var bhomCurve = curve.ToBHoM2DegreeCrv();
+                    if (bhomCurve is null) return;
+
+                    var crvObjs = (bhomCurve, obj.Id).ObjectToList();
+                    ModelBuilderPipelines.UpdateStudyAreas(RhinoDoc.ActiveDoc, crvObjs);
                     ViewModel.RefreshActiveStudyAndMetrics();
                 }
             }

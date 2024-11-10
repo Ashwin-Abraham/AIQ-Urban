@@ -9,10 +9,10 @@ namespace ArchSitePlan.Core.Models
 {
     public class ParcelDivider
     {
-        public Polyline Curve;
+        public ICurve Curve;
         public Guid Id;
 
-        public ParcelDivider(Polyline curve, Guid id)
+        public ParcelDivider(ICurve curve, Guid id)
         {
             Curve = curve;
             Id = id;

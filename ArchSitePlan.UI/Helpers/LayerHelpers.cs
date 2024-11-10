@@ -16,6 +16,9 @@ namespace ArchSitePlan.UI.Helpers
     {
         public static int EnsureLayerExists(RhinoDoc doc, string layerName)
         {
+            if (layerName.Contains("Mass"))
+                ;
+
             int result = doc.Layers.FindByFullPath(layerName, -1);
 
             if (result == -1)
@@ -31,7 +34,8 @@ namespace ArchSitePlan.UI.Helpers
             layerColor = layerColor ?? RHGeneralConstants.DefaultColor;
             string layer = layerName;
             int index = doc.Layers.FindByFullPath(layer, LayerConstants.DefaultLayerIndex);
-
+            if (layerName.Contains("Mass"))
+                ;
             if (index == LayerConstants.DefaultLayerIndex)
                 index = doc.Layers.AddPath(layer);
 

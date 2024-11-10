@@ -11,14 +11,14 @@ namespace ArchSitePlan.Core.Models
 {
     public class StudyArea
     {
-        public Polyline? Boundary { get; private set; }
+        public ICurve? Boundary { get; private set; }
         public Guid Id { get; set; }
         public string Name { get; private set; }
         public double Area { get; private set; }
 
         public StudyAreaMetrics Metrics { get; private set; }
         public StudyArea(
-            Polyline boundary, 
+            ICurve boundary, 
             Guid id, 
             string name,
             List<Parcel> parcels,
@@ -28,7 +28,7 @@ namespace ArchSitePlan.Core.Models
             Boundary = boundary;
             Id = id;
             Name = name;
-            Area = Math.Abs(boundary?.Area()?? 0);
+            Area = Math.Abs(boundary?.IArea()?? 0);
             Metrics = new StudyAreaMetrics(
                 boundary,
                 parcels,

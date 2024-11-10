@@ -6,7 +6,7 @@ namespace ArchSitePlan.Core.ModelEditActions
 {
     public class DividerAction:IModelEditAction
     {
-        public void Run(List<(Polyline?, Guid)> dividers,
+        public void Run(List<(ICurve?, Guid)> dividers,
            EditType editType)
         {
             switch (editType)
@@ -25,7 +25,7 @@ namespace ArchSitePlan.Core.ModelEditActions
             }
         }
 
-        private static void TryAddToCoreModel(List<(Polyline? Curve, Guid ID)> dividersData)
+        private static void TryAddToCoreModel(List<(ICurve? Curve, Guid ID)> dividersData)
         {
             var dividers = dividersData
                 .Where(x => x.Curve != null)
@@ -35,7 +35,7 @@ namespace ArchSitePlan.Core.ModelEditActions
             CoreModel.Dividers.AddRange(dividers);
         }
 
-        private static void TryRemoveFromCoreModel(List<(Polyline? Curve, Guid ID)> dividers)
+        private static void TryRemoveFromCoreModel(List<(ICurve? Curve, Guid ID)> dividers)
         {
             var ids = dividers.Select(x => x.ID).ToList();
             int count = CoreModel.Dividers.RemoveAll(d => ids.Contains(d.Id));

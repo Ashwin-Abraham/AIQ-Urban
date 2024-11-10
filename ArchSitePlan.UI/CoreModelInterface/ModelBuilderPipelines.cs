@@ -43,7 +43,7 @@ namespace ArchSitePlan.UI.CoreModelInterface
         }
 
         public static void AddOrUpdateParcelDividerPipeline(RhinoDoc doc, 
-            List<(Polyline? Crv, Guid ID)> plineObjs)
+            List<(ICurve? Crv, Guid ID)> plineObjs)
         {
             CoreModelEditStepLibrary
                 .TryRemoveDivders(plineObjs.Select(x => x.ID).ToList());
@@ -82,7 +82,7 @@ namespace ArchSitePlan.UI.CoreModelInterface
             CoreModelEditStepLibrary.TryDeleteBuildings(buildingEnvelopeGuids);
             CoreModelEditStepLibrary.RefreshStudyAreaMetrics();
         }
-        internal static void AddStudyAreaPipeline(RhinoDoc doc, List<(Polyline, Guid, string)> studyData)
+        internal static void AddStudyAreaPipeline(RhinoDoc doc, List<(ICurve, Guid, string)> studyData)
         {
             CoreModelEditStepLibrary.AddOrUpdateStudyArea(studyData);
             CoreModelEditStepLibrary.RecalculateParcelsAndRoadRoWs();
@@ -100,7 +100,7 @@ namespace ArchSitePlan.UI.CoreModelInterface
             RhinoModelEditStepLibrary.ReplaceRhinoModel(doc, true);
         }
 
-        internal static void UpdateStudyAreas(RhinoDoc doc, List<(Polyline Crv, Guid Id)> plineObjs)
+        internal static void UpdateStudyAreas(RhinoDoc doc, List<(ICurve Crv, Guid Id)> plineObjs)
         {
             var studyData = CoreModelEditStepLibrary.BuildStudyDataForValidStudies(plineObjs);
 

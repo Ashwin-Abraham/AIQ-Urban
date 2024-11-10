@@ -410,27 +410,38 @@ namespace ArchSitePlan.UI
                     LayerConstants.ParcelDividerColour);
 
                 // Try to select a curve
-                var rhinoObjs = doc.Objects.GetSelectedObjects(false, false)
-                    .Where(obj => obj.ObjectType == ObjectType.Curve)
+                var rhinoObjs = doc.Objects.GetSelectedObjects(false, false).ToList();
+                if (rhinoObjs.Count == 0)
+                    throw new Exception("Please select a line or polyline as the parcel divider");
+
+                var rhinoCrvs = rhinoObjs
+                    .Where(obj => obj.ObjectType == ObjectType.Curve
+                        && (obj.Geometry as Curve)!.Degree < 2)
                     .ToList();
 
-                List<(BH.oM.Geometry.Polyline?, Guid)> plineObjs = new();
+                int removed = rhinoObjs.Count() - rhinoCrvs.Count;
+                
+                List<(BH.oM.Geometry.ICurve?, Guid)> bhomCrvData = new();
 
-                foreach (var rhinoObj in rhinoObjs)
+                foreach (var rhinoObj in rhinoCrvs)
                 {
-                    Curve? crv = rhinoObj.Geometry as Curve;
-                    Polyline? pline = null;
+                    var bhomCrv = (rhinoObj.Geometry as Curve)!.ToBHoM2DegreeCrv();
+                    if (bhomCrv is null)
+                    {
+                        removed++;
+                        continue;
+                    }
 
-                    if (crv is not null && 
-                        !crv.TryGetPolyline(out pline)) continue;
-
-                    plineObjs.Add((pline?.ToBHoMPolyline(), rhinoObj.Id));
+                    bhomCrvData.Add((bhomCrv, rhinoObj.Id));
                     LayerHelpers.ChangeLayer(rhinoObj, parcelDividerLayerIndex);
                 }
 
-                if (!plineObjs.Any()) return;
+                if (removed > 0)
+                    MessageBox.Show($"Removed {removed} objects that were not lines or polylines from selection");
 
-                ModelBuilderPipelines.AddOrUpdateParcelDividerPipeline(doc, plineObjs);
+                if (!bhomCrvData.Any()) return;
+
+                ModelBuilderPipelines.AddOrUpdateParcelDividerPipeline(doc, bhomCrvData);
             }
             catch(Exception ex)
             {
@@ -621,47 +632,17 @@ namespace ArchSitePlan.UI
                     .Center;
 
                 var viewTopLeft = doc.Views.ActiveView.ActiveViewport.ClientToScreen(new Point2d(0,0));
-                //var viewTopLeft = new Point2d(viewportRect.Left, viewportRect.Top);
                 var viewportPoint = doc.Views.ActiveView.ActiveViewport
                     .WorldToClient(selectedObjectCenter)
                     + new Point2d(viewTopLeft.X, viewTopLeft.Y);
 
                 // Create the dialog window
                 TestPopUp dialog = new();
-                //{
-                //    Left = 50,
-                //    Top = 50,
-                //    Width = 300,
-                //    Height = 200
-                //};
 
                 // Show the dialog
                 dialog.ShowDialog();
 
-                //using (Form dialog = new Form())
-                //{
-                //    dialog.Text = "Dialog at Center Point";
-                //    dialog.Size = new System.Drawing.Size(200, 100);
-                //    dialog.StartPosition = FormStartPosition.Manual;
-                //    dialog.Location = new System.Drawing.Point(
-                //        (int)viewportPoint.X,
-                //        (int)viewportPoint.Y);
-                //    //dialog.Location = new System.Drawing.Point(50, 50);
-                //    dialog.FormBorderStyle = FormBorderStyle.None;
-                //    dialog.AllowTransparency = true;
-                //    dialog.Opacity = 0.75;
 
-                //    Label label = new Label
-                //    {
-                //        Text = "Hello Harshitha!",
-                //        Dock = DockStyle.Fill,
-                //        TextAlign = System.Drawing.ContentAlignment.MiddleCenter
-                //    };
-                //    dialog.Controls.Add(label);
-
-                //    // Show the dialog
-                //    dialog.ShowDialog();
-                //}
             }
             catch (Exception ex)
             {
@@ -674,31 +655,36 @@ namespace ArchSitePlan.UI
             try
             {
                 var result = RhinoGet.GetOneObject("Select a closed curve as the study area",
-                true,
+                false,
                 ObjectType.Curve,
                 out ObjRef objRef);
                 
-                if (result != Rhino.Commands.Result.Success) return;
+                if (result != Rhino.Commands.Result.Success) 
+                    throw new Exception("Select a closed polyline as your study boundary");
 
                 var rhinoObj = objRef.Object();
                 var boundary = rhinoObj.Geometry as Curve;
+                
 
                 if (!boundary.IsClosed)
                     throw new Exception("Error. Please select closed curve instead");
+                
                 if (ActiveStudyAreaName == _defaultStudyAreaNameTextBox
                     || ActiveStudyAreaName == string.Empty)
                     throw new Exception("Error. Please enter a study name");
 
-                if (!boundary.TryGetPolyline(out Polyline rhinoPline))
-                    throw new Exception("Select polylines only");
-
+                if (boundary is null || boundary.Degree > 1)
+                    throw new Exception("Select closed polylines only.");
+                
                 var study = CoreModel.Studies.Find(s => s.Name == ActiveStudyAreaName);
+                
                 if(study!=null && study.Id != rhinoObj.Id)
                     throw new Exception($"Another study named \"{ActiveStudyAreaName}\" already exists.");
-
+                
+                var bhomCrv = boundary.ToBHoM2DegreeCrv();
                 RhinoDoc doc2 = RhinoDoc.ActiveDoc;
                 ModelBuilderPipelines.AddStudyAreaPipeline(doc: doc2,
-                    studyData: (rhinoPline.ToBHoMPolyline(),
+                    studyData: (bhomCrv,
                         rhinoObj.Id,
                         ActiveStudyAreaName).ObjectToList());
                 ActiveStudy = CoreModel.Studies.FirstOrDefault(s => rhinoObj.Id == s.Id);
@@ -723,21 +709,23 @@ namespace ArchSitePlan.UI
                 Color layerColor;
 
                 if (BuildingFootprintSelectorModeActive)
-                {
                     allowedTypes = RHGeneralConstants.BuildingFootprintObjectTypes;
-                    //layerName = LayerConstants.BuildingFootprintLayer;
-                    //layerColor = LayerConstants.BuildingFootprintColour;
-                }
                 else
-                {
                     allowedTypes = RHGeneralConstants.BuildingEnvelopeObjectTypes;
-                    //layerName = LayerConstants.BuildingMassLayer;
-                    //layerColor = LayerConstants.BuildingMassColour;
-                }
 
                 var rhinoObjs = RhinoDoc.ActiveDoc.Objects.GetSelectedObjects(false, false)
                     .Where(obj => allowedTypes.Contains(obj.ObjectType))
                     .ToList();
+
+                if (rhinoObjs.Count == 0)
+                {
+                    if (BuildingFootprintSelectorModeActive)
+                        MessageBox.Show("Please select a planar curve representing the buildings base");
+                    else
+                        MessageBox.Show("Please select a brep, extrusion or mesh to act as the building envelope");
+                    
+                    return;
+                }
 
                 RhinoEventHandler.UpdateSelectedBuildings(rhinoObjs,
                     ActiveBuildingFloorCount,
@@ -854,8 +842,6 @@ namespace ArchSitePlan.UI
 
         public void RefreshActiveStudyAndMetrics()
         {
-            
-
             StudyAreasNames = CoreModel.Studies.Select(s => s.Name).ToList();
 
             if (_activeStudy != null

@@ -218,33 +218,42 @@ namespace ArchSitePlan.UI.CoreModelInterface
             var buildingIds = CoreModel.Buildings.Select(b => b.EnvelopeId).ToList();
             DeleteRhinoBuilding(doc, buildingIds);
 
+            int outlineLayerIndex = LayerHelpers.CreateOrGetLayerIndex(
+                RhinoDoc.ActiveDoc,
+                LayerConstants.BuildingFloorOutlineLayer,
+                LayerConstants.BuildingFloorOutlineColour);
+
+            int massLayerIndex = LayerHelpers.CreateOrGetLayerIndex(
+                RhinoDoc.ActiveDoc,
+                LayerConstants.BuildingMassLayer,
+                LayerConstants.BuildingMassColour);
+
+            var outlineAttrib = new ObjectAttributes()
+            {
+                LayerIndex = outlineLayerIndex
+            };
+
+            var massAttrib = new ObjectAttributes()
+            {
+                LayerIndex = massLayerIndex
+            };
+
             foreach (var building in CoreModel.Buildings)
             {
                 var rhinoMesh = building.Envelope.ToRhino();
 
                 // Create new building
-                building.EnvelopeId = doc.Objects.AddMesh(rhinoMesh, RhinoObjAttributeConstants.BuildingGeometryAttributes);
-
+                building.EnvelopeId = doc.Objects.AddMesh(rhinoMesh, massAttrib);
                 for (int i = 0; i < building.FloorPlates.Count; i++)
                 {
-                    building.FloorPlates[i] =
-                        (building.FloorPlates[i].Profile,
-                        Id: BakeToRhino(
-                            building.FloorPlates[i].Profile,
-                            doc,
-                            RhinoObjAttributeConstants.BuildingFloorPlateAttributes));
+                    var curve = building.FloorPlates[i].Profile.ExternalBoundary.ToRhino();
+                    var newId = doc.Objects.AddCurve(curve, outlineAttrib);
+                    building.FloorPlates[i] = (building.FloorPlates[i].Profile, newId);
                 }
             }
            
         }
-        private static Guid BakeToRhino(PlanarSurface floorProfile, 
-            RhinoDoc doc, 
-            ObjectAttributes attrib)
-        {
-            var curve = floorProfile.ExternalBoundary.ToRhino();
-            Guid id = doc.Objects.AddCurve(curve, attrib);
-            return id;
-        }
+
         private static void OutputRoadsToRhino(RhinoDoc doc)
         {
             // Delete Existing Objects
