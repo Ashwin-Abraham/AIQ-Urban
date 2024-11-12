@@ -1,12 +1,6 @@
-﻿using BH.oM.Geometry;
+﻿using BH.Engine.Geometry;
+using BH.oM.Geometry;
 using BoundedCurve = Elements.Geometry.BoundedCurve;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using BH.Engine.Geometry;
-using ArchSitePlan.DebugModel.Extensions;
 
 namespace ArchSitePlan.DebugModel.BHoMExtensions
 {
@@ -70,7 +64,7 @@ namespace ArchSitePlan.DebugModel.BHoMExtensions
             var hyparArc = new Elements.Geometry.Arc(
                 arcTransform,
                 arc.Radius,
-                0,
+                arc.StartAngle,
                 arc.EndAngle);
 
             var test1 = arc.PointAtParameter(0.5);
@@ -89,8 +83,10 @@ namespace ArchSitePlan.DebugModel.BHoMExtensions
             return new Elements.Geometry.Polyline(points);
         }
 
-        public static Elements.Geometry.Line ToHypar(this Line line)
+        public static Elements.Geometry.Line? ToHypar(this Line line)
         {
+            if(line.Start.Distance(line.End)< Elements.Geometry.Vector3.EPSILON) return null;
+
             return new Elements.Geometry.Line(ToHypar(line.Start), ToHypar(line.End));
         }
 

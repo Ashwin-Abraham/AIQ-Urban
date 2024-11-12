@@ -31,7 +31,7 @@ namespace ArchSitePlan.Core.Extensions
             return true;
         }
 
-        public static PolyCurve OffsetSafe(this PolyCurve curve, double distance, Vector normal)
+        public static PolyCurve? OffsetSafe(this PolyCurve curve, double distance, Vector normal)
         {
             if (curve.Curves.Count == 1 && curve.Curves[0].IIsLinear())
             {

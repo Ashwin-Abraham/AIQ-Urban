@@ -70,8 +70,6 @@ namespace ArchSitePlan.Core.Extensions
             IEnumerable<ICurve> splitters,
             double tolerance = 1E-06)
         {
-
-
             splitters = splitters.Where(c => c != null).ToList();
 
             if (curve == null) return null;

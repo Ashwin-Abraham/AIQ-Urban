@@ -139,5 +139,88 @@ namespace ArchSitePlan.Test
             // Assert
             Assert.Equal(24, offset.ILength());
         }
+
+        static Line _line1 = Create.Line(Point.Origin, Create.Point(0, 2, 0));
+        static Line _line2 = Create.Line(Create.Point(2, 0, 0), Point.Origin);
+        static Arc _arc = Create.ArcByCentre(Point.Origin, Create.Point(0, 2, 0), Create.Point(2, 0, 0));
+        static List<ICurve> _pCrvList = new List<ICurve>() { _line2, _line1, _arc};
+
+        static PolyCurve _arcPolyCurve = Create.PolyCurve(_pCrvList);
+
+        [Fact]
+        public void CanSplitPolycurve_WithSelf()
+        {
+            var curve = _arcPolyCurve;
+            var splitter = _arcPolyCurve;
+
+            var fragments = (curve as ICurve).Split(new List<ICurve>() { splitter });
+
+#if DEBUG
+            VisualizeSplitResults(curve, splitter, fragments);
+#endif
+        }
+
+        [Fact]
+        public void CanSplitPolycurve_WithLine()
+        {
+            var curve = _arcPolyCurve;
+            var splitter = Create.Line(Point.Origin, Create.Point(5,5));
+
+            var fragments = (curve as ICurve).Split(new List<ICurve>() { splitter });
+
+#if DEBUG
+            VisualizeSplitResults(curve, splitter, fragments);
+#endif
+            Assert.Equal(2, fragments.Count);
+            Assert.Equal(curve.Area(), fragments.Sum(f => f.Area()), 1E-04);
+        }
+
+        [Fact]
+        public void CanSplitPolycurve_WithLine2()
+        {
+            var curve = _arcPolyCurve;
+            var splitter = Create.Line(Create.Point(1,-1), Create.Point(1, 5));
+
+            var fragments = (curve as ICurve).Split(new List<ICurve>() { splitter });
+
+#if DEBUG
+            VisualizeSplitResults(curve, splitter, fragments);
+#endif
+            Assert.Equal(2, fragments.Count);
+            Assert.Equal(curve.Area(), fragments.Sum(f => f.Area()), 1E-04);
+        }
+
+        [Fact]
+        public void CanSplitPolycurve_WithLine3()
+        {
+            var curve = _arcPolyCurve;
+            var splitter = Create.Line(Create.Point(1, -1), Create.Point(1, 5));
+
+            var fragments = (curve as ICurve).Split(new List<ICurve>() { splitter });
+
+#if DEBUG
+            VisualizeSplitResults(curve, splitter, fragments);
+#endif
+            Assert.Equal(2, fragments.Count);
+            Assert.Equal(curve.Area(), fragments.Sum(f => f.Area()), 1E-04);
+        }
+
+        private static void VisualizeSplitResults(ICurve curve, 
+            ICurve splitter, 
+            IEnumerable<ICurve> fragments)
+        {
+#if DEBUG
+            DEBUGMODEL.AddBoundedCurves(ToHyparInterop.ToHypar(splitter), DebugMaterials.Red);
+            DEBUGMODEL.AddBoundedCurves(ToHyparInterop.ToHypar(curve));
+
+            var hyparCrvs = fragments.SelectMany(f => ToHyparInterop.ToHypar(f))
+                .Where(c => c is not null)
+                .ToList();
+            DEBUGMODEL.AddBoundedCurves(hyparCrvs, DebugMaterials.Blue, 0.01);
+            DEBUGMODEL.OpenAsGlb();
+#endif
+        }
+
+
     }
 }

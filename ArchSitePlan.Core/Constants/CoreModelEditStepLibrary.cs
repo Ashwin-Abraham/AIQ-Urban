@@ -9,7 +9,7 @@ using static ArchSitePlan.Core.ModelEditActions.BuildingAction;
 namespace ArchSitePlan.Core.Constants
 {
     public record StudyCreationData(
-            BH.oM.Geometry.Polyline Boundary,
+            BH.oM.Geometry.ICurve Boundary,
             Guid Id,
             string Name);
 
@@ -26,7 +26,7 @@ namespace ArchSitePlan.Core.Constants
         double FloorHt);
 
     public record DividerCreationData(
-        Polyline? Polyline, 
+        ICurve? Polyline, 
         Guid Id);
     public class CoreModelEditStepLibrary
     {
@@ -219,7 +219,7 @@ namespace ArchSitePlan.Core.Constants
         {
             int initialCount = CoreModel.Dividers.Count;
 
-            List<(Polyline?, Guid)> dividerData = new();
+            List<(ICurve?, Guid)> dividerData = new();
             dividerIds.ForEach(id => dividerData.Add((null, id)));
 
             new DividerAction().Run(dividerData, EditType.Remove);
@@ -235,7 +235,7 @@ namespace ArchSitePlan.Core.Constants
                 .ToList()
                 );
         }
-        public static void AddDivders(List<(Polyline?, Guid)> plineObjs) =>
+        public static void AddDivders(List<(ICurve?, Guid)> plineObjs) =>
             new DividerAction().Run(plineObjs, EditType.Add);
 
         public static void AddOrUpdateBulding(
@@ -271,21 +271,21 @@ namespace ArchSitePlan.Core.Constants
             AddOrUpdateStudyArea(
                 studyData.Select(d => (d.Boundary, d.Id, d.Name)).ToList());
 
-        public static void AddOrUpdateStudyArea(List<(Polyline?, Guid, string)> studyData) =>
+        public static void AddOrUpdateStudyArea(List<(ICurve?, Guid, string)> studyData) =>
             StudyAreaAction.Run(studyData, EditType.Edit);
 
         public static void DeleteStudyAreas(List<Guid> guids)
         {
-            List<(Polyline?, Guid, string)> studyData = new();
+            List<(ICurve?, Guid, string)> studyData = new();
             guids.ForEach(id => studyData.Add((null, id, string.Empty)));
             StudyAreaAction.Run(studyData, EditType.Remove);
         }
 
-        public static List<(Polyline, Guid, string)> BuildStudyDataForValidStudies(
-            List<(Polyline Crv, Guid Id)> plineObjs)
+        public static List<(ICurve, Guid, string)> BuildStudyDataForValidStudies(
+            List<(ICurve Crv, Guid Id)> plineObjs)
         {
             var ids = CoreModel.Studies.Select(s => s.Id).ToList();
-            var studyObjs = new List<(Polyline, Guid, string)>();
+            var studyObjs = new List<(ICurve, Guid, string)>();
 
             foreach (var pline in plineObjs)
             {

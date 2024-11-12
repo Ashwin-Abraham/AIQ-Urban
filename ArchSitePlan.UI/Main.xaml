@@ -123,9 +123,9 @@
 
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="50"/>
-                    <ColumnDefinition Width="200"/>
+                    <ColumnDefinition Width="160"/>
                     <ColumnDefinition Width="15"/>
-                    <ColumnDefinition Width="100"/>
+                    <ColumnDefinition Width="125"/>
                 </Grid.ColumnDefinitions>
 
                 <TextBlock Text="Width"
@@ -149,9 +149,10 @@
                            VerticalAlignment="Center"
                            HorizontalAlignment="Left"/>
 
-                <Button Content="Add/Update"
+                <Button Content="Select Centerline"
                         Grid.Column="3"
-                        Command="{Binding AddOrUpdateRoads_Cmd}"/>
+                        Command="{Binding AddOrUpdateRoads_Cmd}"
+                        ToolTip="{Binding RoadInstruction}"/>
 
             </Grid>
 
@@ -167,8 +168,6 @@
                         <Grid.RowDefinitions>
                             <RowDefinition Height="40"/>
                             <RowDefinition Height="40"/>
-                            <RowDefinition Height="20"/>
-                            <RowDefinition Height="80"/>
                         </Grid.RowDefinitions>
 
                         <Grid.ColumnDefinitions>
@@ -191,49 +190,17 @@
                            VerticalAlignment="Center"/>
 
                         <Button Content="Change Use"
-                        Grid.Column="2"
-                        VerticalAlignment="Center"
-                        Command="{Binding ChangeParcelUse_Cmd}"/>
+                                Grid.Column="2"
+                                VerticalAlignment="Center"
+                                Command="{Binding ChangeParcelUse_Cmd}"
+                                ToolTip="{Binding ChangeLandUseInstruction}"/>
 
-                        <Button Content="Add parcel divider"
-                        Grid.Row="1"
-                        Grid.ColumnSpan="3"
-                        VerticalAlignment="Center"
-                        Command="{Binding AddParcelDivider_Cmd}"/>
-
-
-
-                        <TextBlock Text="Active parcel metrics"
-                           Grid.Row="2"/>
-
-                        <StackPanel Grid.Row="3"
-                            Grid.ColumnSpan="4"
-                            Orientation="Horizontal"
-                            HorizontalAlignment="Center">
-
-                            <uc:MetricBox MetricName="Parcel Area"
-                                   Value="{Binding ActiveParcelMetrics.TotalArea }"
-                                   Unit="sq m"/>
-
-                            <uc:MetricBox MetricName="Built Area"
-                   Value="{Binding ActiveParcelMetrics.BUA }"
-                   Unit="sq m"/>
-
-                            <uc:MetricBox MetricName="Ground Coverage"
-                   Value="{Binding ActiveParcelMetrics.CoveragePctg }"
-                   Unit="%"/>
-
-                            <uc:MetricBox MetricName="FAR"                                                    
-                   Value="{Binding ActiveParcelMetrics.FAR }"/>
-                        </StackPanel>
-
-                        <Button Content="TEST"
-                            Grid.Row="2"
-                            Grid.Column="1"
-                            Grid.ColumnSpan="2"
-                            VerticalAlignment="Center"
-                                Command="{Binding Test_Cmd}"/>
-
+                        <Button Content="Add divider"
+                                Grid.Row="1"
+                                Grid.ColumnSpan="3"
+                                VerticalAlignment="Center"
+                                Command="{Binding AddParcelDivider_Cmd}"
+                                ToolTip="{Binding AddDividerInstruction}"/>
 
                     </Grid>
                 </Expander>
@@ -311,7 +278,8 @@
                                  Content="Mass"/>
                     <Button Content="Update Building"
                             Command="{Binding UpdateBuilding_Cmd}"
-                            Margin="5,0,15,0"/>
+                            Margin="5,0,15,0"
+                            ToolTip="{Binding AddBuildingInstruction}"/>
 
                 </StackPanel>
 
@@ -360,7 +328,8 @@
                         Command="{Binding ExportExcel_Cmd}"
                         VerticalAlignment="Center"
                         Grid.Row="1"
-                        Width="100"/>
+                        Width="100"
+                        ToolTip="{Binding ExportExcelInstruction}"/>
 
                 <TextBlock Text="{Binding ExcelPath, FallbackValue=Excel_Path}"
                            VerticalAlignment="Center"
@@ -374,28 +343,11 @@
                         Command="{Binding SetExcelPath_Cmd}"
                         Grid.Row="1"
                         Grid.Column="1"
-                        Width="150"/>
+                        Width="150"
+                        ToolTip="{Binding SetExcelPathInstruction}"/>
 
             </Grid>
         </Expander>
-        
-        <!--Active Study Area-->
-        <!--Active Study Area-->
-        <!--<Grid Grid.Row="6"
-              Grid.ColumnSpan="5">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="35"/>
-                <RowDefinition Height="35"/>
-                <RowDefinition Height="35"/>
-                <RowDefinition Height="35"/>
-                <RowDefinition Height="35"/>
-                <RowDefinition Height="35"/>
-            </Grid.RowDefinitions>
-
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>-->
 
         <TextBlock Text="Study Area Name"
                    Grid.Row="6"/>
@@ -481,16 +433,6 @@
             FontSize="10"
             InnerRadius="40"/>
 
-
-        <!--<uc:HorizontalGraph Grid.Row="8"
-                            Grid.ColumnSpan="2"
-                            GraphData="{Binding LandUseGraphData, UpdateSourceTrigger=Default, Mode=OneWay}"
-                            GraphTitle="Landuse Area"
-                            />-->
-
-        <!--<Button Content="Test"
-                Grid.Row="9"
-                Command="{Binding Test_Cmd}"/>-->
         </Grid>
         </ScrollViewer>
 

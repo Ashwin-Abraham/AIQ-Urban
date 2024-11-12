@@ -41,22 +41,22 @@ namespace ArchSitePlan.Core.Models
                 else
                 {
                     var parcelsInArea = Parcels
-                        .Where(p => Studies[i].Boundary.IsContaining(p.Boundary.ControlPointCentroid().ObjectToList()))
+                        .Where(p => Studies[i].Boundary.IIsContaining(p.Boundary.ControlPointCentroid().ObjectToList()))
                         .ToList();
 
                     var buildingsInArea = Buildings
                         .Where(bldg =>
                         {
-                            var boundaryPt = Studies[i].Boundary.StartPoint();
+                            var boundaryPt = Studies[i].Boundary.IStartPoint();
                             var bldgPt = bldg.Origin.Project(Create.Plane(boundaryPt, Vector.ZAxis));
-                            return Studies[i].Boundary.IsContaining(bldgPt.ObjectToList());
+                            return Studies[i].Boundary.IIsContaining(bldgPt.ObjectToList());
                         })
                         .ToList();
 
                     var roadsInArea = Roads.Where(road =>
                     {
                         var roadPoint = road.Centerline.PointAtParameter(0.5);
-                        return Studies[i].Boundary.IsContaining(roadPoint.ObjectToList());
+                        return Studies[i].Boundary.IIsContaining(roadPoint.ObjectToList());
                     }).ToList();
 
                     Studies[i] = new StudyArea(Studies[i], parcelsInArea, buildingsInArea, roadsInArea);
@@ -66,7 +66,7 @@ namespace ArchSitePlan.Core.Models
         private static void SplitCoreModel()
         {
             var studyBoundaries = Studies.Select(sa => sa.Boundary)
-                .Where(crv => crv != null && crv.IsClosed())
+                .Where(crv => crv != null && crv.IIsClosed())
                 .Cast<ICurve>()
                 .ToList();
 
