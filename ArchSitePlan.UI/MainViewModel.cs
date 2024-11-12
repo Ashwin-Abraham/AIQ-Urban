@@ -19,6 +19,7 @@ using Rhino.Geometry;
 using Rhino.Input;
 using Rhino.UI;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Reflection;
@@ -42,6 +43,15 @@ namespace ArchSitePlan.UI
     public class MainViewModel : ViewModelBase, INotifyPropertyChanged
     {
         #region VARIABLES
+
+        public static string RoadInstruction { get; set; } = UIMessages.RoadInstruction;
+        public static string ChangeLandUseInstruction { get; set; } = UIMessages.ChangeLandUseInstruction;
+        public static string AddDividerInstruction { get; set; } = UIMessages.AddDividerInstruction;
+        public static string AddBuildingInstruction { get; set; } = UIMessages.AddBuildingInstruction;
+        public static string AddStudyInstruction { get; set; } = UIMessages.AddStudyInstruction;
+        public static string SetExcelPathInstruction { get; set; } = UIMessages.SetExcelPathInstruction;
+        public static string ExportExcelInstruction { get; set; } = UIMessages.ExportExcelInstruction;
+
         private bool _enableFloorCountSlider = true;
         public bool EnableFloorCountSlider
         {
@@ -345,7 +355,7 @@ namespace ArchSitePlan.UI
             }
         }
 
-        private string _excelPath;
+        private string _excelPath = System.Environment.GetFolderPath(System.Environment.SpecialFolder.MyDocuments);
         public string ExcelPath
         {
             get => _excelPath;
@@ -412,7 +422,7 @@ namespace ArchSitePlan.UI
                 // Try to select a curve
                 var rhinoObjs = doc.Objects.GetSelectedObjects(false, false).ToList();
                 if (rhinoObjs.Count == 0)
-                    throw new Exception("Please select a line or polyline as the parcel divider");
+                    throw new Exception(UIMessages.AddDividerInstruction);
 
                 var rhinoCrvs = rhinoObjs
                     .Where(obj => obj.ObjectType == ObjectType.Curve
@@ -517,6 +527,10 @@ namespace ArchSitePlan.UI
 
                 var pr = new ProjectReport(ExcelPath, CoreModel.ProjectWideStudy().Metrics, CoreModel.Studies);
                 pr.WriteExcelFile();
+
+                string? folder = Path.GetDirectoryName(ExcelPath);
+                if (folder is not null)
+                    Process.Start("explorer.exe", folder); 
             }
             catch (Exception ex)
             {
@@ -526,22 +540,33 @@ namespace ArchSitePlan.UI
 
         private void ChangeParcelUse_Exec(object o)
         {
-            RhinoDoc doc = RhinoDoc.ActiveDoc;
-            int parcelLayerIndex = LayerHelpers.CreateOrGetLayerIndex(
-                doc,
-                LayerConstants.ParcelsLayer);
+            try
+            {
+                RhinoDoc doc = RhinoDoc.ActiveDoc;
+                int parcelLayerIndex = LayerHelpers.CreateOrGetLayerIndex(
+                    doc,
+                    LayerConstants.ParcelsLayer);
 
-            // Try to select a curve
-            var srfObjs = RhinoDoc.ActiveDoc.Objects.GetSelectedObjects(false, false)
-                .Where(obj => obj.ObjectType == ObjectType.Brep
-                || obj.ObjectType == ObjectType.Surface)
-                .ToList();
+                // Try to select a curve
+                var srfObjs = RhinoDoc.ActiveDoc.Objects.GetSelectedObjects(false, false)
+                    .Where(obj => obj.ObjectType == ObjectType.Brep
+                    || obj.ObjectType == ObjectType.Surface)
+                    .ToList();
 
-            ModelBuilderPipelines.ChangeParcelUsePipeline(doc, 
-                srfObjs.Select(s => s.Id).ToList(),
-                SelectedLandUse);
-            
-            RefreshActiveStudyAndMetrics();
+                if (srfObjs.Count == 0)
+                    throw new Exception(UIMessages.ChangeLandUseInstruction);
+
+                ModelBuilderPipelines.ChangeParcelUsePipeline(doc,
+                    srfObjs.Select(s => s.Id).ToList(),
+                    SelectedLandUse);
+
+                RefreshActiveStudyAndMetrics();
+            }
+            catch(Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+          
         }
 
         private void UpdateLandUseGraphData(StudyAreaMetrics metrics)
@@ -660,7 +685,7 @@ namespace ArchSitePlan.UI
                 out ObjRef objRef);
                 
                 if (result != Rhino.Commands.Result.Success) 
-                    throw new Exception("Select a closed polyline as your study boundary");
+                    throw new Exception(UIMessages.AddStudyInstruction);
 
                 var rhinoObj = objRef.Object();
                 var boundary = rhinoObj.Geometry as Curve;
@@ -795,6 +820,9 @@ namespace ArchSitePlan.UI
                 var rhinoObjs = RhinoDoc.ActiveDoc.Objects.GetSelectedObjects(false, false)
                     .Where(obj => obj.ObjectType == ObjectType.Curve)
                     .ToList();
+
+                if (rhinoObjs.Count == 0)
+                    throw new Exception(UIMessages.RoadInstruction);
 
                 int roadIndex = RhinoObjAttributeConstants.RoadGeometryAttributes.LayerIndex;
 
