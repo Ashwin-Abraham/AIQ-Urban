@@ -67,9 +67,6 @@ namespace ArchSitePlan.UI.CoreModelInterface
             double ffHt,
             int floorCount)
         {
-            //RhinoModelEditStepLibrary.DeleteRhinoBuilding(doc, 
-            //    buildingData.Select(d => d.ID).ToList());
-
             CoreModelEditStepLibrary.AddOrUpdateBulding(buildingData, ffHt, floorCount);
             CoreModelEditStepLibrary.RefreshStudyAreaMetrics();
             RhinoModelEditStepLibrary.ReplaceRhinoModel(doc, true);

@@ -55,8 +55,8 @@ namespace ArchSitePlan.Core.Extensions
 
         public static List<PolyCurve> OffsetBothSides(this PolyCurve curve, double distance, Vector normal)
         {
-            PolyCurve curve1 = curve.OffsetSafe(distance, normal);
-            PolyCurve curve2 = curve.OffsetSafe(-distance, normal).Flip();
+            PolyCurve? curve1 = curve.OffsetSafe(distance, normal);
+            PolyCurve? curve2 = curve.OffsetSafe(-distance, normal)?.Flip();
             
             if (curve.IsClosed())
                 return new List<PolyCurve>() { curve1, curve2 };
