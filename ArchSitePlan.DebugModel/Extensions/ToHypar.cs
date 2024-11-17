@@ -21,6 +21,14 @@ namespace ArchSitePlan.DebugModel.BHoMExtensions
         {
             return curves.Select(crv => crv.ToHyparPolyline());
         }
+        public static (List<BoundedCurve> Perimeter, List<List<BoundedCurve>> Voids) ToHypar(
+            this PlanarSurface surface)
+        {
+            var perimeter = surface.ExternalBoundary.ToHypar();
+            var voids = surface.InternalBoundaries.Select(v => v.ToHypar()).ToList();
+
+            return (perimeter, voids);
+        }
 
         public static List<BoundedCurve> ToHypar(this ICurve curve)
         {
@@ -29,29 +37,49 @@ namespace ArchSitePlan.DebugModel.BHoMExtensions
 
             if (curve == null) return hyparCrvs;
 
-            if (curve is PolyCurve) 
-                curves.AddRange((curve as PolyCurve).Curves);
-            else
-                curves.Add(curve);
-
+            curves.AddRange(curve.ISubParts());
 
             foreach (var crv in curves)
             {
-                Line line = crv as Line;
-                if (line != null)
-                    hyparCrvs.Add(ToHypar(line));
+                if (crv is Line l)
+                {
+                    var line = ToHypar(l);
+                    if(line is not null) hyparCrvs.Add(line);
+                }
 
-                Polyline pline = crv as Polyline;
-                if (pline != null)
+                else if (crv is Polyline pline)
                     hyparCrvs.Add(ToHypar(pline));
 
-                Arc arc = crv as Arc;
-                if (arc != null)
+                else if (crv is Arc arc)
                     hyparCrvs.Add(ToHypar(arc));
+
+                else if (crv is Circle circle)
+                    hyparCrvs.Add(ToHypar(circle));
+
+                else if (crv is Polygon polygon)
+                    hyparCrvs.Add(ToHypar(polygon));
+
+                else if (crv is Polyline polyline)
+                    hyparCrvs.Add(ToHypar(polyline));
+
+                else if (crv is PolyCurve polyCurve)
+                    hyparCrvs.AddRange(ToHypar(polyCurve));
+
+                else if (crv is BoundaryCurve boundary)
+                    hyparCrvs.AddRange(ToHypar(boundary));
             }
 
             return hyparCrvs;
         }
+
+        public static List<BoundedCurve> ToHypar(this BoundaryCurve boundaryCurve)
+            => boundaryCurve.Curves.SelectMany(crv => crv.ToHypar()).ToList();
+
+        public static List<BoundedCurve> ToHypar(this PolyCurve polycurve)
+            => polycurve.Curves.SelectMany(crv => crv.ToHypar()).ToList();
+
+        public static Elements.Geometry.Circle ToHypar(this Circle circle)
+            =>new Elements.Geometry.Circle(circle.Centre.ToHypar(), circle.Radius);
 
         public static Elements.Geometry.Arc ToHypar(this Arc arc)
         {

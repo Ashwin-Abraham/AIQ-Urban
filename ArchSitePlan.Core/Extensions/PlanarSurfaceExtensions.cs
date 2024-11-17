@@ -18,11 +18,15 @@ namespace ArchSitePlan.Core.Extensions
             IEnumerable<ICurve> splitters,
             double tolerance = 1E-06)
         {
-            var externalBoundaries = surface.ExternalBoundary.Split(splitters, tolerance);
+            var externalBoundaries = surface
+                .ExternalBoundary
+                .ToBoundaryCurve()!
+                .SplitIntoClosedCurves2(splitters.ToList(), tolerance);
+            
             var internalBoundaries = surface.InternalBoundaries
-                .SelectMany(c => c.Split(splitters, tolerance))
+                .Select(crv => crv.ToBoundaryCurve()!)
+                .SelectMany(c => c.SplitIntoClosedCurves2(splitters.ToList(), tolerance))
                 .Cast<ICurve>()
-                .Where(x => x is not null)
                 .ToList();
 
             var splitSrfs = new List<PlanarSurface>();

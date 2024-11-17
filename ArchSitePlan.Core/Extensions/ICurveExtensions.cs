@@ -1,6 +1,8 @@
-﻿using BH.Engine.Geometry;
+﻿using ArchSitePlan.DebugModel;
+using ArchSitePlan.DebugModel.BHoMExtensions;
+using BH.Engine.Geometry;
 using BH.oM.Geometry;
-using SixLabors.ImageSharp.Drawing;
+using Elements;
 using static ArchSitePlan.Core.Extensions.Enums;
 
 namespace ArchSitePlan.Core.Extensions
@@ -66,116 +68,229 @@ namespace ArchSitePlan.Core.Extensions
                     return combined;
             }
         }
-        public static List<PolyCurve>? Split(this ICurve curve,
+        public static List<ICurve> Split(this ICurve curve,
             IEnumerable<ICurve> splitters,
             double tolerance = 1E-06)
         {
             splitters = splitters.Where(c => c != null).ToList();
 
-            if (curve == null) return null;
-
-            if (splitters.Count() == 0)
-                return new List<PolyCurve> { curve.ToPolycurve() };
-
-            if (!curve.IIsPlanar(tolerance))
-                return Create.PolyCurve(curve.ObjectToList()).ObjectToList();
-
-            if (!curve.IIsClosed())
-            {
-                var points = splitters
+            if (splitters.Count() == 0 || !curve.IIsPlanar(tolerance))
+                return curve.ObjectToList();
+            
+            var points = splitters
                     .SelectMany(crv => curve.ICurveIntersections(crv))
                     .ToList();
 
-                var fragments = curve.ISplitAtPoints(points)
-                    .Select(crv => Create.PolyCurve(crv.ObjectToList()))
-                    .ToList();
+            var fragments = curve.ISplitAtPoints(points)
+                .ToList();
 
-                return fragments;
+            return fragments;
+        }
+
+        /// <summary>
+        /// Sequentially removes end points within a boundary. Useful for creating correct split results
+        /// </summary>
+        private static ICurve? RemoveTerminalPointsRecursive(
+            ICurve curve, 
+            BoundaryCurve bounds)
+        {
+            List<Point> points = curve.IControlPoints();
+            
+            if (curve.IIsClosed()) return curve;
+
+            for(int i = 0; i< points.Count; i++)
+            {
+                if (bounds.IIsContaining(points[i].ObjectToList())) ;
+
             }
 
-            Vector normal = curve.INormal(tolerance);
-            double toleranceEnhancer = 0.01;
+            return curve;
+        }
+        public static double DistanceToEnds(this Point point, ICurve curve)
+        {
+            double d1 = point.Distance(curve.IStartPoint());
+            double d2 = point.Distance(curve.IEndPoint());
 
-            var splittersAsArcsLinesAndPlines = splitters
-                .SelectMany(s => s.ToArcsLinesPolylines())
-                .Where(x => x is not null)
+            if (d1 < d2)
+                return d1;
+            else
+                return d2;
+        }
+
+        public static List<BoundaryCurve> SplitIntoClosedCurves2(this BoundaryCurve curve, 
+            List<ICurve> splitters,
+            double tolerance = 1E-06)
+        {
+            splitters = splitters
+                .Where(splitter => !curve.IIsContaining(splitter, false)
+                && !splitter.IIsContaining(curve))
+                // Self intersecting splitters are an edge case that cant be handled
+                .Where(splitter => !splitter.IIsSelfIntersecting())
+                .Where(c => c != null)
                 .ToList();
 
-            var openSplittersThickened = splittersAsArcsLinesAndPlines
-                .Where(crv => crv is not null && !crv.IIsClosed())
-                .Select(s => s.Thicken(
-                    offset: tolerance,
-                    cap: EndCapType.Butt,
-                    tolerance:  tolerance * toleranceEnhancer,
-                    normal: normal))
-                .ToList();
+            if (splitters.Count == 0) return curve.ObjectToList();
 
+            List<BoundaryCurve> input = new() { curve };
+            List<BoundaryCurve> result = new() { curve };
             
-            var fragments1 = curve.BooleanDifference(
-                openSplittersThickened, 
-                tolerance * toleranceEnhancer);
-
-            var closedSplitters = splittersAsArcsLinesAndPlines
-                .Where(crv => crv is not null && crv is Polyline && crv.IIsClosed())
-                .ToList();
-
-            //return fragments1;
-
-///////////////////////////////////////////////////
-
-            List<PolyCurve> fragments2 = new();
-            foreach(var splitter in closedSplitters)
+            for (int i = 0; i < splitters.Count; i++)
             {
-                List<PolyCurve> ongoingSplit = new();
-                for(int i = 0; i< fragments1.Count; i++)
+                var splitter = splitters[i];
+
+                for(int j = 0; j < input.Count; j++)
                 {
-                    var p1 = fragments1[i].BooleanDifference(
-                    splitter.ObjectToList(),
-                    tolerance);
+                    result = new();
+                    var boundary = input[j];
+                    var intersections = curve.ICurveIntersections(splitter);
 
-                    if (p1 != null) ongoingSplit.AddRange(p1);
+                    var splitterFragments = splitter.ISplitAtPoints(intersections);
+                    var splittersToMerge = splitterFragments
+                        .Where(crv => boundary.IIsContaining(crv))
+                        .ToList();
 
-                    var p2 = fragments1[i].BooleanIntersection(
-                    splitter,
-                    tolerance);
+                    var boundaryFragments = boundary.ISplitAtPoints(intersections);
 
-                    if (p2 != null) ongoingSplit.AddRange(p2);
+                    if(boundaryFragments.Count < 2)
+                    {
+                        result = input;
+                        continue;
+                    }
+
+                    // Try creating a closed fragment out of each if possible
+                    foreach (var fragment in boundaryFragments)
+                    {
+                        ICurve? closurePiece = splittersToMerge
+                            .Find(crv =>
+                            crv.IStartPoint().DistanceToEnds(fragment).AlmostZero()
+                            && crv.IEndPoint().DistanceToEnds(fragment).AlmostZero()
+                            && boundary.IIsContaining(crv.IPointAtParameter(0.5).ObjectToList()));
+
+                        if (closurePiece == null || closurePiece.SharesStartMidAndEnd(fragment)) continue;
+
+                        if (!closurePiece.IStartPoint().Distance(fragment.IEndPoint())
+                            .AlmostZero())
+                            closurePiece = closurePiece.IFlip();
+
+                        var closedFragment = new List<ICurve>()
+                        {
+                            fragment, closurePiece
+                        };
+
+                        result.Add(Create.BoundaryCurve(closedFragment));
+                    }
+
+                    // Use difference to find any remaining pieces
+                    var remaining = boundary.BooleanDifference(result)
+                        .Select(pCrv => Create.BoundaryCurve(pCrv.Curves))
+                        .ToList();
+
+                    result.AddRange(remaining);
                 }
 
-                fragments1 = ongoingSplit;
+                // After each splitter is used transfer the boundary pieces into the input
+                input = result;
             }
-            return fragments1;
+            return result;
         }
-        public static List<ICurve> OffsetBothSides(this ICurve curve, double offset)
-        {
-            var c1 = curve.IOffset(offset);
-            var c2 = curve.IOffset(-offset);
 
-            return new List<ICurve>() { c1, c2 };
-        }
-        public static PolyCurve? ToPolycurve(this ICurve curve)
+        public static bool SharesStartMidAndEnd(
+            this ICurve curve, 
+            ICurve curve2,
+            double tolerance = 1E-06)
         {
-            if (curve is null)
+            if (!curve.IStartPoint().IsEqual(curve2.IStartPoint(), tolerance)
+                && !curve.IStartPoint().IsEqual(curve2.IEndPoint(), tolerance))
+                return false;
+
+            if (!curve.IEndPoint().IsEqual(curve2.IStartPoint(), tolerance)
+                && !curve.IEndPoint().IsEqual(curve2.IEndPoint(), tolerance))
+                return false;
+
+            return curve.IPointAtParameter(0.5).IsEqual(curve2.IPointAtParameter(0.5), tolerance);
+        }
+        
+        public static BoundaryCurve? ToBoundaryCurve(this ICurve curve)
+        {
+            if (curve is BoundaryCurve bc)
+                return bc;
+            
+            else if(curve is Line
+                || !curve.IIsClosed() 
+                || !curve.IIsPlanar())
                 return null;
 
-            if (curve is PolyCurve)
-                return curve as PolyCurve;
+            else if (curve is PolyCurve pCrv
+                && pCrv.IIsClosed()
+                && pCrv.IsPlanar())
+                return Create.BoundaryCurve(pCrv.Curves);
+
+            else 
+                return Create.BoundaryCurve(new() { curve});
+        }
+        public static PolyCurve ToPolycurve(this ICurve curve)
+        {
+            if (curve is PolyCurve pc)
+                return pc;
+
+            else if (curve is BoundaryCurve bc)
+                return Create.PolyCurve(bc.Curves);
 
             return Create.PolyCurve(new ICurve[] { curve });
         }
+        private static List<ICurve>? ToArcsAndLines(this ICurve curve)
+        {
+            if (curve is NurbsCurve) return null;
+
+            if (curve is Line
+               || curve is Arc)
+                return new() { curve };
+
+            if (curve is Polyline polyline)
+                return polyline.Segments().Cast<ICurve>().ToList();
+
+            if (curve is Polygon polygon)
+                return polygon.ISubParts().ToList();
+
+            if(curve is not PolyCurve && curve is not BoundaryCurve) return null;
+
+            List<ICurve> arcsAndLines = new();
+            var subParts = curve.ISubParts();
+            foreach (var subPart in subParts)
+            {
+                if (subPart is Line
+                    || subPart is Arc)
+                    arcsAndLines.Add(subPart);
+                
+                else if (subPart is PolyCurve
+                        || subPart is Polygon
+                        || subPart is Polyline)
+                {
+                    var crvsWithin = subPart.ToArcsAndLines();
+                    
+                    if(crvsWithin is not null)
+                        arcsAndLines.AddRange(crvsWithin);
+                }
+            }
+
+            // Returns null if unsupported curves were only present
+            return arcsAndLines.Count > 0 ?
+                arcsAndLines : null;
+        }
         private static List<ICurve>? ToArcsLinesPolylines(this ICurve curve)
         {
-            if (curve is null)
-                return null;
-
             if (curve is Polyline 
                 || curve is Line
                 || curve is Arc) 
                 return new() { curve };
-            
+
+            if (curve is Polygon polygon)
+                return (polygon.IToPolyline() as ICurve).ObjectToList();
+
             List<ICurve> arcsLinesPolylines = new();
 
             if (curve is not PolyCurve) return new();
+
             var subParts = curve.ISubParts();
             foreach (var subPart in subParts)
             {
@@ -191,7 +306,9 @@ namespace ArchSitePlan.Core.Extensions
                 }
             }
 
-            return arcsLinesPolylines;
+            // Returns null if unsupported curves were only present
+            return arcsLinesPolylines.Count > 0?
+                arcsLinesPolylines:null;
         }
 
         

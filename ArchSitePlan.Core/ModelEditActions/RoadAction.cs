@@ -55,7 +55,9 @@ namespace ArchSitePlan.Core.ModelEditActions
 
             foreach(var road in roadsToDiv)
             {
-                var splitCLs = road.Centerline.Split(splitters);
+                var splitCLs = road.Centerline
+                    .Split(splitters)
+                    .Select(crv => crv.ToPolycurve());
                 var splitRoads = splitCLs.Select(cl => new Road(cl, road))
                     .ToList();
 

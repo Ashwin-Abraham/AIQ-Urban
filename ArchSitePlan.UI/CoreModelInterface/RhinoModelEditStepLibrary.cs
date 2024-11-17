@@ -143,11 +143,18 @@ namespace ArchSitePlan.UI.CoreModelInterface
 
             // TRANSIT
             // Read Road CL objects
-            int roadCLMainLayerIndex = doc.Layers.FindByFullPath(LayerConstants.RoadCLLayer, true);
+            int roadCLMainLayerIndex = doc.Layers.FindByFullPath(LayerConstants.RoadCLLayer, -1);
 
             if (roadCLMainLayerIndex == -1) return transitData;
 
-            var roadCLLayerIndices = doc.Layers[roadCLMainLayerIndex].GetChildren().Select(lay => lay.Index).ToList();
+            var childLayers = doc
+                .Layers[roadCLMainLayerIndex]
+                .GetChildren();
+
+            if (childLayers is null || childLayers.Length == 0) return transitData;
+
+            var roadCLLayerIndices = childLayers
+                .Select(lay => lay.Index).ToList();
 
             foreach (var index in roadCLLayerIndices)
             {

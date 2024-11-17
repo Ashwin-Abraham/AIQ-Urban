@@ -24,11 +24,11 @@ namespace ArchSitePlan.Core.ModelEditActions
             switch (editType)
             {
                 case EditType.Remove:
-                    TryRemoveFromCoreModel(boundaryAndIds);
+                    TryRemoveFromCoreModel(GetIds(boundaryAndIds));
                     break;
 
                 case EditType.Add:
-                    TryRemoveFromCoreModel(boundaryAndIds);
+                    TryRemoveFromCoreModel(GetIds(boundaryAndIds));
                     TryAddToCoreModel(boundaryAndIds, existingUsesAndCenters);
                     break;
 
@@ -44,6 +44,7 @@ namespace ArchSitePlan.Core.ModelEditActions
                     throw new NotImplementedException(nameof(ParcelAction) + $" Edit mode:{editType}" );
             }
         }
+
 
         private bool TryEditInCoreModel(List<(ICurve boundary, Guid id)> boundaryAndIds, Landuse use)
         {
@@ -65,25 +66,25 @@ namespace ArchSitePlan.Core.ModelEditActions
                 .Cast<ICurve>()
                 .ToList();
 
+            List<Parcel> newParcels = new();
             foreach(var id in ids)
             {
                 var parcel = CoreModel.Parcels.Find(p => p.Id == id);
                 if (parcel is null) return false;
 
+                var srfFragments = parcel.Boundary.Split(cleanedDividers);
+
                 var boundary = parcel.Boundary.ExternalBoundary;
                 var fragments = boundary.Split(cleanedDividers);
 
-                TryRemoveFromCoreModel((boundary,id).ObjectToList());
-
-                var parcels = fragments
-                    .Select(f => new PlanarSurface(f, new()))
+                var parcels = srfFragments
                     .Select(srf => new Parcel(parcel, srf))
                     .ToList();
 
-                CoreModel.Parcels.AddRange(parcels);
+                newParcels.AddRange(parcels);
             }
 
-
+            CoreModel.Parcels = newParcels;
             return ids.Count > 0;
         }
 
@@ -111,11 +112,15 @@ namespace ArchSitePlan.Core.ModelEditActions
             return parcels.Count > 0;
         }
 
-        private static bool TryRemoveFromCoreModel(List<(ICurve? boundary, Guid id)> boundaryAndIds)
+        private static bool TryRemoveFromCoreModel(List<Guid> ids)
         {
-            var ids = boundaryAndIds.Select(x => x.id).ToList();
             int count = CoreModel.Parcels.RemoveAll(p => ids.Contains(p.Id));
             return count > 0;
+        }
+
+        private static List<Guid> GetIds(List<(ICurve? obj, Guid id)> objectsAndIds)
+        {
+            return objectsAndIds.Select(x => x.id).ToList();
         }
     }
 }
