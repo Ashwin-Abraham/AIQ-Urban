@@ -471,8 +471,8 @@
             Grid.Column="0"
             Series="{Binding RoadLengthSeries}"
             FontSize="10"
-            InnerRadius="40"
-            HorizontalAlignment="Stretch"
+            InnerRadius="60"
+            HorizontalAlignment="Center"
             DisableAnimations="True"
             />
 
@@ -487,13 +487,13 @@
 
         <lvc:PieChart 
             DisableAnimations="True"
-            HorizontalAlignment="Stretch"
+            HorizontalAlignment="Center"
             Margin="5"
             Grid.Row="11"
             Grid.Column="1"
             Series="{Binding RoadAreaSeries}"
             FontSize="10"
-            InnerRadius="40"/>
+            InnerRadius="60"/>
 
         </Grid>
         </ScrollViewer>

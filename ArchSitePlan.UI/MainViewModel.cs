@@ -828,10 +828,12 @@ namespace ArchSitePlan.UI
                 foreach(var rhinoObj in rhinoObjs)
                 {
                     var curve = rhinoObj.Geometry as Curve;
-                    if (curve == null) continue;
+                    if (curve == null)
+                        throw new Exception(UIMessages.RoadInstruction);
 
                     var bhomCrv = curve.ToBHoM2DegreeCrv();
-                    if (bhomCrv == null || bhomCrv.IIsSelfIntersecting()) continue;
+                    if (bhomCrv == null || bhomCrv.IIsSelfIntersecting())
+                        throw new Exception(UIMessages.RoadInstruction);
 
                     CLAndID.Add((bhomCrv, rhinoObj.Id));
                     LayerHelpers.ChangeLayer(rhinoObj, roadLayerIndex);

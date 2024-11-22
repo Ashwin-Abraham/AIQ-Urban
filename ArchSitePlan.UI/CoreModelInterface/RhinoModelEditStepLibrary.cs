@@ -200,29 +200,31 @@ namespace ArchSitePlan.UI.CoreModelInterface
         {
             LayerHelpers.EnsureLayerExists(doc, LayerConstants.MainLayer);
 
-            var mainLayer = doc.Layers.FindName(LayerConstants.MainLayer);
-
-            var allAppLayers = mainLayer.GetChildren(true);
-            LayerHelpers.DeleteLayerAndChildrenIfEmpty(doc, mainLayer);
+            var mainLayerIndex = doc.Layers.FindByFullPath(LayerConstants.MainLayer, -1);
+            
+            if (mainLayerIndex == -1) return;
+            LayerHelpers.DeleteLayerAndChildrenIfEmpty(doc, doc.Layers[mainLayerIndex]);
         }
 
-        public static void DeleteRhinoBuilding(RhinoDoc doc, List<Guid> envelopeIds)
+        public static void DeleteAllRhinoBuilding(RhinoDoc doc)
         {
-            // Find all building guids
-            var guids = new List<Guid>(envelopeIds);
-            var buildings = CoreModel.Buildings.Where(b => envelopeIds.Contains(b.EnvelopeId));
-            guids.AddRange(buildings.SelectMany(b => b.FloorPlates.Select(f => f.Id)));
+            var buildingLayer = doc.Layers.FindByFullPath(LayerConstants.BuildingLayer, -1);
+            if (buildingLayer == null) return;
 
+            var allBldgLayers = doc.Layers[buildingLayer].GetChildren(true)?? new Layer[1];
+            
+            allBldgLayers.ToList().Add(doc.Layers[buildingLayer]);
+
+            var buildingLayerIndices = allBldgLayers.Select(x => x.Index).ToList();
+            
             // Delete rhino objects
-            var result = guids.Select(id => doc.Objects.FindId(id))
-                .Where(obj => obj != null)
+            var result = doc.Objects.Where(o => buildingLayerIndices.Contains(o.Attributes.LayerIndex))
                 .Select(obj => doc.Objects.Delete(obj, true, true))
                 .ToList();
         }
         internal static void BakeRhinoBuilding(RhinoDoc doc)
         {
-            var buildingIds = CoreModel.Buildings.Select(b => b.EnvelopeId).ToList();
-            DeleteRhinoBuilding(doc, buildingIds);
+            DeleteAllRhinoBuilding(doc);
 
             int outlineLayerIndex = LayerHelpers.CreateOrGetLayerIndex(
                 RhinoDoc.ActiveDoc,
