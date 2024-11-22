@@ -1,5 +1,6 @@
 ﻿using ArchSitePlan.Core.Extensions;
 using ArchSitePlan.Core.ModelEditActions;
+using ArchSitePlan.Core.ModelEditActions.Configs;
 using ArchSitePlan.Core.Models;
 using BH.Engine.Geometry;
 using BH.oM.Geometry;
@@ -305,6 +306,15 @@ namespace ArchSitePlan.Core.Constants
                 (data.Envelope, data.EnvelopeId, data.Floors).ObjectToList(),
                 data.FloorHt,
                 data.Floors.Count));
+        }
+
+        public static void RefreshBuildingUse()
+        {
+            var buildingConfigs = CoreModel.Buildings
+                .Select(b => new BuildingActionConfig(b))
+                .ToList();
+
+            BuildingAction.Run(buildingConfigs, EditType.UpdateUse);
         }
     }
 }

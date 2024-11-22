@@ -40,6 +40,11 @@
                    Source="Resources\Line.png"
                    Height="20"
                    Width="20"/>
+
+            <Image x:Key="Question" 
+                   Source="Resources\Question.png"
+                   Height="20"
+                   Width="20"/>
         </ResourceDictionary>
 
     </UserControl.Resources>
@@ -89,7 +94,7 @@
             
         
         <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
@@ -110,7 +115,7 @@
 
         
 
-        <!--Road Width Expander-->
+        <!--Road Expander-->
         <Expander Grid.Row="1"
                   Grid.ColumnSpan="3"
                   Header="1. Roads"
@@ -122,17 +127,25 @@
                 </Grid.RowDefinitions>
 
                 <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="25"/>
                     <ColumnDefinition Width="50"/>
                     <ColumnDefinition Width="160"/>
                     <ColumnDefinition Width="15"/>
                     <ColumnDefinition Width="125"/>
                 </Grid.ColumnDefinitions>
 
-                <TextBlock Text="Width"
-                           VerticalAlignment="Center"
-                           HorizontalAlignment="Center"/>
+                <Image Source="{Binding Source={StaticResource Question}, Path=Source}"
+                       Height="20"
+                       ToolTip="Road creator.
+                       &#x0a;Select curves that will act as centerlines of roads.Set the width using the slider. 
+                       &#x0a;When you enclose a region parcels of developable land will appear. "/>
 
-                <Slider Grid.Column="1"
+                <TextBlock Text="Width"
+                    Grid.Column="1"
+                    VerticalAlignment="Center"
+                    HorizontalAlignment="Center"/>
+
+                <Slider Grid.Column="2"
                     VerticalAlignment="Center"
                         Margin="25,0,25,0"
                         Minimum="1"
@@ -145,12 +158,12 @@
                         />
 
                 <TextBlock Text="{Binding RoadWidth, Mode=TwoWay}"
-                           Grid.Column="2"
+                           Grid.Column="3"
                            VerticalAlignment="Center"
                            HorizontalAlignment="Left"/>
 
-                <Button Content="Select Centerline"
-                        Grid.Column="3"
+                <Button Content="Add Road"
+                        Grid.Column="4"
                         Command="{Binding AddOrUpdateRoads_Cmd}"
                         ToolTip="{Binding RoadInstruction}"/>
 
@@ -164,25 +177,27 @@
                   Header="2. Land Use"
                   IsExpanded="{Binding LanduseExpanderOpen, Mode=TwoWay}">
 
-                    <Grid Margin="5,0,0,0">
+                    <Grid Margin="0,0,0,0">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="40"/>
                             <RowDefinition Height="40"/>
                         </Grid.RowDefinitions>
 
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="200"/>
+                            <ColumnDefinition Width="30"/>
+                            <ColumnDefinition Width="170"/>
                             <ColumnDefinition Width="30"/>
                             <ColumnDefinition Width="100"/>
                         </Grid.ColumnDefinitions>
 
                         <ComboBox VerticalAlignment="Center"
+                                  Grid.Column="1"
                           ItemsSource="{Binding LandUses}"
                           SelectedItem="{Binding SelectedLandUse}"
                           />
 
                         <TextBlock Background="{Binding SelectedLandUseColour, Mode=TwoWay}"
-                           Grid.Column="1"
+                           Grid.Column="2"
                            Width="25"
                            Height="25"
                            Margin="5"
@@ -190,18 +205,27 @@
                            VerticalAlignment="Center"/>
 
                         <Button Content="Change Use"
-                                Grid.Column="2"
+                                Grid.Column="3"
                                 VerticalAlignment="Center"
                                 Command="{Binding ChangeParcelUse_Cmd}"
                                 ToolTip="{Binding ChangeLandUseInstruction}"/>
 
                         <Button Content="Add divider"
                                 Grid.Row="1"
+                                Grid.Column="1"
                                 Grid.ColumnSpan="3"
                                 VerticalAlignment="Center"
                                 Command="{Binding AddParcelDivider_Cmd}"
                                 ToolTip="{Binding AddDividerInstruction}"/>
 
+                        <Image Source="{Binding Source={StaticResource Question}, Path=Source}"
+                                Height="20"
+                               Grid.Row="1"
+                               HorizontalAlignment="Center"
+                               ToolTip="Manipulate land use parcels. (These have already been created by roads and study areas)
+                               &#x0a;Select a parcel and change its land use. You can also add parcel/road dividers here by selecting a curve.
+                               &#x0a;New landuses and colours will be added in future plugin versions"/>
+                        
                     </Grid>
                 </Expander>
 
@@ -237,6 +261,7 @@
                            Grid.Column="2"
                          Width="50"
                          VerticalAlignment="Center"
+                         TextAlignment="Center"
                            HorizontalAlignment="Center"/>
 
                 <TextBlock Text="Floor Height"
@@ -254,29 +279,46 @@
                          Grid.Column="2"
                          VerticalAlignment="Center"
                          Width="50"
+                         TextAlignment="Center"
                            HorizontalAlignment="Center"/>
 
                 <TextBlock Text="Total Height"
-                           Grid.Row="2"/>
-                
-                <TextBlock Text="{Binding TotalHeight}"
                            Grid.Row="2"
-                           Grid.Column="2"/>
+                           VerticalAlignment="Center"/>
+                
+                <TextBlock Text="{Binding ActiveBuildingHeight}"
+                           Grid.Row="2"
+                           Grid.Column="2"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"/>
 
                 <StackPanel Grid.Row="4"
                             Grid.ColumnSpan="3"
                             Orientation="Horizontal"
-                            HorizontalAlignment="Center"
+                            HorizontalAlignment="Left"
                             VerticalAlignment="Center">
 
-                    <RadioButton Margin="5"
+                            <Image Source="{Binding Source={StaticResource Question}, Path=Source}"
+                                Height="20"
+                               Grid.Row="1"
+                                   Width="40"
+                                   ToolTip="Building Creator/ Editor. 
+                                    &#x0a;Adjust the sliders to modify building floor count and floor height.
+                                    &#x0a;There are 2 creation modes - by footprint and by mass.
+                                   &#x0a;By footprint requires you to select a closed planar curve and this will be extruded.
+                                   &#x0a;By mass requires you to select a closed brep or mesh and this becomes the envelope with floors drawn in"/>
+                    
+                            <RadioButton Margin="5"
                                  IsChecked="{Binding BuildingFootprintSelectorModeActive}"
-                                 Content="Footprint"/> 
+                                 Content="By Footprint"
+                                ToolTip="Select a closed planar curve and this will extrude up a new building"/> 
                     
                     <RadioButton Margin="5"
                                  IsChecked="{Binding BuildingMassSelectorModeActive}"
-                                 Content="Mass"/>
-                    <Button Content="Update Building"
+                                 Content="By Envelope"
+                                 ToolTip="Select a brep or mesh and this will create a new building"/>
+                    
+                    <Button Content="Add Building"
                             Command="{Binding UpdateBuilding_Cmd}"
                             Margin="5,0,15,0"
                             ToolTip="{Binding AddBuildingInstruction}"/>
@@ -297,13 +339,22 @@
                 </Grid.RowDefinitions>
 
                 <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="30"/>
                     <ColumnDefinition Width="2*"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
 
-                <TextBox Text="{Binding ActiveStudyAreaName, Mode=TwoWay}"/>
+                        <Image Source="{Binding Source={StaticResource Question}, Path=Source}"
+                                Height="20"
+                               ToolTip="Study Area Creator. 
+                               &#x0a;A study area is created by selecting a closed curve.
+                               &#x0a;It is used to isolate a part of you project and view metrics for just that area.
+                               &#x0a;You will get graphs and excel tables with data separated by study area."/>
+
+                        <TextBox Text="{Binding ActiveStudyAreaName, Mode=TwoWay}"
+                                 Grid.Column="1"/>
                 <Button Content="Add Study Area"
-                              Grid.Column="1"
+                              Grid.Column="2"
                               Command="{Binding AddStudyArea_Cmd}"/>
             </Grid>
         </Expander>
@@ -311,7 +362,7 @@
         <!--Exports-->
         <Expander Grid.Row="5"
                   Grid.ColumnSpan="3"
-                  Header="5. Exports"
+                  Header="5. Excel Exports"
                   IsExpanded="{Binding ExportsExpanderOpen, Mode=TwoWay}">
             <Grid>
                 <Grid.RowDefinitions>
@@ -320,42 +371,55 @@
                 </Grid.RowDefinitions>
 
                 <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="30"/>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
 
+                <Image Source="{Binding Source={StaticResource Question}, Path=Source}"
+                        Height="20"
+                       Grid.Row="1"
+                       ToolTip="Exports To Excel. 
+                       &#x0a;An excel file is created pulling the data in this rhino file.
+                       &#x0a;The default file location is next to the rhino file. Please update it if needed."/> 
+                
                 <Button Content="Export Excel"
-                        Command="{Binding ExportExcel_Cmd}"
-                        VerticalAlignment="Center"
-                        Grid.Row="1"
-                        Width="100"
-                        ToolTip="{Binding ExportExcelInstruction}"/>
+                Command="{Binding ExportExcel_Cmd}"
+                VerticalAlignment="Center"
+                Grid.Row="1"
+                        Grid.Column="1"
+                Width="100"
+                ToolTip="{Binding ExportExcelInstruction}"/>
 
                 <TextBlock Text="{Binding ExcelPath, FallbackValue=Excel_Path}"
                            VerticalAlignment="Center"
                            Margin="5"
                            Background="LightSteelBlue"
                            TextWrapping="Wrap"
-                           Grid.ColumnSpan="2"/>
+                           Grid.ColumnSpan="3"/>
 
                 <Button Content="Set Export Location"
                         VerticalAlignment="Center"
                         Command="{Binding SetExcelPath_Cmd}"
                         Grid.Row="1"
-                        Grid.Column="1"
+                        Grid.Column="2"
                         Width="150"
                         ToolTip="{Binding SetExcelPathInstruction}"/>
 
             </Grid>
         </Expander>
 
-        <TextBlock Text="Study Area Name"
-                   Grid.Row="6"/>
+        <TextBlock Text="Showing Metrics for study - "
+                   Grid.Row="6"
+                   VerticalAlignment="Center"
+                   Height="30"
+                   Margin="0,15,0,0"/>
         
         <ComboBox Grid.Row="6"
                   Grid.Column="1"
                   ItemsSource="{Binding StudyAreasNames}"
                   SelectedItem="{Binding ActiveStudyAreaName}"
+                  VerticalAlignment="Center"
                   />
         
         <StackPanel Grid.Row="7"
@@ -385,8 +449,6 @@
             Series="{Binding ParcelSeriesCollection}"
             DisableAnimations="True"
             FontSize="10"/>
-
-
 
             <mah:ToggleSwitch Grid.Row="10"
                     Grid.ColumnSpan="3"

@@ -44,7 +44,8 @@ namespace ArchSitePlan.Core.Constants
             Remove,
             Edit,
             Divide,
-            ClearAll
+            ClearAll,
+            UpdateUse
         }
     }
 }

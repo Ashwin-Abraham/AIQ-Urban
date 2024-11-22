@@ -353,9 +353,9 @@ namespace ArchSitePlan.Core.Models
             Dictionary<double, Color> widthColors = new();
             for (int i = 0; i < widths.Count; i++)
             {
-                int cIndex = Math.Min(i, Defaults.StandardColors.Count - 1);
-                var color = Defaults.StandardColors[cIndex];
-                widthColors.Add(widths[i], Defaults.StandardColors[cIndex]);
+                int cIndex = Math.Min(i, AppColours.StandardColors.Count - 1);
+                var color = AppColours.StandardColors[cIndex];
+                widthColors.Add(widths[i], AppColours.StandardColors[cIndex]);
             }
 
             return widthColors;

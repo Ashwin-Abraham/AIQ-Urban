@@ -34,7 +34,7 @@ namespace ArchSitePlan.RhinoAddin
             Icon icon = new Icon(path, new Size(16,16));
             Rhino.UI.Panels.RegisterPanel(this,
                 mainPanel,
-                "SiteArchitecturePlanner",
+                "AIQ Urban",
                 icon);
 
             return Rhino.PlugIns.LoadReturnCode.Success;

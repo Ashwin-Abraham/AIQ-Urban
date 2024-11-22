@@ -12,6 +12,7 @@
     <None Remove="Resources\Line.png" />
     <None Remove="Resources\LOGO.png" />
     <None Remove="Resources\Pline.png" />
+    <None Remove="Resources\Question.png" />
   </ItemGroup>
 
   <ItemGroup>
@@ -49,16 +50,15 @@
     <Resource Include="Resources\Pline.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Resource>
+    <Resource Include="Resources\Question.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
   </ItemGroup>
 
   <ItemGroup>
     <Page Update="Styles\Styles.xaml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Page>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="MVVM_ViewModels\" />
   </ItemGroup>
 
 </Project>
