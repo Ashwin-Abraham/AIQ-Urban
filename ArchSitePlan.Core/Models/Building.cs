@@ -20,7 +20,7 @@ namespace ArchSitePlan.Core.Models
         public Guid HostParcelId { get; set;} = Guid.Empty;
         public Point Origin { get; private set; }
         public Mesh Envelope { get; private set; }
-        public Landuse Use { get; private set; }
+        public Landuse Use { get; set; }
 
         public List<(PlanarSurface Profile, Guid Id)> FloorPlates { get; set; }
 
@@ -71,6 +71,12 @@ namespace ArchSitePlan.Core.Models
         {
             var host = CoreModel.Parcels.Find(p => p.Boundary.ExternalBoundary.IIsContaining(Origin.ObjectToList()));
             return host?.LandUse?? Landuse.Undefined;
+        }
+
+        internal List<PlanarSurface> GetFloorPlates()
+        {
+            List<PlanarSurface> floors = FloorPlates.Select(x => x.Profile).ToList();
+            return floors;
         }
 
         //private List<(PlanarSurface, Guid)> CreateFloorPlates(PlanarSurface baseOutline)

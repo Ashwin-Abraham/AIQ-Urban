@@ -1,4 +1,4 @@
-﻿using ArchSitePlan.Core.Comparer;
+﻿using ArchSitePlan.Core.Constants;
 using ArchSitePlan.Core.Extensions;
 using ArchSitePlan.Core.Metrics;
 using ArchSitePlan.Core.Models;
@@ -7,23 +7,17 @@ using ArchSitePlan.UI.Constants;
 using ArchSitePlan.UI.CoreModelInterface;
 using ArchSitePlan.UI.Extensions;
 using ArchSitePlan.UI.Helpers;
-using ArchSitePlan.UI.Models;
 using ArchSitePlan.UI.RhinoBHoMInterop;
-using KellermanSoftware.CompareNetObjects.TypeComparers;
+using BH.Engine.Geometry;
 using LiveCharts;
 using LiveCharts.Wpf;
 using Rhino;
-using Rhino.Display;
 using Rhino.DocObjects;
 using Rhino.Geometry;
-using Rhino.Input;
-using Rhino.UI;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
-using System.Reflection;
-using System.Windows;
 using System.Windows.Forms;
 using System.Windows.Input;
 using static ArchSitePlan.Core.Constants.Enums;
@@ -182,6 +176,7 @@ namespace ArchSitePlan.UI
             {
                 _activeBuildingFloorCount = value;
                 OnPropertyChanged(nameof(ActiveBuildingFloorCount));
+                UpdateBuildingHeight(_activeBuildingFloorCount, ActiveBuildingFloorHeight);
             }
         }
 
@@ -193,6 +188,18 @@ namespace ArchSitePlan.UI
             {
                 _activeBuildingFloorHeight = Math.Round(value, 2);
                 OnPropertyChanged(nameof(ActiveBuildingFloorHeight));
+                UpdateBuildingHeight(ActiveBuildingFloorCount, _activeBuildingFloorHeight);
+            }
+        }
+
+        private double _activeBuildingHeight;
+        public double ActiveBuildingHeight
+        {
+            get => _activeBuildingHeight;
+            set
+            {
+                _activeBuildingHeight = Math.Round(value, 2);
+                OnPropertyChanged(nameof(ActiveBuildingHeight));
             }
         }
 
@@ -211,7 +218,7 @@ namespace ArchSitePlan.UI
         }
 
         private SolidColorBrush _selectedLandUseColour = new SolidColorBrush(
-            Defaults.LandUseColours[Landuse.Undefined].ToWindowsMediaColor());
+            AppColours.LandUseColours[Landuse.Undefined].ToWindowsMediaColor());
         public SolidColorBrush SelectedLandUseColour
         {
             get => _selectedLandUseColour;
@@ -219,17 +226,6 @@ namespace ArchSitePlan.UI
             {
                 _selectedLandUseColour = value;
                 OnPropertyChanged(nameof(SelectedLandUseColour));
-            }
-        }
-
-        private List<HorizontalGraphData> _landUseGraphData = new();
-        public List<HorizontalGraphData> LandUseGraphData
-        {
-            get => _landUseGraphData;
-            set
-            {
-                _landUseGraphData = value;
-                OnPropertyChanged(nameof(LandUseGraphData));
             }
         }
 
@@ -355,7 +351,10 @@ namespace ArchSitePlan.UI
             }
         }
 
-        private string _excelPath = System.Environment.GetFolderPath(System.Environment.SpecialFolder.MyDocuments);
+        private string _excelPath =  Path.Combine(
+            System.Environment.GetFolderPath(System.Environment.SpecialFolder.MyDocuments),
+            $"{RhinoDoc.ActiveDoc.Name}_ProjectReport.xlsx");
+
         public string ExcelPath
         {
             get => _excelPath;
@@ -436,7 +435,7 @@ namespace ArchSitePlan.UI
                 foreach (var rhinoObj in rhinoCrvs)
                 {
                     var bhomCrv = (rhinoObj.Geometry as Curve)!.ToBHoM2DegreeCrv();
-                    if (bhomCrv is null)
+                    if (bhomCrv is null || bhomCrv.IIsSelfIntersecting())
                     {
                         removed++;
                         continue;
@@ -447,7 +446,9 @@ namespace ArchSitePlan.UI
                 }
 
                 if (removed > 0)
-                    MessageBox.Show($"Removed {removed} objects that were not lines or polylines from selection");
+                    MessageBox.Show($"Removed {removed} objects from selection that were either" +
+                        $"\n 1. Not lines or polylines " +
+                        $"\n 2. Self intersecting");
 
                 if (!bhomCrvData.Any()) return;
 
@@ -507,7 +508,7 @@ namespace ArchSitePlan.UI
                         // Get the selected folder path
                         ExcelPath = Path.Combine(
                             folderBrowserDialog.SelectedPath,
-                            $"{rhinoName}ProjectReport.xlsx");
+                            $"{rhinoName}_ProjectReport.xlsx");
                     }
                 }
             }
@@ -584,7 +585,7 @@ namespace ArchSitePlan.UI
                 {
                     Title = landUseGroup.First().Use.ToString(),
                     Values = new ChartValues<double> { area },
-                    Fill = new SolidColorBrush(Defaults.LandUseColours[use].ToWindowsMediaColor()),
+                    Fill = new SolidColorBrush(AppColours.LandUseColours[use].ToWindowsMediaColor()),
                     Height = 40,
                     
                 });
@@ -679,17 +680,13 @@ namespace ArchSitePlan.UI
         {
             try
             {
-                var result = RhinoGet.GetOneObject("Select a closed curve as the study area",
-                false,
-                ObjectType.Curve,
-                out ObjRef objRef);
+                var rhinoObjs = RhinoDoc.ActiveDoc.Objects.GetSelectedObjects(false, false).ToList();
                 
-                if (result != Rhino.Commands.Result.Success) 
+                if (rhinoObjs.Count != 1 || rhinoObjs[0].ObjectType != ObjectType.Curve) 
                     throw new Exception(UIMessages.AddStudyInstruction);
 
-                var rhinoObj = objRef.Object();
+                var rhinoObj = rhinoObjs[0];
                 var boundary = rhinoObj.Geometry as Curve;
-                
 
                 if (!boundary.IsClosed)
                     throw new Exception("Error. Please select closed curve instead");
@@ -799,10 +796,10 @@ namespace ArchSitePlan.UI
 
         private void UpdateSelectedLanduseColour(Landuse use)
         {
-            if (Defaults.LandUseColours.TryGetValue(use, out Color color))
+            if (AppColours.LandUseColours.TryGetValue(use, out Color color))
                 SelectedLandUseColour = new SolidColorBrush(color.ToWindowsMediaColor());
             else
-                SelectedLandUseColour = new SolidColorBrush(Defaults.LandUseColours[Landuse.Undefined]
+                SelectedLandUseColour = new SolidColorBrush(AppColours.LandUseColours[Landuse.Undefined]
                     .ToWindowsMediaColor());
         }
 
@@ -834,7 +831,7 @@ namespace ArchSitePlan.UI
                     if (curve == null) continue;
 
                     var bhomCrv = curve.ToBHoM2DegreeCrv();
-                    if (bhomCrv == null) continue;
+                    if (bhomCrv == null || bhomCrv.IIsSelfIntersecting()) continue;
 
                     CLAndID.Add((bhomCrv, rhinoObj.Id));
                     LayerHelpers.ChangeLayer(rhinoObj, roadLayerIndex);
@@ -880,6 +877,11 @@ namespace ArchSitePlan.UI
 
             ActiveStudyAreaName = ActiveStudy.Name;
             UpdateDisplayedStudyAreaData(ActiveStudy);
+        }
+
+        private void UpdateBuildingHeight(double floorCount, double floorHeight)
+        {
+            ActiveBuildingHeight = floorCount * floorHeight;
         }
     }
 }

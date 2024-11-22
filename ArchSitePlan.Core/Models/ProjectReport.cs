@@ -144,7 +144,7 @@ namespace ArchSitePlan.Core.Models
                     BuiltArea: builtArea,
                     BuiltPctg: builtPctg,
                     FAR: totalBuiltArea/totalLandArea,
-                    Colour: Defaults.LandUseColours[useGroup.Key]
+                    Colour: AppColours.LandUseColours[useGroup.Key]
                     );
 
                 _landUseSummary.Add( row );

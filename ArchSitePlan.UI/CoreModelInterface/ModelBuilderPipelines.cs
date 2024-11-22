@@ -19,6 +19,7 @@ namespace ArchSitePlan.UI.CoreModelInterface
             CoreModelEditStepLibrary.AddOrUpdateRoad(centerLineAndIds, width);
             CoreModelEditStepLibrary.RecalculateParcelsAndRoadRoWs();
             CoreModelEditStepLibrary.DivideParcelsAndTransit();
+            CoreModelEditStepLibrary.RefreshBuildingUse();
             CoreModelEditStepLibrary.RefreshStudyAreaMetrics();
             RhinoModelEditStepLibrary.ReplaceRhinoModel(doc);
         }
@@ -29,6 +30,7 @@ namespace ArchSitePlan.UI.CoreModelInterface
             Landuse newUse)
         {
             CoreModelEditStepLibrary.UpdateParcelUse(parcelIds, newUse);
+            CoreModelEditStepLibrary.RefreshBuildingUse();
             CoreModelEditStepLibrary.RefreshStudyAreaMetrics();
             RhinoModelEditStepLibrary.ReplaceRhinoModel(doc);
         }
@@ -50,6 +52,7 @@ namespace ArchSitePlan.UI.CoreModelInterface
             CoreModelEditStepLibrary.AddDivders(plineObjs);
             CoreModelEditStepLibrary.RecalculateParcelsAndRoadRoWs();
             CoreModelEditStepLibrary.DivideParcelsAndTransit();
+            CoreModelEditStepLibrary.RefreshBuildingUse();
             CoreModelEditStepLibrary.RefreshStudyAreaMetrics();
             RhinoModelEditStepLibrary.ReplaceRhinoModel(doc);
         }
@@ -57,6 +60,7 @@ namespace ArchSitePlan.UI.CoreModelInterface
         {
             if (!CoreModelEditStepLibrary.TryRemoveDivders(dividerIds)) return;
             CoreModelEditStepLibrary.DivideParcelsAndTransit();
+            CoreModelEditStepLibrary.RefreshBuildingUse();
             CoreModelEditStepLibrary.RefreshStudyAreaMetrics();
             RhinoModelEditStepLibrary.ReplaceRhinoModel(doc);
         }
@@ -68,6 +72,7 @@ namespace ArchSitePlan.UI.CoreModelInterface
             int floorCount)
         {
             CoreModelEditStepLibrary.AddOrUpdateBulding(buildingData, ffHt, floorCount);
+            CoreModelEditStepLibrary.RefreshBuildingUse();
             CoreModelEditStepLibrary.RefreshStudyAreaMetrics();
             RhinoModelEditStepLibrary.ReplaceRhinoModel(doc, true);
         }
@@ -84,6 +89,7 @@ namespace ArchSitePlan.UI.CoreModelInterface
             CoreModelEditStepLibrary.AddOrUpdateStudyArea(studyData);
             CoreModelEditStepLibrary.RecalculateParcelsAndRoadRoWs();
             CoreModelEditStepLibrary.DivideParcelsAndTransit();
+            CoreModelEditStepLibrary.RefreshBuildingUse();
             CoreModelEditStepLibrary.RefreshStudyAreaMetrics();
             RhinoModelEditStepLibrary.ReplaceRhinoModel(doc, true);
         }
@@ -93,6 +99,7 @@ namespace ArchSitePlan.UI.CoreModelInterface
             CoreModelEditStepLibrary.DeleteStudyAreas(guids);
             CoreModelEditStepLibrary.RecalculateParcelsAndRoadRoWs();
             CoreModelEditStepLibrary.DivideParcelsAndTransit();
+            CoreModelEditStepLibrary.RefreshBuildingUse();
             CoreModelEditStepLibrary.RefreshStudyAreaMetrics();
             RhinoModelEditStepLibrary.ReplaceRhinoModel(doc, true);
         }

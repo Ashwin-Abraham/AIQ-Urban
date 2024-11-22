@@ -1,21 +1,13 @@
 ﻿using ArchSitePlan.Core.Extensions;
+using ArchSitePlan.Core.ModelEditActions.Configs;
 using ArchSitePlan.Core.Models;
 using BH.Engine.Geometry;
-using BH.oM.Geometry;
 using static ArchSitePlan.Core.Constants.Enums;
 
 namespace ArchSitePlan.Core.ModelEditActions
 {
     public class BuildingAction : IModelEditAction
     {
-        public record BuildingActionConfig(
-            Mesh? EnvelopeMesh,
-            Guid EnvelopeId,
-            Guid FootprintId,
-            double FlootToFloorHt,
-            int FloorCount,
-            List<PlanarSurface> FloorPlates);
-
         public static void Run(List<BuildingActionConfig> configs, EditType editType)
         {
             switch (editType)
@@ -29,6 +21,10 @@ namespace ArchSitePlan.Core.ModelEditActions
                     TryAddToCoreModel(configs);
                     break;
 
+                case EditType.UpdateUse:
+                    EditUse(configs);
+                    break;
+
                 //case EditType.Edit:
                 //    var building = CoreModel.Buildings.Find(b => b.EnvelopeId == envelopeId);
                 //    if(building is not null)
@@ -37,6 +33,20 @@ namespace ArchSitePlan.Core.ModelEditActions
 
                 default:
                     throw new NotImplementedException(nameof(ParcelAction) + $" Edit mode:{editType}");
+            }
+        }
+
+        private static void EditUse(List<BuildingActionConfig> configs)
+        {
+            var ids = configs.Select(c => c.EnvelopeId).ToList();
+            var buildings = CoreModel.Buildings.Where(b => ids.Contains(b.EnvelopeId)).ToList();
+
+            foreach ( var building in buildings)
+            {
+                var parcel = CoreModel.Parcels.Find(p => 
+                    p.Boundary.ExternalBoundary.IIsContaining(building.Origin.ObjectToList()));
+
+                building.Use = parcel is null ? Landuse.Undefined : parcel.LandUse;
             }
         }
 

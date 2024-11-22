@@ -1,13 +1,14 @@
-﻿using System.Drawing;
+﻿using ArchSitePlan.Core.Extensions;
+using System.Drawing;
 using static ArchSitePlan.Core.Constants.Enums;
 
-namespace ArchSitePlan.Core.Models
+namespace ArchSitePlan.Core.Constants
 {
-    public static class Defaults
+    public static class AppColours
     {
         public static Dictionary<Landuse, Color> LandUseColours = new Dictionary<Landuse, Color>()
         {
-            { Landuse.Undefined, Color.Crimson },
+            { Landuse.Undefined, ColorTranslator.FromHtml("#F9E8E8")},
             { Landuse.Resi_Low_Density, ColorTranslator.FromHtml("#FFFBC3")},
             { Landuse.Resi_High_Density, ColorTranslator.FromHtml("#EEE023")},
             { Landuse.Parking, ColorTranslator.FromHtml("#636363")},
@@ -24,6 +25,9 @@ namespace ArchSitePlan.Core.Models
             { Landuse.Forest, ColorTranslator.FromHtml("#1D7320")},
             { Landuse.Water, ColorTranslator.FromHtml("#3B83BA")},
         };
+
+        public static Dictionary<Landuse, Color> BuildingColours =>
+            LandUseColours.ToDictionary(c => c.Key, c => c.Value.SetTransparency(150).Darken(0.3));
 
         public static List<Color> StandardColors = new()
         {

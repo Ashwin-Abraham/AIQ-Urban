@@ -10,6 +10,7 @@ using Rhino;
 using Rhino.Display;
 using Rhino.DocObjects;
 using Rhino.Geometry;
+using System.Runtime.InteropServices;
 using System.Windows;
 using static ArchSitePlan.UI.Constants.Enums;
 using Plane = Rhino.Geometry.Plane;
@@ -129,14 +130,7 @@ namespace ArchSitePlan.UI.Actions
             }
         }
 
-      
-        public static void ActivateRoadSelectionFilter(bool activate)
-        {
-            Rhino.ApplicationSettings.SelectionFilterSettings.OneShotGeometryFilter = ObjectType.Curve;
-        }
-        private 
-        static TestPopUp _popUp = new TestPopUp();
-
+        private static TestPopUp _popUp = new TestPopUp();
 
         private static Point3d CalculateObjectsCenter(IEnumerable<RhinoObject> objs)
         {
@@ -206,13 +200,27 @@ namespace ArchSitePlan.UI.Actions
                 var dpi = System.Windows.Media.VisualTreeHelper.GetDpi(_popUp);
                 _popUp.Left = pointOnScreen.X / dpi.DpiScaleX;
                 _popUp.Top = pointOnScreen.Y / dpi.DpiScaleY;
+                FocusRhinoWindow();
 
+                //var rhinoWindowHandle = Rhino.RhinoApp.MainWindowHandle();
             }
             catch (Exception ex)
             {
                 MessageBox.Show(ex.Message);
             }
         }
+        // Import the SetForegroundWindow function from user32.dll
+        [DllImport("user32.dll")]
+        private static extern bool SetForegroundWindow(IntPtr hWnd);
+        private static void FocusRhinoWindow()
+        {
+            // Get Rhino's main window handle
+            IntPtr rhinoWindowHandle = RhinoApp.MainWindowHandle();
+
+            // Set Rhino's window as the foreground window
+            SetForegroundWindow(rhinoWindowHandle);
+        }
+
 
         private static void ConfigureRoadsInPopUp(TestPopUp popUp, List<Road> roads)
         {

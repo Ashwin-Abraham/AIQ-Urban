@@ -189,8 +189,7 @@ namespace ArchSitePlan.UI.CoreModelInterface
             OutputParcelsToRhino(doc);
             OutputStudyAreasToRhino(doc);
 
-            if (includingBuildings)
-                BakeRhinoBuilding(doc);
+            BakeRhinoBuilding(doc);
 
             RemoveEmptyAppLayers(doc);
             doc.Views.Redraw();
@@ -242,12 +241,16 @@ namespace ArchSitePlan.UI.CoreModelInterface
 
             var massAttrib = new ObjectAttributes()
             {
-                LayerIndex = massLayerIndex
+                LayerIndex = massLayerIndex,
+                ColorSource = ObjectColorSource.ColorFromObject
             };
 
             foreach (var building in CoreModel.Buildings)
             {
                 var rhinoMesh = building.Envelope.ToRhino();
+
+                if (AppColours.BuildingColours.TryGetValue(building.Use, out var buildingObjColour))
+                    massAttrib.ObjectColor = buildingObjColour;
 
                 // Create new building
                 building.EnvelopeId = doc.Objects.AddMesh(rhinoMesh, massAttrib);
@@ -383,9 +386,9 @@ namespace ArchSitePlan.UI.CoreModelInterface
             int layerIndex = LayerHelpers.CreateOrGetLayerIndex(
                 doc,
                 layerName,
-                Defaults.LandUseColours[use]);
+                AppColours.LandUseColours[use]);
 
-            LayerHelpers.SetLayerColour(doc, layerIndex, Defaults.LandUseColours[use]);
+            LayerHelpers.SetLayerColour(doc, layerIndex, AppColours.LandUseColours[use]);
 
             ObjectAttributes parcelGeometryAttributes = new ObjectAttributes()
             {

@@ -19,11 +19,12 @@ namespace ArchSitePlan.RhinoAddin
         public static OpenSitePlannerRhinoCommand Instance { get; private set; }
 
         ///<returns>The command name as it appears on the Rhino command line.</returns>
-        public override string EnglishName => "OpenSitePlanner";
+        public override string EnglishName => "AIQ_Urban";
 
         protected override Result RunCommand(RhinoDoc doc, RunMode mode)
         {
             RhinoApp.WriteLine("Loaded plugin");
+            Rhino.UI.Panels.OpenPanel(MainViewHost.PanelId);
             return Result.Success;
         }
     }
