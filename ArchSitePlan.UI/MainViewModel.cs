@@ -116,7 +116,7 @@ namespace ArchSitePlan.UI
             {
                 _roadExpanderOpen = value;
                 OnPropertyChanged(nameof(RoadExpanderOpen));
-                SetSelectionMode(AppMode.Road, RoadExpanderOpen);
+                SetAppMode(AppMode.Road, RoadExpanderOpen);
             }
         }
 
@@ -128,7 +128,7 @@ namespace ArchSitePlan.UI
             {
                 _landuseExpanderOpen = value;
                 OnPropertyChanged(nameof(LanduseExpanderOpen));
-                SetSelectionMode(AppMode.LandUse, LanduseExpanderOpen);
+                SetAppMode(AppMode.LandUse, LanduseExpanderOpen);
             }
         }
 
@@ -140,7 +140,7 @@ namespace ArchSitePlan.UI
             {
                 _exportsExpanderOpen = value;
                 OnPropertyChanged(nameof(ExportsExpanderOpen));
-                SetSelectionMode(AppMode.Export, ExportsExpanderOpen);
+                SetAppMode(AppMode.Export, ExportsExpanderOpen);
             }
         }
 
@@ -152,7 +152,7 @@ namespace ArchSitePlan.UI
             {
                 _buildingsExpanderOpen = value;
                 OnPropertyChanged(nameof(BuildingsExpanderOpen));
-                SetSelectionMode(AppMode.Building, BuildingsExpanderOpen);
+                SetAppMode(AppMode.Building, BuildingsExpanderOpen);
             }
         }
 
@@ -164,7 +164,7 @@ namespace ArchSitePlan.UI
             {
                 _studyAreaExpanderOpen = value;
                 OnPropertyChanged(nameof(StudyAreaExpanderOpen));
-                SetSelectionMode(AppMode.StudyArea, StudyAreaExpanderOpen);
+                SetAppMode(AppMode.StudyArea, StudyAreaExpanderOpen);
             }
         }
 
@@ -469,7 +469,7 @@ namespace ArchSitePlan.UI
                 bool expanderOpen = AppMode != AppMode.None;
                 AppMode = AppMode.None;
 
-                SetSelectionMode(AppMode, expanderOpen);
+                SetAppMode(AppMode, expanderOpen);
 
                 if (!AppEnabled)
                 {
@@ -762,7 +762,7 @@ namespace ArchSitePlan.UI
             
         }
 
-        private void SetSelectionMode(AppMode changedExpander, bool expanderOpen)
+        private void SetAppMode(AppMode changedExpander, bool expanderOpen)
         {
             // Set current mode
             if (!expanderOpen)
@@ -828,10 +828,12 @@ namespace ArchSitePlan.UI
                 foreach(var rhinoObj in rhinoObjs)
                 {
                     var curve = rhinoObj.Geometry as Curve;
-                    if (curve == null) continue;
+                    if (curve == null)
+                        throw new Exception(UIMessages.RoadInstruction);
 
                     var bhomCrv = curve.ToBHoM2DegreeCrv();
-                    if (bhomCrv == null || bhomCrv.IIsSelfIntersecting()) continue;
+                    if (bhomCrv == null || bhomCrv.IIsSelfIntersecting())
+                        throw new Exception(UIMessages.RoadInstruction);
 
                     CLAndID.Add((bhomCrv, rhinoObj.Id));
                     LayerHelpers.ChangeLayer(rhinoObj, roadLayerIndex);

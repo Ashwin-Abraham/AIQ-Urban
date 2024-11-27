@@ -14,7 +14,7 @@ namespace ArchSitePlan.Core.Models
         /// Contains a list of arcs and lines representing the centerline
         /// </summary>
         public PolyCurve Centerline {  get; init; }
-        public PlanarSurface RoW {  get; private set; }
+        public PlanarSurface? RoW {  get; private set; }
 
         public double Width { get; private set; }
 
@@ -46,7 +46,7 @@ namespace ArchSitePlan.Core.Models
             if(centerline.ValidateContinuity())
             {
                 road = new Road(centerline, id, width);
-                return true;
+                return road.IsValid();
             }
             else
             {
@@ -78,6 +78,11 @@ namespace ArchSitePlan.Core.Models
         public  void ResetRoW()
         {
             RoW = null;
+        }
+
+        public bool IsValid()
+        {
+            return RoW != null && Width > 0 && Centerline.Length() > 0;
         }
     }
 }

@@ -17,6 +17,13 @@
   <ItemGroup>
     <None Remove="EmbeddedResources\LOGO.ico" />
     <None Remove="EmbeddedResources\LOGO.png" />
+    <None Remove="manifest.yml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="manifest.yml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   
   <ItemGroup>
@@ -53,5 +60,9 @@
 	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 	  </EmbeddedResource>
 	</ItemGroup>
+
+	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
+	  <Exec Command="xcopy /Y &quot;$(ProjectDir)manifest.yml&quot; &quot;$(TargetDir)&quot;" />
+	</Target>
   
 </Project>

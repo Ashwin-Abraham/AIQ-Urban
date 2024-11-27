@@ -80,7 +80,7 @@ namespace ArchSitePlan.UI.CoreModelInterface
         internal static void DeleteBuildingPipeline(RhinoDoc doc, List<Guid> buildingEnvelopeGuids)
         {
             if (buildingEnvelopeGuids.Count == 0) return;
-            RhinoModelEditStepLibrary.DeleteRhinoBuilding(doc, buildingEnvelopeGuids);
+            RhinoModelEditStepLibrary.DeleteAllRhinoBuilding(doc);
             CoreModelEditStepLibrary.TryDeleteBuildings(buildingEnvelopeGuids);
             CoreModelEditStepLibrary.RefreshStudyAreaMetrics();
         }

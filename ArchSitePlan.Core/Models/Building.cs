@@ -38,7 +38,7 @@ namespace ArchSitePlan.Core.Models
             
             FloorPlates = floorPlates
                 .Where(p => p!=null && Math.Abs(p.Area()) > 1E-06)
-                .OrderBy(p => p.Centroid().Z)
+                .OrderBy(p => p.ControlPointCentroid().Z)
                 .Select(f => (f, Guid.Empty))
                 .ToList();
 

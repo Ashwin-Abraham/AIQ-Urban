@@ -1,0 +1,19 @@
+﻿name: AIQ_Urban
+version: 1.0.2
+authors:
+  - Ashwin Abraham Mukkaranath
+description: |
+  AIQ Urban automates the manual drafting in large portions of the planning process. 
+  Type "AIQ_Urban" in the rhino command line to open the plugin's UI'
+  This is an early version of the plugin with some instabilities that will be ironed out soon.
+  Future versions will include more automation features, computational analyses and eventually some AI.
+keywords: 
+- urban
+- urbandesign
+- urban-design
+- planning
+- masterplanning
+- master-planning
+- urban-planning
+- urbanplanning
+url: "https://www.linkedin.com/in/ashwin-abraham-gdplug/"
