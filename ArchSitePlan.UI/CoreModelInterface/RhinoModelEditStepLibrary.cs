@@ -182,8 +182,8 @@ namespace ArchSitePlan.UI.CoreModelInterface
         }
         public static void ReplaceRhinoModel(RhinoDoc doc, bool includingBuildings = false)
         {
-
-            RhinoEventHandler.RemovalEventLock = true;
+            bool initialState = RhinoEventHandler.EventLock;
+            RhinoEventHandler.EventLock = true;
 
             OutputRoadsToRhino(doc);
             OutputParcelsToRhino(doc);
@@ -193,12 +193,12 @@ namespace ArchSitePlan.UI.CoreModelInterface
 
             RemoveEmptyAppLayers(doc);
             doc.Views.Redraw();
-            RhinoEventHandler.RemovalEventLock = false;
+            RhinoEventHandler.EventLock = initialState;
         }
 
         private static void RemoveEmptyAppLayers(RhinoDoc doc)
         {
-            LayerHelpers.EnsureLayerExists(doc, LayerConstants.MainLayer);
+            LayerHelpers.CreateOrGetLayerIndex(doc, LayerConstants.MainLayer);
 
             var mainLayerIndex = doc.Layers.FindByFullPath(LayerConstants.MainLayer, -1);
             
@@ -208,12 +208,12 @@ namespace ArchSitePlan.UI.CoreModelInterface
 
         public static void DeleteAllRhinoBuilding(RhinoDoc doc)
         {
-            var buildingLayer = doc.Layers.FindByFullPath(LayerConstants.BuildingLayer, -1);
-            if (buildingLayer == null) return;
+            var buildingLayerIndex = doc.Layers.FindByFullPath(LayerConstants.BuildingLayer, -1);
+            if (buildingLayerIndex == -1) return;
 
-            var allBldgLayers = doc.Layers[buildingLayer].GetChildren(true)?? new Layer[1];
+            var allBldgLayers = doc.Layers[buildingLayerIndex].GetChildren(true)?? new Layer[1];
             
-            allBldgLayers.ToList().Add(doc.Layers[buildingLayer]);
+            allBldgLayers.ToList().Add(doc.Layers[buildingLayerIndex]);
 
             var buildingLayerIndices = allBldgLayers.Select(x => x.Index).ToList();
             
@@ -272,7 +272,7 @@ namespace ArchSitePlan.UI.CoreModelInterface
             LayerHelpers.DeleteLayerAndChildren(doc, LayerConstants.RoadLayer);
 
             // Get Attributes
-            LayerHelpers.EnsureLayerExists(doc, LayerConstants.RoadOutlineLayer);
+            LayerHelpers.CreateOrGetLayerIndex(doc, LayerConstants.RoadOutlineLayer);
 
             ObjectAttributes roadOutlineObjAttributes = new ObjectAttributes()
             {
@@ -299,7 +299,7 @@ namespace ArchSitePlan.UI.CoreModelInterface
                     .Round(CoreGeneralConstants.TransitRouteWidthPrecision);
 
                 string layerName = LayerHelpers.GenerateRoadCLLayer(width);
-                int layerIndex =  LayerHelpers.EnsureLayerExists(doc, layerName);
+                int layerIndex =  LayerHelpers.CreateOrGetLayerIndex(doc, layerName);
 
                 ObjectAttributes attrib = new ObjectAttributes()
                 {
@@ -316,7 +316,7 @@ namespace ArchSitePlan.UI.CoreModelInterface
             foreach (var study in studies)
             {
                 string layerName = LayerConstants.StudyAreaLayer + LayerConstants._Sep_ + study.Name;
-                LayerHelpers.EnsureLayerExists(doc, layerName);
+                LayerHelpers.CreateOrGetLayerIndex(doc, layerName);
 
                 // Get Attributes
                 int studyAreasLayerIndex = LayerHelpers.CreateOrGetLayerIndex(

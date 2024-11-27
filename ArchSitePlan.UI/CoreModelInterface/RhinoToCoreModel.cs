@@ -15,23 +15,11 @@ namespace ArchSitePlan.UI.Actions
             Curve? curve = obj.Geometry! as Curve;
             bhomCrv = null;
 
-            if (curve == null)
-                throw new Exception("Not a curve");
-            if (curve.Degree > 2)
-                throw new Exception("Curve degree is too high, please select line, polyline or arc only");
+            if (curve == null || curve.Degree > 2)
+                return false;
 
-            if (curve.TryGetPolyline(out Polyline polyline))
-            {
-                bhomCrv = polyline.ToBHoMPolyline();
-                return bhomCrv != null;
-            }
-            if (curve.TryGetArc(out Arc arc))
-            {
-                bhomCrv = arc.ToBHoM();
-                return bhomCrv != null;
-            }
-
-            return false;
+            bhomCrv = curve.ToBHoM2DegreeCrv();
+            return bhomCrv != null;
         }
 
         internal static bool TryFindRoad(Guid id, out Road road)

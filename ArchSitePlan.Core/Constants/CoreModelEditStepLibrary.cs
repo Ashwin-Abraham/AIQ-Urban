@@ -157,10 +157,10 @@ namespace ArchSitePlan.Core.Constants
             out List<PlanarSurface> roadRoWs,
             out List<ICurve> parcelBoundaries)
         {
-            var roadOuterBoundaries = CoreModel.Roads.Select(r => r.RoW.ExternalBoundary);
-            var roadInnerBoundaries = CoreModel
-                .Roads
-                .SelectMany(r => r.RoW.InternalBoundaries)
+            var validRoads = CoreModel.Roads.Where(r => r.IsValid()).ToList();
+            var roadOuterBoundaries = validRoads.Select(r => r.RoW!.ExternalBoundary);
+            var roadInnerBoundaries = validRoads
+                .SelectMany(r => r.RoW!.InternalBoundaries)
                 .ToList();
 
             List<ICurve> innerBoundaries = new();

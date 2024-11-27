@@ -1,5 +1,6 @@
 ﻿using ArchSitePlan.Core.Extensions;
 using ArchSitePlan.Core.Models;
+using ArchSitePlan.UI.Constants;
 using ArchSitePlan.UI.CoreModelInterface;
 using ArchSitePlan.UI.Extensions;
 using ArchSitePlan.UI.Helpers;
@@ -21,7 +22,7 @@ namespace ArchSitePlan.UI.Actions
 
     public static class RhinoEventHandler
     {
-        public static bool RemovalEventLock = false;
+        public static bool EventLock = false;
 
         private static Guid _lastReplacedId = Guid.Empty;
         private static List<Guid> _selectedParcels = new List<Guid>();
@@ -59,15 +60,26 @@ namespace ArchSitePlan.UI.Actions
             _popUp.Close();
         }
 
-        private static void OnRhinoDocObjectReplace(RhinoReplaceObjectEventArgs args)
+        private static void OnRhinoDocObjectReplace(RhinoReplaceObjectEventArgs args) 
+        {
+            int d = 34;
+            int a = d + 34;
+        }
+        private static void OnRhinoDocObjectAddition(RhinoObjectEventArgs args)
         {
             try
-            {
-                _lastReplacedId = args.ObjectId;
-                RhinoDoc doc = RhinoDoc.ActiveDoc;
-                RhinoObject obj = args.NewRhinoObject;
+             {
+                if (EventLock) return;
 
-                if (obj == null) return;
+                EventLock = true;
+                 RhinoDoc doc = RhinoDoc.ActiveDoc;
+                RhinoObject obj = args.TheObject;
+
+                if (obj == null)
+                {
+                    EventLock = false;
+                    return;
+                }
 
                 if (ViewModel.AppMode == AppMode.Building)
                 {
@@ -76,7 +88,11 @@ namespace ArchSitePlan.UI.Actions
                         || obj.ObjectType == ObjectType.Extrusion
                         || obj.ObjectType == ObjectType.Mesh)) return;
 
-                    if (!CoreModel.TryGetBuilding(obj.Id, obj.Id, out Building building)) return;
+                    if (!CoreModel.TryGetBuilding(obj.Id, obj.Id, out Building building))
+                    {
+                        EventLock = false;
+                        return;
+                    }
 
                     UpdateSelectedBuildings(obj.ObjectToList(),
                             building.FloorCount,
@@ -86,25 +102,43 @@ namespace ArchSitePlan.UI.Actions
                 }
                 else if (ViewModel.AppMode == AppMode.Road)
                 {
-                    if (!CoreModel.TryFindRoad(args.ObjectId, out _)
-                        || !RhinoToCoreModel.TryExtractBHoMDeg2Crv(obj, out BH.oM.Geometry.ICurve? plineArc))
-                        return ;
+                    var roadCLLayers = doc.Layers
+                        .Where(lay => !lay.IsDeleted && lay.FullPath.Contains(LayerConstants.RoadCLLayer))
+                        .Select(lay => lay.Index)
+                        .ToList();
 
+                    var validationResult = InputValidation.ValidateRoadInput(obj.ObjectToList());
+                   
+                    if (validationResult.ValidCenterlines.Count == 0)
+                    {
+                        EventLock = false;
+                        return;
+                    }
+
+                    var bhomCrv = (validationResult.ValidCenterlines[0].Geometry as Curve)!.ToBHoM2DegreeCrv();
                     ModelBuilderPipelines.AddOrUpdateRoadPipeline(
                         doc,
-                        (plineArc, obj.Id).ObjectToList(), 
+                        (bhomCrv, obj.Id).ObjectToList(), 
                         ViewModel.RoadWidth);
                     
                     ViewModel.RefreshActiveStudyAndMetrics();
                 }
                 else if (ViewModel.AppMode == AppMode.LandUse)
                 {
-                    if (obj.ObjectType != ObjectType.Curve) return;
+                    if (obj.ObjectType != ObjectType.Curve)
+                    {
+                        EventLock = false;
+                        return;
+                    }
 
                     var bhomCrv = (obj.Geometry as Curve)!.ToBHoM2DegreeCrv();
                     
                     if (!CoreModel.TryGetParcelDivider(obj.Id, out _)
-                        || bhomCrv is null) return;
+                        || bhomCrv is null)
+                    {
+                        EventLock = false;
+                        return;
+                    }
 
                     var plineObjs = (bhomCrv, obj.Id).ObjectToList();
                     ModelBuilderPipelines.AddOrUpdateParcelDividerPipeline(RhinoDoc.ActiveDoc, plineObjs);
@@ -114,18 +148,29 @@ namespace ArchSitePlan.UI.Actions
                 {
                     var curve = obj.Geometry as Curve;
                     if (!CoreModel.TryGetStudyArea(obj.Id, out _)
-                        || curve is null) return;
+                        || curve is null)
+                    {
+                        EventLock = false;
+                        return;
+                    }
 
                     var bhomCurve = curve.ToBHoM2DegreeCrv();
-                    if (bhomCurve is null) return;
+                    if (bhomCurve is null)
+                    {
+                        EventLock = false;
+                        return;
+                    }
 
                     var crvObjs = (bhomCurve, obj.Id).ObjectToList();
                     ModelBuilderPipelines.UpdateStudyAreas(RhinoDoc.ActiveDoc, crvObjs);
                     ViewModel.RefreshActiveStudyAndMetrics();
                 }
+
+                EventLock = false;
             }
             catch(Exception ex)
             {
+                EventLock = false;
                 MessageBox.Show(ex.Message);
             }
         }
@@ -201,8 +246,6 @@ namespace ArchSitePlan.UI.Actions
                 _popUp.Left = pointOnScreen.X / dpi.DpiScaleX;
                 _popUp.Top = pointOnScreen.Y / dpi.DpiScaleY;
                 FocusRhinoWindow();
-
-                //var rhinoWindowHandle = Rhino.RhinoApp.MainWindowHandle();
             }
             catch (Exception ex)
             {
@@ -219,38 +262,6 @@ namespace ArchSitePlan.UI.Actions
 
             // Set Rhino's window as the foreground window
             SetForegroundWindow(rhinoWindowHandle);
-        }
-
-
-        private static void ConfigureRoadsInPopUp(TestPopUp popUp, List<Road> roads)
-        {
-            bool singleWidth = roads.GroupBy(r => r.RoW.Area(3)).Count() == 1;
-            int roundingDigits = 2;
-
-            // Title
-            popUp.Title.Text = "ROAD DETAILS";
-            popUp.SelectionCount.Text =  roads.Count.ToString();
-
-            // Data 1
-            popUp.DataTitle1.Text = "Width";
-            if(singleWidth)
-                popUp.DataContent1.Text = Math.Round(roads[0].Width, roundingDigits).ToString();
-            else
-                popUp.DataContent1.Text = "varies";
-
-            // Data 2
-            popUp.DataTitle2.Text = "Length";
-            double totalLength = roads.Sum(r => r.Centerline.Length());
-            popUp.DataContent2.Text = Math.Round(totalLength, roundingDigits).ToString();
-
-            // Data 3
-            popUp.DataTitle3.Text = "Area";
-            double area = roads.Sum(r => r.RoW.Area());
-            popUp.DataContent3.Text = Math.Round(area, roundingDigits).ToString();
-
-            // Data 4
-            popUp.DataTitle4.Text = string.Empty;
-            popUp.DataContent4.Text = string.Empty;
         }
 
         private static List<Guid> FindCoreModelObjs(List<Guid> selectedIds, AppMode mode)
@@ -283,140 +294,17 @@ namespace ArchSitePlan.UI.Actions
             }
         }
 
-        private static void OnRhinoDocObjectSelection_old(RhinoObjectSelectionEventArgs args)
-        {
-            try
-            {
-                if (ViewModel.AppMode == AppMode.Road)
-                {
-                    var crvObjs = args.RhinoObjects
-                        .Where(obj => obj.ObjectType == ObjectType.Curve)
-                        .ToList();
-
-                    // Set active width as first roads width
-                    foreach (var crvObj in crvObjs)
-                    {
-                        bool roadExists = RhinoToCoreModel.TryFindRoad(crvObj.Id, out Road road);
-                        if(roadExists)
-                        {
-                            ViewModel.RoadWidth = road.Width;
-                            break;
-                        }
-                    }
-                }
-
-                else if(ViewModel.AppMode == AppMode.LandUse)
-                {
-                    var srfObjs = args.RhinoObjects
-                        .Where(obj => obj.ObjectType == ObjectType.Brep)
-                        .ToList();
-
-                    if(srfObjs.Any())
-                        UpdateSelectedParcelsMetrics(srfObjs);
-                }
-
-                else if(ViewModel.AppMode == AppMode.Building)
-                {
-                    // Update view model with current building data
-                    var crvRhinoObjs = args.RhinoObjects
-                                            .Where(obj => obj.ObjectType == ObjectType.Curve)
-                                            .Where(obj => (obj.Geometry as Curve).IsClosed)
-                                            .ToList();
-
-                    var envelopeRhinoObjs = args.RhinoObjects
-                        .Where(obj => obj.ObjectType == ObjectType.Brep 
-                            || obj.ObjectType == ObjectType.Extrusion
-                            || obj.ObjectType == ObjectType.Mesh)
-                        .ToList();
-
-                    var rhinoObjs = ViewModel.BuildingSelectorMode == BuildingSelectorMode.Footprint? crvRhinoObjs: envelopeRhinoObjs;
-                    var firstObj = rhinoObjs.FirstOrDefault(b => b.Id != Guid.Empty);
-
-                    Building building = null;
-                    if (firstObj == null || !CoreModel.TryGetBuilding(firstObj.Id, firstObj.Id, out building))
-                        return;
-
-                    ViewModel.ActiveBuildingFloorCount = building.FloorCount;
-                    ViewModel.ActiveBuildingFloorHeight = building.FloorToFloorHeight;
-                }
-
-                else if(ViewModel.AppMode == AppMode.StudyArea)
-                {
-                    var selectedIds = args.RhinoObjects.Select(o => o.Id).ToList();
-                    var firstValidStudy = CoreModel.Studies.FirstOrDefault(s => selectedIds.Contains(s.Id));
-
-                    if (firstValidStudy == null) return;
-
-                    ViewModel.ActiveStudy = firstValidStudy;
-                    ViewModel.ActiveStudyAreaName = firstValidStudy.Name;
-                }
-                else if(ViewModel.AppMode != AppMode.None)
-                {
-                    //var activeStudyMetric = CoreModel.StudiesAndMetrics.FirstOrDefault(s => s.Study.Name == ViewModel.ActiveStudyAreaName);
-                    //ViewModel.UpdateDisplayedStudyAreaData();
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message);
-            }
-            
-        }
-
-        private static void UpdateSelectedParcelsMetrics(List<RhinoObject> selectedBreps)
-        {
-            if(selectedBreps == null || selectedBreps.Count == 0) return;
-
-            RhinoToCoreModel.RecalculateBuildingHostParcelIDs();
-
-            // Check that they are parcels
-            var guids = selectedBreps.Select(obj => obj.Id).ToList();
-            var parcels = RhinoToCoreModel.GetParcel(guids).ToList();
-            var containedBuildings = RhinoToCoreModel.FindBuildingsInParcels(parcels);
-
-            // Aggregate metrics
-            double parcelsArea = parcels.Sum(p => p.Area());
-            double parcelsBuiltArea = containedBuildings.Sum(b => b.BUA());
-            double parcelsCoverage = containedBuildings.Sum(b => b.FootprintArea()) / parcelsArea * 100;
-            double parcelsFAR = parcelsBuiltArea / parcelsArea;
-
-            string use;
-            if (parcels.GroupBy(p => p.LandUse).Count() > 1)
-                use = "Mixed";
-            else
-                use = parcels.First().LandUse.ToString();
-
-            // Change viewmodel variables
-            ViewModel.ActiveParcelMetrics = new VMActiveParcelsDetails(
-                Use: use,
-                TotalArea: Math.Round(parcelsArea).ToString(),
-                BUA: Math.Round(parcelsBuiltArea).ToString(),
-                CoveragePctg: Math.Round(parcelsCoverage, 1).ToString(),
-                FAR: Math.Round(parcelsFAR, 2).ToString());
-        }
-
-        public static void OnRhinoDocObjectAddition(RhinoObjectEventArgs args)
-        {
-        }
-
         public static void OnRhinoDocObjectRemove(RhinoObjectEventArgs args)
         {
             try
             {
-                if (RemovalEventLock) return;
-
+                if (EventLock || !args.TheObject.IsDeleted) return;
                 RhinoDoc doc = RhinoDoc.ActiveDoc;
 
-                if (!args.TheObject.IsDeleted
-                    || _lastReplacedId == args.ObjectId)
-                {
-                    _lastReplacedId = Guid.Empty;
-                    return;
-                }
+                EventLock = true;
                 switch (ViewModel.AppMode)
                 {
                     case AppMode.Road:
-
                         ModelBuilderPipelines.RemoveRoadPipeline(
                             args.TheObject.Id.ObjectToList(),
                             doc);
@@ -440,12 +328,15 @@ namespace ArchSitePlan.UI.Actions
                         break;
 
                 }
+
+                EventLock = false;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 MessageBox.Show(ex.Message);
+                EventLock = false;
             }
-           
+
         }
 
         internal static void UpdateSelectedBuildings(List<RhinoObject> rhinoObjs, 
@@ -519,7 +410,7 @@ namespace ArchSitePlan.UI.Actions
 
             }
 
-            RemovalEventLock = true;
+            EventLock = true;
             rhinoObjs.ForEach(o => doc.Objects.Delete(o, true, true));
             
             ModelBuilderPipelines.DeleteBuildingPipeline(doc, buildingEnvelopeGuids);
@@ -528,7 +419,7 @@ namespace ArchSitePlan.UI.Actions
                   buildingData,
                   floorToFloorHt,
                   floorCount);
-            RemovalEventLock = false;
+            EventLock = false;
 
         }
 

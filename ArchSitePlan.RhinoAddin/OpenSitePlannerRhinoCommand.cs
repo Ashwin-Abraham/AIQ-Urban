@@ -3,6 +3,8 @@ using Rhino.Commands;
 using Rhino.Geometry;
 using Rhino.Input;
 using Rhino.Input.Custom;
+using System;
+using System.Windows;
 
 namespace ArchSitePlan.RhinoAddin
 {
@@ -23,9 +25,18 @@ namespace ArchSitePlan.RhinoAddin
 
         protected override Result RunCommand(RhinoDoc doc, RunMode mode)
         {
-            RhinoApp.WriteLine("Loaded plugin");
-            Rhino.UI.Panels.OpenPanel(MainViewHost.PanelId);
-            return Result.Success;
+            try
+            {
+                Rhino.UI.Panels.OpenPanel(MainViewHost.PanelId);
+                RhinoApp.WriteLine("Loaded plugin");
+                return Result.Success;
+            }
+            catch(Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Failed to open plugin");
+                return Result.Failure;
+            }
+            
         }
     }
 }

@@ -162,7 +162,7 @@
                            VerticalAlignment="Center"
                            HorizontalAlignment="Left"/>
 
-                <Button Content="Add Road"
+                <Button Content="Add / Edit Road"
                         Grid.Column="4"
                         Command="{Binding AddOrUpdateRoads_Cmd}"
                         ToolTip="{Binding RoadInstruction}"/>
