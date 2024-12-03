@@ -1,5 +1,6 @@
 ﻿using ArchSitePlan.Core.Extensions;
 using ArchSitePlan.Core.Models;
+using ArchSitePlan.Core.Pipeline.CreationData;
 using BH.Engine.Geometry;
 using BH.oM.Geometry;
 using static ArchSitePlan.Core.Constants.Enums;
@@ -9,25 +10,24 @@ namespace ArchSitePlan.Core.ModelEditActions
     internal class RoadAction:IModelEditAction
     {
         internal static void Run(
-            List<(ICurve? centerLine, Guid id)> centerLineAndIds, 
-            EditType editType, 
-            double? roadWidth)
+            List<TransitData> transitData, 
+            EditType editType)
         {
             switch(editType)
             {
                 case EditType.Remove:
-                    RemoveFromCoreModel(centerLineAndIds);
+                    RemoveFromCoreModel(transitData);
                     break;
 
                 case EditType.Edit or EditType.Add:
-                    RemoveFromCoreModel(centerLineAndIds);
-                    AddToCoreModel(centerLineAndIds, (double)roadWidth);
+                    RemoveFromCoreModel(transitData);
+                    AddToCoreModel(transitData);
                     break;
 
                 case EditType.Divide:
                     var dividers = GetCoreModelSplitters();
                     dividers.AddRange(dividers);
-                    DivideRoads(centerLineAndIds, dividers);
+                    DivideRoads(transitData, dividers);
                     break;
 
             }
@@ -45,10 +45,10 @@ namespace ArchSitePlan.Core.ModelEditActions
 
             return dividers;
         }
-        private static void DivideRoads(List<(ICurve? centerLine, Guid id)> centerLineAndIds,
+        private static void DivideRoads(List<TransitData> roadData,
             List<ICurve> splitters)
         {
-            var ids = centerLineAndIds.Select(x => x.id).ToList();
+            var ids = roadData.Select(x => x.ID).ToList();
             var roadsToDiv = CoreModel.Roads.Where(rd => ids.Contains(rd.CenterLineId)).ToList();
 
             List<Road> newRoads = new List<Road>();
@@ -97,22 +97,20 @@ namespace ArchSitePlan.Core.ModelEditActions
             }
         }
 
-        private static void AddToCoreModel(
-            List<(ICurve centerLine, Guid id)> centerLineAndIds, 
-            double width)
+        private static void AddToCoreModel(List<TransitData> roadData)
         {
-            foreach(var clAndId in centerLineAndIds)
+            foreach(var data in roadData)
             {
-                var pCurve = Create.PolyCurve(clAndId.centerLine.ObjectToList());
-                if (Road.TryCreateRoad(pCurve, clAndId.id, width, out Road? road))
+                var pCurve = Create.PolyCurve(data.Centerline.ObjectToList());
+                if (Road.TryCreateRoad(pCurve, data.ID, data.RoadWidth, out Road? road))
                     CoreModel.Roads.Add(road!);
             }
         }
 
         private static void RemoveFromCoreModel(
-            List<(ICurve? centerLine, Guid id)> centerLineAndIds)
+            List<TransitData> roadData)
         {
-            var ids = centerLineAndIds.Select(x => x.id).ToList();
+            var ids = roadData.Select(x => x.ID).ToList();
             CoreModel.Roads.RemoveAll(r => ids.Contains(r.CenterLineId));
         }
     }

@@ -1,4 +1,5 @@
-﻿using BH.oM.Geometry;
+﻿using ArchSitePlan.Core.Pipeline.CreationData;
+using BH.oM.Geometry;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,5 +18,7 @@ namespace ArchSitePlan.Core.Models
             Curve = curve;
             Id = id;
         }
+
+        public DividerData ToDividerData()=> new DividerData(Curve, Id);
     }
 }

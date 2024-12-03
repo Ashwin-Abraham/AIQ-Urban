@@ -1,9 +1,13 @@
-﻿using ArchSitePlan.Core.Extensions;
+﻿using ArchSitePlan.Core.Constants;
+using ArchSitePlan.Core.Extensions;
 using ArchSitePlan.Core.Models;
+using ArchSitePlan.Core.Pipeline.CreationData;
 using ArchSitePlan.UI.Constants;
 using ArchSitePlan.UI.CoreModelInterface;
 using ArchSitePlan.UI.Extensions;
 using ArchSitePlan.UI.Helpers;
+using ArchSitePlan.UI.InputValidation;
+using ArchSitePlan.UI.Models;
 using ArchSitePlan.UI.RhinoBHoMInterop;
 using BH.Engine.Geometry;
 using BH.oM.Geometry;
@@ -12,9 +16,12 @@ using Rhino.Display;
 using Rhino.DocObjects;
 using Rhino.Geometry;
 using System.Runtime.InteropServices;
+using System.Timers;
 using System.Windows;
 using static ArchSitePlan.UI.Constants.Enums;
+using Mesh = Rhino.Geometry.Mesh;
 using Plane = Rhino.Geometry.Plane;
+using Timer = System.Timers.Timer;
 using Vector = BH.oM.Geometry.Vector;
 
 namespace ArchSitePlan.UI.Actions
@@ -24,30 +31,67 @@ namespace ArchSitePlan.UI.Actions
     {
         public static bool EventLock = false;
 
-        private static Guid _lastReplacedId = Guid.Empty;
-        private static List<Guid> _selectedParcels = new List<Guid>();
         public static MainViewModel ViewModel;
+        private static bool _isReplacement = false;
 
+        private static List<RhinoObject> _objectsForReplace = new();
+        private static List<RhinoObject> _objectsForAddition = new();
+        private static List<RhinoObject> _objectsForRemoval = new();
+        
         static RhinoEventHandler()
         {
-            EventHandler<RhinoReplaceObjectEventArgs> replaceRhinoObjectEvent = (sender, args) => OnRhinoDocObjectReplace(args);
-            RhinoDoc.ReplaceRhinoObject += replaceRhinoObjectEvent;
+            RhinoApp.Idle += ProcessEventPipepline;
+            RhinoDoc.ReplaceRhinoObject += (sender, args) => QueueObjectForReplacement(args);
+            RhinoDoc.AddRhinoObject += (sender, args) => QueueObjectForAddition(args); 
+            RhinoDoc.DeleteRhinoObject += (sender, args) => QueueObjectForRemoval(args); 
 
-            EventHandler<RhinoObjectEventArgs> addRhinoObjectEvent = (sender, args) => OnRhinoDocObjectAddition(args);
-            RhinoDoc.AddRhinoObject += addRhinoObjectEvent;
+            RhinoDoc.SelectObjects += (sender, args) => OnRhinoDocObjectSelection(args);
+            RhinoDoc.DeselectObjects += (sender, args) => OnRhinoDocObjectDeSelection(args);
+            RhinoDoc.DeselectAllObjects += (sender, args) => OnAllRhinoDocObjectDeSelection(args);
+        }
 
-            EventHandler<RhinoObjectEventArgs> removedRhinoObjectEvent = (sender, args) => OnRhinoDocObjectRemove(args);
-            RhinoDoc.DeleteRhinoObject += removedRhinoObjectEvent;
+        private static void QueueObjectForRemoval(RhinoObjectEventArgs args)
+        {
+            _objectsForRemoval.Add(args.TheObject);
+        }
 
-            EventHandler<RhinoObjectSelectionEventArgs> selectedRhinoObjectsEvent = (sender, args) 
-                => OnRhinoDocObjectSelection(args);
-            RhinoDoc.SelectObjects += selectedRhinoObjectsEvent;
+        private static void QueueObjectForAddition(RhinoObjectEventArgs args)
+        {
+            _objectsForAddition.Add(args.TheObject);
+        }
 
-            EventHandler<RhinoObjectSelectionEventArgs> deselectedRhinoObjectsEvent = (sender, args) => OnRhinoDocObjectDeSelection(args);
-            RhinoDoc.DeselectObjects += deselectedRhinoObjectsEvent;
+        private static void QueueObjectForReplacement(RhinoReplaceObjectEventArgs args)
+        {
+            _objectsForReplace.Add(args.NewRhinoObject);
+        }
 
-            EventHandler<RhinoDeselectAllObjectsEventArgs> deselectedAllRhinoObjectsEvent = (sender, args) => OnAllRhinoDocObjectDeSelection(args);
-            RhinoDoc.DeselectAllObjects += deselectedAllRhinoObjectsEvent;
+        private static void ProcessEventPipepline(object? sender, EventArgs e)
+        {
+            if (!ViewModel.AppEnabled || EventLock) return;
+
+            // Pick the actions to execute.
+            // Because Rhino sometimes sends both remove + add as well as replace objects events, we need to pick the one of these pathways only
+            _objectsForAddition = _objectsForAddition.Where(id => !_objectsForReplace.Contains(id)).ToList();
+            _objectsForRemoval = _objectsForRemoval.Where(id => !_objectsForReplace.Contains(id)).ToList();
+
+            if(_objectsForReplace.Count > 0) 
+                RunReplacementOperations(_objectsForReplace);
+            
+            if(_objectsForRemoval.Count > 0)
+                 RunObjectRemovalOperations(_objectsForRemoval);
+            
+            if(_objectsForAddition.Count > 0)
+                RunObjectAddOperations(_objectsForAddition);
+
+            // Clean queue
+            ResetEventQueueAndObjects();
+        }
+
+        public static void ResetEventQueueAndObjects()
+        {
+            _objectsForReplace.Clear();
+            _objectsForAddition.Clear();
+            _objectsForRemoval.Clear();
         }
 
         private static void OnAllRhinoDocObjectDeSelection(RhinoDeselectAllObjectsEventArgs args)
@@ -60,22 +104,16 @@ namespace ArchSitePlan.UI.Actions
             _popUp.Close();
         }
 
-        private static void OnRhinoDocObjectReplace(RhinoReplaceObjectEventArgs args) 
-        {
-            int d = 34;
-            int a = d + 34;
-        }
-        private static void OnRhinoDocObjectAddition(RhinoObjectEventArgs args)
+        private static void RunReplacementOperations(List<RhinoObject> replacedObjects) 
         {
             try
-             {
+            {
                 if (EventLock) return;
 
                 EventLock = true;
-                 RhinoDoc doc = RhinoDoc.ActiveDoc;
-                RhinoObject obj = args.TheObject;
+                RhinoDoc doc = RhinoDoc.ActiveDoc;
 
-                if (obj == null)
+                if (replacedObjects.Count == 0 || ViewModel.AppMode == AppMode.None)
                 {
                     EventLock = false;
                     return;
@@ -83,86 +121,128 @@ namespace ArchSitePlan.UI.Actions
 
                 if (ViewModel.AppMode == AppMode.Building)
                 {
-                    if (!(obj.ObjectType == ObjectType.Curve
-                        || obj.ObjectType == ObjectType.Brep
-                        || obj.ObjectType == ObjectType.Extrusion
-                        || obj.ObjectType == ObjectType.Mesh)) return;
+                    List<RhinoBuildingData> buildingData = RhinoBuildingData.FromExisting(replacedObjects).ToList();
 
-                    if (!CoreModel.TryGetBuilding(obj.Id, obj.Id, out Building building))
+                    if (buildingData.Count == 0)
                     {
                         EventLock = false;
                         return;
                     }
 
-                    UpdateSelectedBuildings(obj.ObjectToList(),
-                            building.FloorCount,
-                            building.FloorToFloorHeight);
-
+                    UpdateSelectedBuildingsPosition(buildingData);
                     ViewModel.RefreshActiveStudyAndMetrics();
                 }
                 else if (ViewModel.AppMode == AppMode.Road)
                 {
-                    var roadCLLayers = doc.Layers
-                        .Where(lay => !lay.IsDeleted && lay.FullPath.Contains(LayerConstants.RoadCLLayer))
-                        .Select(lay => lay.Index)
-                        .ToList();
+                    var roadData = RhinoRoadData.FromExisting(replacedObjects).ToList();
+                    var coreRoadData = RhinoRoadData.ToCoreModelCreationData(roadData).ToList();
 
-                    var validationResult = InputValidation.ValidateRoadInput(obj.ObjectToList());
-                   
-                    if (validationResult.ValidCenterlines.Count == 0)
+                    if (coreRoadData.Count == 0)
                     {
                         EventLock = false;
                         return;
                     }
 
-                    var bhomCrv = (validationResult.ValidCenterlines[0].Geometry as Curve)!.ToBHoM2DegreeCrv();
-                    ModelBuilderPipelines.AddOrUpdateRoadPipeline(
-                        doc,
-                        (bhomCrv, obj.Id).ObjectToList(), 
-                        ViewModel.RoadWidth);
-                    
+                    ModelBuilderPipelines.AddOrUpdateRoadPipeline(doc, coreRoadData);
                     ViewModel.RefreshActiveStudyAndMetrics();
                 }
+
+                // This is actually for dividers
                 else if (ViewModel.AppMode == AppMode.LandUse)
                 {
-                    if (obj.ObjectType != ObjectType.Curve)
+                    var rhinoDividerData = RhinoDividerData.Create(replacedObjects);
+                    var coreDividerData = RhinoDividerData.ToCoreModelData(rhinoDividerData).ToList();
+
+                    if (coreDividerData.Count == 0)
                     {
                         EventLock = false;
                         return;
                     }
 
-                    var bhomCrv = (obj.Geometry as Curve)!.ToBHoM2DegreeCrv();
-                    
-                    if (!CoreModel.TryGetParcelDivider(obj.Id, out _)
-                        || bhomCrv is null)
-                    {
-                        EventLock = false;
-                        return;
-                    }
-
-                    var plineObjs = (bhomCrv, obj.Id).ObjectToList();
-                    ModelBuilderPipelines.AddOrUpdateParcelDividerPipeline(RhinoDoc.ActiveDoc, plineObjs);
+                    ModelBuilderPipelines.AddOrUpdateParcelDividerPipeline(RhinoDoc.ActiveDoc, coreDividerData);
                     ViewModel.RefreshActiveStudyAndMetrics();
                 }
                 else if (ViewModel.AppMode == AppMode.StudyArea)
                 {
-                    var curve = obj.Geometry as Curve;
-                    if (!CoreModel.TryGetStudyArea(obj.Id, out _)
-                        || curve is null)
+                    var rhinoStudyData = RhinoStudyData.FromExisting(replacedObjects);
+                    var coreStudyData = RhinoStudyData.ToCoreModelData(rhinoStudyData).ToList();
+                    
+                    if (coreStudyData.Count == 0)
                     {
                         EventLock = false;
                         return;
                     }
 
-                    var bhomCurve = curve.ToBHoM2DegreeCrv();
-                    if (bhomCurve is null)
+                    ModelBuilderPipelines.UpdateStudyAreas(RhinoDoc.ActiveDoc, coreStudyData);
+                    ViewModel.RefreshActiveStudyAndMetrics();
+                }
+
+                EventLock = false;
+            }
+            catch (Exception ex)
+            {
+                EventLock = false;
+                MessageBox.Show(ex.Message);
+            }
+        }
+
+        public static void UpdateSelectedBuildingsPosition(List<RhinoBuildingData> rhinoCreationData)
+        {
+            var buildingData = rhinoCreationData.Select(x => x.ToCoreModelData()).ToList();
+            List<Guid> ids = rhinoCreationData.Select(x => x.ID).ToList();
+
+            EventLock = true;
+            RhinoDoc doc = RhinoDoc.ActiveDoc;
+            ModelBuilderPipelines.DeleteBuildingPipeline(doc, buildingData);
+            ModelBuilderPipelines.AddOrUpdateBuldingPipeline(doc, buildingData);
+            EventLock = false;
+        }
+
+        private static void RunObjectAddOperations(List<RhinoObject> newObjects)
+        {
+            try
+             {
+                if (EventLock) return;
+
+                EventLock = true;
+                 RhinoDoc doc = RhinoDoc.ActiveDoc;
+
+                if (newObjects.Count == 0)
+                {
+                    EventLock = false;
+                    return;
+                }
+
+                // Road needs the add event because the join command
+                // on curves in rhino will not trigger a replace event
+                else if (ViewModel.AppMode == AppMode.Road)
+                {
+                    var roadData = RhinoRoadData.FromExisting(newObjects).ToList();
+                    var coreRoadData = RhinoRoadData.ToCoreModelCreationData(roadData).ToList();
+
+                    if (coreRoadData.Count == 0)
                     {
                         EventLock = false;
                         return;
                     }
 
-                    var crvObjs = (bhomCurve, obj.Id).ObjectToList();
-                    ModelBuilderPipelines.UpdateStudyAreas(RhinoDoc.ActiveDoc, crvObjs);
+                    ModelBuilderPipelines.AddOrUpdateRoadPipeline(doc, coreRoadData);
+                    ViewModel.RefreshActiveStudyAndMetrics();
+                }
+                // Landuse (ie Dividers) needs the add event because the join command
+                // on curves in rhino will not trigger a replace event
+                else if (ViewModel.AppMode == AppMode.LandUse)
+                {
+                    var rhinoDividerData = RhinoDividerData.Create(newObjects);
+                    var coreDividerData = RhinoDividerData.ToCoreModelData(rhinoDividerData).ToList();
+
+                    if (coreDividerData.Count == 0)
+                    {
+                        EventLock = false;
+                        return;
+                    }
+
+                    ModelBuilderPipelines.AddOrUpdateParcelDividerPipeline(RhinoDoc.ActiveDoc, coreDividerData);
                     ViewModel.RefreshActiveStudyAndMetrics();
                 }
 
@@ -174,7 +254,73 @@ namespace ArchSitePlan.UI.Actions
                 MessageBox.Show(ex.Message);
             }
         }
+        public static void RunObjectRemovalOperations(List<RhinoObject> removedObjects)
+        {
+            try
+            {
+                List<Guid> removedIDs = removedObjects.Select(obj => obj.Id).ToList();
 
+                if (EventLock || removedObjects.Count == 0) return;
+                RhinoDoc doc = RhinoDoc.ActiveDoc;
+
+                EventLock = true;
+                switch (ViewModel.AppMode)
+                {
+                    case AppMode.Road:
+                        var transitResult = new TransitInputValidation().ValidateInput(removedObjects);
+                        var transitData = RhinoRoadData.FromExisting(transitResult.ValidObjects)
+                            .Select(x => x.ToCoreModelCreationData())
+                            .ToList();
+
+                        if (transitResult.Result == ValidationResult.All_Invalid
+                            || transitResult.Result == ValidationResult.EmptyInput)
+                            break;
+
+                        ModelBuilderPipelines.RemoveRoadPipeline(transitData,doc);
+
+                        ViewModel.RefreshActiveStudyAndMetrics();
+                        break;
+
+                    case AppMode.Building:
+                        var buildingResult = new BuildingInputValidation(BuildingSelectorMode.Mass)
+                            .ValidateInput(removedObjects);
+
+                        if (buildingResult.Result == ValidationResult.All_Invalid
+                            || buildingResult.Result == ValidationResult.EmptyInput)
+                            break;
+
+                        var buildingData = RhinoBuildingData
+                            .FromExisting(buildingResult.ValidObjects)
+                            .Select(x => x.ToCoreModelData())
+                            .Where(x => x != null)
+                            .Cast<BuildingData>()
+                            .ToList();
+
+                        ModelBuilderPipelines.DeleteBuildingPipeline(doc, buildingData);
+                        ViewModel.RefreshActiveStudyAndMetrics();
+                        break;
+
+                    case AppMode.StudyArea:
+                        ModelBuilderPipelines.DeleteStudyAreaPipeline(doc, removedIDs);
+                        ViewModel.RefreshActiveStudyAndMetrics();
+                        break;
+
+                    case AppMode.LandUse:
+                        ModelBuilderPipelines.DeleteParcelDividers(doc, removedIDs);
+                        ViewModel.RefreshActiveStudyAndMetrics();
+                        break;
+
+                }
+
+                EventLock = false;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+                EventLock = false;
+            }
+
+        }
         private static TestPopUp _popUp = new TestPopUp();
 
         private static Point3d CalculateObjectsCenter(IEnumerable<RhinoObject> objs)
@@ -294,53 +440,9 @@ namespace ArchSitePlan.UI.Actions
             }
         }
 
-        public static void OnRhinoDocObjectRemove(RhinoObjectEventArgs args)
-        {
-            try
-            {
-                if (EventLock || !args.TheObject.IsDeleted) return;
-                RhinoDoc doc = RhinoDoc.ActiveDoc;
-
-                EventLock = true;
-                switch (ViewModel.AppMode)
-                {
-                    case AppMode.Road:
-                        ModelBuilderPipelines.RemoveRoadPipeline(
-                            args.TheObject.Id.ObjectToList(),
-                            doc);
-
-                        ViewModel.RefreshActiveStudyAndMetrics();
-                        break;
-
-                    case AppMode.Building:
-                        ModelBuilderPipelines.DeleteBuildingPipeline(doc, args.ObjectId.ObjectToList());
-                        ViewModel.RefreshActiveStudyAndMetrics();
-                        break;
-
-                    case AppMode.StudyArea:
-                        ModelBuilderPipelines.DeleteStudyAreaPipeline(doc, args.ObjectId.ObjectToList());
-                        ViewModel.RefreshActiveStudyAndMetrics();
-                        break;
-
-                    case AppMode.LandUse:
-                        ModelBuilderPipelines.DeleteParcelDividers(doc, args.ObjectId.ObjectToList());
-                        ViewModel.RefreshActiveStudyAndMetrics();
-                        break;
-
-                }
-
-                EventLock = false;
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message);
-                EventLock = false;
-            }
-
-        }
-
-        internal static void UpdateSelectedBuildings(List<RhinoObject> rhinoObjs, 
-            int floorCount, 
+        internal static void UpdateSelectedBuildings(
+            List<RhinoObject> rhinoObjs,
+            int floorCount,
             double floorToFloorHt)
         {
             RhinoDoc doc = RhinoDoc.ActiveDoc;
@@ -366,13 +468,13 @@ namespace ArchSitePlan.UI.Actions
                 {
                     rhinoMesh = GeometryHelpers.ConvertToMesh(obj.Geometry as Rhino.Geometry.Brep);
                 }
-                else if(obj.ObjectType == ObjectType.Extrusion)
+                else if (obj.ObjectType == ObjectType.Extrusion)
                 {
                     rhinoMesh = GeometryHelpers.ConvertToMesh(obj.Geometry as Rhino.Geometry.Extrusion);
                 }
                 else if (obj.ObjectType == ObjectType.Curve)
                 {
-                    footPrintID = obj.Id; 
+                    footPrintID = obj.Id;
                     envelopeID = Guid.Empty;
 
                     var extrusion = Rhino.Geometry.Extrusion.Create(
@@ -402,7 +504,7 @@ namespace ArchSitePlan.UI.Actions
                     .Select(c => new PlanarSurface(c, new List<ICurve>()))
                     .ToList();
 
-                var bhomMesh  = rhinoMesh.ToBHoM();
+                var bhomMesh = rhinoMesh.ToBHoM();
 
                 buildingData.Add((bhomMesh,
                     envelopeID,
@@ -412,13 +514,10 @@ namespace ArchSitePlan.UI.Actions
 
             EventLock = true;
             rhinoObjs.ForEach(o => doc.Objects.Delete(o, true, true));
-            
-            ModelBuilderPipelines.DeleteBuildingPipeline(doc, buildingEnvelopeGuids);
 
-            ModelBuilderPipelines.AddOrUpdateBuldingPipeline(doc,
-                  buildingData,
-                  floorToFloorHt,
-                  floorCount);
+            //ModelBuilderPipelines.DeleteBuildingPipeline(doc, buildingData);
+
+            //ModelBuilderPipelines.AddOrUpdateBuldingPipeline(doc, buildingData)
             EventLock = false;
 
         }

@@ -55,42 +55,31 @@ namespace ArchSitePlan.UI.Actions
         {
             List<string> layersToUnlock = new();
             List<string> additionalLayersToLock = new();
-            int layerIndex = 0;
 
             switch (appMode)
             {
                 case AppMode.Road:  
                     layersToUnlock.Add(LayerConstants.RoadLayer);
                     additionalLayersToLock.Add(LayerConstants.RoadOutlineLayer);
-                    layerIndex = LayerHelpers.CreateOrGetLayerIndex(doc, LayerConstants.RoadCLLayer);
-                    doc.Layers.SetCurrentLayerIndex(layerIndex, true);
                     break;
                 
                 case AppMode.LandUse:  
                     layersToUnlock.AddRange(new string[] { LayerConstants.ParcelsLayer, LayerConstants.ParcelDividerLayer });
-                    layerIndex = LayerHelpers.CreateOrGetLayerIndex(doc, LayerConstants.ParcelsLayer);
-                    doc.Layers.SetCurrentLayerIndex(layerIndex, true);
                     break;
                 
                 case AppMode.Building:
                     {
                         layersToUnlock.Add(LayerConstants.BuildingLayer);
                         additionalLayersToLock.Add(LayerConstants.BuildingFloorOutlineLayer);
-                        layerIndex = LayerHelpers.CreateOrGetLayerIndex(doc, LayerConstants.BuildingLayer);
-                        doc.Layers.SetCurrentLayerIndex(layerIndex, true);
                     }
                     break;
 
                 case AppMode.StudyArea:  
                     layersToUnlock.Add(LayerConstants.StudyAreaLayer);
-                    layerIndex = LayerHelpers.CreateOrGetLayerIndex(doc, LayerConstants.StudyAreaLayer);
-                    doc.Layers.SetCurrentLayerIndex(layerIndex, true);
                     break;
 
                 default:
                     layersToUnlock.Add(LayerConstants.MainLayer);
-                    layerIndex = LayerHelpers.CreateOrGetLayerIndex(doc, LayerConstants.MainLayer);
-                    doc.Layers.SetCurrentLayerIndex(layerIndex, true);
                     break;
             }
 

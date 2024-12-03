@@ -1,6 +1,8 @@
 ﻿using ArchSitePlan.Core.Constants;
 using ArchSitePlan.Core.Extensions;
 using ArchSitePlan.Core.Models;
+using ArchSitePlan.Core.Pipeline;
+using ArchSitePlan.Core.Pipeline.CreationData;
 using ArchSitePlan.UI.Actions;
 using ArchSitePlan.UI.Constants;
 using ArchSitePlan.UI.Helpers;
@@ -17,9 +19,9 @@ namespace ArchSitePlan.UI.CoreModelInterface
 {
     internal class RhinoModelEditStepLibrary
     {
-        public static List<DividerCreationData> ExtractDividerData(RhinoDoc doc)
+        public static List<DividerData> ExtractDividerData(RhinoDoc doc)
         {
-            List<DividerCreationData> dividerData = new();
+            List<DividerData> dividerData = new();
 
             // STUDY AREAS
             // Read boundary objects
@@ -40,7 +42,7 @@ namespace ArchSitePlan.UI.CoreModelInterface
 
                 if (!geo.TryGetPolyline(out var pline)) continue;
 
-                var divData = new DividerCreationData(
+                var divData = new DividerData(
                     pline.ToBHoMPolyline(),
                     obj.Id);
 
@@ -49,9 +51,9 @@ namespace ArchSitePlan.UI.CoreModelInterface
 
             return dividerData;
         }
-        public static List<BuildingCreationData> ExtractBuildingCreationDataFromRhino(RhinoDoc doc)
+        public static List<BuildingData> ExtractBuildingCreationDataFromRhino(RhinoDoc doc)
         {
-            List<BuildingCreationData> buildingData = new();
+            List<BuildingData> buildingData = new();
             CoreModel.Buildings = new();
 
             // Read mesh envelope objects
@@ -96,16 +98,16 @@ namespace ArchSitePlan.UI.CoreModelInterface
 
                 ffHt = Math.Abs(ffHt);
 
-                var data = new BuildingCreationData(envelope, floors, entry.Key.Id, Guid.Empty, ffHt);
+                var data = new BuildingData(envelope, floors, entry.Key.Id, Guid.Empty, ffHt);
                 buildingData.Add(data);
             }
 
             return buildingData;
         }
-        public static List<StudyCreationData> ExtractStudyAreasFromRhino(RhinoDoc doc)
+        public static List<StudyData> ExtractStudyAreasFromRhino(RhinoDoc doc)
         {
             CoreModel.ResetStudyAreas();
-            List<StudyCreationData> studyData = new();
+            List<StudyData> studyData = new();
 
             // STUDY AREAS
             // Read boundary objects
@@ -129,7 +131,7 @@ namespace ArchSitePlan.UI.CoreModelInterface
                 if (studyObj == null) continue;
                 (studyObj.Geometry as Curve).TryGetPolyline(out var pline);
 
-                studyData.Add(new StudyCreationData
+                studyData.Add(new StudyData
                     (pline.ToBHoMPolyline(),
                     studyObj.Id,
                     doc.Layers[index].Name));
@@ -137,9 +139,9 @@ namespace ArchSitePlan.UI.CoreModelInterface
 
             return studyData;
         }
-        public static List<TransitCreationData> ExtractTransitFromRhino(RhinoDoc doc)
+        public static List<TransitData> ExtractTransitFromRhino(RhinoDoc doc)
         {
-            List<TransitCreationData> transitData = new();
+            List<TransitData> transitData = new();
 
             // TRANSIT
             // Read Road CL objects
@@ -173,7 +175,7 @@ namespace ArchSitePlan.UI.CoreModelInterface
                     var bhomCrv = curve.ToBHoM2DegreeCrv();
                     if (bhomCrv == null) continue;
 
-                    transitData.Add(new TransitCreationData
+                    transitData.Add(new TransitData
                         (bhomCrv!, obj.Id, roadWidth));
                 }
 
@@ -194,6 +196,7 @@ namespace ArchSitePlan.UI.CoreModelInterface
             RemoveEmptyAppLayers(doc);
             doc.Views.Redraw();
             RhinoEventHandler.EventLock = initialState;
+            RhinoEventHandler.ResetEventQueueAndObjects();
         }
 
         private static void RemoveEmptyAppLayers(RhinoDoc doc)
@@ -211,11 +214,13 @@ namespace ArchSitePlan.UI.CoreModelInterface
             var buildingLayerIndex = doc.Layers.FindByFullPath(LayerConstants.BuildingLayer, -1);
             if (buildingLayerIndex == -1) return;
 
-            var allBldgLayers = doc.Layers[buildingLayerIndex].GetChildren(true)?? new Layer[1];
-            
-            allBldgLayers.ToList().Add(doc.Layers[buildingLayerIndex]);
+            List<Layer> allBldgLayers = doc.Layers[buildingLayerIndex].GetChildren(true)?.ToList()?? new();
 
-            var buildingLayerIndices = allBldgLayers.Select(x => x.Index).ToList();
+            allBldgLayers.Add(doc.Layers[buildingLayerIndex]);
+
+            var buildingLayerIndices = allBldgLayers
+                .Where(lay => lay is not null)
+                .Select(x => x.Index).ToList();
             
             // Delete rhino objects
             var result = doc.Objects.Where(o => buildingLayerIndices.Contains(o.Attributes.LayerIndex))
