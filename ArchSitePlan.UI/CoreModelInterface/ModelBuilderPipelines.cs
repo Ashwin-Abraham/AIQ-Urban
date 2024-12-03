@@ -1,8 +1,5 @@
-﻿using ArchSitePlan.Core.Constants;
-using ArchSitePlan.Core.Models;
-using ArchSitePlan.UI.Actions;
-using BH.Engine.Reflection;
-using BH.oM.Geometry;
+﻿using ArchSitePlan.Core.Pipeline;
+using ArchSitePlan.Core.Pipeline.CreationData;
 using Rhino;
 using static ArchSitePlan.Core.Constants.Enums;
 
@@ -12,11 +9,10 @@ namespace ArchSitePlan.UI.CoreModelInterface
     {
 
         public static void AddOrUpdateRoadPipeline(RhinoDoc doc,
-            List<(ICurve? centerLine, Guid id)> centerLineAndIds,
-            double width)
+            List<TransitData> creationData)
         {
-            CoreModelEditStepLibrary.TryRemoveRoad(centerLineAndIds.Select(x => x.id));
-            CoreModelEditStepLibrary.AddOrUpdateRoad(centerLineAndIds, width);
+            CoreModelEditStepLibrary.TryRemoveRoad(creationData);
+            CoreModelEditStepLibrary.AddOrUpdateRoad(creationData);
             CoreModelEditStepLibrary.RecalculateParcelsAndRoadRoWs();
             CoreModelEditStepLibrary.DivideParcelsAndTransit();
             CoreModelEditStepLibrary.RefreshBuildingUse();
@@ -45,11 +41,11 @@ namespace ArchSitePlan.UI.CoreModelInterface
         }
 
         public static void AddOrUpdateParcelDividerPipeline(RhinoDoc doc, 
-            List<(ICurve? Crv, Guid ID)> plineObjs)
+            List<DividerData> dividerData)
         {
             CoreModelEditStepLibrary
-                .TryRemoveDivders(plineObjs.Select(x => x.ID).ToList());
-            CoreModelEditStepLibrary.AddDivders(plineObjs);
+                .TryRemoveDivders(dividerData.Select(x => x.ID).ToList());
+            CoreModelEditStepLibrary.AddDivders(dividerData);
             CoreModelEditStepLibrary.RecalculateParcelsAndRoadRoWs();
             CoreModelEditStepLibrary.DivideParcelsAndTransit();
             CoreModelEditStepLibrary.RefreshBuildingUse();
@@ -67,24 +63,24 @@ namespace ArchSitePlan.UI.CoreModelInterface
 
         internal static void AddOrUpdateBuldingPipeline(
             RhinoDoc doc,
-            List<(Mesh? Envelope, Guid ID, List<PlanarSurface> FloorPlates)> buildingData,
-            double ffHt,
-            int floorCount)
+            List<BuildingData> buildingData)
         {
-            CoreModelEditStepLibrary.AddOrUpdateBulding(buildingData, ffHt, floorCount);
+            CoreModelEditStepLibrary.AddOrUpdateBulding(buildingData);
             CoreModelEditStepLibrary.RefreshBuildingUse();
             CoreModelEditStepLibrary.RefreshStudyAreaMetrics();
             RhinoModelEditStepLibrary.ReplaceRhinoModel(doc, true);
         }
 
-        internal static void DeleteBuildingPipeline(RhinoDoc doc, List<Guid> buildingEnvelopeGuids)
+        internal static void DeleteBuildingPipeline(
+            RhinoDoc doc, 
+            List<BuildingData> buildingData)
         {
-            if (buildingEnvelopeGuids.Count == 0) return;
-            RhinoModelEditStepLibrary.DeleteAllRhinoBuilding(doc);
-            CoreModelEditStepLibrary.TryDeleteBuildings(buildingEnvelopeGuids);
+            if (buildingData.Count == 0) return;
+            CoreModelEditStepLibrary.TryDeleteBuildings(buildingData);
             CoreModelEditStepLibrary.RefreshStudyAreaMetrics();
+            RhinoModelEditStepLibrary.ReplaceRhinoModel(doc, true);
         }
-        internal static void AddStudyAreaPipeline(RhinoDoc doc, List<(ICurve, Guid, string)> studyData)
+        internal static void AddStudyAreaPipeline(RhinoDoc doc, List<StudyData> studyData)
         {
             CoreModelEditStepLibrary.AddOrUpdateStudyArea(studyData);
             CoreModelEditStepLibrary.RecalculateParcelsAndRoadRoWs();
@@ -104,12 +100,8 @@ namespace ArchSitePlan.UI.CoreModelInterface
             RhinoModelEditStepLibrary.ReplaceRhinoModel(doc, true);
         }
 
-        internal static void UpdateStudyAreas(RhinoDoc doc, List<(ICurve Crv, Guid Id)> plineObjs)
+        internal static void UpdateStudyAreas(RhinoDoc doc, List<StudyData> studyData)
         {
-            var studyData = CoreModelEditStepLibrary.BuildStudyDataForValidStudies(plineObjs);
-
-            if (studyData.Count == 0) return;
-
             AddStudyAreaPipeline(doc, studyData);
         }
 
@@ -137,10 +129,10 @@ namespace ArchSitePlan.UI.CoreModelInterface
             CoreModelEditStepLibrary.RefreshStudyAreaMetrics();
         }
 
-        internal static void RemoveRoadPipeline(List<Guid> roadIDs, 
+        internal static void RemoveRoadPipeline(List<TransitData> transitData, 
             RhinoDoc doc)
         {
-            CoreModelEditStepLibrary.TryRemoveRoad(roadIDs);
+            CoreModelEditStepLibrary.TryRemoveRoad(transitData);
             CoreModelEditStepLibrary.RecalculateParcelsAndRoadRoWs();
             CoreModelEditStepLibrary.DivideParcelsAndTransit();
             CoreModelEditStepLibrary.RefreshStudyAreaMetrics();

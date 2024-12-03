@@ -63,6 +63,9 @@ namespace ArchSitePlan.Core.Models
                 }
             }
         }
+        public static List<Guid> GetBuildingIds()
+        => Buildings.Select(b => b.EnvelopeId).ToList();
+        
         private static void SplitCoreModel()
         {
             var studyBoundaries = Studies.Select(sa => sa.Boundary)
@@ -293,7 +296,7 @@ namespace ArchSitePlan.Core.Models
             return count > 0;
         }
 
-        public static bool TryGetBuilding(Guid footPrintId, Guid massId, out Building building)
+        public static bool TryGetBuilding(Guid footPrintId, Guid massId, out Building? building)
         {
             building = Buildings.FirstOrDefault(b =>
             (footPrintId != Guid.Empty && b.FootprintId == footPrintId)

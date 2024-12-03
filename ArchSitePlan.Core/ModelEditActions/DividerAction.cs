@@ -1,4 +1,5 @@
 ﻿using ArchSitePlan.Core.Models;
+using ArchSitePlan.Core.Pipeline.CreationData;
 using BH.oM.Geometry;
 using static ArchSitePlan.Core.Constants.Enums;
 
@@ -6,18 +7,18 @@ namespace ArchSitePlan.Core.ModelEditActions
 {
     public class DividerAction:IModelEditAction
     {
-        public void Run(List<(ICurve?, Guid)> dividers,
+        public void Run(List<DividerData> dividerData,
            EditType editType)
         {
             switch (editType)
             {
                 case EditType.Remove:
-                    TryRemoveFromCoreModel(dividers);
+                    TryRemoveFromCoreModel(dividerData);
                     break;
 
                 case EditType.Add or EditType.Edit:
-                    TryRemoveFromCoreModel(dividers);
-                    TryAddToCoreModel(dividers);
+                    TryRemoveFromCoreModel(dividerData);
+                    TryAddToCoreModel(dividerData);
                     break;
 
                 default:
@@ -25,7 +26,7 @@ namespace ArchSitePlan.Core.ModelEditActions
             }
         }
 
-        private static void TryAddToCoreModel(List<(ICurve? Curve, Guid ID)> dividersData)
+        private static void TryAddToCoreModel(List<DividerData> dividersData)
         {
             var dividers = dividersData
                 .Where(x => x.Curve != null)
@@ -35,7 +36,7 @@ namespace ArchSitePlan.Core.ModelEditActions
             CoreModel.Dividers.AddRange(dividers);
         }
 
-        private static void TryRemoveFromCoreModel(List<(ICurve? Curve, Guid ID)> dividers)
+        private static void TryRemoveFromCoreModel(List<DividerData> dividers)
         {
             var ids = dividers.Select(x => x.ID).ToList();
             int count = CoreModel.Dividers.RemoveAll(d => ids.Contains(d.Id));

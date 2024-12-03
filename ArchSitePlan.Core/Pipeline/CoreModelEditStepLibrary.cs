@@ -2,33 +2,14 @@
 using ArchSitePlan.Core.ModelEditActions;
 using ArchSitePlan.Core.ModelEditActions.Configs;
 using ArchSitePlan.Core.Models;
+using ArchSitePlan.Core.Pipeline.CreationData;
 using BH.Engine.Geometry;
 using BH.oM.Geometry;
 using static ArchSitePlan.Core.Constants.Enums;
 using static ArchSitePlan.Core.ModelEditActions.BuildingAction;
 
-namespace ArchSitePlan.Core.Constants
+namespace ArchSitePlan.Core.Pipeline
 {
-    public record StudyCreationData(
-            BH.oM.Geometry.ICurve Boundary,
-            Guid Id,
-            string Name);
-
-    public record TransitCreationData(
-        BH.oM.Geometry.ICurve? Centerline,
-        Guid Id,
-        double RoadWidth);
-
-    public record BuildingCreationData(
-        Mesh? Envelope, 
-        List<PlanarSurface> Floors, 
-        Guid EnvelopeId, 
-        Guid FloorId, 
-        double FloorHt);
-
-    public record DividerCreationData(
-        ICurve? Polyline, 
-        Guid Id);
     public class CoreModelEditStepLibrary
     {
         public static void EditParcelUsesByClosestPoint(
@@ -64,15 +45,10 @@ namespace ArchSitePlan.Core.Constants
             new ParcelAction().Run(parcelsAndIds, EditType.Edit, use);
         }
 
-        public static bool TryRemoveRoad(IEnumerable<Guid> ids)
+        public static bool TryRemoveRoad(IEnumerable<TransitData> transitData)
         {
             int initialRoadCount = CoreModel.Roads.Count;
-            List<(ICurve?, Guid)> centerLineAndIds = new();
-            foreach (var id in ids)
-                centerLineAndIds.Add((null, id));
-
-            RoadAction.Run(centerLineAndIds, EditType.Remove, null);
-
+            //RoadAction.Run(transitData.ToList(), EditType.Remove);
             return initialRoadCount > CoreModel.Roads.Count;
         }
 
@@ -98,35 +74,19 @@ namespace ArchSitePlan.Core.Constants
                 dividers: dividers);
 
             var roadsAndIds = CoreModel.Roads
-                .Select(rd => (rd.Centerline as ICurve, rd.CenterLineId))
+                .Select(rd => rd.ToTransitData())
                 .ToList();
 
             // Divide Roads
-            RoadAction.Run(roadsAndIds, 
-                EditType.Divide,
-                0);
+            RoadAction.Run(roadsAndIds, EditType.Divide);
 
-            RoadAction.Run(CoreModel.ROWs, 
+            RoadAction.Run(CoreModel.ROWs,
                 EditType.Divide);
         }
-        public static void AddOrUpdateRoad(List<TransitCreationData> transitData)
-        {
-            var groupedByWidths = transitData.GroupBy(data => data.RoadWidth);
-            foreach(var group in groupedByWidths)
-            {
-                List<(ICurve? centerLine, Guid id)> centerLineAndIds = group
-                    .AsEnumerable()
-                    .Select(g => (g.Centerline as ICurve, g.Id))
-                    .ToList();
 
-                AddOrUpdateRoad(centerLineAndIds, group.Key);
-            }
-        }
-        public static void AddOrUpdateRoad(
-           List<(ICurve? centerLine, Guid id)> centerLineAndIds,
-           double width)
+        public static void AddOrUpdateRoad( List<TransitData> transitData)
         {
-            RoadAction.Run(centerLineAndIds, EditType.Add, width);
+            RoadAction.Run(transitData, EditType.Add);
         }
         public static void RecalculateParcelsAndRoadRoWs()
         {
@@ -164,7 +124,7 @@ namespace ArchSitePlan.Core.Constants
                 .ToList();
 
             List<ICurve> innerBoundaries = new();
-            foreach(var innerBoundary in roadInnerBoundaries)
+            foreach (var innerBoundary in roadInnerBoundaries)
             {
                 var clash = roadOuterBoundaries
                     .Where(b => b.ICurveIntersections(innerBoundary).Count > 0)
@@ -180,7 +140,7 @@ namespace ArchSitePlan.Core.Constants
             }
             roadInnerBoundaries = innerBoundaries;
 
-            var roadUnion = Compute.BooleanUnion(roadOuterBoundaries)
+            var roadUnion = roadOuterBoundaries.BooleanUnion()
                 .ToList();
 
             var roadPoints = CoreModel.Roads
@@ -190,7 +150,7 @@ namespace ArchSitePlan.Core.Constants
             var roadCrvs = roadUnion
                 .Where(pCrv => roadPoints.Any(pt => pCrv.IsContaining(new List<Point>() { pt })))
                 .ToList();
-                
+
             var parcelCrvs = roadUnion
                 .Where(pCrv => !roadCrvs.Contains(pCrv))
                 .Where(crv => crv is not null)
@@ -204,10 +164,10 @@ namespace ArchSitePlan.Core.Constants
                 .Select(s => s.Boundary)
                 .ToList();
 
-            var studiesCombined = Compute.BooleanUnion(studyBoundaries);
+            var studiesCombined = studyBoundaries.BooleanUnion();
 
             var unenclosedParcels = studiesCombined.
-                SelectMany(crv => Compute.BooleanDifference(crv, roadUnion))
+                SelectMany(crv => crv.BooleanDifference(roadUnion))
                 .ToList();
 
             var roadSrfs = roadCrvs
@@ -224,55 +184,45 @@ namespace ArchSitePlan.Core.Constants
         {
             int initialCount = CoreModel.Dividers.Count;
 
-            List<(ICurve?, Guid)> dividerData = new();
-            dividerIds.ForEach(id => dividerData.Add((null, id)));
+            List<DividerData> dividerData = CoreModel.Dividers
+                .Select(d => d.ToDividerData())
+                .ToList();  
 
             new DividerAction().Run(dividerData, EditType.Remove);
 
             return CoreModel.Dividers.Count < initialCount;
         }
 
-        public static void AddDivders(List<DividerCreationData> divData)
-        {
-            AddDivders(
-                divData
-                .Select(d => (d.Polyline, d.Id))
-                .ToList()
-                );
-        }
-        public static void AddDivders(List<(ICurve?, Guid)> plineObjs) =>
-            new DividerAction().Run(plineObjs, EditType.Add);
+        public static void AddDivders(List<DividerData> dividerData) =>
+            new DividerAction().Run(dividerData, EditType.Add);
 
-        public static void AddOrUpdateBulding(
-            List<(Mesh? Envelope, Guid ID, List<PlanarSurface> FloorPlates)> buildingData,
-            double ffHt,
-            int floorCount)
+        public static void AddOrUpdateBulding(List<BuildingData> buildingData)
         {
             var configs = new List<BuildingActionConfig>();
 
-            foreach( var data in buildingData )
+            foreach (var data in buildingData)
             {
                 var config = new BuildingActionConfig(
                     data.Envelope,
-                    data.ID,
+                    data.EnvelopeId,
                     Guid.Empty,
-                    ffHt,
-                    floorCount,
-                    data.FloorPlates);
+                    data.FloorHt,
+                    data.Floors.Count,
+                    data.Floors);
 
                 configs.Add(config);
             }
 
-            BuildingAction.Run(configs, EditType.Add);
+            Run(configs, EditType.Add);
         }
 
-        public static bool TryDeleteBuildings(List<Guid> envelopeIds)
+        public static int TryDeleteBuildings(List<BuildingData> buildingData)
         {
-            int deleted = CoreModel.Buildings.RemoveAll(bld => envelopeIds.Contains(bld.EnvelopeId));
-            return deleted > 0;
+            var ids = buildingData.Select(x => x.EnvelopeId).ToList();
+            return CoreModel.Buildings.RemoveAll(bld => ids.Contains(bld.EnvelopeId));
         }
 
-        public static void AddOrUpdateStudyArea(List<StudyCreationData> studyData) =>
+        public static void AddOrUpdateStudyArea(List<StudyData> studyData) =>
             AddOrUpdateStudyArea(
                 studyData.Select(d => (d.Boundary, d.Id, d.Name)).ToList());
 
@@ -286,35 +236,13 @@ namespace ArchSitePlan.Core.Constants
             StudyAreaAction.Run(studyData, EditType.Remove);
         }
 
-        public static List<(ICurve, Guid, string)> BuildStudyDataForValidStudies(
-            List<(ICurve Crv, Guid Id)> plineObjs)
-        {
-            var ids = CoreModel.Studies.Select(s => s.Id).ToList();
-            var studyObjs = new List<(ICurve, Guid, string)>();
-
-            foreach (var pline in plineObjs)
-            {
-                if (CoreModel.TryGetStudyArea(pline.Id, out StudyArea study))
-                    studyObjs.Add((pline.Crv, pline.Id, study.Name));
-            }
-            return studyObjs;
-        }
-
-        public static void AddOrUpdateBulding(List<BuildingCreationData> buildingData)
-        {
-            buildingData.ForEach(data =>AddOrUpdateBulding(
-                (data.Envelope, data.EnvelopeId, data.Floors).ObjectToList(),
-                data.FloorHt,
-                data.Floors.Count));
-        }
-
         public static void RefreshBuildingUse()
         {
             var buildingConfigs = CoreModel.Buildings
                 .Select(b => new BuildingActionConfig(b))
                 .ToList();
 
-            BuildingAction.Run(buildingConfigs, EditType.UpdateUse);
+            Run(buildingConfigs, EditType.UpdateUse);
         }
     }
 }

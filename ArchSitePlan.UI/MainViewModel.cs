@@ -2,11 +2,14 @@
 using ArchSitePlan.Core.Extensions;
 using ArchSitePlan.Core.Metrics;
 using ArchSitePlan.Core.Models;
+using ArchSitePlan.Core.Pipeline.CreationData;
 using ArchSitePlan.UI.Actions;
 using ArchSitePlan.UI.Constants;
 using ArchSitePlan.UI.CoreModelInterface;
 using ArchSitePlan.UI.Extensions;
 using ArchSitePlan.UI.Helpers;
+using ArchSitePlan.UI.InputValidation;
+using ArchSitePlan.UI.Models;
 using ArchSitePlan.UI.RhinoBHoMInterop;
 using BH.Engine.Geometry;
 using LiveCharts;
@@ -229,7 +232,7 @@ namespace ArchSitePlan.UI
             }
         }
 
-        public BuildingSelectorMode BuildingSelectorMode = BuildingSelectorMode.None;
+        public BuildingSelectorMode BuildingSelectorMode { get; set; } = BuildingSelectorMode.Footprint;
 
 
         private bool _buildingFootprintSelectorModeActive = true;
@@ -239,8 +242,11 @@ namespace ArchSitePlan.UI
             set
             {
                 _buildingFootprintSelectorModeActive = value;
-                BuildingSelectorMode = BuildingSelectorMode.Footprint;
                 OnPropertyChanged(nameof(BuildingFootprintSelectorModeActive));
+
+                if (_buildingFootprintSelectorModeActive)
+                    BuildingSelectorMode = BuildingSelectorMode.Footprint;
+
             }
         }
 
@@ -250,11 +256,11 @@ namespace ArchSitePlan.UI
             get => _buildingMassSelectorModeActive;
             set
             {
-                BuildingSelectorMode = BuildingSelectorMode.Mass;
                 _buildingMassSelectorModeActive = value;
                 OnPropertyChanged(nameof(BuildingMassSelectorModeActive));
 
-                EnableFloorCountSlider = !_buildingMassSelectorModeActive;
+                if (_buildingMassSelectorModeActive)
+                    BuildingSelectorMode = BuildingSelectorMode.Mass;
             }
         }
 
@@ -430,7 +436,7 @@ namespace ArchSitePlan.UI
 
                 int removed = rhinoObjs.Count() - rhinoCrvs.Count;
                 
-                List<(BH.oM.Geometry.ICurve?, Guid)> bhomCrvData = new();
+                List<DividerData> dividerData = new();
 
                 foreach (var rhinoObj in rhinoCrvs)
                 {
@@ -441,7 +447,7 @@ namespace ArchSitePlan.UI
                         continue;
                     }
 
-                    bhomCrvData.Add((bhomCrv, rhinoObj.Id));
+                    dividerData.Add(new(bhomCrv, rhinoObj.Id));
                     LayerHelpers.ChangeLayer(rhinoObj, parcelDividerLayerIndex);
                 }
 
@@ -450,9 +456,9 @@ namespace ArchSitePlan.UI
                         $"\n 1. Not lines or polylines " +
                         $"\n 2. Self intersecting");
 
-                if (!bhomCrvData.Any()) return;
+                if (!dividerData.Any()) return;
 
-                ModelBuilderPipelines.AddOrUpdateParcelDividerPipeline(doc, bhomCrvData);
+                ModelBuilderPipelines.AddOrUpdateParcelDividerPipeline(doc, dividerData);
             }
             catch(Exception ex)
             {
@@ -471,10 +477,10 @@ namespace ArchSitePlan.UI
 
                 SetAppMode(AppMode, expanderOpen);
 
-                if (!AppEnabled)
+                if (!AppEnabled || AppMode == AppMode.None)
                 {
                     // Hard lock to avoid complex refactor
-                    CoreModelToRhino.ToggleLockModelLayers(RhinoDoc.ActiveDoc, AppEnabled);
+                    CoreModelToRhino.ToggleLockModelLayers(RhinoDoc.ActiveDoc, true);
                     return;
                 }
 
@@ -704,11 +710,11 @@ namespace ArchSitePlan.UI
                     throw new Exception($"Another study named \"{ActiveStudyAreaName}\" already exists.");
                 
                 var bhomCrv = boundary.ToBHoM2DegreeCrv();
+                
                 RhinoDoc doc2 = RhinoDoc.ActiveDoc;
                 ModelBuilderPipelines.AddStudyAreaPipeline(doc: doc2,
-                    studyData: (bhomCrv,
-                        rhinoObj.Id,
-                        ActiveStudyAreaName).ObjectToList());
+                    studyData: new StudyData(bhomCrv!, rhinoObj.Id, ActiveStudyAreaName).ObjectToList());
+                
                 ActiveStudy = CoreModel.Studies.FirstOrDefault(s => rhinoObj.Id == s.Id);
 
                 RefreshActiveStudyAndMetrics();
@@ -726,33 +732,28 @@ namespace ArchSitePlan.UI
             {
                 RhinoDoc doc = RhinoDoc.ActiveDoc;
 
-                List<ObjectType> allowedTypes = new();
-                string layerName;
-                Color layerColor;
-
-                if (BuildingFootprintSelectorModeActive)
-                    allowedTypes = RHGeneralConstants.BuildingFootprintObjectTypes;
-                else
-                    allowedTypes = RHGeneralConstants.BuildingEnvelopeObjectTypes;
+                var allowedTypes = new List<ObjectType>
+                {
+                    ObjectType.Curve, ObjectType.Brep, ObjectType.Mesh, ObjectType.Mesh
+                };
 
                 var rhinoObjs = RhinoDoc.ActiveDoc.Objects.GetSelectedObjects(false, false)
                     .Where(obj => allowedTypes.Contains(obj.ObjectType))
                     .ToList();
 
-                if (rhinoObjs.Count == 0)
-                {
-                    if (BuildingFootprintSelectorModeActive)
-                        MessageBox.Show("Please select a planar curve representing the buildings base");
-                    else
-                        MessageBox.Show("Please select a brep, extrusion or mesh to act as the building envelope");
-                    
-                    return;
-                }
+                var validation = new BuildingInputValidation(BuildingSelectorMode)
+                    .ValidateInput(rhinoObjs);
 
-                RhinoEventHandler.UpdateSelectedBuildings(rhinoObjs,
-                    ActiveBuildingFloorCount,
-                    ActiveBuildingFloorHeight);
+                if (validation.Result != ValidationResult.All_Valid)
+                    MessageBox.Show(validation.Message);
 
+                if (validation.ValidObjects.Count == 0) return; 
+
+                var rhinoBuildingData = validation.ValidObjects
+                    .Select(o => RhinoBuildingData.FromRhinoObject(o, ActiveBuildingFloorCount, ActiveBuildingFloorHeight))
+                    .ToList();
+
+                RhinoEventHandler.UpdateSelectedBuildingsPosition(rhinoBuildingData);
                 RefreshActiveStudyAndMetrics();
             }
             catch(Exception ex)
@@ -823,7 +824,7 @@ namespace ArchSitePlan.UI
 
                 int roadIndex = RhinoObjAttributeConstants.RoadGeometryAttributes.LayerIndex;
 
-                List<(BH.oM.Geometry.ICurve?, Guid)> CLAndID = new();
+                List<TransitData> transitData = new();
 
                 foreach(var rhinoObj in rhinoObjs)
                 {
@@ -835,13 +836,13 @@ namespace ArchSitePlan.UI
                     if (bhomCrv == null || bhomCrv.IIsSelfIntersecting())
                         throw new Exception(UIMessages.RoadInstruction);
 
-                    CLAndID.Add((bhomCrv, rhinoObj.Id));
+                    transitData.Add(new(bhomCrv, rhinoObj.Id, RoadWidth));
                     LayerHelpers.ChangeLayer(rhinoObj, roadLayerIndex);
                 }
 
-                if (!CLAndID.Any()) return;
+                if (!transitData.Any()) return;
 
-                ModelBuilderPipelines.AddOrUpdateRoadPipeline(doc, CLAndID, RoadWidth);
+                ModelBuilderPipelines.AddOrUpdateRoadPipeline(doc, transitData);
                 RefreshActiveStudyAndMetrics();
             }
             catch(Exception ex)

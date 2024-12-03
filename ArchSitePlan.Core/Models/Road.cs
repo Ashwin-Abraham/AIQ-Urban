@@ -1,4 +1,5 @@
 ﻿using ArchSitePlan.Core.Extensions;
+using ArchSitePlan.Core.Pipeline.CreationData;
 using ArchSitePlan.DebugModel;
 using ArchSitePlan.DebugModel.BHoMExtensions;
 using BH.Engine.Geometry;
@@ -83,6 +84,11 @@ namespace ArchSitePlan.Core.Models
         public bool IsValid()
         {
             return RoW != null && Width > 0 && Centerline.Length() > 0;
+        }
+
+        public TransitData ToTransitData()
+        {
+            return new TransitData(Centerline, CenterLineId, Width);
         }
     }
 }
