@@ -394,6 +394,7 @@ namespace ArchSitePlan.UI
         public ICommand Test_Cmd { get; }
         public ICommand ToggleEnableApp_Cmd { get; }
         public ICommand AddParcelDivider_Cmd { get; }
+        public ICommand ContactMe_Cmd { get; }
         #endregion
 
         public MainViewModel()
@@ -407,11 +408,19 @@ namespace ArchSitePlan.UI
             this.ToggleEnableApp_Cmd = new RelayCommand(ToggleEnableApp_Exec);
             this.SetExcelPath_Cmd = new RelayCommand(SetExcelPath_Exec);
             this.AddParcelDivider_Cmd = new RelayCommand(AddParcelDivider_Exec);
+            this.ContactMe_Cmd = new RelayCommand(ContactMe_Exec);
 
             RhinoToCoreModel.ResetStudyAreas();
             ActiveStudy = CoreModel.Studies.FirstOrDefault();
             StudyAreasNames = CoreModel.Studies.Select(s => s.Name).ToList();
             ActiveStudyAreaName = ActiveStudy.Name;
+        }
+
+        private void ContactMe_Exec(object obj)
+        {
+            string linkedInLink = "https://www.linkedin.com/in/ashwin-abraham-gd/";
+            // Open email client with my email ID
+            Process.Start(new ProcessStartInfo(linkedInLink) { UseShellExecute = true });
         }
 
         private void AddParcelDivider_Exec(object obj)
