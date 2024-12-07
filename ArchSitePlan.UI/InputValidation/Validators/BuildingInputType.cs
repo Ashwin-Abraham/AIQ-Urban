@@ -1,4 +1,4 @@
-﻿namespace ArchSitePlan.UI.InputValidation
+﻿namespace ArchSitePlan.UI.InputValidation.Validators
 {
     public enum BuildingInputType
     {

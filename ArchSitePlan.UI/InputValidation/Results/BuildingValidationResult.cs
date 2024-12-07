@@ -1,14 +1,14 @@
 ﻿using Rhino.DocObjects;
 
-namespace ArchSitePlan.UI.InputValidation;
+namespace ArchSitePlan.UI.InputValidation.Results;
 
-public class TransitInputValidationResult:IValidationResult
+public class BuildingInputValidationResult : IValidationResult
 {
     public List<RhinoObject> ValidObjects { get; set; }
     public string Message { get; set; }
     public ValidationResult Result { get; set; }
 
-    public TransitInputValidationResult(
+    public BuildingInputValidationResult(
         List<RhinoObject> validObjects,
         ValidationResult result,
         string message)

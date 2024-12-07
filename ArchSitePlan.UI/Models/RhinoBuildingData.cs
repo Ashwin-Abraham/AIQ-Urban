@@ -70,13 +70,14 @@ public class RhinoBuildingData
         double floorHeight)
     {
         if (RHGeneralConstants.BuildingEnvelopeObjectTypes.Contains(obj.ObjectType))
-            return FromEnvelopeRhinoObject(obj, floorHeight);
+            return FromEnvelopeRhinoObject(obj, floorCount, floorHeight);
         else
             return FromFootprintRhinoObject(obj, floorCount, floorHeight);
     }
 
     private static RhinoBuildingData? FromEnvelopeRhinoObject(
         RhinoObject obj, 
+        int floorCount,
         double floorHeight)
     {
         Mesh rhinoMesh;
@@ -89,6 +90,8 @@ public class RhinoBuildingData
             rhinoMesh = GeometryHelpers.ConvertToMesh(rhinoExtrusion);
         else
             return null;
+
+        GeometryHelpers.RescaleMesh(rhinoMesh, (double)floorCount * floorHeight);
 
         var floorPlates = GeometryHelpers
                     .GetContours(rhinoMesh, floorHeight)

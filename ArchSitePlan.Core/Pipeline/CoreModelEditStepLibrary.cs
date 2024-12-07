@@ -48,7 +48,7 @@ namespace ArchSitePlan.Core.Pipeline
         public static bool TryRemoveRoad(IEnumerable<TransitData> transitData)
         {
             int initialRoadCount = CoreModel.Roads.Count;
-            //RoadAction.Run(transitData.ToList(), EditType.Remove);
+            RoadAction.Run(transitData.ToList(), EditType.Remove);
             return initialRoadCount > CoreModel.Roads.Count;
         }
 
@@ -73,15 +73,15 @@ namespace ArchSitePlan.Core.Pipeline
                 editType: EditType.Divide,
                 dividers: dividers);
 
-            var roadsAndIds = CoreModel.Roads
-                .Select(rd => rd.ToTransitData())
-                .ToList();
+            //var roadsAndIds = CoreModel.Roads
+            //    .Select(rd => rd.ToTransitData())
+            //    .ToList();
 
             // Divide Roads
-            RoadAction.Run(roadsAndIds, EditType.Divide);
+            //RoadAction.Run(roadsAndIds, EditType.Divide);
 
-            RoadAction.Run(CoreModel.ROWs,
-                EditType.Divide);
+            //RoadAction.Run(CoreModel.ROWs,
+            //    EditType.Divide);
         }
 
         public static void AddOrUpdateRoad( List<TransitData> transitData)

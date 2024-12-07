@@ -29,7 +29,7 @@ namespace ArchSitePlan.UI.RhinoBHoMInterop
         }
         public static BHoM.Arc ToBHoM(this Arc rhinoArc)
         {
-            var bhomArc = Create.Arc(start: rhinoArc.StartPoint.ToBHoM(),
+               var bhomArc = Create.Arc(start: rhinoArc.StartPoint.ToBHoM(),
                 middle: rhinoArc.MidPoint.ToBHoM(),
                 end: rhinoArc.EndPoint.ToBHoM());
 

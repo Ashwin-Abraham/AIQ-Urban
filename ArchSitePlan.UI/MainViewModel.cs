@@ -9,6 +9,8 @@ using ArchSitePlan.UI.CoreModelInterface;
 using ArchSitePlan.UI.Extensions;
 using ArchSitePlan.UI.Helpers;
 using ArchSitePlan.UI.InputValidation;
+using ArchSitePlan.UI.InputValidation.Results;
+using ArchSitePlan.UI.InputValidation.Validators;
 using ArchSitePlan.UI.Models;
 using ArchSitePlan.UI.RhinoBHoMInterop;
 using BH.Engine.Geometry;
@@ -119,7 +121,7 @@ namespace ArchSitePlan.UI
             {
                 _roadExpanderOpen = value;
                 OnPropertyChanged(nameof(RoadExpanderOpen));
-                SetAppMode(AppMode.Road, RoadExpanderOpen);
+                SetAppMode(AppMode.Transit, RoadExpanderOpen);
             }
         }
 
@@ -410,7 +412,7 @@ namespace ArchSitePlan.UI
             this.AddParcelDivider_Cmd = new RelayCommand(AddParcelDivider_Exec);
             this.ContactMe_Cmd = new RelayCommand(ContactMe_Exec);
 
-            RhinoToCoreModel.ResetStudyAreas();
+            CoreModel.ResetStudyAreas();
             ActiveStudy = CoreModel.Studies.FirstOrDefault();
             StudyAreasNames = CoreModel.Studies.Select(s => s.Name).ToList();
             ActiveStudyAreaName = ActiveStudy.Name;
@@ -467,7 +469,7 @@ namespace ArchSitePlan.UI
 
                 if (!dividerData.Any()) return;
 
-                ModelBuilderPipelines.AddOrUpdateParcelDividerPipeline(doc, dividerData);
+                ModelBuilderPipelines.AddOrUpdateParcelDividerPipeline(doc, dividerData, AppMode);
             }
             catch(Exception ex)
             {
@@ -479,6 +481,7 @@ namespace ArchSitePlan.UI
         {
             try
             {
+                RhinoDoc doc = RhinoDoc.ActiveDoc;
                 AppEnabled = !AppEnabled;
 
                 bool expanderOpen = AppMode != AppMode.None;
@@ -489,14 +492,15 @@ namespace ArchSitePlan.UI
                 if (!AppEnabled || AppMode == AppMode.None)
                 {
                     // Hard lock to avoid complex refactor
-                    CoreModelToRhino.ToggleLockModelLayers(RhinoDoc.ActiveDoc, true);
+                    LayerManager.ToggleLockModelLayers(doc, true);
                     return;
                 }
 
-                ModelBuilderPipelines.ReloadAppPipeline(RhinoDoc.ActiveDoc);
+                ModelBuilderPipelines.ReloadAppPipeline(doc, AppMode);
                 ActiveStudy = CoreModel.Studies.First();
                 ActiveStudyAreaName = ActiveStudy.Name;
                 StudyAreasNames = CoreModel.Studies.Select(s => s.Name).ToList();
+                LayerManager.ToggleLayerStateBasedOnAppMode(doc, AppMode);
             }
             catch(Exception ex)
             {
@@ -574,7 +578,8 @@ namespace ArchSitePlan.UI
 
                 ModelBuilderPipelines.ChangeParcelUsePipeline(doc,
                     srfObjs.Select(s => s.Id).ToList(),
-                    SelectedLandUse);
+                    SelectedLandUse,
+                    AppMode);
 
                 RefreshActiveStudyAndMetrics();
             }
@@ -722,7 +727,8 @@ namespace ArchSitePlan.UI
                 
                 RhinoDoc doc2 = RhinoDoc.ActiveDoc;
                 ModelBuilderPipelines.AddStudyAreaPipeline(doc: doc2,
-                    studyData: new StudyData(bhomCrv!, rhinoObj.Id, ActiveStudyAreaName).ObjectToList());
+                    studyData: new StudyData(bhomCrv!, rhinoObj.Id, ActiveStudyAreaName).ObjectToList(),
+                    AppMode);
                 
                 ActiveStudy = CoreModel.Studies.FirstOrDefault(s => rhinoObj.Id == s.Id);
 
@@ -743,14 +749,14 @@ namespace ArchSitePlan.UI
 
                 var allowedTypes = new List<ObjectType>
                 {
-                    ObjectType.Curve, ObjectType.Brep, ObjectType.Mesh, ObjectType.Mesh
+                    ObjectType.Curve, ObjectType.Brep, ObjectType.Mesh, ObjectType.Extrusion
                 };
 
-                var rhinoObjs = RhinoDoc.ActiveDoc.Objects.GetSelectedObjects(false, false)
+                var rhinoObjs = doc.Objects.GetSelectedObjects(false, false)
                     .Where(obj => allowedTypes.Contains(obj.ObjectType))
                     .ToList();
 
-                var validation = new BuildingInputValidation(BuildingSelectorMode)
+                var validation = new BuildingInputValidator(BuildingSelectorMode)
                     .ValidateInput(rhinoObjs);
 
                 if (validation.Result != ValidationResult.All_Valid)
@@ -762,6 +768,7 @@ namespace ArchSitePlan.UI
                     .Select(o => RhinoBuildingData.FromRhinoObject(o, ActiveBuildingFloorCount, ActiveBuildingFloorHeight))
                     .ToList();
 
+                DocObjectHelpers.DeleteRhinoObjectsIfPresent(doc, rhinoObjs.Select(r => r.Id));
                 RhinoEventHandler.UpdateSelectedBuildingsPosition(rhinoBuildingData);
                 RefreshActiveStudyAndMetrics();
             }
@@ -780,7 +787,7 @@ namespace ArchSitePlan.UI
                 // If expander is closed while the app mode is unchanged, it means wwe have closed all expanders
                 if (AppMode == changedExpander) AppMode = AppMode.None;
                 if (AppMode == AppMode.None)
-                    CoreModelToRhino.ToggleLockModelLayers(RhinoDoc.ActiveDoc, true);
+                    LayerManager.ToggleLockModelLayers(RhinoDoc.ActiveDoc, true);
 
                 // Early return to avoid cyclic SetSelectionMode calls for expander closure
                 return;
@@ -789,7 +796,7 @@ namespace ArchSitePlan.UI
                 AppMode = changedExpander;
 
             // Close other expanders
-            if (AppMode != AppMode.Road && RoadExpanderOpen)
+            if (AppMode != AppMode.Transit && RoadExpanderOpen)
                 RoadExpanderOpen = false;
             if (AppMode != AppMode.LandUse && LanduseExpanderOpen)
                 LanduseExpanderOpen = false;
@@ -801,7 +808,9 @@ namespace ArchSitePlan.UI
                 ExportsExpanderOpen = false;
 
             if(expanderOpen)
-                CoreModelToRhino.ToggleLayerStateBasedOnAppMode(RhinoDoc.ActiveDoc, changedExpander);
+                LayerManager.ToggleLayerStateBasedOnAppMode(RhinoDoc.ActiveDoc, changedExpander);
+
+            RhinoDoc.ActiveDoc.Views.Redraw();
         }
 
         private void UpdateSelectedLanduseColour(Landuse use)
@@ -851,7 +860,7 @@ namespace ArchSitePlan.UI
 
                 if (!transitData.Any()) return;
 
-                ModelBuilderPipelines.AddOrUpdateRoadPipeline(doc, transitData);
+                ModelBuilderPipelines.AddOrUpdateRoadPipeline(doc, transitData, AppMode);
                 RefreshActiveStudyAndMetrics();
             }
             catch(Exception ex)
