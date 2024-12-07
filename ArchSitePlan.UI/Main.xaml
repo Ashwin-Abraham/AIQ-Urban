@@ -90,8 +90,9 @@
         </Grid>
 
         <ScrollViewer VerticalScrollBarVisibility="Auto" 
-                      Height="600">
-            <Grid Margin="5"
+                      Height="Auto">
+            
+        <Grid Margin="5"
               IsEnabled="{Binding AppEnabled, Mode=TwoWay}">
             
         

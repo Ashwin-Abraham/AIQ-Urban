@@ -1,6 +1,6 @@
 ﻿using Rhino.DocObjects;
 
-namespace ArchSitePlan.UI.InputValidation;
+namespace ArchSitePlan.UI.InputValidation.Results;
 
 public interface IValidationResult
 {

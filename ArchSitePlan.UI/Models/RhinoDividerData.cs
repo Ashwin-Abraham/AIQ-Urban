@@ -20,7 +20,7 @@ namespace ArchSitePlan.UI.Models
         private static bool ValidateInput(RhinoObject obj)
         {
             return obj.Geometry is Curve rhinoCrv
-                && rhinoCrv.Degree > 2;
+                && rhinoCrv.Degree < 3;
         }
 
         public static IEnumerable<RhinoDividerData> Create(IEnumerable<RhinoObject>  objs)

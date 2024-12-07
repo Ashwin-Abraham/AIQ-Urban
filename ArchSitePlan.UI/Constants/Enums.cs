@@ -10,7 +10,7 @@ namespace ArchSitePlan.UI.Constants
     {
         public enum AppMode
         {
-            Road,
+            Transit,
             Separator,
             LandUse,
             Building,

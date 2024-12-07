@@ -1,17 +1,18 @@
 ﻿using ArchSitePlan.UI.Constants;
+using ArchSitePlan.UI.InputValidation.Results;
 using Rhino.DocObjects;
 using Rhino.Geometry;
 using Rhino.Geometry.Intersect;
 using static ArchSitePlan.UI.Constants.Enums;
 
-namespace ArchSitePlan.UI.InputValidation
+namespace ArchSitePlan.UI.InputValidation.Validators
 {
-    public class BuildingInputValidation 
-        :IRhinoInputValidation<BuildingInputValidationResult>
+    public class BuildingInputValidator
+        : IRhinoInputValidator<BuildingInputValidationResult>
     {
         readonly BuildingSelectorMode _inputType;
 
-        public BuildingInputValidation(BuildingSelectorMode inputType)
+        public BuildingInputValidator(BuildingSelectorMode inputType)
         {
             _inputType = inputType;
         }
@@ -30,15 +31,16 @@ namespace ArchSitePlan.UI.InputValidation
             {
                 case BuildingSelectorMode.Mass:
                     removed = rhinoObjs.RemoveAll(o => !RHGeneralConstants.BuildingEnvelopeObjectTypes.Contains(o.ObjectType));
+                    message += $"\nSkipped {removed} objects because they were not a brep, extrusion or mesh.";
                     break;
 
                 case BuildingSelectorMode.Footprint:
-                    
+
                     List<(RhinoObject Object, Curve Curve)> crvs = rhinoObjs
                         .Where(o => o.ObjectType == ObjectType.Curve)
                         .Select(o => (o, (o.Geometry as Curve)!))
                         .ToList();
-                    
+
                     int wrongType = rhinoObjs.Count - crvs.Count;
                     if (wrongType > 0)
                         message += $"\nSkipped {wrongType} objects that are not curves";
@@ -70,7 +72,7 @@ namespace ArchSitePlan.UI.InputValidation
 
             if (rhinoObjs.Count == 0)
                 validationResult = ValidationResult.All_Invalid;
-            
+
             return new(rhinoObjs, validationResult, message);
         }
     }

@@ -2,6 +2,7 @@
 using ArchSitePlan.Core.Pipeline.CreationData;
 using Rhino;
 using static ArchSitePlan.Core.Constants.Enums;
+using static ArchSitePlan.UI.Constants.Enums;
 
 namespace ArchSitePlan.UI.CoreModelInterface
 {
@@ -9,7 +10,8 @@ namespace ArchSitePlan.UI.CoreModelInterface
     {
 
         public static void AddOrUpdateRoadPipeline(RhinoDoc doc,
-            List<TransitData> creationData)
+            List<TransitData> creationData,
+            AppMode currentAppMode)
         {
             CoreModelEditStepLibrary.TryRemoveRoad(creationData);
             CoreModelEditStepLibrary.AddOrUpdateRoad(creationData);
@@ -18,21 +20,21 @@ namespace ArchSitePlan.UI.CoreModelInterface
             CoreModelEditStepLibrary.RefreshBuildingUse();
             CoreModelEditStepLibrary.RefreshStudyAreaMetrics();
             RhinoModelEditStepLibrary.ReplaceRhinoModel(doc);
+            LayerManager.ToggleLayerStateBasedOnAppMode(doc, currentAppMode);
         }
 
         public static void ChangeParcelUsePipeline(
             RhinoDoc doc,
             List<Guid> parcelIds,
-            Landuse newUse)
+            Landuse newUse,
+            AppMode currentAppMode)
         {
             CoreModelEditStepLibrary.UpdateParcelUse(parcelIds, newUse);
             CoreModelEditStepLibrary.RefreshBuildingUse();
             CoreModelEditStepLibrary.RefreshStudyAreaMetrics();
             RhinoModelEditStepLibrary.ReplaceRhinoModel(doc);
+            LayerManager.ToggleLayerStateBasedOnAppMode(doc, currentAppMode);
         }
-
-        public static void ReplaceRhinoModelPipeline(RhinoDoc doc) =>
-            RhinoModelEditStepLibrary.ReplaceRhinoModel(doc);
 
         public static void RefreshStudyAreaMetricsPipeline()
         {
@@ -41,7 +43,8 @@ namespace ArchSitePlan.UI.CoreModelInterface
         }
 
         public static void AddOrUpdateParcelDividerPipeline(RhinoDoc doc, 
-            List<DividerData> dividerData)
+            List<DividerData> dividerData,
+            AppMode currentAppMode)
         {
             CoreModelEditStepLibrary
                 .TryRemoveDivders(dividerData.Select(x => x.ID).ToList());
@@ -51,36 +54,46 @@ namespace ArchSitePlan.UI.CoreModelInterface
             CoreModelEditStepLibrary.RefreshBuildingUse();
             CoreModelEditStepLibrary.RefreshStudyAreaMetrics();
             RhinoModelEditStepLibrary.ReplaceRhinoModel(doc);
+            LayerManager.ToggleLayerStateBasedOnAppMode(doc, currentAppMode);
         }
-        public static void DeleteParcelDividers(RhinoDoc doc, List<Guid> dividerIds)
+        public static void DeleteParcelDividers(RhinoDoc doc, 
+            List<Guid> dividerIds,
+            AppMode currentAppMode)
         {
             if (!CoreModelEditStepLibrary.TryRemoveDivders(dividerIds)) return;
             CoreModelEditStepLibrary.DivideParcelsAndTransit();
             CoreModelEditStepLibrary.RefreshBuildingUse();
             CoreModelEditStepLibrary.RefreshStudyAreaMetrics();
             RhinoModelEditStepLibrary.ReplaceRhinoModel(doc);
+            LayerManager.ToggleLayerStateBasedOnAppMode(doc, currentAppMode);
         }
 
         internal static void AddOrUpdateBuldingPipeline(
             RhinoDoc doc,
-            List<BuildingData> buildingData)
+            List<BuildingData> buildingData,
+            AppMode currentAppMode)
         {
             CoreModelEditStepLibrary.AddOrUpdateBulding(buildingData);
             CoreModelEditStepLibrary.RefreshBuildingUse();
             CoreModelEditStepLibrary.RefreshStudyAreaMetrics();
             RhinoModelEditStepLibrary.ReplaceRhinoModel(doc, true);
+            LayerManager.ToggleLayerStateBasedOnAppMode(doc, currentAppMode);
         }
 
         internal static void DeleteBuildingPipeline(
             RhinoDoc doc, 
-            List<BuildingData> buildingData)
+            List<BuildingData> buildingData,
+            AppMode currentAppMode)
         {
             if (buildingData.Count == 0) return;
             CoreModelEditStepLibrary.TryDeleteBuildings(buildingData);
             CoreModelEditStepLibrary.RefreshStudyAreaMetrics();
             RhinoModelEditStepLibrary.ReplaceRhinoModel(doc, true);
+            LayerManager.ToggleLayerStateBasedOnAppMode(doc, currentAppMode);
         }
-        internal static void AddStudyAreaPipeline(RhinoDoc doc, List<StudyData> studyData)
+        internal static void AddStudyAreaPipeline(RhinoDoc doc, 
+            List<StudyData> studyData,
+            AppMode currentAppMode)
         {
             CoreModelEditStepLibrary.AddOrUpdateStudyArea(studyData);
             CoreModelEditStepLibrary.RecalculateParcelsAndRoadRoWs();
@@ -88,9 +101,12 @@ namespace ArchSitePlan.UI.CoreModelInterface
             CoreModelEditStepLibrary.RefreshBuildingUse();
             CoreModelEditStepLibrary.RefreshStudyAreaMetrics();
             RhinoModelEditStepLibrary.ReplaceRhinoModel(doc, true);
+            LayerManager.ToggleLayerStateBasedOnAppMode(doc, currentAppMode);
         }
 
-        internal static void DeleteStudyAreaPipeline(RhinoDoc doc, List<Guid> guids)
+        internal static void DeleteStudyAreaPipeline(RhinoDoc doc, 
+            List<Guid> guids,
+            AppMode currentAppMode)
         {
             CoreModelEditStepLibrary.DeleteStudyAreas(guids);
             CoreModelEditStepLibrary.RecalculateParcelsAndRoadRoWs();
@@ -98,14 +114,17 @@ namespace ArchSitePlan.UI.CoreModelInterface
             CoreModelEditStepLibrary.RefreshBuildingUse();
             CoreModelEditStepLibrary.RefreshStudyAreaMetrics();
             RhinoModelEditStepLibrary.ReplaceRhinoModel(doc, true);
+            LayerManager.ToggleLayerStateBasedOnAppMode(doc, currentAppMode);
         }
 
-        internal static void UpdateStudyAreas(RhinoDoc doc, List<StudyData> studyData)
+        internal static void UpdateStudyAreas(RhinoDoc doc, 
+            List<StudyData> studyData,
+            AppMode currentAppMode)
         {
-            AddStudyAreaPipeline(doc, studyData);
+            AddStudyAreaPipeline(doc, studyData, currentAppMode);
         }
 
-        internal static void ReloadAppPipeline(RhinoDoc doc)
+        internal static void ReloadAppPipeline(RhinoDoc doc, AppMode currentAppMode)
         {
             // Extract required data
             var landuseData = RhinoModelEditStepLibrary.ExtractRhinoLanduseData(doc);
@@ -126,17 +145,20 @@ namespace ArchSitePlan.UI.CoreModelInterface
 
             //Output
             RhinoModelEditStepLibrary.ReplaceRhinoModel(doc, true);
+            LayerManager.ToggleLayerStateBasedOnAppMode(doc, currentAppMode);
             CoreModelEditStepLibrary.RefreshStudyAreaMetrics();
         }
 
         internal static void RemoveRoadPipeline(List<TransitData> transitData, 
-            RhinoDoc doc)
+            RhinoDoc doc,
+            AppMode currentAppMode)
         {
             CoreModelEditStepLibrary.TryRemoveRoad(transitData);
             CoreModelEditStepLibrary.RecalculateParcelsAndRoadRoWs();
             CoreModelEditStepLibrary.DivideParcelsAndTransit();
             CoreModelEditStepLibrary.RefreshStudyAreaMetrics();
             RhinoModelEditStepLibrary.ReplaceRhinoModel(doc);
+            LayerManager.ToggleLayerStateBasedOnAppMode(doc, currentAppMode);
         }
     }
 }

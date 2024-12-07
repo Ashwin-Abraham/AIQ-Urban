@@ -38,6 +38,26 @@ namespace ArchSitePlan.UI.Helpers
             return Mesh.CreateFromExtrusion(brep, parameters);
         }
 
+        internal static void RescaleMesh(Mesh rhinoMesh, double height)
+        {
+            var bounds = rhinoMesh.GetBoundingBox(false);
+            double zMin = bounds.Min.Z;
+            
+            Point3d basePt = new Point3d(
+                bounds.Center.X,
+                bounds.Center.Y,
+                zMin);
+
+            double currentHeight = bounds.Max.Z - bounds.Min.Z;
+            double scaleFactor = height / currentHeight;
+
+            Transform scaleTransform = Transform.Scale(
+                new Plane(basePt, Vector3d.ZAxis),
+                1, 1, scaleFactor);
+
+            rhinoMesh.Transform(scaleTransform);
+        }
+
         private static Mesh Join(List<Mesh> meshes)
         {
             Mesh mesh = new Mesh();
