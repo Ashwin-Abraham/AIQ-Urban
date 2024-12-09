@@ -46,8 +46,7 @@ namespace ArchSitePlan.UI.CoreModelInterface
             List<DividerData> dividerData,
             AppMode currentAppMode)
         {
-            CoreModelEditStepLibrary
-                .TryRemoveDivders(dividerData.Select(x => x.ID).ToList());
+            CoreModelEditStepLibrary.TryRemoveDivders(dividerData);
             CoreModelEditStepLibrary.AddDivders(dividerData);
             CoreModelEditStepLibrary.RecalculateParcelsAndRoadRoWs();
             CoreModelEditStepLibrary.DivideParcelsAndTransit();
@@ -57,10 +56,10 @@ namespace ArchSitePlan.UI.CoreModelInterface
             LayerManager.ToggleLayerStateBasedOnAppMode(doc, currentAppMode);
         }
         public static void DeleteParcelDividers(RhinoDoc doc, 
-            List<Guid> dividerIds,
+            List<DividerData> dividerData,
             AppMode currentAppMode)
         {
-            if (!CoreModelEditStepLibrary.TryRemoveDivders(dividerIds)) return;
+            if (!CoreModelEditStepLibrary.TryRemoveDivders(dividerData)) return;
             CoreModelEditStepLibrary.DivideParcelsAndTransit();
             CoreModelEditStepLibrary.RefreshBuildingUse();
             CoreModelEditStepLibrary.RefreshStudyAreaMetrics();

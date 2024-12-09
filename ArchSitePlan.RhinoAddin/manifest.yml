@@ -1,5 +1,5 @@
 ﻿name: AIQ_Urban
-version: 1.1.0
+version: 1.1.1
 authors:
   - Ashwin Abraham Mukkaranath
 description: |
@@ -7,6 +7,7 @@ description: |
   Type "AIQ_Urban" in the rhino command line to open the plugin's UI'
   
   Future versions will include more automation features, computational analyses and eventually some AI.
+icon: Icon.png
 keywords: 
 - urban
 - urbandesign

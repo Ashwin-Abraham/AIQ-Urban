@@ -137,28 +137,30 @@ namespace ArchSitePlan.Core.Extensions
             for (int i = 0; i < splitters.Count; i++)
             {
                 var splitter = splitters[i];
+                result = new();
 
-                for(int j = 0; j < input.Count; j++)
+                for (int j = 0; j < input.Count; j++)
                 {
-                    result = new();
                     var boundary = input[j];
-                    var intersections = curve.ICurveIntersections(splitter);
+                    List<BoundaryCurve> boundaryFragments = new();
+
+                    var intersections = boundary.ICurveIntersections(splitter);
 
                     var splitterFragments = splitter.ISplitAtPoints(intersections);
                     var splittersToMerge = splitterFragments
-                        .Where(crv => boundary.IIsContaining(crv))
+                        .Where(crv => curve.IIsContaining(crv))
                         .ToList();
 
-                    var boundaryFragments = boundary.ISplitAtPoints(intersections);
+                    var boundaryCurveFragments = boundary.ISplitAtPoints(intersections);
 
-                    if(boundaryFragments.Count < 2)
+                    if(boundaryCurveFragments.Count < 2)
                     {
-                        result = input;
+                        result.Add(boundary);
                         continue;
                     }
 
                     // Try creating a closed fragment out of each if possible
-                    foreach (var fragment in boundaryFragments)
+                    foreach (var fragment in boundaryCurveFragments)
                     {
                         ICurve? closurePiece = splittersToMerge
                             .Find(crv =>
@@ -177,19 +179,21 @@ namespace ArchSitePlan.Core.Extensions
                             fragment, closurePiece
                         };
 
-                        result.Add(Create.BoundaryCurve(closedFragment));
+                        boundaryFragments.Add(Create.BoundaryCurve(closedFragment));
                     }
 
                     // Use difference to find any remaining pieces
-                    var remaining = boundary.BooleanDifference(result)
+                    var remaining = boundary.BooleanDifference(boundaryFragments)
                         .Select(pCrv => Create.BoundaryCurve(pCrv.Curves))
                         .ToList();
 
-                    result.AddRange(remaining);
+                    boundaryFragments.AddRange(remaining);
+
+                    result.AddRange(boundaryFragments);
                 }
 
                 // After each splitter is used transfer the boundary pieces into the input
-                input = result;
+                input = result.Count > 0? result: input;
             }
             return result;
         }

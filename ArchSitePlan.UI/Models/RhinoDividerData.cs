@@ -23,6 +23,24 @@ namespace ArchSitePlan.UI.Models
                 && rhinoCrv.Degree < 3;
         }
 
+        public static IEnumerable<RhinoDividerData> FromExisting(IEnumerable<RhinoObject> objs)
+        {
+            return objs
+                .Select(obj => FromExisting(obj))
+                .Where(x => x != null)
+                .Cast<RhinoDividerData>();
+        }
+
+        public static RhinoDividerData? FromExisting(RhinoObject obj)
+        {
+            if (obj.Geometry is not Curve rhinoCurve) return null;
+
+            var divider = CoreModel.Dividers.Find(d => d.Id == obj.Id);
+            if (divider == null) return null;
+
+            return new RhinoDividerData(rhinoCurve, obj.Id);
+        }
+
         public static IEnumerable<RhinoDividerData> Create(IEnumerable<RhinoObject>  objs)
         {
             return objs.Select(obj => Create(obj))
