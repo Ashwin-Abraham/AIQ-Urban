@@ -121,7 +121,7 @@
         <!--Road Expander-->
         <Expander Grid.Row="1"
                   Grid.ColumnSpan="3"
-                  Header="1. Roads"
+                  Header="Roads"
                   IsExpanded="{Binding RoadExpanderOpen, Mode=TwoWay}"
                   >
             <Grid>
@@ -177,7 +177,7 @@
         <!--Land Use Expander-->
         <Expander Grid.Row="2"
                   Grid.ColumnSpan="3"
-                  Header="2. Land Use"
+                  Header="Land Use"
                   IsExpanded="{Binding LanduseExpanderOpen, Mode=TwoWay}">
 
                     <Grid Margin="0,0,0,0">
@@ -236,7 +236,7 @@
         <!--Buildings Expander-->
         <Expander Grid.Row="3"
           Grid.ColumnSpan="3"
-          Header="3. Buildings"
+          Header="Buildings"
                   IsExpanded="{Binding BuildingsExpanderOpen, Mode=TwoWay}">
             <Grid>
                 <Grid.RowDefinitions>
@@ -334,7 +334,7 @@
         <!--Study Area-->
         <Expander Grid.Row="4"
                   Grid.ColumnSpan="3"
-                  Header="4. Study Area"
+                  Header="Study Area"
                   IsExpanded="{Binding StudyAreaExpanderOpen, Mode=TwoWay}">
             <Grid>
                 <Grid.RowDefinitions>
@@ -365,7 +365,7 @@
         <!--Exports-->
         <Expander Grid.Row="5"
                   Grid.ColumnSpan="3"
-                  Header="5. Excel Exports"
+                  Header="Excel Exports"
                   IsExpanded="{Binding ExportsExpanderOpen, Mode=TwoWay}">
             <Grid>
                 <Grid.RowDefinitions>
