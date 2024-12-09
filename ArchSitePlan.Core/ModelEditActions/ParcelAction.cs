@@ -74,9 +74,6 @@ namespace ArchSitePlan.Core.ModelEditActions
 
                 var srfFragments = parcel.Boundary.Split(cleanedDividers);
 
-                var boundary = parcel.Boundary.ExternalBoundary;
-                var fragments = boundary.Split(cleanedDividers);
-
                 var parcels = srfFragments
                     .Select(srf => new Parcel(parcel, srf))
                     .ToList();

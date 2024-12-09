@@ -1,12 +1,9 @@
-﻿using ArchSitePlan.Core.Constants;
-using ArchSitePlan.Core.Extensions;
-using ArchSitePlan.Core.Models;
+﻿using ArchSitePlan.Core.Models;
 using ArchSitePlan.Core.Pipeline.CreationData;
 using ArchSitePlan.UI.Constants;
 using ArchSitePlan.UI.CoreModelInterface;
 using ArchSitePlan.UI.Extensions;
 using ArchSitePlan.UI.Helpers;
-using ArchSitePlan.UI.InputValidation;
 using ArchSitePlan.UI.InputValidation.Results;
 using ArchSitePlan.UI.InputValidation.Validators;
 using ArchSitePlan.UI.Models;
@@ -18,12 +15,9 @@ using Rhino.Display;
 using Rhino.DocObjects;
 using Rhino.Geometry;
 using System.Runtime.InteropServices;
-using System.Timers;
 using System.Windows;
 using static ArchSitePlan.UI.Constants.Enums;
-using Mesh = Rhino.Geometry.Mesh;
 using Plane = Rhino.Geometry.Plane;
-using Timer = System.Timers.Timer;
 using Vector = BH.oM.Geometry.Vector;
 
 namespace ArchSitePlan.UI.Actions
@@ -94,7 +88,7 @@ namespace ArchSitePlan.UI.Actions
                 RunObjectAddOperations(_objectsForAddition);
 
             if (_objectsForUndelete.Count > 0)
-                RunCoreModelUndeOperations(_objectsForUndelete);
+                RunCoreModelUndoOperations(_objectsForUndelete);
 
             // Clean queue
             ResetEventQueueAndObjects();
@@ -119,7 +113,7 @@ namespace ArchSitePlan.UI.Actions
         {
             _popUp.Close();
         }
-        private static void RunCoreModelUndeOperations(List<RhinoObject> objectsForUndelete)
+        private static void RunCoreModelUndoOperations(List<RhinoObject> objectsForUndelete)
         {
             try
             {
@@ -201,7 +195,8 @@ namespace ArchSitePlan.UI.Actions
                 // This is actually for dividers
                 else if (ViewModel.AppMode == AppMode.LandUse)
                 {
-                    var rhinoDividerData = RhinoDividerData.Create(replacedObjects);
+                    var validation = new DividerInputValidator(true).ValidateInput(replacedObjects);
+                    var rhinoDividerData = RhinoDividerData.Create(validation.ValidObjects);
                     var coreDividerData = RhinoDividerData.ToCoreModelData(rhinoDividerData).ToList();
 
                     if (coreDividerData.Count == 0)
@@ -295,7 +290,7 @@ namespace ArchSitePlan.UI.Actions
                 // on curves in rhino will not trigger a replace event
                 else if (ViewModel.AppMode == AppMode.LandUse)
                 {
-                    var result = new DividerInputValidator().ValidateInput(newObjects);
+                    var result = new DividerInputValidator(true).ValidateInput(newObjects);
                     if(result.ValidObjects.Count == 0)
                     {
                         EventLock = false;
@@ -385,7 +380,16 @@ namespace ArchSitePlan.UI.Actions
                         break;
 
                     case AppMode.LandUse:
-                        ModelBuilderPipelines.DeleteParcelDividers(doc, removedIDs, ViewModel.AppMode);
+
+                        var validation = new DividerInputValidator(true).ValidateInput(removedObjects);
+
+                        if (validation.ValidObjects.Count == 0) break;
+
+                        var divData = RhinoDividerData.FromExisting(validation.ValidObjects)
+                            .Select(x => x.ToCoreModelData())
+                            .ToList();
+
+                        ModelBuilderPipelines.DeleteParcelDividers(doc, divData, ViewModel.AppMode);
                         ViewModel.RefreshActiveStudyAndMetrics();
                         break;
                 }

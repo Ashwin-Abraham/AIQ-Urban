@@ -180,14 +180,9 @@ namespace ArchSitePlan.Core.Pipeline
             roadRoWs = roadSrfs;
         }
 
-        public static bool TryRemoveDivders(List<Guid> dividerIds)
+        public static bool TryRemoveDivders(List<DividerData> dividerData)
         {
             int initialCount = CoreModel.Dividers.Count;
-
-            List<DividerData> dividerData = CoreModel.Dividers
-                .Select(d => d.ToDividerData())
-                .ToList();  
-
             new DividerAction().Run(dividerData, EditType.Remove);
 
             return CoreModel.Dividers.Count < initialCount;

@@ -149,13 +149,13 @@
                     HorizontalAlignment="Center"/>
 
                 <Slider Grid.Column="2"
-                    VerticalAlignment="Center"
+                        VerticalAlignment="Center"
                         Margin="25,0,25,0"
                         Minimum="1"
-                        Maximum="25"
+                        Maximum="100"
                         Value="{Binding RoadWidth, UpdateSourceTrigger=PropertyChanged}"
                         IsSnapToTickEnabled="True"
-                        TickFrequency="1"
+                        TickFrequency="25"
                         TickPlacement="BottomRight"
                         IsMoveToPointEnabled="True"
                         />
@@ -232,7 +232,6 @@
                     </Grid>
                 </Expander>
 
-
         <!--Buildings Expander-->
         <Expander Grid.Row="3"
           Grid.ColumnSpan="3"
@@ -258,7 +257,7 @@
                 <Slider Grid.Column="1"
                         Value="{Binding ActiveBuildingFloorCount, Mode=TwoWay}"
                         Minimum="1"
-                        Maximum="40"/>
+                        Maximum="100"/>
                 
                 <TextBox Text="{Binding ActiveBuildingFloorCount}"
                            Grid.Column="2"
