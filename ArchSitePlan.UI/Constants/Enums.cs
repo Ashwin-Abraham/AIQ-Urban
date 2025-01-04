@@ -14,7 +14,7 @@ namespace ArchSitePlan.UI.Constants
             Separator,
             LandUse,
             Building,
-            StudyArea,
+            Zones,
             Export,
             None
         }

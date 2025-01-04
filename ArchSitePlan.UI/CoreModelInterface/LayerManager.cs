@@ -32,7 +32,7 @@ public static class LayerManager
                 }
                 break;
 
-            case AppMode.StudyArea:
+            case AppMode.Zones:
                 layersToUnlock.Add(LayerConstants.StudyAreaLayer);
                 break;
 

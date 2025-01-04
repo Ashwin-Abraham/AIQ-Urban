@@ -49,7 +49,7 @@ namespace ArchSitePlan.RhinoAddin
         public static Main view = new Main();
         public MainViewHost() : base(view, viewModel)
         {
-            RhinoEventHandler.ViewModel = viewModel;
+            RhinoEventHandler.WPFViewModel = viewModel;
         }
 
         /// <summary>

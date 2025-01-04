@@ -8,7 +8,8 @@ using ArchSitePlan.UI.Constants;
 using ArchSitePlan.UI.CoreModelInterface;
 using ArchSitePlan.UI.Extensions;
 using ArchSitePlan.UI.Helpers;
-using ArchSitePlan.UI.InputValidation;
+using ArchSitePlan.UI.HTML_UI;
+using ArchSitePlan.UI.HTML_UI.MessagesFromUI;
 using ArchSitePlan.UI.InputValidation.Results;
 using ArchSitePlan.UI.InputValidation.Validators;
 using ArchSitePlan.UI.Models;
@@ -169,7 +170,7 @@ namespace ArchSitePlan.UI
             {
                 _studyAreaExpanderOpen = value;
                 OnPropertyChanged(nameof(StudyAreaExpanderOpen));
-                SetAppMode(AppMode.StudyArea, StudyAreaExpanderOpen);
+                SetAppMode(AppMode.Zones, StudyAreaExpanderOpen);
             }
         }
 
@@ -481,6 +482,8 @@ namespace ArchSitePlan.UI
         {
             try
             {
+                ServerComms.StartServer();
+
                 RhinoDoc doc = RhinoDoc.ActiveDoc;
                 AppEnabled = !AppEnabled;
 
@@ -802,7 +805,7 @@ namespace ArchSitePlan.UI
                 LanduseExpanderOpen = false;
             if (AppMode != AppMode.Building && BuildingsExpanderOpen)
                 BuildingsExpanderOpen = false;
-            if (AppMode != AppMode.StudyArea && StudyAreaExpanderOpen)
+            if (AppMode != AppMode.Zones && StudyAreaExpanderOpen)
                 StudyAreaExpanderOpen = false;
             if (AppMode != AppMode.Export && ExportsExpanderOpen)
                 ExportsExpanderOpen = false;
