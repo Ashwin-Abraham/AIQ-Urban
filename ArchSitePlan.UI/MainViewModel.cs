@@ -9,14 +9,12 @@ using ArchSitePlan.Core.Extensions;
 using ArchSitePlan.Core.Metrics;
 using ArchSitePlan.Core.Models;
 using ArchSitePlan.Core.Pipeline.CreationData;
-using ArchSitePlan.Licensing;
 using ArchSitePlan.UI.Actions;
 using ArchSitePlan.UI.Constants;
 using ArchSitePlan.UI.CoreModelInterface;
 using ArchSitePlan.UI.Extensions;
 using ArchSitePlan.UI.Helpers;
 using ArchSitePlan.UI.HTML_UI;
-using ArchSitePlan.UI.HTML_UI.MessagesFromUI;
 using ArchSitePlan.UI.InputValidation.Results;
 using ArchSitePlan.UI.InputValidation.Validators;
 using ArchSitePlan.UI.Models;
@@ -53,846 +51,863 @@ public class MainViewModel : ViewModelBase, INotifyPropertyChanged
         }
         set
         {
-            get => _activeParcelsMetrics;
-            set
-            {
-                _activeParcelsMetrics = value;
-                OnPropertyChanged(nameof(ActiveParcelMetrics));
-            }
+            _licenseKey = value;
+            OnPropertyChanged(nameof(LicenseKey));
         }
-        private bool _buttonToggle = true;
-        public string ButtonToggle
+    }
+    private string _customerID = "customerID";
+    public string CustomerID
+    {
+        get => _customerID;
+        set
         {
-            get
-            {
-                return _buttonToggle.ToString();
-            }
-            set
-            {
-                _buttonToggle = !_buttonToggle;
-                OnPropertyChanged(nameof(ButtonToggle));
-            }
+            _customerID = value;
+            OnPropertyChanged(nameof(CustomerID));
         }
+    }
 
-        private double _roadWidth = 3;
-        public double RoadWidth
+    private VMActiveParcelsDetails _activeParcelsMetrics;
+    public VMActiveParcelsDetails ActiveParcelMetrics
+    {
+        get => _activeParcelsMetrics;
+        set
         {
-            get => _roadWidth;
-            set
-            {
-                if (InputHelpers.IsNumber(value.ToString()))
-                    _roadWidth = value;
-                else
-                    _roadWidth = 3;
-
-                OnPropertyChanged(nameof(RoadWidth));
-            }
+            _activeParcelsMetrics = value;
+            OnPropertyChanged(nameof(ActiveParcelMetrics));
         }
-        public AppMode AppMode = AppMode.None;
-
-        private bool _appEnabled = false;
-        public bool AppEnabled
+    }
+    private bool _buttonToggle = true;
+    public string ButtonToggle
+    {
+        get
         {
-            get => _appEnabled;
-            set
-            {
-                _appEnabled = value;
-                OnPropertyChanged(nameof(AppEnabled));
-            }
+            return _buttonToggle.ToString();
         }
-
-        private bool _roadExpanderOpen = false;
-        public bool RoadExpanderOpen
+        set
         {
-            get => _roadExpanderOpen;
-            set
-            {
-                _roadExpanderOpen = value;
-                OnPropertyChanged(nameof(RoadExpanderOpen));
-                SetAppMode(AppMode.Transit, RoadExpanderOpen);
-            }
+            _buttonToggle = !_buttonToggle;
+            OnPropertyChanged(nameof(ButtonToggle));
         }
+    }
 
-        private bool _landuseExpanderOpen = false;
-        public bool LanduseExpanderOpen
+    private double _roadWidth = 3;
+    public double RoadWidth
+    {
+        get => _roadWidth;
+        set
         {
-            get => _landuseExpanderOpen;
-            set
-            {
-                _landuseExpanderOpen = value;
-                OnPropertyChanged(nameof(LanduseExpanderOpen));
-                SetAppMode(AppMode.LandUse, LanduseExpanderOpen);
-            }
+            if (InputHelpers.IsNumber(value.ToString()))
+                _roadWidth = value;
+            else
+                _roadWidth = 3;
+
+            OnPropertyChanged(nameof(RoadWidth));
         }
+    }
+    public AppMode AppMode = AppMode.None;
 
-        private bool _exportsExpanderOpen = false;
-        public bool ExportsExpanderOpen
+    private bool _appEnabled = false;
+    public bool AppEnabled
+    {
+        get => _appEnabled;
+        set
         {
-            get => _exportsExpanderOpen;
-            set
-            {
-                _exportsExpanderOpen = value;
-                OnPropertyChanged(nameof(ExportsExpanderOpen));
-                SetAppMode(AppMode.Export, ExportsExpanderOpen);
-            }
+            _appEnabled = value;
+            OnPropertyChanged(nameof(AppEnabled));
         }
+    }
 
-        private bool _buildingsExpanderOpen = false;
-        public bool BuildingsExpanderOpen
+    private bool _roadExpanderOpen = false;
+    public bool RoadExpanderOpen
+    {
+        get => _roadExpanderOpen;
+        set
         {
-            get => _buildingsExpanderOpen;
-            set
-            {
-                _buildingsExpanderOpen = value;
-                OnPropertyChanged(nameof(BuildingsExpanderOpen));
-                SetAppMode(AppMode.Building, BuildingsExpanderOpen);
-            }
+            _roadExpanderOpen = value;
+            OnPropertyChanged(nameof(RoadExpanderOpen));
+            SetAppMode(AppMode.Transit, RoadExpanderOpen);
         }
+    }
 
-        private bool _studyAreaExpanderOpen = false;
-        public bool StudyAreaExpanderOpen
+    private bool _landuseExpanderOpen = false;
+    public bool LanduseExpanderOpen
+    {
+        get => _landuseExpanderOpen;
+        set
         {
-            get => _studyAreaExpanderOpen;
-            set
-            {
-                _studyAreaExpanderOpen = value;
-                OnPropertyChanged(nameof(StudyAreaExpanderOpen));
-                SetAppMode(AppMode.Zones, StudyAreaExpanderOpen);
-            }
+            _landuseExpanderOpen = value;
+            OnPropertyChanged(nameof(LanduseExpanderOpen));
+            SetAppMode(AppMode.LandUse, LanduseExpanderOpen);
         }
+    }
 
-        private int _activeBuildingFloorCount = 3;
-        public int ActiveBuildingFloorCount
+    private bool _exportsExpanderOpen = false;
+    public bool ExportsExpanderOpen
+    {
+        get => _exportsExpanderOpen;
+        set
         {
-            get => _activeBuildingFloorCount;
-            set
-            {
-                _activeBuildingFloorCount = value;
-                OnPropertyChanged(nameof(ActiveBuildingFloorCount));
-                UpdateBuildingHeight(_activeBuildingFloorCount, ActiveBuildingFloorHeight);
-            }
+            _exportsExpanderOpen = value;
+            OnPropertyChanged(nameof(ExportsExpanderOpen));
+            SetAppMode(AppMode.Export, ExportsExpanderOpen);
         }
+    }
 
-        private double _activeBuildingFloorHeight = 3.0;
-        public double ActiveBuildingFloorHeight
+    private bool _buildingsExpanderOpen = false;
+    public bool BuildingsExpanderOpen
+    {
+        get => _buildingsExpanderOpen;
+        set
         {
-            get => _activeBuildingFloorHeight;
-            set
-            {
-                _activeBuildingFloorHeight = Math.Round(value, 2);
-                OnPropertyChanged(nameof(ActiveBuildingFloorHeight));
-                UpdateBuildingHeight(ActiveBuildingFloorCount, _activeBuildingFloorHeight);
-            }
+            _buildingsExpanderOpen = value;
+            OnPropertyChanged(nameof(BuildingsExpanderOpen));
+            SetAppMode(AppMode.Building, BuildingsExpanderOpen);
         }
+    }
 
-        private double _activeBuildingHeight;
-        public double ActiveBuildingHeight
+    private bool _studyAreaExpanderOpen = false;
+    public bool StudyAreaExpanderOpen
+    {
+        get => _studyAreaExpanderOpen;
+        set
         {
-            get => _activeBuildingHeight;
-            set
-            {
-                _activeBuildingHeight = Math.Round(value, 2);
-                OnPropertyChanged(nameof(ActiveBuildingHeight));
-            }
+            _studyAreaExpanderOpen = value;
+            OnPropertyChanged(nameof(StudyAreaExpanderOpen));
+            SetAppMode(AppMode.Zones, StudyAreaExpanderOpen);
         }
+    }
 
-        public List<Landuse> LandUses { get; set; } = Enum.GetValues(typeof(Landuse)).Cast<Landuse>().ToList();
-
-        private Landuse _selectedLanduse = Landuse.Undefined;
-        public Landuse SelectedLandUse
+    private int _activeBuildingFloorCount = 3;
+    public int ActiveBuildingFloorCount
+    {
+        get => _activeBuildingFloorCount;
+        set
         {
-            get => _selectedLanduse;
-            set
-            {
-                _selectedLanduse = value;
-                OnPropertyChanged(nameof(SelectedLandUse));
-                UpdateSelectedLanduseColour(_selectedLanduse);
-            }
+            _activeBuildingFloorCount = value;
+            OnPropertyChanged(nameof(ActiveBuildingFloorCount));
+            UpdateBuildingHeight(_activeBuildingFloorCount, ActiveBuildingFloorHeight);
         }
+    }
 
-        private SolidColorBrush _selectedLandUseColour = new SolidColorBrush(
-            AppColours.LandUseColours[Landuse.Undefined].ToWindowsMediaColor());
-        public SolidColorBrush SelectedLandUseColour
+    private double _activeBuildingFloorHeight = 3.0;
+    public double ActiveBuildingFloorHeight
+    {
+        get => _activeBuildingFloorHeight;
+        set
         {
-            get => _selectedLandUseColour;
-            set
-            {
-                _selectedLandUseColour = value;
-                OnPropertyChanged(nameof(SelectedLandUseColour));
-            }
+            _activeBuildingFloorHeight = Math.Round(value, 2);
+            OnPropertyChanged(nameof(ActiveBuildingFloorHeight));
+            UpdateBuildingHeight(ActiveBuildingFloorCount, _activeBuildingFloorHeight);
         }
+    }
 
-        public BuildingSelectorMode BuildingSelectorMode { get; set; } = BuildingSelectorMode.Footprint;
-
-
-        private bool _buildingFootprintSelectorModeActive = true;
-        public bool BuildingFootprintSelectorModeActive
+    private double _activeBuildingHeight;
+    public double ActiveBuildingHeight
+    {
+        get => _activeBuildingHeight;
+        set
         {
-            get => _buildingFootprintSelectorModeActive;
-            set
-            {
-                _buildingFootprintSelectorModeActive = value;
-                OnPropertyChanged(nameof(BuildingFootprintSelectorModeActive));
-
-                if (_buildingFootprintSelectorModeActive)
-                    BuildingSelectorMode = BuildingSelectorMode.Footprint;
-
-            }
+            _activeBuildingHeight = Math.Round(value, 2);
+            OnPropertyChanged(nameof(ActiveBuildingHeight));
         }
+    }
 
-        private bool _buildingMassSelectorModeActive = false;
-        public bool BuildingMassSelectorModeActive
+    public List<Landuse> LandUses { get; set; } = Enum.GetValues(typeof(Landuse)).Cast<Landuse>().ToList();
+
+    private Landuse _selectedLanduse = Landuse.Undefined;
+    public Landuse SelectedLandUse
+    {
+        get => _selectedLanduse;
+        set
         {
-            get => _buildingMassSelectorModeActive;
-            set
-            {
-                _buildingMassSelectorModeActive = value;
-                OnPropertyChanged(nameof(BuildingMassSelectorModeActive));
-
-                if (_buildingMassSelectorModeActive)
-                    BuildingSelectorMode = BuildingSelectorMode.Mass;
-            }
+            _selectedLanduse = value;
+            OnPropertyChanged(nameof(SelectedLandUse));
+            UpdateSelectedLanduseColour(_selectedLanduse);
         }
+    }
 
-        private static readonly string _defaultStudyAreaNameTextBox = "Enter name";
-        private string _activeStudyAreaName = _defaultStudyAreaNameTextBox;
-        public string ActiveStudyAreaName
+    private SolidColorBrush _selectedLandUseColour = new SolidColorBrush(
+        AppColours.LandUseColours[Landuse.Undefined].ToWindowsMediaColor());
+    public SolidColorBrush SelectedLandUseColour
+    {
+        get => _selectedLandUseColour;
+        set
         {
-            get => _activeStudyAreaName;
-            set
-            {
-                _activeStudyAreaName = value;
-                var study = CoreModel.Studies.Find(s => s.Name == value);
-                if (study is not null)
-                    ActiveStudy = study;
-
-                OnPropertyChanged(nameof(ActiveStudyAreaName));
-            }
+            _selectedLandUseColour = value;
+            OnPropertyChanged(nameof(SelectedLandUseColour));
         }
+    }
 
-        private List<string> _studyAreasNames = new();
-        public List<string> StudyAreasNames
+    public BuildingSelectorMode BuildingSelectorMode { get; set; } = BuildingSelectorMode.Footprint;
+
+
+    private bool _buildingFootprintSelectorModeActive = true;
+    public bool BuildingFootprintSelectorModeActive
+    {
+        get => _buildingFootprintSelectorModeActive;
+        set
         {
-            get => _studyAreasNames;
-            set
-            {
-                _studyAreasNames = value;
-                OnPropertyChanged(nameof(StudyAreasNames));
-            }
+            _buildingFootprintSelectorModeActive = value;
+            OnPropertyChanged(nameof(BuildingFootprintSelectorModeActive));
+
+            if (_buildingFootprintSelectorModeActive)
+                BuildingSelectorMode = BuildingSelectorMode.Footprint;
+
         }
+    }
 
-        private StudyArea _activeStudy;
-        public StudyArea ActiveStudy
+    private bool _buildingMassSelectorModeActive = false;
+    public bool BuildingMassSelectorModeActive
+    {
+        get => _buildingMassSelectorModeActive;
+        set
         {
-            get => _activeStudy;
-            set
-            {
-                _activeStudy = value;
-                UpdateDisplayedStudyAreaData(_activeStudy);
-                OnPropertyChanged(nameof(ActiveStudy));
-            }
+            _buildingMassSelectorModeActive = value;
+            OnPropertyChanged(nameof(BuildingMassSelectorModeActive));
+
+            if (_buildingMassSelectorModeActive)
+                BuildingSelectorMode = BuildingSelectorMode.Mass;
         }
-        private SeriesCollection _roadLengthSeries;
-        public SeriesCollection RoadLengthSeries
+    }
+
+    private static readonly string _defaultStudyAreaNameTextBox = "Enter name";
+    private string _activeStudyAreaName = _defaultStudyAreaNameTextBox;
+    public string ActiveStudyAreaName
+    {
+        get => _activeStudyAreaName;
+        set
         {
-            get => _roadLengthSeries;
-            set
-            {
-                _roadLengthSeries = value;
-                OnPropertyChanged(nameof(RoadLengthSeries));
-            }
+            _activeStudyAreaName = value;
+            var study = CoreModel.Studies.Find(s => s.Name == value);
+            if (study is not null)
+                ActiveStudy = study;
+
+            OnPropertyChanged(nameof(ActiveStudyAreaName));
         }
+    }
 
-        private SeriesCollection _roadAreaSeries;
-        public SeriesCollection RoadAreaSeries
+    private List<string> _studyAreasNames = new();
+    public List<string> StudyAreasNames
+    {
+        get => _studyAreasNames;
+        set
         {
-            get => _roadAreaSeries;
-            set
-            {
-                _roadAreaSeries = value;
-                OnPropertyChanged(nameof(RoadAreaSeries));
-            }
+            _studyAreasNames = value;
+            OnPropertyChanged(nameof(StudyAreasNames));
         }
+    }
 
-        private SeriesCollection _parcelSeriesCollection;
-        public SeriesCollection ParcelSeriesCollection
+    private StudyArea _activeStudy;
+    public StudyArea ActiveStudy
+    {
+        get => _activeStudy;
+        set
         {
-            get => _parcelSeriesCollection;
-            set
-            {
-                _parcelSeriesCollection = value;
-                OnPropertyChanged(nameof(ParcelSeriesCollection));
-            }
+            _activeStudy = value;
+            UpdateDisplayedStudyAreaData(_activeStudy);
+            OnPropertyChanged(nameof(ActiveStudy));
         }
-
-        private double _graphHeight = 100;
-        public double GraphHeight
+    }
+    private SeriesCollection _roadLengthSeries;
+    public SeriesCollection RoadLengthSeries
+    {
+        get => _roadLengthSeries;
+        set
         {
-            get => _graphHeight;
-            set
-            {
-                _graphHeight = value;
-                OnPropertyChanged(nameof(GraphHeight));
-            }
+            _roadLengthSeries = value;
+            OnPropertyChanged(nameof(RoadLengthSeries));
         }
+    }
 
-        private bool _parcelsOrTransit;
-        public bool ParcelsOrTransit
+    private SeriesCollection _roadAreaSeries;
+    public SeriesCollection RoadAreaSeries
+    {
+        get => _roadAreaSeries;
+        set
         {
-            get => _parcelsOrTransit;
-            set
-            {
-                _parcelsOrTransit = value;
-                OnPropertyChanged(nameof(ParcelsOrTransit));
-            }
+            _roadAreaSeries = value;
+            OnPropertyChanged(nameof(RoadAreaSeries));
         }
+    }
 
-        private string _excelPath =  Path.Combine(
-            System.Environment.GetFolderPath(System.Environment.SpecialFolder.MyDocuments),
-            $"{RhinoDoc.ActiveDoc.Name}_ProjectReport.xlsx");
-
-        public string ExcelPath
+    private SeriesCollection _parcelSeriesCollection;
+    public SeriesCollection ParcelSeriesCollection
+    {
+        get => _parcelSeriesCollection;
+        set
         {
-            get => _excelPath;
-            set
-            {
-                _excelPath = value;
-                OnPropertyChanged(nameof(ExcelPath));
-            }
+            _parcelSeriesCollection = value;
+            OnPropertyChanged(nameof(ParcelSeriesCollection));
         }
-        private bool _builtOrLandArea = false;
-        public bool BuiltOrLandArea
+    }
+
+    private double _graphHeight = 100;
+    public double GraphHeight
+    {
+        get => _graphHeight;
+        set
         {
-            get => _builtOrLandArea;
-            set
-            {
-                _builtOrLandArea = value;
-                OnPropertyChanged(nameof(BuiltOrLandArea));
-                UpdateDisplayedStudyAreaData(_activeStudy);
-            }
+            _graphHeight = value;
+            OnPropertyChanged(nameof(GraphHeight));
         }
-        #endregion
+    }
 
-        #region COMMANDS
-        public ICommand AddOrUpdateRoads_Cmd { get; }
-        public ICommand VisualizeModel_Cmd { get; }
-        public ICommand UpdateBuilding_Cmd { get; }
-        public ICommand AddStudyArea_Cmd { get; }
-        public ICommand ChangeParcelUse_Cmd { get; }
-        public ICommand ExportExcel_Cmd { get; }
-        public ICommand SetExcelPath_Cmd { get; }
-        public ICommand Test_Cmd { get; }
-        public ICommand ToggleEnableApp_Cmd { get; }
-        public ICommand AddParcelDivider_Cmd { get; }
-        public ICommand ContactMe_Cmd { get; }
-        #endregion
-
-        public MainViewModel()
+    private bool _parcelsOrTransit;
+    public bool ParcelsOrTransit
+    {
+        get => _parcelsOrTransit;
+        set
         {
-            this.AddOrUpdateRoads_Cmd = new RelayCommand(AddOrUpdateRoads_Exec);
-            this.UpdateBuilding_Cmd = new RelayCommand(UpdateBuilding_Exec);
-            this.AddStudyArea_Cmd = new RelayCommand(AddStudyArea_Exec);
-            this.Test_Cmd = new RelayCommand(Test_Exec);
-            this.ChangeParcelUse_Cmd = new RelayCommand(ChangeParcelUse_Exec);
-            this.ExportExcel_Cmd = new RelayCommand(ExportExcel_Exec);
-            this.ToggleEnableApp_Cmd = new RelayCommand(ToggleEnableApp_Exec);
-            this.SetExcelPath_Cmd = new RelayCommand(SetExcelPath_Exec);
-            this.AddParcelDivider_Cmd = new RelayCommand(AddParcelDivider_Exec);
-            this.ContactMe_Cmd = new RelayCommand(ContactMe_Exec);
-
-            CoreModel.ResetStudyAreas();
-            ActiveStudy = CoreModel.Studies.FirstOrDefault();
-            StudyAreasNames = CoreModel.Studies.Select(s => s.Name).ToList();
-            ActiveStudyAreaName = ActiveStudy.Name;
+            _parcelsOrTransit = value;
+            OnPropertyChanged(nameof(ParcelsOrTransit));
         }
+    }
 
-        private void ContactMe_Exec(object obj)
+    private string _excelPath =  Path.Combine(
+        System.Environment.GetFolderPath(System.Environment.SpecialFolder.MyDocuments),
+        $"{RhinoDoc.ActiveDoc.Name}_ProjectReport.xlsx");
+
+    public string ExcelPath
+    {
+        get => _excelPath;
+        set
         {
-            string linkedInLink = "https://www.linkedin.com/in/ashwin-abraham-gd/";
-            // Open email client with my email ID
-            Process.Start(new ProcessStartInfo(linkedInLink) { UseShellExecute = true });
+            _excelPath = value;
+            OnPropertyChanged(nameof(ExcelPath));
         }
-
-        private void AddParcelDivider_Exec(object obj)
+    }
+    private bool _builtOrLandArea = false;
+    public bool BuiltOrLandArea
+    {
+        get => _builtOrLandArea;
+        set
         {
-            try
-            {
-                RhinoDoc doc = RhinoDoc.ActiveDoc;
-                int parcelDividerLayerIndex = LayerHelpers.CreateOrGetLayerIndex(
-                    doc,
-                    LayerConstants.ParcelDividerLayer,
-                    LayerConstants.ParcelDividerColour);
+            _builtOrLandArea = value;
+            OnPropertyChanged(nameof(BuiltOrLandArea));
+            UpdateDisplayedStudyAreaData(_activeStudy);
+        }
+    }
+    #endregion
 
-                // Try to select a curve
-                var rhinoObjs = doc.Objects.GetSelectedObjects(false, false).ToList();
-                if (rhinoObjs.Count == 0)
-                    throw new Exception(UIMessages.AddDividerInstruction);
+    #region COMMANDS
+    public ICommand AddOrUpdateRoads_Cmd { get; }
+    public ICommand VisualizeModel_Cmd { get; }
+    public ICommand UpdateBuilding_Cmd { get; }
+    public ICommand AddStudyArea_Cmd { get; }
+    public ICommand ChangeParcelUse_Cmd { get; }
+    public ICommand ExportExcel_Cmd { get; }
+    public ICommand SetExcelPath_Cmd { get; }
+    public ICommand Test_Cmd { get; }
+    public ICommand ToggleEnableApp_Cmd { get; }
+    public ICommand AddParcelDivider_Cmd { get; }
+    public ICommand ContactMe_Cmd { get; }
+    #endregion
 
-                var rhinoCrvs = rhinoObjs
-                    .Where(obj => obj.ObjectType == ObjectType.Curve
-                        && (obj.Geometry as Curve)!.Degree < 2)
-                    .ToList();
+    public MainViewModel()
+    {
+        this.AddOrUpdateRoads_Cmd = new RelayCommand(AddOrUpdateRoads_Exec);
+        this.UpdateBuilding_Cmd = new RelayCommand(UpdateBuilding_Exec);
+        this.AddStudyArea_Cmd = new RelayCommand(AddStudyArea_Exec);
+        this.Test_Cmd = new RelayCommand(Test_Exec);
+        this.ChangeParcelUse_Cmd = new RelayCommand(ChangeParcelUse_Exec);
+        this.ExportExcel_Cmd = new RelayCommand(ExportExcel_Exec);
+        this.ToggleEnableApp_Cmd = new RelayCommand(ToggleEnableApp_Exec);
+        this.SetExcelPath_Cmd = new RelayCommand(SetExcelPath_Exec);
+        this.AddParcelDivider_Cmd = new RelayCommand(AddParcelDivider_Exec);
+        this.ContactMe_Cmd = new RelayCommand(ContactMe_Exec);
 
-                int removed = rhinoObjs.Count() - rhinoCrvs.Count;
+        CoreModel.ResetStudyAreas();
+        ActiveStudy = CoreModel.Studies.FirstOrDefault();
+        StudyAreasNames = CoreModel.Studies.Select(s => s.Name).ToList();
+        ActiveStudyAreaName = ActiveStudy.Name;
+    }
+
+    private void ContactMe_Exec(object obj)
+    {
+        string linkedInLink = "https://www.linkedin.com/in/ashwin-abraham-gd/";
+        // Open email client with my email ID
+        Process.Start(new ProcessStartInfo(linkedInLink) { UseShellExecute = true });
+    }
+
+    private void AddParcelDivider_Exec(object obj)
+    {
+        try
+        {
+            RhinoDoc doc = RhinoDoc.ActiveDoc;
+            int parcelDividerLayerIndex = LayerHelpers.CreateOrGetLayerIndex(
+                doc,
+                LayerConstants.ParcelDividerLayer,
+                LayerConstants.ParcelDividerColour);
+
+            // Try to select a curve
+            var rhinoObjs = doc.Objects.GetSelectedObjects(false, false).ToList();
+            if (rhinoObjs.Count == 0)
+                throw new Exception(UIMessages.AddDividerInstruction);
+
+            var rhinoCrvs = rhinoObjs
+                .Where(obj => obj.ObjectType == ObjectType.Curve
+                    && (obj.Geometry as Curve)!.Degree < 2)
+                .ToList();
+
+            int removed = rhinoObjs.Count() - rhinoCrvs.Count;
                 
-                List<DividerData> dividerData = new();
+            List<DividerData> dividerData = new();
 
-                foreach (var rhinoObj in rhinoCrvs)
+            foreach (var rhinoObj in rhinoCrvs)
+            {
+                var bhomCrv = (rhinoObj.Geometry as Curve)!.ToBHoM2DegreeCrv();
+                if (bhomCrv is null || bhomCrv.IIsSelfIntersecting())
                 {
-                    var bhomCrv = (rhinoObj.Geometry as Curve)!.ToBHoM2DegreeCrv();
-                    if (bhomCrv is null || bhomCrv.IIsSelfIntersecting())
-                    {
-                        removed++;
-                        continue;
-                    }
-
-                    dividerData.Add(new(bhomCrv, rhinoObj.Id));
-                    LayerHelpers.ChangeLayer(rhinoObj, parcelDividerLayerIndex);
+                    removed++;
+                    continue;
                 }
 
-                if (removed > 0)
-                    MessageBox.Show($"Removed {removed} objects from selection that were either" +
-                        $"\n 1. Not lines or polylines " +
-                        $"\n 2. Self intersecting");
-
-                if (!dividerData.Any()) return;
-
-                ModelBuilderPipelines.AddOrUpdateParcelDividerPipeline(doc, dividerData, AppMode);
+                dividerData.Add(new(bhomCrv, rhinoObj.Id));
+                LayerHelpers.ChangeLayer(rhinoObj, parcelDividerLayerIndex);
             }
-            catch(Exception ex)
-            {
-                MessageBox.Show(ex.Message);
-            }
+
+            if (removed > 0)
+                MessageBox.Show($"Removed {removed} objects from selection that were either" +
+                    $"\n 1. Not lines or polylines " +
+                    $"\n 2. Self intersecting");
+
+            if (!dividerData.Any()) return;
+
+            ModelBuilderPipelines.AddOrUpdateParcelDividerPipeline(doc, dividerData, AppMode);
         }
-
-        private void ToggleEnableApp_Exec(object obj)
+        catch(Exception ex)
         {
-            try
-            {
-                ServerComms.StartServer();
-
-                RhinoDoc doc = RhinoDoc.ActiveDoc;
-                AppEnabled = !AppEnabled;
-
-                bool expanderOpen = AppMode != AppMode.None;
-                AppMode = AppMode.None;
-
-                SetAppMode(AppMode, expanderOpen);
-
-                if (!AppEnabled || AppMode == AppMode.None)
-                {
-                    // Hard lock to avoid complex refactor
-                    LayerManager.ToggleLockModelLayers(doc, true);
-                    return;
-                }
-
-                ModelBuilderPipelines.ReloadAppPipeline(doc, AppMode);
-                ActiveStudy = CoreModel.Studies.First();
-                ActiveStudyAreaName = ActiveStudy.Name;
-                StudyAreasNames = CoreModel.Studies.Select(s => s.Name).ToList();
-                LayerManager.ToggleLayerStateBasedOnAppMode(doc, AppMode);
-            }
-            catch(Exception ex)
-            {
-                MessageBox.Show(ex.Message);
-            }
-            
+            MessageBox.Show(ex.Message);
         }
+    }
 
-        private void SetExcelPath_Exec(object obj)
+    private void ToggleEnableApp_Exec(object obj)
+    {
+        try
         {
-            try
+            ServerComms.StartServer();
+
+            RhinoDoc doc = RhinoDoc.ActiveDoc;
+            AppEnabled = !AppEnabled;
+
+            bool expanderOpen = AppMode != AppMode.None;
+            AppMode = AppMode.None;
+
+            SetAppMode(AppMode, expanderOpen);
+
+            if (!AppEnabled || AppMode == AppMode.None)
             {
-                using (FolderBrowserDialog folderBrowserDialog = new FolderBrowserDialog())
-                {
-                    folderBrowserDialog.Description = "Set export location";
-                    folderBrowserDialog.ShowNewFolderButton = false;  
-
-                    if (folderBrowserDialog.ShowDialog() == DialogResult.OK)
-                    {
-                        string rhinoName = RhinoDoc.ActiveDoc.Name;
-                        rhinoName = rhinoName is null || rhinoName == "" ? 
-                            "Untitled" : rhinoName;
-
-                        // Get the selected folder path
-                        ExcelPath = Path.Combine(
-                            folderBrowserDialog.SelectedPath,
-                            $"{rhinoName}_ProjectReport.xlsx");
-                    }
-                }
-            }
-            catch(Exception ex)
-            {
-                MessageBox.Show(ex.Message);
-            }
-        }
-
-        private void ExportExcel_Exec(object obj)
-        {
-            try
-            {
-                var location = Path.GetDirectoryName(ExcelPath);
-                if (!Path.Exists(location))
-                    throw new Exception($"Excel path - {ExcelPath} is invalid. Please select a valid export location.");
-
-                var pr = new ProjectReport(ExcelPath, CoreModel.ProjectWideStudy().Metrics, CoreModel.Studies);
-                pr.WriteExcelFile();
-
-                string? folder = Path.GetDirectoryName(ExcelPath);
-                if (folder is not null)
-                    Process.Start("explorer.exe", folder); 
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message);
-            }
-        }
-
-        private void ChangeParcelUse_Exec(object o)
-        {
-            try
-            {
-                RhinoDoc doc = RhinoDoc.ActiveDoc;
-                int parcelLayerIndex = LayerHelpers.CreateOrGetLayerIndex(
-                    doc,
-                    LayerConstants.ParcelsLayer);
-
-                // Try to select a curve
-                var srfObjs = RhinoDoc.ActiveDoc.Objects.GetSelectedObjects(false, false)
-                    .Where(obj => obj.ObjectType == ObjectType.Brep
-                    || obj.ObjectType == ObjectType.Surface)
-                    .ToList();
-
-                if (srfObjs.Count == 0)
-                    throw new Exception(UIMessages.ChangeLandUseInstruction);
-
-                ModelBuilderPipelines.ChangeParcelUsePipeline(doc,
-                    srfObjs.Select(s => s.Id).ToList(),
-                    SelectedLandUse,
-                    AppMode);
-
-                RefreshActiveStudyAndMetrics();
-            }
-            catch(Exception ex)
-            {
-                MessageBox.Show(ex.Message);
-            }
-          
-        }
-
-        private void UpdateLandUseGraphData(StudyAreaMetrics metrics)
-        {
-            var groupedByUse = metrics.ParcelMetrics.GroupBy(p => p.Use);
-            ParcelSeriesCollection = new SeriesCollection();
-            foreach(var landUseGroup in groupedByUse)
-            {
-                var area = _builtOrLandArea ?
-                    Math.Round(landUseGroup.Sum(p => p.BUA))
-                    : Math.Round(landUseGroup.Sum(p => p.Area));
-                var use = landUseGroup.First().Use;
-                
-                ParcelSeriesCollection.Add(new ColumnSeries()
-                {
-                    Title = landUseGroup.First().Use.ToString(),
-                    Values = new ChartValues<double> { area },
-                    Fill = new SolidColorBrush(AppColours.LandUseColours[use].ToWindowsMediaColor()),
-                    Height = 40,
-                    
-                });
-            }
-            GraphHeight = groupedByUse.Count() * 12 + 50;
-        }
-
-        private void UpdateRoadLengthGraphData(StudyAreaMetrics metrics)
-        {
-            var groupedByWidth = metrics.TransitMetrics.GroupBy(p => Math.Round(p.RoadWidth,1));
-            RoadLengthSeries = new SeriesCollection();
-            var widthColors = CoreModel.SetRoadColorsByWidth();
-
-            foreach (var transitGroup in groupedByWidth)
-            {
-                var length = Math.Round(transitGroup.Sum(p => p.RunningLength));
-                var label = "Width (" + Math.Round(transitGroup.First().RoadWidth, 1).ToString() +"m)";
-
-                var newRow = new PieSeries()
-                {
-                    Title = label,
-                    Values = new ChartValues<double> { length },
-                };
-
-                widthColors.TryGetValue(transitGroup.Key, out Color color);
-                if (color != default)
-                    newRow.Fill = new SolidColorBrush(color.ToWindowsMediaColor());
-
-                RoadLengthSeries.Add(newRow);
-            }
-        }
-
-        
-        private void UpdateRoadAreaGraphData(StudyAreaMetrics metrics)
-        {
-            var groupedByWidth = metrics.TransitMetrics.GroupBy(p => Math.Round(p.RoadWidth, 1));
-            RoadAreaSeries = new SeriesCollection();
-
-            var widthColors = CoreModel.SetRoadColorsByWidth();
-
-            foreach (var transitGroup in groupedByWidth)
-            {
-                var area = Math.Round(transitGroup.Sum(p => p.Area));
-                var label = "Width (" + Math.Round(transitGroup.First().RoadWidth, 1).ToString() + "m)";
-                
-
-                var newRow = new PieSeries()
-                {
-                    Title = label,
-                    Values = new ChartValues<double> { area },
-                };
-
-                widthColors.TryGetValue(transitGroup.Key, out Color color);
-                if (color != default)
-                    newRow.Fill = new SolidColorBrush(color.ToWindowsMediaColor());
-
-                RoadAreaSeries.Add(newRow);
-            }
-        }
-
-        private void Test_Exec(object obj)
-        {
-            try
-            {
-                var doc = RhinoDoc.ActiveDoc;
-                var selectedObjectCenter = doc.Objects.GetSelectedObjects(false, false)
-                    .First()
-                    .Geometry
-                    .GetBoundingBox(false)
-                    .Center;
-
-                var viewTopLeft = doc.Views.ActiveView.ActiveViewport.ClientToScreen(new Point2d(0,0));
-                var viewportPoint = doc.Views.ActiveView.ActiveViewport
-                    .WorldToClient(selectedObjectCenter)
-                    + new Point2d(viewTopLeft.X, viewTopLeft.Y);
-
-                // Create the dialog window
-                TestPopUp dialog = new();
-
-                // Show the dialog
-                dialog.ShowDialog();
-
-
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message);
-            }
-        }
-
-        private void AddStudyArea_Exec(object o)
-        {
-            try
-            {
-                var rhinoObjs = RhinoDoc.ActiveDoc.Objects.GetSelectedObjects(false, false).ToList();
-                
-                if (rhinoObjs.Count != 1 || rhinoObjs[0].ObjectType != ObjectType.Curve) 
-                    throw new Exception(UIMessages.AddStudyInstruction);
-
-                var rhinoObj = rhinoObjs[0];
-                var boundary = rhinoObj.Geometry as Curve;
-
-                if (!boundary.IsClosed)
-                    throw new Exception("Error. Please select closed curve instead");
-                
-                if (ActiveStudyAreaName == _defaultStudyAreaNameTextBox
-                    || ActiveStudyAreaName == string.Empty)
-                    throw new Exception("Error. Please enter a study name");
-
-                if (boundary is null || boundary.Degree > 1)
-                    throw new Exception("Select closed polylines only.");
-                
-                var study = CoreModel.Studies.Find(s => s.Name == ActiveStudyAreaName);
-                
-                if(study!=null && study.Id != rhinoObj.Id)
-                    throw new Exception($"Another study named \"{ActiveStudyAreaName}\" already exists.");
-                
-                var bhomCrv = boundary.ToBHoM2DegreeCrv();
-                
-                RhinoDoc doc2 = RhinoDoc.ActiveDoc;
-                ModelBuilderPipelines.AddStudyAreaPipeline(doc: doc2,
-                    studyData: new StudyData(bhomCrv!, rhinoObj.Id, ActiveStudyAreaName).ObjectToList(),
-                    AppMode);
-                
-                ActiveStudy = CoreModel.Studies.FirstOrDefault(s => rhinoObj.Id == s.Id);
-
-                RefreshActiveStudyAndMetrics();
-                StudyAreasNames = CoreModel.Studies.Select(s => s.Name).ToList();
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message);
-            }
-        }
-
-        private void UpdateBuilding_Exec(object obj)
-        {
-            try
-            {
-                RhinoDoc doc = RhinoDoc.ActiveDoc;
-
-                var allowedTypes = new List<ObjectType>
-                {
-                    ObjectType.Curve, ObjectType.Brep, ObjectType.Mesh, ObjectType.Extrusion
-                };
-
-                var rhinoObjs = doc.Objects.GetSelectedObjects(false, false)
-                    .Where(obj => allowedTypes.Contains(obj.ObjectType))
-                    .ToList();
-
-                var validation = new BuildingInputValidator(BuildingSelectorMode)
-                    .ValidateInput(rhinoObjs);
-
-                if (validation.Result != ValidationResult.All_Valid)
-                    MessageBox.Show(validation.Message);
-
-                if (validation.ValidObjects.Count == 0) return; 
-
-                var rhinoBuildingData = validation.ValidObjects
-                    .Select(o => RhinoBuildingData.FromRhinoObject(o, ActiveBuildingFloorCount, ActiveBuildingFloorHeight))
-                    .ToList();
-
-                DocObjectHelpers.DeleteRhinoObjectsIfPresent(doc, rhinoObjs.Select(r => r.Id));
-                RhinoEventHandler.UpdateSelectedBuildingsPosition(rhinoBuildingData);
-                RefreshActiveStudyAndMetrics();
-            }
-            catch(Exception ex)
-            {
-                MessageBox.Show(ex.Message);
-            }
-            
-        }
-
-        private void SetAppMode(AppMode changedExpander, bool expanderOpen)
-        {
-            // Set current mode
-            if (!expanderOpen)
-            {
-                // If expander is closed while the app mode is unchanged, it means wwe have closed all expanders
-                if (AppMode == changedExpander) AppMode = AppMode.None;
-                if (AppMode == AppMode.None)
-                    LayerManager.ToggleLockModelLayers(RhinoDoc.ActiveDoc, true);
-
-                // Early return to avoid cyclic SetSelectionMode calls for expander closure
+                // Hard lock to avoid complex refactor
+                LayerManager.ToggleLockModelLayers(doc, true);
                 return;
             }
-            if (expanderOpen)
-                AppMode = changedExpander;
 
-            // Close other expanders
-            if (AppMode != AppMode.Transit && RoadExpanderOpen)
-                RoadExpanderOpen = false;
-            if (AppMode != AppMode.LandUse && LanduseExpanderOpen)
-                LanduseExpanderOpen = false;
-            if (AppMode != AppMode.Building && BuildingsExpanderOpen)
-                BuildingsExpanderOpen = false;
-            if (AppMode != AppMode.Zones && StudyAreaExpanderOpen)
-                StudyAreaExpanderOpen = false;
-            if (AppMode != AppMode.Export && ExportsExpanderOpen)
-                ExportsExpanderOpen = false;
-
-            if(expanderOpen)
-                LayerManager.ToggleLayerStateBasedOnAppMode(RhinoDoc.ActiveDoc, changedExpander);
-
-            RhinoDoc.ActiveDoc.Views.Redraw();
+            ModelBuilderPipelines.ReloadAppPipeline(doc, AppMode);
+            ActiveStudy = CoreModel.Studies.First();
+            ActiveStudyAreaName = ActiveStudy.Name;
+            StudyAreasNames = CoreModel.Studies.Select(s => s.Name).ToList();
+            LayerManager.ToggleLayerStateBasedOnAppMode(doc, AppMode);
         }
-
-        private void UpdateSelectedLanduseColour(Landuse use)
+        catch(Exception ex)
         {
-            if (AppColours.LandUseColours.TryGetValue(use, out Color color))
-                SelectedLandUseColour = new SolidColorBrush(color.ToWindowsMediaColor());
-            else
-                SelectedLandUseColour = new SolidColorBrush(AppColours.LandUseColours[Landuse.Undefined]
-                    .ToWindowsMediaColor());
+            MessageBox.Show(ex.Message);
         }
+            
+    }
 
-        private void AddOrUpdateRoads_Exec(object obj)
+    private void SetExcelPath_Exec(object obj)
+    {
+        try
         {
-            try
+            using (FolderBrowserDialog folderBrowserDialog = new FolderBrowserDialog())
             {
-                RhinoDoc doc = RhinoDoc.ActiveDoc;
-                int roadLayerIndex = LayerHelpers.CreateOrGetLayerIndex(
-                    doc, 
-                    LayerConstants.RoadCLLayer,
-                    LayerConstants.RoadColour);
+                folderBrowserDialog.Description = "Set export location";
+                folderBrowserDialog.ShowNewFolderButton = false;  
 
-                // Try to select a curve
-                var rhinoObjs = RhinoDoc.ActiveDoc.Objects.GetSelectedObjects(false, false)
-                    .Where(obj => obj.ObjectType == ObjectType.Curve)
-                    .ToList();
+                if (folderBrowserDialog.ShowDialog() == DialogResult.OK)
+                {
+                    string rhinoName = RhinoDoc.ActiveDoc.Name;
+                    rhinoName = rhinoName is null || rhinoName == "" ? 
+                        "Untitled" : rhinoName;
 
-                if (rhinoObjs.Count == 0)
+                    // Get the selected folder path
+                    ExcelPath = Path.Combine(
+                        folderBrowserDialog.SelectedPath,
+                        $"{rhinoName}_ProjectReport.xlsx");
+                }
+            }
+        }
+        catch(Exception ex)
+        {
+            MessageBox.Show(ex.Message);
+        }
+    }
+
+    private void ExportExcel_Exec(object obj)
+    {
+        try
+        {
+            var location = Path.GetDirectoryName(ExcelPath);
+            if (!Path.Exists(location))
+                throw new Exception($"Excel path - {ExcelPath} is invalid. Please select a valid export location.");
+
+            var pr = new ProjectReport(ExcelPath, CoreModel.ProjectWideStudy().Metrics, CoreModel.Studies);
+            pr.WriteExcelFile();
+
+            string? folder = Path.GetDirectoryName(ExcelPath);
+            if (folder is not null)
+                Process.Start("explorer.exe", folder); 
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(ex.Message);
+        }
+    }
+
+    private void ChangeParcelUse_Exec(object o)
+    {
+        try
+        {
+            RhinoDoc doc = RhinoDoc.ActiveDoc;
+            int parcelLayerIndex = LayerHelpers.CreateOrGetLayerIndex(
+                doc,
+                LayerConstants.ParcelsLayer);
+
+            // Try to select a curve
+            var srfObjs = RhinoDoc.ActiveDoc.Objects.GetSelectedObjects(false, false)
+                .Where(obj => obj.ObjectType == ObjectType.Brep
+                || obj.ObjectType == ObjectType.Surface)
+                .ToList();
+
+            if (srfObjs.Count == 0)
+                throw new Exception(UIMessages.ChangeLandUseInstruction);
+
+            ModelBuilderPipelines.ChangeParcelUsePipeline(doc,
+                srfObjs.Select(s => s.Id).ToList(),
+                SelectedLandUse,
+                AppMode);
+
+            RefreshActiveStudyAndMetrics();
+        }
+        catch(Exception ex)
+        {
+            MessageBox.Show(ex.Message);
+        }
+          
+    }
+
+    private void UpdateLandUseGraphData(StudyAreaMetrics metrics)
+    {
+        var groupedByUse = metrics.ParcelMetrics.GroupBy(p => p.Use);
+        ParcelSeriesCollection = new SeriesCollection();
+        foreach(var landUseGroup in groupedByUse)
+        {
+            var area = _builtOrLandArea ?
+                Math.Round(landUseGroup.Sum(p => p.BUA))
+                : Math.Round(landUseGroup.Sum(p => p.Area));
+            var use = landUseGroup.First().Use;
+                
+            ParcelSeriesCollection.Add(new ColumnSeries()
+            {
+                Title = landUseGroup.First().Use.ToString(),
+                Values = new ChartValues<double> { area },
+                Fill = new SolidColorBrush(AppColours.LandUseColours[use].ToWindowsMediaColor()),
+                Height = 40,
+                    
+            });
+        }
+        GraphHeight = groupedByUse.Count() * 12 + 50;
+    }
+
+    private void UpdateRoadLengthGraphData(StudyAreaMetrics metrics)
+    {
+        var groupedByWidth = metrics.TransitMetrics.GroupBy(p => Math.Round(p.RoadWidth,1));
+        RoadLengthSeries = new SeriesCollection();
+        var widthColors = CoreModel.SetRoadColorsByWidth();
+
+        foreach (var transitGroup in groupedByWidth)
+        {
+            var length = Math.Round(transitGroup.Sum(p => p.RunningLength));
+            var label = "Width (" + Math.Round(transitGroup.First().RoadWidth, 1).ToString() +"m)";
+
+            var newRow = new PieSeries()
+            {
+                Title = label,
+                Values = new ChartValues<double> { length },
+            };
+
+            widthColors.TryGetValue(transitGroup.Key, out Color color);
+            if (color != default)
+                newRow.Fill = new SolidColorBrush(color.ToWindowsMediaColor());
+
+            RoadLengthSeries.Add(newRow);
+        }
+    }
+
+        
+    private void UpdateRoadAreaGraphData(StudyAreaMetrics metrics)
+    {
+        var groupedByWidth = metrics.TransitMetrics.GroupBy(p => Math.Round(p.RoadWidth, 1));
+        RoadAreaSeries = new SeriesCollection();
+
+        var widthColors = CoreModel.SetRoadColorsByWidth();
+
+        foreach (var transitGroup in groupedByWidth)
+        {
+            var area = Math.Round(transitGroup.Sum(p => p.Area));
+            var label = "Width (" + Math.Round(transitGroup.First().RoadWidth, 1).ToString() + "m)";
+                
+
+            var newRow = new PieSeries()
+            {
+                Title = label,
+                Values = new ChartValues<double> { area },
+            };
+
+            widthColors.TryGetValue(transitGroup.Key, out Color color);
+            if (color != default)
+                newRow.Fill = new SolidColorBrush(color.ToWindowsMediaColor());
+
+            RoadAreaSeries.Add(newRow);
+        }
+    }
+
+    private void Test_Exec(object obj)
+    {
+        try
+        {
+            var doc = RhinoDoc.ActiveDoc;
+            var selectedObjectCenter = doc.Objects.GetSelectedObjects(false, false)
+                .First()
+                .Geometry
+                .GetBoundingBox(false)
+                .Center;
+
+            var viewTopLeft = doc.Views.ActiveView.ActiveViewport.ClientToScreen(new Point2d(0,0));
+            var viewportPoint = doc.Views.ActiveView.ActiveViewport
+                .WorldToClient(selectedObjectCenter)
+                + new Point2d(viewTopLeft.X, viewTopLeft.Y);
+
+            // Create the dialog window
+            TestPopUp dialog = new();
+
+            // Show the dialog
+            dialog.ShowDialog();
+
+
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(ex.Message);
+        }
+    }
+
+    private void AddStudyArea_Exec(object o)
+    {
+        try
+        {
+            var rhinoObjs = RhinoDoc.ActiveDoc.Objects.GetSelectedObjects(false, false).ToList();
+                
+            if (rhinoObjs.Count != 1 || rhinoObjs[0].ObjectType != ObjectType.Curve) 
+                throw new Exception(UIMessages.AddStudyInstruction);
+
+            var rhinoObj = rhinoObjs[0];
+            var boundary = rhinoObj.Geometry as Curve;
+
+            if (!boundary.IsClosed)
+                throw new Exception("Error. Please select closed curve instead");
+                
+            if (ActiveStudyAreaName == _defaultStudyAreaNameTextBox
+                || ActiveStudyAreaName == string.Empty)
+                throw new Exception("Error. Please enter a study name");
+
+            if (boundary is null || boundary.Degree > 1)
+                throw new Exception("Select closed polylines only.");
+                
+            var study = CoreModel.Studies.Find(s => s.Name == ActiveStudyAreaName);
+                
+            if(study!=null && study.Id != rhinoObj.Id)
+                throw new Exception($"Another study named \"{ActiveStudyAreaName}\" already exists.");
+                
+            var bhomCrv = boundary.ToBHoM2DegreeCrv();
+                
+            RhinoDoc doc2 = RhinoDoc.ActiveDoc;
+            ModelBuilderPipelines.AddStudyAreaPipeline(doc: doc2,
+                studyData: new StudyData(bhomCrv!, rhinoObj.Id, ActiveStudyAreaName).ObjectToList(),
+                AppMode);
+                
+            ActiveStudy = CoreModel.Studies.FirstOrDefault(s => rhinoObj.Id == s.Id);
+
+            RefreshActiveStudyAndMetrics();
+            StudyAreasNames = CoreModel.Studies.Select(s => s.Name).ToList();
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(ex.Message);
+        }
+    }
+
+    private void UpdateBuilding_Exec(object obj)
+    {
+        try
+        {
+            RhinoDoc doc = RhinoDoc.ActiveDoc;
+
+            var allowedTypes = new List<ObjectType>
+            {
+                ObjectType.Curve, ObjectType.Brep, ObjectType.Mesh, ObjectType.Extrusion
+            };
+
+            var rhinoObjs = doc.Objects.GetSelectedObjects(false, false)
+                .Where(obj => allowedTypes.Contains(obj.ObjectType))
+                .ToList();
+
+            var validation = new BuildingInputValidator(BuildingSelectorMode)
+                .ValidateInput(rhinoObjs);
+
+            if (validation.Result != ValidationResult.All_Valid)
+                MessageBox.Show(validation.Message);
+
+            if (validation.ValidObjects.Count == 0) return; 
+
+            var rhinoBuildingData = validation.ValidObjects
+                .Select(o => RhinoBuildingData.FromRhinoObject(o, ActiveBuildingFloorCount, ActiveBuildingFloorHeight))
+                .ToList();
+
+            DocObjectHelpers.DeleteRhinoObjectsIfPresent(doc, rhinoObjs.Select(r => r.Id));
+            RhinoEventHandler.UpdateSelectedBuildingsPosition(rhinoBuildingData);
+            RefreshActiveStudyAndMetrics();
+        }
+        catch(Exception ex)
+        {
+            MessageBox.Show(ex.Message);
+        }
+            
+    }
+
+    private void SetAppMode(AppMode changedExpander, bool expanderOpen)
+    {
+        // Set current mode
+        if (!expanderOpen)
+        {
+            // If expander is closed while the app mode is unchanged, it means wwe have closed all expanders
+            if (AppMode == changedExpander) AppMode = AppMode.None;
+            if (AppMode == AppMode.None)
+                LayerManager.ToggleLockModelLayers(RhinoDoc.ActiveDoc, true);
+
+            // Early return to avoid cyclic SetSelectionMode calls for expander closure
+            return;
+        }
+        if (expanderOpen)
+            AppMode = changedExpander;
+
+        // Close other expanders
+        if (AppMode != AppMode.Transit && RoadExpanderOpen)
+            RoadExpanderOpen = false;
+        if (AppMode != AppMode.LandUse && LanduseExpanderOpen)
+            LanduseExpanderOpen = false;
+        if (AppMode != AppMode.Building && BuildingsExpanderOpen)
+            BuildingsExpanderOpen = false;
+        if (AppMode != AppMode.Zones && StudyAreaExpanderOpen)
+            StudyAreaExpanderOpen = false;
+        if (AppMode != AppMode.Export && ExportsExpanderOpen)
+            ExportsExpanderOpen = false;
+
+        if(expanderOpen)
+            LayerManager.ToggleLayerStateBasedOnAppMode(RhinoDoc.ActiveDoc, changedExpander);
+
+        RhinoDoc.ActiveDoc.Views.Redraw();
+    }
+
+    private void UpdateSelectedLanduseColour(Landuse use)
+    {
+        if (AppColours.LandUseColours.TryGetValue(use, out Color color))
+            SelectedLandUseColour = new SolidColorBrush(color.ToWindowsMediaColor());
+        else
+            SelectedLandUseColour = new SolidColorBrush(AppColours.LandUseColours[Landuse.Undefined]
+                .ToWindowsMediaColor());
+    }
+
+    private void AddOrUpdateRoads_Exec(object obj)
+    {
+        try
+        {
+            RhinoDoc doc = RhinoDoc.ActiveDoc;
+            int roadLayerIndex = LayerHelpers.CreateOrGetLayerIndex(
+                doc, 
+                LayerConstants.RoadCLLayer,
+                LayerConstants.RoadColour);
+
+            // Try to select a curve
+            var rhinoObjs = RhinoDoc.ActiveDoc.Objects.GetSelectedObjects(false, false)
+                .Where(obj => obj.ObjectType == ObjectType.Curve)
+                .ToList();
+
+            if (rhinoObjs.Count == 0)
+                throw new Exception(UIMessages.RoadInstruction);
+
+            int roadIndex = RhinoObjAttributeConstants.RoadGeometryAttributes.LayerIndex;
+
+            List<TransitData> transitData = new();
+
+            foreach(var rhinoObj in rhinoObjs)
+            {
+                var curve = rhinoObj.Geometry as Curve;
+                if (curve == null)
                     throw new Exception(UIMessages.RoadInstruction);
 
-                int roadIndex = RhinoObjAttributeConstants.RoadGeometryAttributes.LayerIndex;
+                var bhomCrv = curve.ToBHoM2DegreeCrv();
+                if (bhomCrv == null || bhomCrv.IIsSelfIntersecting())
+                    throw new Exception(UIMessages.RoadInstruction);
 
-                List<TransitData> transitData = new();
-
-                foreach(var rhinoObj in rhinoObjs)
-                {
-                    var curve = rhinoObj.Geometry as Curve;
-                    if (curve == null)
-                        throw new Exception(UIMessages.RoadInstruction);
-
-                    var bhomCrv = curve.ToBHoM2DegreeCrv();
-                    if (bhomCrv == null || bhomCrv.IIsSelfIntersecting())
-                        throw new Exception(UIMessages.RoadInstruction);
-
-                    transitData.Add(new(bhomCrv, rhinoObj.Id, RoadWidth));
-                    LayerHelpers.ChangeLayer(rhinoObj, roadLayerIndex);
-                }
-
-                if (!transitData.Any()) return;
-
-                ModelBuilderPipelines.AddOrUpdateRoadPipeline(doc, transitData, AppMode);
-                RefreshActiveStudyAndMetrics();
+                transitData.Add(new(bhomCrv, rhinoObj.Id, RoadWidth));
+                LayerHelpers.ChangeLayer(rhinoObj, roadLayerIndex);
             }
-            catch(Exception ex)
-            {
-                MessageBox.Show(ex.Message);
-            }
+
+            if (!transitData.Any()) return;
+
+            ModelBuilderPipelines.AddOrUpdateRoadPipeline(doc, transitData, AppMode);
+            RefreshActiveStudyAndMetrics();
         }
-
-        private void UpdateDisplayedStudyAreaData(StudyArea study)
+        catch(Exception ex)
         {
-            try
-            {
-                if (study == null) return;
-
-                UpdateLandUseGraphData(study.Metrics);
-                UpdateRoadLengthGraphData(study.Metrics);
-                UpdateRoadAreaGraphData(study.Metrics);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message);
-            }
-
+            MessageBox.Show(ex.Message);
         }
+    }
 
-        public void RefreshActiveStudyAndMetrics()
+    private void UpdateDisplayedStudyAreaData(StudyArea study)
+    {
+        try
         {
-            StudyAreasNames = CoreModel.Studies.Select(s => s.Name).ToList();
+            if (study == null) return;
 
-            if (_activeStudy != null
-                && CoreModel.TryGetStudyArea(_activeStudy.Id, out StudyArea study))
-                ActiveStudy = study;
-            else if(CoreModel.Studies.Exists(s => s !=null))
-                ActiveStudy = CoreModel.Studies[0];
-
-            ActiveStudyAreaName = ActiveStudy.Name;
-            UpdateDisplayedStudyAreaData(ActiveStudy);
+            UpdateLandUseGraphData(study.Metrics);
+            UpdateRoadLengthGraphData(study.Metrics);
+            UpdateRoadAreaGraphData(study.Metrics);
         }
-
-        private void UpdateBuildingHeight(double floorCount, double floorHeight)
+        catch (Exception ex)
         {
-            ActiveBuildingHeight = floorCount * floorHeight;
+            MessageBox.Show(ex.Message);
         }
+
+    }
+
+    public void RefreshActiveStudyAndMetrics()
+    {
+        StudyAreasNames = CoreModel.Studies.Select(s => s.Name).ToList();
+
+        if (_activeStudy != null
+            && CoreModel.TryGetStudyArea(_activeStudy.Id, out StudyArea study))
+            ActiveStudy = study;
+        else if(CoreModel.Studies.Exists(s => s !=null))
+            ActiveStudy = CoreModel.Studies[0];
+
+        ActiveStudyAreaName = ActiveStudy.Name;
+        UpdateDisplayedStudyAreaData(ActiveStudy);
+    }
+
+    private void UpdateBuildingHeight(double floorCount, double floorHeight)
+    {
+        ActiveBuildingHeight = floorCount * floorHeight;
     }
 }
