@@ -9,6 +9,7 @@ using ArchSitePlan.UI.InputValidation.Results;
 using ArchSitePlan.UI.InputValidation.Validators;
 using ArchSitePlan.UI.Models;
 using ArchSitePlan.UI.RhinoBHoMInterop;
+using ArchSitePlan.UI.UsageLogs;
 using BH.Engine.Geometry;
 using BH.oM.Geometry;
 using Rhino;
@@ -26,7 +27,9 @@ namespace ArchSitePlan.UI.Actions
 
     public static class RhinoEventHandler
     {
+        public static UsageLog AppUsageLog = new();
         public static bool EventLock = false;
+        public static bool ValidLicense = false;
 
         public static MainViewModel WPFViewModel;
         public static UIViewModel HTMLViewModel = new();

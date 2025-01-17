@@ -1,8 +1,15 @@
-﻿using ArchSitePlan.Core.Constants;
+﻿using System.ComponentModel;
+using System.Diagnostics;
+using System.Drawing;
+using System.IO;
+using System.Windows.Forms;
+using System.Windows.Input;
+using ArchSitePlan.Core.Constants;
 using ArchSitePlan.Core.Extensions;
 using ArchSitePlan.Core.Metrics;
 using ArchSitePlan.Core.Models;
 using ArchSitePlan.Core.Pipeline.CreationData;
+using ArchSitePlan.Licensing;
 using ArchSitePlan.UI.Actions;
 using ArchSitePlan.UI.Constants;
 using ArchSitePlan.UI.CoreModelInterface;
@@ -20,51 +27,31 @@ using LiveCharts.Wpf;
 using Rhino;
 using Rhino.DocObjects;
 using Rhino.Geometry;
-using System.ComponentModel;
-using System.Diagnostics;
-using System.Drawing;
-using System.IO;
-using System.Windows.Forms;
-using System.Windows.Input;
 using static ArchSitePlan.Core.Constants.Enums;
 using static ArchSitePlan.UI.Constants.Enums;
 using MessageBox = System.Windows.Forms.MessageBox;
 using SolidColorBrush = System.Windows.Media.SolidColorBrush;
 
-namespace ArchSitePlan.UI
+namespace ArchSitePlan.UI;
+public record VMActiveParcelsDetails(
+    string Use,
+    string TotalArea,
+    string BUA,
+    string CoveragePctg,
+    string FAR);
+
+public class MainViewModel : ViewModelBase, INotifyPropertyChanged
 {
-    public record VMActiveParcelsDetails(
-        string Use,
-        string TotalArea,
-        string BUA,
-        string CoveragePctg,
-        string FAR);
+    #region VARIABLES
+    private string _licenseKey = "licenseKey";
 
-    public class MainViewModel : ViewModelBase, INotifyPropertyChanged
+    public string LicenseKey
     {
-        #region VARIABLES
-
-        public static string RoadInstruction { get; set; } = UIMessages.RoadInstruction;
-        public static string ChangeLandUseInstruction { get; set; } = UIMessages.ChangeLandUseInstruction;
-        public static string AddDividerInstruction { get; set; } = UIMessages.AddDividerInstruction;
-        public static string AddBuildingInstruction { get; set; } = UIMessages.AddBuildingInstruction;
-        public static string AddStudyInstruction { get; set; } = UIMessages.AddStudyInstruction;
-        public static string SetExcelPathInstruction { get; set; } = UIMessages.SetExcelPathInstruction;
-        public static string ExportExcelInstruction { get; set; } = UIMessages.ExportExcelInstruction;
-
-        private bool _enableFloorCountSlider = true;
-        public bool EnableFloorCountSlider
+        get
         {
-            get => _enableFloorCountSlider;
-            set
-            {
-                _enableFloorCountSlider = value;
-                OnPropertyChanged(nameof(EnableFloorCountSlider));
-            }
+            return _licenseKey;
         }
-
-        private VMActiveParcelsDetails _activeParcelsMetrics;
-        public VMActiveParcelsDetails ActiveParcelMetrics
+        set
         {
             get => _activeParcelsMetrics;
             set
