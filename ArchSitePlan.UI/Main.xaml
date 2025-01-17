@@ -116,9 +116,23 @@
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
-        
+        <!--License Test-->
+                <StackPanel Grid.ColumnSpan="2">
+                    <Button Grid.Row="0" 
+                     Content="Ping Stripe" 
+                     Command="{Binding VerifyLicense_Cmd}"/>
 
-        <!--Road Expander-->
+                    <TextBox 
+                     Text="{Binding LicenseKey, Mode=TwoWay}" 
+                     Grid.Column="1"/>
+
+                    <TextBox
+                     Text="{Binding CustomerID, Mode=TwoWay}"
+                     Grid.Column="1"/>
+
+                </StackPanel>
+       
+                <!--Road Expander-->
         <Expander Grid.Row="1"
                   Grid.ColumnSpan="3"
                   Header="Roads"
