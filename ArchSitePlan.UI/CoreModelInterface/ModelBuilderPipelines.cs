@@ -1,4 +1,5 @@
-﻿using ArchSitePlan.Core.Pipeline;
+﻿using System.Windows;
+using ArchSitePlan.Core.Pipeline;
 using ArchSitePlan.Core.Pipeline.CreationData;
 using ArchSitePlan.Licensing;
 using ArchSitePlan.UI.Actions;
@@ -8,14 +9,20 @@ using static ArchSitePlan.UI.Constants.Enums;
 
 namespace ArchSitePlan.UI.CoreModelInterface
 {
+    public record PipelineResult(bool Success, string Message);
+
     public static class ModelBuilderPipelines
     {
-        public static void AddOrUpdateRoadPipeline(RhinoDoc doc,
+        public static void AddOrUpdateRoadPipeline(
+            RhinoDoc doc,
             List<TransitData> creationData,
             AppMode currentAppMode)
         {
             if (!RhinoEventHandler.ValidLicense)
+            {
+                MessageBox.Show("Invalid license");
                 return;
+            }
 
             CoreModelEditStepLibrary.TryRemoveRoad(creationData);
             CoreModelEditStepLibrary.AddOrUpdateRoad(creationData);
@@ -25,8 +32,6 @@ namespace ArchSitePlan.UI.CoreModelInterface
             CoreModelEditStepLibrary.RefreshStudyAreaMetrics();
             RhinoModelEditStepLibrary.ReplaceRhinoModel(doc);
             LayerManager.ToggleLayerStateBasedOnAppMode(doc, currentAppMode);
-
-            RhinoEventHandler.AppUsageLog.ModelLog.Transit++;
         }
 
         public static void ChangeParcelUsePipeline(

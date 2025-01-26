@@ -29,7 +29,7 @@ namespace ArchSitePlan.UI.Actions
     {
         public static UsageLog AppUsageLog = new();
         public static bool EventLock = false;
-        public static bool ValidLicense = false;
+        public static bool ValidLicense = true;
 
         public static MainViewModel WPFViewModel;
         public static UIViewModel HTMLViewModel = new();
@@ -193,7 +193,12 @@ namespace ArchSitePlan.UI.Actions
                         return;
                     }
 
-                    ModelBuilderPipelines.AddOrUpdateRoadPipeline(doc, coreRoadData, WPFViewModel.AppMode);
+                    ModelBuilderPipelines.AddOrUpdateRoadPipeline(
+                        doc,
+                        coreRoadData,
+                        WPFViewModel.AppMode);
+
+                    AppUsageLog.ModelLog.Transit++;
                     WPFViewModel.RefreshActiveStudyAndMetrics();
                 }
 
@@ -211,7 +216,7 @@ namespace ArchSitePlan.UI.Actions
                     }
 
                     ModelBuilderPipelines.AddOrUpdateParcelDividerPipeline(
-                        RhinoDoc.ActiveDoc, 
+                        RhinoDoc.ActiveDoc,
                         coreDividerData,
                         WPFViewModel.AppMode);
 
@@ -221,7 +226,7 @@ namespace ArchSitePlan.UI.Actions
                 {
                     var rhinoStudyData = RhinoStudyData.FromExisting(replacedObjects);
                     var coreStudyData = RhinoStudyData.ToCoreModelData(rhinoStudyData).ToList();
-                    
+
                     if (coreStudyData.Count == 0)
                     {
                         EventLock = false;

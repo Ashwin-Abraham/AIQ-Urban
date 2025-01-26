@@ -1,5 +1,4 @@
-﻿
-using ArchSitePlan.Core.Pipeline.CreationData;
+﻿using ArchSitePlan.Core.Pipeline.CreationData;
 using ArchSitePlan.UI.Actions;
 using ArchSitePlan.UI.Constants;
 using ArchSitePlan.UI.CoreModelInterface;

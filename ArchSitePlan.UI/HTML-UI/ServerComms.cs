@@ -2,6 +2,7 @@
 using Newtonsoft.Json;
 using Rhino;
 using Rhino.Commands;
+using Rhino.UI;
 using System.Net;
 using System.Text;
 using System.Windows;
@@ -21,11 +22,26 @@ public class ServerComms
 
     private static void StartHttpServer()
     {
-        _serverRunning = true;
-        _httpListener = new HttpListener();
-        _httpListener.Prefixes.Add("http://localhost:6300/");
-        _httpListener.Start();
-        Task.Run(() => HandleRequestsAsync());
+        // Create a new form (window)
+        var htmlWindow = new HtmlForm();
+        try
+        {
+            RhinoApp.InvokeOnUiThread(() =>
+            {
+                htmlWindow.Show();
+            });
+            
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(ex.Message);
+        }
+
+        //_serverRunning = true;
+        //_httpListener = new HttpListener();
+        //_httpListener.Prefixes.Add("http://localhost:6300/");
+        //_httpListener.Start();
+        //Task.Run(() => HandleRequestsAsync());
     }
 
     private static async Task HandleRequestsAsync()
@@ -75,7 +91,7 @@ public class ServerComms
                                 await output.WriteAsync(buffer, 0, buffer.Length);
                             }
 
-                            MessageBox.Show(buffer.Select(x => x.ToString()).ToList().ToString());
+                            //MessageBox.Show(buffer.Select(x => x.ToString()).ToList().ToString());
                             response.Close();
                         }
                     }

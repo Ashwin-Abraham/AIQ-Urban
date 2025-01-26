@@ -9,14 +9,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Resources\Cursor.png" />
-    <None Remove="Resources\Line.png" />
-    <None Remove="Resources\LOGO.png" />
-    <None Remove="Resources\Pline.png" />
-    <None Remove="Resources\Question.png" />
-  </ItemGroup>
-
-  <ItemGroup>
 	  <PackageReference Include="Cryptolens.Licensing.CrossPlatform" Version="4.0.48" />
 	  <PackageReference Include="LiveCharts.Wpf.NetCore3" Version="0.9.8" />
 	  <PackageReference Include="MahApps.Metro" Version="3.0.0-alpha0492" />
@@ -44,6 +36,9 @@
     <Resource Include="Resources\Cursor.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Resource>
+    <Content Include="Resources\index.html">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Resource Include="Resources\Line.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
