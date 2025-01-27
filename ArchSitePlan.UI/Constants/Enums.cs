@@ -8,7 +8,7 @@ namespace ArchSitePlan.UI.Constants
 {
     public static class Enums
     {
-        public enum AppMode
+        public enum ModellingTool
         {
             Transit,
             Separator,

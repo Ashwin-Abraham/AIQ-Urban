@@ -1,7 +1,10 @@
 ﻿using ArchSitePlan.Core.Constants;
 using ArchSitePlan.Core.Metrics;
 using ArchSitePlan.Core.Models;
+using ArchSitePlan.UI.CoreModelInterface;
 using ArchSitePlan.UI.HTML_UI.MessageToUI;
+using Rhino;
+using static ArchSitePlan.UI.Constants.Enums;
 
 namespace ArchSitePlan.UI.HTML_UI.HtmlCommsClasses;
 
@@ -15,6 +18,7 @@ namespace ArchSitePlan.UI.HTML_UI.HtmlCommsClasses;
 /// </summary>
 public class UIViewModel
 {
+    public ModellingTool ModelToolMode { get; private set; }
     public MetricsMessage MetricsMessageData { get; private set; }
     public ZonesInModelMessage ZoneMessageData { get; private set; }
     public ExportLocationMessage ExportLocationMessageData { get; private set; }
@@ -37,5 +41,14 @@ public class UIViewModel
     public void UpdateZonesInModelMessage(string activeZone)
     {
         ZoneMessageData = new ZonesInModelMessage(activeZone);
+    }
+
+    public void SetModellingMode(ModellingTool newAppTool)
+    {
+        if (newAppTool == ModellingTool.None)
+            LayerManager.ToggleLockModelLayers(RhinoDoc.ActiveDoc, true);
+
+        LayerManager.ToggleLayerStateBasedOnAppMode(RhinoDoc.ActiveDoc, newAppTool);
+        RhinoDoc.ActiveDoc.Views.Redraw();
     }
 }

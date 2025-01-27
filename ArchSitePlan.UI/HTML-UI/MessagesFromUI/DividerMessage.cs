@@ -20,7 +20,7 @@ namespace ArchSitePlan.UI.HTML_UI.MessagesFromUI
 
         public MetricsMessage HandleMessage()
         {
-            RhinoEventHandler.WPFViewModel.AppMode = AppMode.Separator;
+            RhinoEventHandler.WPFViewModel.AppMode = ModellingTool.Separator;
 
             RhinoDoc doc = RhinoDoc.ActiveDoc;
             int parcelDividerLayerIndex = LayerHelpers.CreateOrGetLayerIndex(
@@ -63,7 +63,7 @@ namespace ArchSitePlan.UI.HTML_UI.MessagesFromUI
             var vm = RhinoEventHandler.HTMLViewModel;
             if (!dividerData.Any()) return vm.MetricsMessageData;
 
-            ModelBuilderPipelines.AddOrUpdateParcelDividerPipeline(doc, dividerData, AppMode.Separator);
+            ModelBuilderPipelines.AddOrUpdateParcelDividerPipeline(doc, dividerData, ModellingTool.Separator);
 
             vm.UpdateGraphMessage();
             return vm.MetricsMessageData;

@@ -104,7 +104,7 @@ public class MainViewModel : ViewModelBase, INotifyPropertyChanged
             OnPropertyChanged(nameof(RoadWidth));
         }
     }
-    public AppMode AppMode = AppMode.None;
+    public ModellingTool AppMode = ModellingTool.None;
 
     private bool _appEnabled = false;
     public bool AppEnabled
@@ -125,7 +125,7 @@ public class MainViewModel : ViewModelBase, INotifyPropertyChanged
         {
             _roadExpanderOpen = value;
             OnPropertyChanged(nameof(RoadExpanderOpen));
-            SetAppMode(AppMode.Transit, RoadExpanderOpen);
+            SetAppMode(ModellingTool.Transit, RoadExpanderOpen);
         }
     }
 
@@ -137,7 +137,7 @@ public class MainViewModel : ViewModelBase, INotifyPropertyChanged
         {
             _landuseExpanderOpen = value;
             OnPropertyChanged(nameof(LanduseExpanderOpen));
-            SetAppMode(AppMode.LandUse, LanduseExpanderOpen);
+            SetAppMode(ModellingTool.LandUse, LanduseExpanderOpen);
         }
     }
 
@@ -149,7 +149,7 @@ public class MainViewModel : ViewModelBase, INotifyPropertyChanged
         {
             _exportsExpanderOpen = value;
             OnPropertyChanged(nameof(ExportsExpanderOpen));
-            SetAppMode(AppMode.Export, ExportsExpanderOpen);
+            SetAppMode(ModellingTool.Export, ExportsExpanderOpen);
         }
     }
 
@@ -161,7 +161,7 @@ public class MainViewModel : ViewModelBase, INotifyPropertyChanged
         {
             _buildingsExpanderOpen = value;
             OnPropertyChanged(nameof(BuildingsExpanderOpen));
-            SetAppMode(AppMode.Building, BuildingsExpanderOpen);
+            SetAppMode(ModellingTool.Building, BuildingsExpanderOpen);
         }
     }
 
@@ -173,7 +173,7 @@ public class MainViewModel : ViewModelBase, INotifyPropertyChanged
         {
             _studyAreaExpanderOpen = value;
             OnPropertyChanged(nameof(StudyAreaExpanderOpen));
-            SetAppMode(AppMode.Zones, StudyAreaExpanderOpen);
+            SetAppMode(ModellingTool.Zones, StudyAreaExpanderOpen);
         }
     }
 
@@ -486,16 +486,17 @@ public class MainViewModel : ViewModelBase, INotifyPropertyChanged
         try
         {
             ServerComms.StartServer();
+            VueUI.OpenWindow();
 
             RhinoDoc doc = RhinoDoc.ActiveDoc;
             AppEnabled = !AppEnabled;
 
-            bool expanderOpen = AppMode != AppMode.None;
-            AppMode = AppMode.None;
+            bool expanderOpen = AppMode != ModellingTool.None;
+            AppMode = ModellingTool.None;
 
             SetAppMode(AppMode, expanderOpen);
 
-            if (!AppEnabled || AppMode == AppMode.None)
+            if (!AppEnabled || AppMode == ModellingTool.None)
             {
                 // Hard lock to avoid complex refactor
                 LayerManager.ToggleLockModelLayers(doc, true);
@@ -785,14 +786,14 @@ public class MainViewModel : ViewModelBase, INotifyPropertyChanged
             
     }
 
-    private void SetAppMode(AppMode changedExpander, bool expanderOpen)
+    private void SetAppMode(ModellingTool changedExpander, bool expanderOpen)
     {
         // Set current mode
         if (!expanderOpen)
         {
             // If expander is closed while the app mode is unchanged, it means wwe have closed all expanders
-            if (AppMode == changedExpander) AppMode = AppMode.None;
-            if (AppMode == AppMode.None)
+            if (AppMode == changedExpander) AppMode = ModellingTool.None;
+            if (AppMode == ModellingTool.None)
                 LayerManager.ToggleLockModelLayers(RhinoDoc.ActiveDoc, true);
 
             // Early return to avoid cyclic SetSelectionMode calls for expander closure
@@ -802,15 +803,15 @@ public class MainViewModel : ViewModelBase, INotifyPropertyChanged
             AppMode = changedExpander;
 
         // Close other expanders
-        if (AppMode != AppMode.Transit && RoadExpanderOpen)
+        if (AppMode != ModellingTool.Transit && RoadExpanderOpen)
             RoadExpanderOpen = false;
-        if (AppMode != AppMode.LandUse && LanduseExpanderOpen)
+        if (AppMode != ModellingTool.LandUse && LanduseExpanderOpen)
             LanduseExpanderOpen = false;
-        if (AppMode != AppMode.Building && BuildingsExpanderOpen)
+        if (AppMode != ModellingTool.Building && BuildingsExpanderOpen)
             BuildingsExpanderOpen = false;
-        if (AppMode != AppMode.Zones && StudyAreaExpanderOpen)
+        if (AppMode != ModellingTool.Zones && StudyAreaExpanderOpen)
             StudyAreaExpanderOpen = false;
-        if (AppMode != AppMode.Export && ExportsExpanderOpen)
+        if (AppMode != ModellingTool.Export && ExportsExpanderOpen)
             ExportsExpanderOpen = false;
 
         if(expanderOpen)

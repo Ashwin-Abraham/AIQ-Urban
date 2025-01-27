@@ -7,7 +7,8 @@ public enum TypeOfMessage
     Landuse,
     Building,
     Divider,
-    Zone
+    Zone,
+    ToolSelection
 }
 public interface IMessageFromUI<out T> where T : IMessageToUI
 {

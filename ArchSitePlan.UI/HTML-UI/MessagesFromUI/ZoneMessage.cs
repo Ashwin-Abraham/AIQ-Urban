@@ -25,7 +25,7 @@ namespace ArchSitePlan.UI.HTML_UI.MessagesFromUI
         public ZonesInModelMessage HandleMessage()
     {
             var vm = RhinoEventHandler.HTMLViewModel;
-            RhinoEventHandler.WPFViewModel.AppMode = AppMode.Zones;
+            RhinoEventHandler.WPFViewModel.AppMode = ModellingTool.Zones;
 
             var rhinoObjs = RhinoDoc.ActiveDoc.Objects.GetSelectedObjects(false, false).ToList();
 
@@ -54,7 +54,7 @@ namespace ArchSitePlan.UI.HTML_UI.MessagesFromUI
             RhinoDoc doc2 = RhinoDoc.ActiveDoc;
             ModelBuilderPipelines.AddStudyAreaPipeline(doc: doc2,
                 studyData: new StudyData(bhomCrv!, rhinoObj.Id, Name).ObjectToList(),
-                AppMode.Zones);
+                ModellingTool.Zones);
 
             if (CoreModel.Studies.Exists(s => s.Name == Name))
                 vm.UpdateZonesInModelMessage(Name);

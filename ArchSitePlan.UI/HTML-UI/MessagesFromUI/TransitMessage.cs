@@ -21,7 +21,7 @@ public class TransitMessage : IMessageFromUI<MetricsMessage>
     public double LeftPavementWidth { get; init; }
     public MetricsMessage HandleMessage()
     {
-        RhinoEventHandler.WPFViewModel.AppMode = AppMode.Transit;
+        RhinoEventHandler.WPFViewModel.AppMode = ModellingTool.Transit;
 
         RhinoDoc doc = RhinoDoc.ActiveDoc;
         int roadLayerIndex = LayerHelpers.CreateOrGetLayerIndex(
@@ -58,7 +58,7 @@ public class TransitMessage : IMessageFromUI<MetricsMessage>
         var vm = RhinoEventHandler.HTMLViewModel;
         if (!transitData.Any()) return vm.MetricsMessageData;
 
-        ModelBuilderPipelines.AddOrUpdateRoadPipeline(doc, transitData, AppMode.Transit);
+        ModelBuilderPipelines.AddOrUpdateRoadPipeline(doc, transitData, ModellingTool.Transit);
 
         vm.UpdateGraphMessage();
         return vm.MetricsMessageData;

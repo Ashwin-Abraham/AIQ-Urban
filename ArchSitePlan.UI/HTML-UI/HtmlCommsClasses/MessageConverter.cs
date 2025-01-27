@@ -36,6 +36,9 @@ public static class MessageConverter
             case "Zone":
                 return JsonConvert.DeserializeObject<ZoneMessage>(json);
 
+            case "ToolSelection":
+                return JsonConvert.DeserializeObject<ToolSelectionMessage>(json);
+
             default:
                 throw new Exception($"Unsupported message type: {messageType}");
         }

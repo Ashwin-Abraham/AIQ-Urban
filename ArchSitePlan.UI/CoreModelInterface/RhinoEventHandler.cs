@@ -163,13 +163,13 @@ namespace ArchSitePlan.UI.Actions
                 EventLock = true;
                 RhinoDoc doc = RhinoDoc.ActiveDoc;
 
-                if (replacedObjects.Count == 0 || WPFViewModel.AppMode == AppMode.None)
+                if (replacedObjects.Count == 0 || WPFViewModel.AppMode == ModellingTool.None)
                 {
                     EventLock = false;
                     return;
                 }
 
-                if (WPFViewModel.AppMode == AppMode.Building)
+                if (WPFViewModel.AppMode == ModellingTool.Building)
                 {
                     List<RhinoBuildingData> buildingData = RhinoBuildingData.FromExisting(replacedObjects).ToList();
 
@@ -182,7 +182,7 @@ namespace ArchSitePlan.UI.Actions
                     UpdateSelectedBuildingsPosition(buildingData);
                     WPFViewModel.RefreshActiveStudyAndMetrics();
                 }
-                else if (WPFViewModel.AppMode == AppMode.Transit)
+                else if (WPFViewModel.AppMode == ModellingTool.Transit)
                 {
                     var roadData = RhinoRoadData.FromExisting(replacedObjects).ToList();
                     var coreRoadData = RhinoRoadData.ToCoreModelCreationData(roadData).ToList();
@@ -203,7 +203,7 @@ namespace ArchSitePlan.UI.Actions
                 }
 
                 // This is actually for dividers
-                else if (WPFViewModel.AppMode == AppMode.LandUse)
+                else if (WPFViewModel.AppMode == ModellingTool.LandUse)
                 {
                     var validation = new DividerInputValidator(true).ValidateInput(replacedObjects);
                     var rhinoDividerData = RhinoDividerData.Create(validation.ValidObjects);
@@ -222,7 +222,7 @@ namespace ArchSitePlan.UI.Actions
 
                     WPFViewModel.RefreshActiveStudyAndMetrics();
                 }
-                else if (WPFViewModel.AppMode == AppMode.Zones)
+                else if (WPFViewModel.AppMode == ModellingTool.Zones)
                 {
                     var rhinoStudyData = RhinoStudyData.FromExisting(replacedObjects);
                     var coreStudyData = RhinoStudyData.ToCoreModelData(rhinoStudyData).ToList();
@@ -275,7 +275,7 @@ namespace ArchSitePlan.UI.Actions
 
                 // Road needs the add event because the join command
                 // on curves in rhino will not trigger a replace event
-                else if (WPFViewModel.AppMode == AppMode.Transit)
+                else if (WPFViewModel.AppMode == ModellingTool.Transit)
                 {
                     var result = new TransitInputValidator().ValidateInput(newObjects);
                     if (result.ValidObjects.Count == 0)
@@ -298,7 +298,7 @@ namespace ArchSitePlan.UI.Actions
                 }
                 // Landuse (ie Dividers) needs the add event because the join command
                 // on curves in rhino will not trigger a replace event
-                else if (WPFViewModel.AppMode == AppMode.LandUse)
+                else if (WPFViewModel.AppMode == ModellingTool.LandUse)
                 {
                     var result = new DividerInputValidator(true).ValidateInput(newObjects);
                     if(result.ValidObjects.Count == 0)
@@ -344,7 +344,7 @@ namespace ArchSitePlan.UI.Actions
                 EventLock = true;
                 switch (WPFViewModel.AppMode)
                 {
-                    case AppMode.Transit:
+                    case ModellingTool.Transit:
                         var transitResult = new TransitInputValidator().ValidateInput(removedObjects);
                         var transitData = RhinoRoadData.FromExisting(transitResult.ValidObjects)
                             .Select(x => x.ToCoreModelCreationData())
@@ -359,7 +359,7 @@ namespace ArchSitePlan.UI.Actions
                         WPFViewModel.RefreshActiveStudyAndMetrics();
                         break;
 
-                    case AppMode.Building:
+                    case ModellingTool.Building:
                         var buildingResult = new BuildingInputValidator(BuildingSelectorMode.Mass)
                             .ValidateInput(removedObjects);
 
@@ -378,7 +378,7 @@ namespace ArchSitePlan.UI.Actions
                         WPFViewModel.RefreshActiveStudyAndMetrics();
                         break;
 
-                    case AppMode.Zones:
+                    case ModellingTool.Zones:
                         var result = new StudyInputValidator().ValidateInput(removedObjects);
                         if (result.ValidObjects.Count == 0)
                         {
@@ -389,7 +389,7 @@ namespace ArchSitePlan.UI.Actions
                         WPFViewModel.RefreshActiveStudyAndMetrics();
                         break;
 
-                    case AppMode.LandUse:
+                    case ModellingTool.LandUse:
 
                         var validation = new DividerInputValidator(true).ValidateInput(removedObjects);
 
@@ -459,21 +459,21 @@ namespace ArchSitePlan.UI.Actions
 
                     switch (WPFViewModel.AppMode)
                     {
-                        case AppMode.Transit:
+                        case ModellingTool.Transit:
                             var roads = CoreModel.Roads.Where(rd => coreModelIds.Contains(rd.CenterLineId)).ToList();
                             if (roads.Count == 0) break;
                             PopUpViewModel.ConfigureRoadsInPopUp(_popUp, roads);
                             _popUp.Show();
                             break;
 
-                        case AppMode.LandUse:
+                        case ModellingTool.LandUse:
                             var parcels = CoreModel.Parcels.Where(p => coreModelIds.Contains(p.Id)).ToList();
                             if (parcels.Count == 0) break;
                             PopUpViewModel.ConfigureLandUseInPopUp(_popUp, parcels);
                             _popUp.Show();
                             break;
 
-                        case AppMode.Building:
+                        case ModellingTool.Building:
                             var buildings = CoreModel.Buildings
                                 .Where(bldg => coreModelIds.Contains(bldg.EnvelopeId))
                                 .ToList();
@@ -505,27 +505,27 @@ namespace ArchSitePlan.UI.Actions
             SetForegroundWindow(rhinoWindowHandle);
         }
 
-        private static List<Guid> FindCoreModelObjs(List<Guid> selectedIds, AppMode mode)
+        private static List<Guid> FindCoreModelObjs(List<Guid> selectedIds, ModellingTool mode)
         {
             switch(mode)
             {
-                case AppMode.Transit:
+                case ModellingTool.Transit:
                     return CoreModel.Roads
                         .Where(rd => selectedIds.Contains(rd.CenterLineId))
                         .Select(rd => rd.CenterLineId)
                         .ToList();
 
-                case AppMode.LandUse: return CoreModel.Parcels
+                case ModellingTool.LandUse: return CoreModel.Parcels
                         .Where(p => selectedIds.Contains(p.Id))
                         .Select(p => p.Id)
                         .ToList();
 
-                case AppMode.Building: return CoreModel.Buildings
+                case ModellingTool.Building: return CoreModel.Buildings
                         .Where(b => selectedIds.Contains(b.EnvelopeId))
                         .Select(b => b.EnvelopeId)
                         .ToList();
 
-                case AppMode.Zones:
+                case ModellingTool.Zones:
                     return CoreModel.Studies
                         .Where(st => selectedIds.Contains(st.Id))
                         .Select(b => b.Id)
@@ -648,6 +648,8 @@ namespace ArchSitePlan.UI.Actions
             PlanarSurface footPrint = Create.PlanarSurface(bhom);
             return footPrint;
         }
+
+        
     }
 }
     

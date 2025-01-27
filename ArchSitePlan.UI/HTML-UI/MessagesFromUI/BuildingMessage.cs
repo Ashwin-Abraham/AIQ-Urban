@@ -29,7 +29,7 @@ namespace ArchSitePlan.UI.HTML_UI.MessagesFromUI
 
         public MetricsMessage HandleMessage()
         {
-            RhinoEventHandler.WPFViewModel.AppMode = AppMode.Building;
+            RhinoEventHandler.WPFViewModel.AppMode = ModellingTool.Building;
             bool validMode = Enum.TryParse<BuildingSelectorMode>(GenerationType, out var buildingMode);
             
             if (!validMode)
