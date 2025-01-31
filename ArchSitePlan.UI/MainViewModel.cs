@@ -9,12 +9,12 @@ using ArchSitePlan.Core.Extensions;
 using ArchSitePlan.Core.Metrics;
 using ArchSitePlan.Core.Models;
 using ArchSitePlan.Core.Pipeline.CreationData;
-using ArchSitePlan.Licensing;
 using ArchSitePlan.UI.Actions;
 using ArchSitePlan.UI.Constants;
 using ArchSitePlan.UI.CoreModelInterface;
 using ArchSitePlan.UI.Extensions;
 using ArchSitePlan.UI.Helpers;
+using ArchSitePlan.UI.HTML_UI;
 using ArchSitePlan.UI.InputValidation.Results;
 using ArchSitePlan.UI.InputValidation.Validators;
 using ArchSitePlan.UI.Models;
@@ -55,7 +55,6 @@ public class MainViewModel : ViewModelBase, INotifyPropertyChanged
             OnPropertyChanged(nameof(LicenseKey));
         }
     }
-
     private string _customerID = "customerID";
     public string CustomerID
     {
@@ -64,24 +63,6 @@ public class MainViewModel : ViewModelBase, INotifyPropertyChanged
         {
             _customerID = value;
             OnPropertyChanged(nameof(CustomerID));
-        }
-    }
-    public static string RoadInstruction { get; set; } = UIMessages.RoadInstruction;
-    public static string ChangeLandUseInstruction { get; set; } = UIMessages.ChangeLandUseInstruction;
-    public static string AddDividerInstruction { get; set; } = UIMessages.AddDividerInstruction;
-    public static string AddBuildingInstruction { get; set; } = UIMessages.AddBuildingInstruction;
-    public static string AddStudyInstruction { get; set; } = UIMessages.AddStudyInstruction;
-    public static string SetExcelPathInstruction { get; set; } = UIMessages.SetExcelPathInstruction;
-    public static string ExportExcelInstruction { get; set; } = UIMessages.ExportExcelInstruction;
-
-    private bool _enableFloorCountSlider = true;
-    public bool EnableFloorCountSlider
-    {
-        get => _enableFloorCountSlider;
-        set
-        {
-            _enableFloorCountSlider = value;
-            OnPropertyChanged(nameof(EnableFloorCountSlider));
         }
     }
 
@@ -123,7 +104,7 @@ public class MainViewModel : ViewModelBase, INotifyPropertyChanged
             OnPropertyChanged(nameof(RoadWidth));
         }
     }
-    public AppMode AppMode = AppMode.None;
+    public ModellingTool AppMode = ModellingTool.None;
 
     private bool _appEnabled = false;
     public bool AppEnabled
@@ -144,7 +125,7 @@ public class MainViewModel : ViewModelBase, INotifyPropertyChanged
         {
             _roadExpanderOpen = value;
             OnPropertyChanged(nameof(RoadExpanderOpen));
-            SetAppMode(AppMode.Transit, RoadExpanderOpen);
+            SetAppMode(ModellingTool.Transit, RoadExpanderOpen);
         }
     }
 
@@ -156,7 +137,7 @@ public class MainViewModel : ViewModelBase, INotifyPropertyChanged
         {
             _landuseExpanderOpen = value;
             OnPropertyChanged(nameof(LanduseExpanderOpen));
-            SetAppMode(AppMode.LandUse, LanduseExpanderOpen);
+            SetAppMode(ModellingTool.LandUse, LanduseExpanderOpen);
         }
     }
 
@@ -168,7 +149,7 @@ public class MainViewModel : ViewModelBase, INotifyPropertyChanged
         {
             _exportsExpanderOpen = value;
             OnPropertyChanged(nameof(ExportsExpanderOpen));
-            SetAppMode(AppMode.Export, ExportsExpanderOpen);
+            SetAppMode(ModellingTool.Export, ExportsExpanderOpen);
         }
     }
 
@@ -180,7 +161,7 @@ public class MainViewModel : ViewModelBase, INotifyPropertyChanged
         {
             _buildingsExpanderOpen = value;
             OnPropertyChanged(nameof(BuildingsExpanderOpen));
-            SetAppMode(AppMode.Building, BuildingsExpanderOpen);
+            SetAppMode(ModellingTool.Building, BuildingsExpanderOpen);
         }
     }
 
@@ -192,7 +173,7 @@ public class MainViewModel : ViewModelBase, INotifyPropertyChanged
         {
             _studyAreaExpanderOpen = value;
             OnPropertyChanged(nameof(StudyAreaExpanderOpen));
-            SetAppMode(AppMode.StudyArea, StudyAreaExpanderOpen);
+            SetAppMode(ModellingTool.Zones, StudyAreaExpanderOpen);
         }
     }
 
@@ -420,7 +401,6 @@ public class MainViewModel : ViewModelBase, INotifyPropertyChanged
     public ICommand ToggleEnableApp_Cmd { get; }
     public ICommand AddParcelDivider_Cmd { get; }
     public ICommand ContactMe_Cmd { get; }
-    public ICommand VerifyLicense_Cmd { get; }
     #endregion
 
     public MainViewModel()
@@ -435,37 +415,11 @@ public class MainViewModel : ViewModelBase, INotifyPropertyChanged
         this.SetExcelPath_Cmd = new RelayCommand(SetExcelPath_Exec);
         this.AddParcelDivider_Cmd = new RelayCommand(AddParcelDivider_Exec);
         this.ContactMe_Cmd = new RelayCommand(ContactMe_Exec);
-        this.VerifyLicense_Cmd = new RelayCommand(VerifyLicense_Exec);
 
         CoreModel.ResetStudyAreas();
         ActiveStudy = CoreModel.Studies.FirstOrDefault();
         StudyAreasNames = CoreModel.Studies.Select(s => s.Name).ToList();
         ActiveStudyAreaName = ActiveStudy.Name;
-    }
-
-    private void VerifyLicense_Exec(object obj)
-    {
-        try
-        {
-            string customerID = CustomerID ;
-            string licenseKey = LicenseKey ;
-
-            var result = LicenseAuthentication.ValidateAndUpdateStripeSubscription(
-                customerID, 
-                licenseKey,
-                ref RhinoEventHandler.AppUsageLog);
-
-            RhinoEventHandler.ValidLicense = result.Success;
-
-            if (result.Success)
-                ;
-
-            MessageBox.Show(result.Message);
-        }
-        catch (Exception ex)
-        {
-            MessageBox.Show(ex.Message);
-        }
     }
 
     private void ContactMe_Exec(object obj)
@@ -496,7 +450,7 @@ public class MainViewModel : ViewModelBase, INotifyPropertyChanged
                 .ToList();
 
             int removed = rhinoObjs.Count() - rhinoCrvs.Count;
-            
+                
             List<DividerData> dividerData = new();
 
             foreach (var rhinoObj in rhinoCrvs)
@@ -531,15 +485,18 @@ public class MainViewModel : ViewModelBase, INotifyPropertyChanged
     {
         try
         {
+            ServerComms.StartServer();
+            VueUI.OpenWindow();
+
             RhinoDoc doc = RhinoDoc.ActiveDoc;
             AppEnabled = !AppEnabled;
 
-            bool expanderOpen = AppMode != AppMode.None;
-            AppMode = AppMode.None;
+            bool expanderOpen = AppMode != ModellingTool.None;
+            AppMode = ModellingTool.None;
 
             SetAppMode(AppMode, expanderOpen);
 
-            if (!AppEnabled || AppMode == AppMode.None)
+            if (!AppEnabled || AppMode == ModellingTool.None)
             {
                 // Hard lock to avoid complex refactor
                 LayerManager.ToggleLockModelLayers(doc, true);
@@ -556,7 +513,7 @@ public class MainViewModel : ViewModelBase, INotifyPropertyChanged
         {
             MessageBox.Show(ex.Message);
         }
-        
+            
     }
 
     private void SetExcelPath_Exec(object obj)
@@ -637,7 +594,7 @@ public class MainViewModel : ViewModelBase, INotifyPropertyChanged
         {
             MessageBox.Show(ex.Message);
         }
-      
+          
     }
 
     private void UpdateLandUseGraphData(StudyAreaMetrics metrics)
@@ -650,14 +607,14 @@ public class MainViewModel : ViewModelBase, INotifyPropertyChanged
                 Math.Round(landUseGroup.Sum(p => p.BUA))
                 : Math.Round(landUseGroup.Sum(p => p.Area));
             var use = landUseGroup.First().Use;
-            
+                
             ParcelSeriesCollection.Add(new ColumnSeries()
             {
                 Title = landUseGroup.First().Use.ToString(),
                 Values = new ChartValues<double> { area },
                 Fill = new SolidColorBrush(AppColours.LandUseColours[use].ToWindowsMediaColor()),
                 Height = 40,
-                
+                    
             });
         }
         GraphHeight = groupedByUse.Count() * 12 + 50;
@@ -688,7 +645,7 @@ public class MainViewModel : ViewModelBase, INotifyPropertyChanged
         }
     }
 
-    
+        
     private void UpdateRoadAreaGraphData(StudyAreaMetrics metrics)
     {
         var groupedByWidth = metrics.TransitMetrics.GroupBy(p => Math.Round(p.RoadWidth, 1));
@@ -700,7 +657,7 @@ public class MainViewModel : ViewModelBase, INotifyPropertyChanged
         {
             var area = Math.Round(transitGroup.Sum(p => p.Area));
             var label = "Width (" + Math.Round(transitGroup.First().RoadWidth, 1).ToString() + "m)";
-            
+                
 
             var newRow = new PieSeries()
             {
@@ -751,7 +708,7 @@ public class MainViewModel : ViewModelBase, INotifyPropertyChanged
         try
         {
             var rhinoObjs = RhinoDoc.ActiveDoc.Objects.GetSelectedObjects(false, false).ToList();
-            
+                
             if (rhinoObjs.Count != 1 || rhinoObjs[0].ObjectType != ObjectType.Curve) 
                 throw new Exception(UIMessages.AddStudyInstruction);
 
@@ -760,26 +717,26 @@ public class MainViewModel : ViewModelBase, INotifyPropertyChanged
 
             if (!boundary.IsClosed)
                 throw new Exception("Error. Please select closed curve instead");
-            
+                
             if (ActiveStudyAreaName == _defaultStudyAreaNameTextBox
                 || ActiveStudyAreaName == string.Empty)
                 throw new Exception("Error. Please enter a study name");
 
             if (boundary is null || boundary.Degree > 1)
                 throw new Exception("Select closed polylines only.");
-            
+                
             var study = CoreModel.Studies.Find(s => s.Name == ActiveStudyAreaName);
-            
+                
             if(study!=null && study.Id != rhinoObj.Id)
                 throw new Exception($"Another study named \"{ActiveStudyAreaName}\" already exists.");
-            
+                
             var bhomCrv = boundary.ToBHoM2DegreeCrv();
-            
+                
             RhinoDoc doc2 = RhinoDoc.ActiveDoc;
             ModelBuilderPipelines.AddStudyAreaPipeline(doc: doc2,
                 studyData: new StudyData(bhomCrv!, rhinoObj.Id, ActiveStudyAreaName).ObjectToList(),
                 AppMode);
-            
+                
             ActiveStudy = CoreModel.Studies.FirstOrDefault(s => rhinoObj.Id == s.Id);
 
             RefreshActiveStudyAndMetrics();
@@ -826,17 +783,17 @@ public class MainViewModel : ViewModelBase, INotifyPropertyChanged
         {
             MessageBox.Show(ex.Message);
         }
-        
+            
     }
 
-    private void SetAppMode(AppMode changedExpander, bool expanderOpen)
+    private void SetAppMode(ModellingTool changedExpander, bool expanderOpen)
     {
         // Set current mode
         if (!expanderOpen)
         {
             // If expander is closed while the app mode is unchanged, it means wwe have closed all expanders
-            if (AppMode == changedExpander) AppMode = AppMode.None;
-            if (AppMode == AppMode.None)
+            if (AppMode == changedExpander) AppMode = ModellingTool.None;
+            if (AppMode == ModellingTool.None)
                 LayerManager.ToggleLockModelLayers(RhinoDoc.ActiveDoc, true);
 
             // Early return to avoid cyclic SetSelectionMode calls for expander closure
@@ -846,15 +803,15 @@ public class MainViewModel : ViewModelBase, INotifyPropertyChanged
             AppMode = changedExpander;
 
         // Close other expanders
-        if (AppMode != AppMode.Transit && RoadExpanderOpen)
+        if (AppMode != ModellingTool.Transit && RoadExpanderOpen)
             RoadExpanderOpen = false;
-        if (AppMode != AppMode.LandUse && LanduseExpanderOpen)
+        if (AppMode != ModellingTool.LandUse && LanduseExpanderOpen)
             LanduseExpanderOpen = false;
-        if (AppMode != AppMode.Building && BuildingsExpanderOpen)
+        if (AppMode != ModellingTool.Building && BuildingsExpanderOpen)
             BuildingsExpanderOpen = false;
-        if (AppMode != AppMode.StudyArea && StudyAreaExpanderOpen)
+        if (AppMode != ModellingTool.Zones && StudyAreaExpanderOpen)
             StudyAreaExpanderOpen = false;
-        if (AppMode != AppMode.Export && ExportsExpanderOpen)
+        if (AppMode != ModellingTool.Export && ExportsExpanderOpen)
             ExportsExpanderOpen = false;
 
         if(expanderOpen)

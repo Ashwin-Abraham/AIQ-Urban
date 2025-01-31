@@ -9,30 +9,30 @@ namespace ArchSitePlan.UI.CoreModelInterface;
 
 public static class LayerManager
 {
-    public static void ToggleLayerStateBasedOnAppMode(RhinoDoc doc, AppMode appMode)
+    public static void ToggleLayerStateBasedOnAppMode(RhinoDoc doc, ModellingTool appMode)
     {
         List<string> layersToUnlock = new();
         List<string> additionalLayersToLock = new();
 
         switch (appMode)
         {
-            case AppMode.Transit:
+            case ModellingTool.Transit:
                 layersToUnlock.Add(LayerConstants.RoadLayer);
                 additionalLayersToLock.Add(LayerConstants.RoadOutlineLayer);
                 break;
 
-            case AppMode.LandUse:
+            case ModellingTool.LandUse:
                 layersToUnlock.AddRange(new string[] { LayerConstants.ParcelsLayer, LayerConstants.ParcelDividerLayer });
                 break;
 
-            case AppMode.Building:
+            case ModellingTool.Building:
                 {
                     layersToUnlock.Add(LayerConstants.BuildingLayer);
                     additionalLayersToLock.Add(LayerConstants.BuildingFloorOutlineLayer);
                 }
                 break;
 
-            case AppMode.StudyArea:
+            case ModellingTool.Zones:
                 layersToUnlock.Add(LayerConstants.StudyAreaLayer);
                 break;
 

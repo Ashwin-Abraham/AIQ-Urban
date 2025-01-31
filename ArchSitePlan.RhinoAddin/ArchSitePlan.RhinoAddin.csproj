@@ -12,32 +12,19 @@
 
   <ItemGroup>
     <EmbeddedResource Include="EmbeddedResources\**\*" />
-  </ItemGroup>
-
-  <ItemGroup>
+    <EmbeddedResource Remove="EmbeddedResources\favicon.ico" />
     <EmbeddedResource Remove="EmbeddedResources\Icon.png" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Remove="EmbeddedResources\LOGO.ico" />
-    <None Remove="EmbeddedResources\LOGO.png" />
-    <None Remove="manifest.yml" />
-  </ItemGroup>
-
-  <ItemGroup>
+    <None Remove="EmbeddedResources\favicon.ico" />
+    <Content Include="EmbeddedResources\favicon.ico">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="manifest.yml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-  </ItemGroup>
-  
-  <ItemGroup>
     <PackageReference Include="BHoM" Version="7.2.2-alpha" />
     <PackageReference Include="BHoM.Engine" Version="7.2.2-alpha" />
     <PackageReference Include="LiveCharts.Wpf" Version="0.9.7" />
     <PackageReference Include="System.Drawing.Common" Version="8.0.7" />
-  </ItemGroup>
-  
-  <ItemGroup>
     <ProjectReference Include="..\ArchSitePlan.UI\ArchSitePlan.UI.csproj" />
   </ItemGroup>
 
@@ -49,7 +36,7 @@
 			<HintPath>C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.8\WindowsFormsIntegration.dll</HintPath>
 		</Reference>
 	</ItemGroup>
-
+	
 	<ItemGroup>
 	  <Compile Update="OpenSitePlannerRhinoCommand.cs">
 	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
@@ -69,6 +56,9 @@
 	  <None Update="Icon.png">
 	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 	  </None>
+	  <Content Include="EmbeddedResources\index.html">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </Content>
 	</ItemGroup>
 
 	<Target Name="PostBuild" AfterTargets="PostBuildEvent">

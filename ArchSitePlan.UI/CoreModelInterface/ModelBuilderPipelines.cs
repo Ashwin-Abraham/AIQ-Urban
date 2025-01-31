@@ -1,4 +1,5 @@
-﻿using ArchSitePlan.Core.Pipeline;
+﻿using System.Windows;
+using ArchSitePlan.Core.Pipeline;
 using ArchSitePlan.Core.Pipeline.CreationData;
 using ArchSitePlan.Licensing;
 using ArchSitePlan.UI.Actions;
@@ -8,14 +9,20 @@ using static ArchSitePlan.UI.Constants.Enums;
 
 namespace ArchSitePlan.UI.CoreModelInterface
 {
+    public record PipelineResult(bool Success, string Message);
+
     public static class ModelBuilderPipelines
     {
-        public static void AddOrUpdateRoadPipeline(RhinoDoc doc,
+        public static void AddOrUpdateRoadPipeline(
+            RhinoDoc doc,
             List<TransitData> creationData,
-            AppMode currentAppMode)
+            ModellingTool currentAppMode)
         {
             if (!RhinoEventHandler.ValidLicense)
+            {
+                MessageBox.Show("Invalid license");
                 return;
+            }
 
             CoreModelEditStepLibrary.TryRemoveRoad(creationData);
             CoreModelEditStepLibrary.AddOrUpdateRoad(creationData);
@@ -24,16 +31,14 @@ namespace ArchSitePlan.UI.CoreModelInterface
             CoreModelEditStepLibrary.RefreshBuildingUse();
             CoreModelEditStepLibrary.RefreshStudyAreaMetrics();
             RhinoModelEditStepLibrary.ReplaceRhinoModel(doc);
-            LayerManager.ToggleLayerStateBasedOnAppMode(doc, currentAppMode);
-
-            RhinoEventHandler.AppUsageLog.ModelLog.Transit++;
+            //LayerManager.ToggleLayerStateBasedOnAppMode(doc, currentAppMode);
         }
 
         public static void ChangeParcelUsePipeline(
             RhinoDoc doc,
             List<Guid> parcelIds,
             Landuse newUse,
-            AppMode currentAppMode)
+            ModellingTool currentAppMode)
         {
             if (!RhinoEventHandler.ValidLicense)
                 return;
@@ -42,7 +47,7 @@ namespace ArchSitePlan.UI.CoreModelInterface
             CoreModelEditStepLibrary.RefreshBuildingUse();
             CoreModelEditStepLibrary.RefreshStudyAreaMetrics();
             RhinoModelEditStepLibrary.ReplaceRhinoModel(doc);
-            LayerManager.ToggleLayerStateBasedOnAppMode(doc, currentAppMode);
+            //LayerManager.ToggleLayerStateBasedOnAppMode(doc, currentAppMode);
 
             RhinoEventHandler.AppUsageLog.ModelLog.Landuse++;
         }
@@ -58,7 +63,7 @@ namespace ArchSitePlan.UI.CoreModelInterface
 
         public static void AddOrUpdateParcelDividerPipeline(RhinoDoc doc, 
             List<DividerData> dividerData,
-            AppMode currentAppMode)
+            ModellingTool currentAppMode)
         {
             if (!RhinoEventHandler.ValidLicense)
                 return;
@@ -70,13 +75,13 @@ namespace ArchSitePlan.UI.CoreModelInterface
             CoreModelEditStepLibrary.RefreshBuildingUse();
             CoreModelEditStepLibrary.RefreshStudyAreaMetrics();
             RhinoModelEditStepLibrary.ReplaceRhinoModel(doc);
-            LayerManager.ToggleLayerStateBasedOnAppMode(doc, currentAppMode);
+            //LayerManager.ToggleLayerStateBasedOnAppMode(doc, currentAppMode);
 
             RhinoEventHandler.AppUsageLog.ModelLog.Divider++;
         }
         public static void DeleteParcelDividers(RhinoDoc doc, 
             List<DividerData> dividerData,
-            AppMode currentAppMode)
+            ModellingTool currentAppMode)
         {
             if (!RhinoEventHandler.ValidLicense)
                 return;
@@ -86,13 +91,13 @@ namespace ArchSitePlan.UI.CoreModelInterface
             CoreModelEditStepLibrary.RefreshBuildingUse();
             CoreModelEditStepLibrary.RefreshStudyAreaMetrics();
             RhinoModelEditStepLibrary.ReplaceRhinoModel(doc);
-            LayerManager.ToggleLayerStateBasedOnAppMode(doc, currentAppMode);
+            //LayerManager.ToggleLayerStateBasedOnAppMode(doc, currentAppMode);
         }
 
         internal static void AddOrUpdateBuldingPipeline(
             RhinoDoc doc,
             List<BuildingData> buildingData,
-            AppMode currentAppMode)
+            ModellingTool currentAppMode)
         {
             if (!RhinoEventHandler.ValidLicense)
                 return;
@@ -101,7 +106,7 @@ namespace ArchSitePlan.UI.CoreModelInterface
             CoreModelEditStepLibrary.RefreshBuildingUse();
             CoreModelEditStepLibrary.RefreshStudyAreaMetrics();
             RhinoModelEditStepLibrary.ReplaceRhinoModel(doc, true);
-            LayerManager.ToggleLayerStateBasedOnAppMode(doc, currentAppMode);
+            //LayerManager.ToggleLayerStateBasedOnAppMode(doc, currentAppMode);
 
             RhinoEventHandler.AppUsageLog.ModelLog.Building++;
         }
@@ -109,7 +114,7 @@ namespace ArchSitePlan.UI.CoreModelInterface
         internal static void DeleteBuildingPipeline(
             RhinoDoc doc, 
             List<BuildingData> buildingData,
-            AppMode currentAppMode)
+            ModellingTool currentAppMode)
         {
             if (!RhinoEventHandler.ValidLicense)
                 return;
@@ -118,11 +123,11 @@ namespace ArchSitePlan.UI.CoreModelInterface
             CoreModelEditStepLibrary.TryDeleteBuildings(buildingData);
             CoreModelEditStepLibrary.RefreshStudyAreaMetrics();
             RhinoModelEditStepLibrary.ReplaceRhinoModel(doc, true);
-            LayerManager.ToggleLayerStateBasedOnAppMode(doc, currentAppMode);
+            //LayerManager.ToggleLayerStateBasedOnAppMode(doc, currentAppMode);
         }
         internal static void AddStudyAreaPipeline(RhinoDoc doc, 
             List<StudyData> studyData,
-            AppMode currentAppMode)
+            ModellingTool currentAppMode)
         {
             if (!RhinoEventHandler.ValidLicense)
                 return;
@@ -133,14 +138,14 @@ namespace ArchSitePlan.UI.CoreModelInterface
             CoreModelEditStepLibrary.RefreshBuildingUse();
             CoreModelEditStepLibrary.RefreshStudyAreaMetrics();
             RhinoModelEditStepLibrary.ReplaceRhinoModel(doc, true);
-            LayerManager.ToggleLayerStateBasedOnAppMode(doc, currentAppMode);
+            //LayerManager.ToggleLayerStateBasedOnAppMode(doc, currentAppMode);
 
             RhinoEventHandler.AppUsageLog.ModelLog.Zoning++;
         }
 
         internal static void DeleteStudyAreaPipeline(RhinoDoc doc, 
             List<Guid> guids,
-            AppMode currentAppMode)
+            ModellingTool currentAppMode)
         {
             if (!RhinoEventHandler.ValidLicense)
                 return;
@@ -151,12 +156,12 @@ namespace ArchSitePlan.UI.CoreModelInterface
             CoreModelEditStepLibrary.RefreshBuildingUse();
             CoreModelEditStepLibrary.RefreshStudyAreaMetrics();
             RhinoModelEditStepLibrary.ReplaceRhinoModel(doc, true);
-            LayerManager.ToggleLayerStateBasedOnAppMode(doc, currentAppMode);
+           // LayerManager.ToggleLayerStateBasedOnAppMode(doc, currentAppMode);
         }
 
         internal static void UpdateStudyAreas(RhinoDoc doc, 
             List<StudyData> studyData,
-            AppMode currentAppMode)
+            ModellingTool currentAppMode)
         {
             if (!RhinoEventHandler.ValidLicense)
                 return;
@@ -166,7 +171,7 @@ namespace ArchSitePlan.UI.CoreModelInterface
             RhinoEventHandler.AppUsageLog.ModelLog.Zoning++;
         }
 
-        internal static void ReloadAppPipeline(RhinoDoc doc, AppMode currentAppMode)
+        internal static void ReloadAppPipeline(RhinoDoc doc, ModellingTool currentAppMode)
         {
             if (!RhinoEventHandler.ValidLicense)
                 return;
@@ -196,7 +201,7 @@ namespace ArchSitePlan.UI.CoreModelInterface
 
         internal static void RemoveRoadPipeline(List<TransitData> transitData, 
             RhinoDoc doc,
-            AppMode currentAppMode)
+            ModellingTool currentAppMode)
         {
             if (!RhinoEventHandler.ValidLicense)
                 return;
@@ -206,7 +211,7 @@ namespace ArchSitePlan.UI.CoreModelInterface
             CoreModelEditStepLibrary.DivideParcelsAndTransit();
             CoreModelEditStepLibrary.RefreshStudyAreaMetrics();
             RhinoModelEditStepLibrary.ReplaceRhinoModel(doc);
-            LayerManager.ToggleLayerStateBasedOnAppMode(doc, currentAppMode);
+            //LayerManager.ToggleLayerStateBasedOnAppMode(doc, currentAppMode);
         }
     }
 }

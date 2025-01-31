@@ -271,6 +271,12 @@ namespace ArchSitePlan.Core.Models
             return study != null;
         }
 
+        public static bool TryGetStudyArea(string name, out StudyArea study)
+        {
+            study = Studies.Find(s => s.Name == name);
+            return study != null;
+        }
+
         public static bool TryAddOrUpdateStudyArea(Polyline boundary, Guid id, string name)
         {
             if (Studies.Any(s => s.Id == id))

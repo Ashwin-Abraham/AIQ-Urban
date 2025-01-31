@@ -6,6 +6,14 @@ namespace ArchSitePlan.Core.Constants
 {
     public static class AppColours
     {
+        public static Color GetLandUseColour(string use)
+        {
+            if (!Enum.TryParse<Landuse>(use, out Landuse result))
+                result = Landuse.Undefined;
+
+            return LandUseColours[result];
+        }
+
         public static Dictionary<Landuse, Color> LandUseColours = new Dictionary<Landuse, Color>()
         {
             { Landuse.Undefined, ColorTranslator.FromHtml("#F9E8E8")},
