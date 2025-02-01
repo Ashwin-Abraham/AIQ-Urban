@@ -239,5 +239,21 @@ namespace ArchSitePlan.Core.Pipeline
 
             Run(buildingConfigs, EditType.UpdateUse);
         }
+
+        public static void ReplaceParcelUse(Landuse oldUse, Landuse newUse)
+        {
+            CoreModel.Parcels
+                .Where(x => x.LandUse == oldUse)
+                .ToList()
+                .ForEach(x => x.LandUse = newUse);
+        }
+
+        public static void ReplaceBuildingUse(Landuse oldUse, Landuse newUse)
+        {
+            CoreModel.Buildings
+                .Where(x => x.Use == oldUse)
+                .ToList()
+                .ForEach(x => x.Use = newUse);
+        }
     }
 }
