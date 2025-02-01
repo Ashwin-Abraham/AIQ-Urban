@@ -46,7 +46,7 @@ namespace ArchSitePlan.Core.ModelEditActions
                 var parcel = CoreModel.Parcels.Find(p => 
                     p.Boundary.ExternalBoundary.IIsContaining(building.Origin.ObjectToList()));
 
-                building.Use = parcel is null ? Landuse.Undefined : parcel.LandUse;
+                building.Use = parcel is null ? AppLanduses.Undefined : parcel.LandUse;
             }
         }
 
@@ -58,7 +58,7 @@ namespace ArchSitePlan.Core.ModelEditActions
                 var nearest = CoreModel.Parcels
                     .FirstOrDefault(p => p.Boundary.ExternalBoundary.IIsContaining(origin.ObjectToList()));
 
-                var use = nearest is not null ? nearest.LandUse : Landuse.Undefined;
+                var use = nearest is not null ? nearest.LandUse : AppLanduses.Undefined;
 
                 var newBldg = new Building(
                         config.EnvelopeMesh,

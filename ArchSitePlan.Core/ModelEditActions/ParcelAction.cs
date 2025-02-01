@@ -12,12 +12,13 @@ namespace ArchSitePlan.Core.ModelEditActions
             List<(ICurve? boundary, Guid id)> boundaryAndIds,
             EditType editType,
             // use is only used during EditType.Edit
-            Landuse use = Landuse.Undefined,
+            Landuse? use= null,
             // dividers only used during EditType.Divide
             List<ICurve>? dividers = null,
             // existingUsesAndCenters only used during EditType.Add
             List<(Landuse, Point)>? existingUsesAndCenters = null)
         {
+            use ??= AppLanduses.Undefined;
             dividers ??= new();
             existingUsesAndCenters ??= new();
 
@@ -93,7 +94,7 @@ namespace ArchSitePlan.Core.ModelEditActions
             foreach(var boundaryId in boundaryAndIds)
             {
                 var srf = Create.PlanarSurface(boundaryId.boundary);
-                Landuse use = Landuse.Undefined;
+                Landuse use = AppLanduses.Undefined;
 
                 if (priorUsesAndCenters.Any())
                     use = priorUsesAndCenters

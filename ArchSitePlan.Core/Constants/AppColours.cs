@@ -1,43 +1,12 @@
-﻿using ArchSitePlan.Core.Extensions;
-using System.Drawing;
-using static ArchSitePlan.Core.Constants.Enums;
+﻿using System.Drawing;
+using ArchSitePlan.Core.Extensions;
+using ArchSitePlan.Core.Models;
 
 namespace ArchSitePlan.Core.Constants
 {
     public static class AppColours
     {
-        public static Color GetLandUseColour(string use)
-        {
-            if (!Enum.TryParse<Landuse>(use, out Landuse result))
-                result = Landuse.Undefined;
-
-            return LandUseColours[result];
-        }
-
-        public static Dictionary<Landuse, Color> LandUseColours = new Dictionary<Landuse, Color>()
-        {
-            { Landuse.Undefined, ColorTranslator.FromHtml("#F9E8E8")},
-            { Landuse.Resi_Low_Density, ColorTranslator.FromHtml("#FFFBC3")},
-            { Landuse.Resi_High_Density, ColorTranslator.FromHtml("#EEE023")},
-            { Landuse.Parking, ColorTranslator.FromHtml("#636363")},
-            { Landuse.Transit, ColorTranslator.FromHtml("#B6B6B6")},
-            { Landuse.Retail, ColorTranslator.FromHtml("#8F3186")},
-            { Landuse.Office, ColorTranslator.FromHtml("#CFB9A1")},
-            { Landuse.Food_And_Beverage, ColorTranslator.FromHtml("#3F8F74")},
-            { Landuse.Religious, ColorTranslator.FromHtml("#97662C")},
-            { Landuse.Medical, ColorTranslator.FromHtml("#F8696B")},
-            { Landuse.Mixed_Use, ColorTranslator.FromHtml("#ABEDE6")},
-            { Landuse.Civic, ColorTranslator.FromHtml("#F89C1B")},
-            { Landuse.Sport, ColorTranslator.FromHtml("#B1DE37")},
-            { Landuse.Parks_And_Open_Space, ColorTranslator.FromHtml("#D3FCD4")},
-            { Landuse.Forest, ColorTranslator.FromHtml("#1D7320")},
-            { Landuse.Water, ColorTranslator.FromHtml("#3B83BA")},
-        };
-
-        public static Dictionary<Landuse, Color> BuildingColours =>
-            LandUseColours.ToDictionary(c => c.Key, c => c.Value.SetTransparency(150).Darken(0.3));
-
-        public static List<Color> StandardColors = new()
+        public static List<Color> StandardColors { get; } = new()
         {
             Color.Magenta,
             Color.Maroon,

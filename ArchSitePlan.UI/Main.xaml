@@ -209,7 +209,7 @@
 
                         <ComboBox VerticalAlignment="Center"
                                   Grid.Column="1"
-                          ItemsSource="{Binding LandUses}"
+                          ItemsSource="{Binding Landuses}"
                           SelectedItem="{Binding SelectedLandUse}"
                           />
 

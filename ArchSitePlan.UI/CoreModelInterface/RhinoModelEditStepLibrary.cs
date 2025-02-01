@@ -1,7 +1,6 @@
 ﻿using ArchSitePlan.Core.Constants;
 using ArchSitePlan.Core.Extensions;
 using ArchSitePlan.Core.Models;
-using ArchSitePlan.Core.Pipeline;
 using ArchSitePlan.Core.Pipeline.CreationData;
 using ArchSitePlan.UI.Actions;
 using ArchSitePlan.UI.Constants;
@@ -13,7 +12,6 @@ using BH.oM.Geometry;
 using Rhino;
 using Rhino.DocObjects;
 using Rhino.Geometry;
-using static ArchSitePlan.Core.Constants.Enums;
 
 namespace ArchSitePlan.UI.CoreModelInterface
 {
@@ -255,9 +253,7 @@ namespace ArchSitePlan.UI.CoreModelInterface
             foreach (var building in CoreModel.Buildings)
             {
                 var rhinoMesh = building.Envelope.ToRhino();
-
-                if (AppColours.BuildingColours.TryGetValue(building.Use, out var buildingObjColour))
-                    massAttrib.ObjectColor = buildingObjColour;
+                massAttrib.ObjectColor = building.Use.GetBuildingColor();
 
                 // Create new building
                 building.EnvelopeId = doc.Objects.AddMesh(rhinoMesh, massAttrib);
@@ -375,7 +371,7 @@ namespace ArchSitePlan.UI.CoreModelInterface
         }
         private static Dictionary<Landuse, ObjectAttributes> GetParcelAttributesForAllUses(RhinoDoc doc)
         {
-            var uses = Enum.GetValues(typeof(Landuse)).Cast<Landuse>().ToList();
+            var uses = AppLanduses.Uses;
             var dictionary = new Dictionary<Landuse, ObjectAttributes>();
 
             foreach (var use in uses)
@@ -393,9 +389,9 @@ namespace ArchSitePlan.UI.CoreModelInterface
             int layerIndex = LayerHelpers.CreateOrGetLayerIndex(
                 doc,
                 layerName,
-                AppColours.LandUseColours[use]);
+                use.Color);
 
-            LayerHelpers.SetLayerColour(doc, layerIndex, AppColours.LandUseColours[use]);
+            LayerHelpers.SetLayerColour(doc, layerIndex, use.Color);
 
             ObjectAttributes parcelGeometryAttributes = new ObjectAttributes()
             {
@@ -423,18 +419,13 @@ namespace ArchSitePlan.UI.CoreModelInterface
                 var center = AreaMassProperties.Compute(obj.Geometry as Brep).Centroid;
                 string layerName = doc.Layers[obj.Attributes.LayerIndex].Name;
 
-                outputs.Add((center.ToBHoM(), ParseLanduse(layerName)));
+                if (AppLanduses.TryGetUse(layerName, out var landuse))
+                    landuse = AppLanduses.Undefined;
+
+                outputs.Add((center.ToBHoM(), landuse));
             }
 
             return outputs;
-        }
-
-        private static Landuse ParseLanduse(string use)
-        {
-            if (Enum.TryParse<Landuse>(use, out var landuse))
-                return landuse;
-            else
-                return Landuse.Undefined;
         }
     }
 }
