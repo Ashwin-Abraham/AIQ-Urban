@@ -11,11 +11,12 @@ namespace ArchSitePlan.UI.Constants
         public enum ModellingTool
         {
             Transit,
-            Separator,
+            Dividers,
             LandUse,
             Building,
             Zones,
             Export,
+            Parking,
             None
         }
 

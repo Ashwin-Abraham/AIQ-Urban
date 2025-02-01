@@ -50,7 +50,7 @@ namespace ArchSitePlan.UI.HTML_UI.MessagesFromUI
                 .ValidateInput(rhinoObjs);
 
             if (validation.Result != ValidationResult.All_Valid)
-                MessageBox.Show(validation.Message);
+                throw new Exception(validation.Message);
 
             var vm = RhinoEventHandler.HTMLViewModel;
             if (validation.ValidObjects.Count == 0) 

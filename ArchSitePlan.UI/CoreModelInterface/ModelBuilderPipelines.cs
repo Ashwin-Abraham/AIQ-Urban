@@ -212,5 +212,16 @@ namespace ArchSitePlan.UI.CoreModelInterface
             RhinoModelEditStepLibrary.ReplaceRhinoModel(doc);
             //LayerManager.ToggleLayerStateBasedOnAppMode(doc, currentAppMode);
         }
+
+        internal static void DeleteParcelUseAndReassignUseBasedObjs(RhinoDoc doc, string oldUseName)
+        {
+            if (!AppLanduses.TryDeleteUse(oldUseName, out var deletedUse))
+                return;
+
+            CoreModelEditStepLibrary.ReplaceParcelUse(deletedUse!, AppLanduses.Undefined);
+            CoreModelEditStepLibrary.ReplaceBuildingUse(deletedUse!, AppLanduses.Undefined);
+            CoreModelEditStepLibrary.RefreshStudyAreaMetrics();
+            RhinoModelEditStepLibrary.ReplaceRhinoModel(doc);
+        }
     }
 }
