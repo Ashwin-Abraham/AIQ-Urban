@@ -2,12 +2,6 @@
 using BH.Engine.Geometry;
 using BH.Engine.Spatial;
 using BH.oM.Geometry;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using static ArchSitePlan.Core.Constants.Enums;
 
 namespace ArchSitePlan.Core.Models
 {
@@ -70,7 +64,7 @@ namespace ArchSitePlan.Core.Models
         public Landuse FindHostParcelUse()
         {
             var host = CoreModel.Parcels.Find(p => p.Boundary.ExternalBoundary.IIsContaining(Origin.ObjectToList()));
-            return host?.LandUse?? Landuse.Undefined;
+            return host?.LandUse?? AppLanduses.Undefined;
         }
 
         internal List<PlanarSurface> GetFloorPlates()

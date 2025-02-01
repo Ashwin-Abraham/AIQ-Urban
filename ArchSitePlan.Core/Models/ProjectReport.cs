@@ -138,13 +138,13 @@ namespace ArchSitePlan.Core.Models
                 builtPctg = double.IsNaN(builtPctg)? 0: builtPctg;
 
                 var row = new LandUseSummaryDataRow(
-                    Landuse: useGroup.Key.ToString(),
+                    Landuse: useGroup.Key.Name,
                     Area: landArea,
                     AreaPctg: areaPctg,
                     BuiltArea: builtArea,
                     BuiltPctg: builtPctg,
                     FAR: totalBuiltArea/totalLandArea,
-                    Colour: AppColours.LandUseColours[useGroup.Key]
+                    Colour: useGroup.Key.Color
                     );
 
                 _landUseSummary.Add( row );

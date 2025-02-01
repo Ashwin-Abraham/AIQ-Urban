@@ -21,8 +21,13 @@ public class UIActionTriggers
                 (message as BuildingMessage)!.HandleMessage();
                 break;
 
+            case TypeOfMessage.LanduseListEdit:
+                (message as LanduseListEditMessage)!.HandleMessage();
+                break;
+
             case TypeOfMessage.Divider:
-                throw new NotImplementedException();
+                (message as DividerMessage)!.HandleMessage();
+                break;
 
             default:
                 throw new NotImplementedException();

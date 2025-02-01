@@ -4,7 +4,6 @@ using System.Drawing;
 using System.IO;
 using System.Windows.Forms;
 using System.Windows.Input;
-using ArchSitePlan.Core.Constants;
 using ArchSitePlan.Core.Extensions;
 using ArchSitePlan.Core.Metrics;
 using ArchSitePlan.Core.Models;
@@ -25,7 +24,6 @@ using LiveCharts.Wpf;
 using Rhino;
 using Rhino.DocObjects;
 using Rhino.Geometry;
-using static ArchSitePlan.Core.Constants.Enums;
 using static ArchSitePlan.UI.Constants.Enums;
 using MessageBox = System.Windows.Forms.MessageBox;
 using SolidColorBrush = System.Windows.Media.SolidColorBrush;
@@ -212,10 +210,15 @@ public class MainViewModel : ViewModelBase, INotifyPropertyChanged
         }
     }
 
-    public List<Landuse> LandUses { get; set; } = Enum.GetValues(typeof(Landuse)).Cast<Landuse>().ToList();
+    private List<string> _landuses = AppLanduses.Uses.Select(x => x.Name).ToList();
+    public List<string> Landuses
+    {
+        get => _landuses;
+        set => _landuses = value;
+    }
 
-    private Landuse _selectedLanduse = Landuse.Undefined;
-    public Landuse SelectedLandUse
+    private string _selectedLanduse = AppLanduses.Undefined.Name;
+    public string SelectedLandUse
     {
         get => _selectedLanduse;
         set
@@ -227,7 +230,8 @@ public class MainViewModel : ViewModelBase, INotifyPropertyChanged
     }
 
     private SolidColorBrush _selectedLandUseColour = new SolidColorBrush(
-        AppColours.LandUseColours[Landuse.Undefined].ToWindowsMediaColor());
+        AppLanduses.Undefined.Color.ToWindowsMediaColor());
+
     public SolidColorBrush SelectedLandUseColour
     {
         get => _selectedLandUseColour;
@@ -585,7 +589,7 @@ public class MainViewModel : ViewModelBase, INotifyPropertyChanged
 
             ModelBuilderPipelines.ChangeParcelUsePipeline(doc,
                 srfObjs.Select(s => s.Id).ToList(),
-                SelectedLandUse,
+                AppLanduses.GetUse(SelectedLandUse),
                 AppMode);
 
             RefreshActiveStudyAndMetrics();
@@ -612,7 +616,7 @@ public class MainViewModel : ViewModelBase, INotifyPropertyChanged
             {
                 Title = landUseGroup.First().Use.ToString(),
                 Values = new ChartValues<double> { area },
-                Fill = new SolidColorBrush(AppColours.LandUseColours[use].ToWindowsMediaColor()),
+                Fill = new SolidColorBrush(use.Color.ToWindowsMediaColor()),
                 Height = 40,
                     
             });
@@ -820,13 +824,10 @@ public class MainViewModel : ViewModelBase, INotifyPropertyChanged
         RhinoDoc.ActiveDoc.Views.Redraw();
     }
 
-    private void UpdateSelectedLanduseColour(Landuse use)
+    private void UpdateSelectedLanduseColour(string use)
     {
-        if (AppColours.LandUseColours.TryGetValue(use, out Color color))
-            SelectedLandUseColour = new SolidColorBrush(color.ToWindowsMediaColor());
-        else
-            SelectedLandUseColour = new SolidColorBrush(AppColours.LandUseColours[Landuse.Undefined]
-                .ToWindowsMediaColor());
+        var landuse = AppLanduses.GetUse(use);
+        SelectedLandUseColour = new SolidColorBrush(landuse.Color.ToWindowsMediaColor());
     }
 
     private void AddOrUpdateRoads_Exec(object obj)

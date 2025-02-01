@@ -1,4 +1,4 @@
-﻿
+﻿using ArchSitePlan.Core.Models;
 using ArchSitePlan.UI.Actions;
 using ArchSitePlan.UI.Constants;
 using ArchSitePlan.UI.CoreModelInterface;
@@ -7,7 +7,6 @@ using ArchSitePlan.UI.HTML_UI.MessageToUI;
 using Eto.Forms;
 using Rhino;
 using Rhino.DocObjects;
-using static ArchSitePlan.Core.Constants.Enums;
 
 namespace ArchSitePlan.UI.HTML_UI.MessagesFromUI
 {
@@ -21,14 +20,8 @@ namespace ArchSitePlan.UI.HTML_UI.MessagesFromUI
         {
             try
             {
-                if (!Enum.TryParse<Landuse>(
-                    Use,
-                    true,
-                    out var use))
-                {
-                    //throw new Exception("Invalid landuse received from UI");
-                    use = Landuse.Civic;
-                }
+                if(AppLanduses.TryGetUse(Use, out var use))
+                    throw new Exception("Invalid land use received from UI");
 
                 var vm = RhinoEventHandler.WPFViewModel;
                 RhinoDoc doc = RhinoDoc.ActiveDoc;

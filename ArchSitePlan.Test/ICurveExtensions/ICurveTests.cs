@@ -114,20 +114,6 @@ namespace ArchSitePlan.Test.ICurveExtensions
             Assert.Equal(curve.ILength(), fragments.Sum(f => f.ILength()), 1E-03);
         }
 
-        // Future additional tests as needed
-        //public static IEnumerable<object[]> RectangleData =>
-        //new List<object[]>
-        //{
-        //    new object[] { _rectangle, 4 } 
-        //};
-
-        //[Theory]
-        //[MemberData(nameof(RectangleData))] 
-        //public void CanSplitCurve_Regressions(ICurve curve, int expectedCount)
-        //{
-        //    
-        //}
-
         [Fact]
         public void CanSplitCurve_SplitterOutside()
         {

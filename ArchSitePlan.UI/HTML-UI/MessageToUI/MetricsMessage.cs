@@ -21,8 +21,6 @@ public class MetricsMessage :IMessageToUI
 
     public void RefreshActiveStudyAndMetrics()
     {
-        var studyAreasNames = CoreModel.Studies.Select(s => s.Name).ToList();
-
         if (StudyName == string.Empty
             || !CoreModel.TryGetStudyArea(StudyName, out StudyArea study))
             study = CoreModel.Studies.First(s => s.Name == CoreGeneralConstants.FullProjectStudyName);
@@ -33,26 +31,26 @@ public class MetricsMessage :IMessageToUI
         RoadLengthData = UpdateRoadLengthGraphData(study.Metrics);
     }
 
-    private List<GraphData> UpdateLandUseGraphData(StudyAreaMetrics metrics)
+    private static List<GraphData> UpdateLandUseGraphData(StudyAreaMetrics metrics)
     {
         var graphData = new List<GraphData>();
 
         var metricsByUse = metrics.ParcelMetrics.GroupBy(p => p.Use);
 
-        foreach (var use in metricsByUse)
+        foreach (var group in metricsByUse)
         {
             graphData.Add(
                 new GraphData(
-                    Label: use.Key.ToString(),
-                    Data: use.Sum(u => u.Area),
-                    Color: AppColours.LandUseColours[use.Key]
+                    Label: group.Key.Name,
+                    Data: group.Sum(u => u.Area),
+                    Color: group.Key.Color
                     ));
         }
 
         return graphData;
     }
 
-    private List<GraphData> UpdateBuiltUseGraphData(StudyAreaMetrics metrics)
+    private static List<GraphData> UpdateBuiltUseGraphData(StudyAreaMetrics metrics)
     {
         var graphData = new List<GraphData>();
 
@@ -62,16 +60,16 @@ public class MetricsMessage :IMessageToUI
         {
             graphData.Add(
                 new GraphData(
-                    Label: use.Key.ToString(),
+                    Label: use.Key.Name,
                     Data: use.Sum(u => u.BUA),
-                    Color: AppColours.LandUseColours[use.Key]
+                    Color: use.Key.Color
                     ));
         }
 
         return graphData;
     }
 
-    private List<GraphData> UpdateRoadLengthGraphData(StudyAreaMetrics metrics)
+    private static List<GraphData> UpdateRoadLengthGraphData(StudyAreaMetrics metrics)
     {
         var groupedByWidth = metrics.TransitMetrics.GroupBy(p => Math.Round(p.RoadWidth, 1));
         var graphData = new List<GraphData>();
@@ -97,7 +95,7 @@ public class MetricsMessage :IMessageToUI
         return graphData;
     }
 
-    private List<GraphData> UpdateRoadAreaGraphData(StudyAreaMetrics metrics)
+    private static List<GraphData> UpdateRoadAreaGraphData(StudyAreaMetrics metrics)
     {
         var groupedByWidth = metrics.TransitMetrics.GroupBy(p => Math.Round(p.RoadWidth, 1));
         var graphData = new List<GraphData>();

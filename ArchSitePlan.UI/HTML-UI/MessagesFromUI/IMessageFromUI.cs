@@ -8,8 +8,11 @@ public enum TypeOfMessage
     Building,
     Divider,
     Zone,
-    ToolSelection
+    ToolSelection,
+    LanduseListEdit
 }
+
+// out T is the resulting output message created after handling the input
 public interface IMessageFromUI<out T> where T : IMessageToUI
 {
     public TypeOfMessage MessageType{ get; init; }

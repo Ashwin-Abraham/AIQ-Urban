@@ -1,11 +1,9 @@
-﻿using ArchSitePlan.Core.Comparer;
+﻿using System.Drawing;
+using ArchSitePlan.Core.Comparer;
 using ArchSitePlan.Core.Constants;
 using ArchSitePlan.Core.Extensions;
-using ArchSitePlan.Core.Metrics;
 using BH.Engine.Geometry;
 using BH.oM.Geometry;
-using System.Drawing;
-using static ArchSitePlan.Core.Constants.Enums;
 
 namespace ArchSitePlan.Core.Models
 {
@@ -248,7 +246,7 @@ namespace ArchSitePlan.Core.Models
                 var origin = Building.CalculateOrigin(envelope);
 
                 var nearest = Parcels.FirstOrDefault(p => p.Boundary.ExternalBoundary.IIsContaining(origin.ObjectToList()));
-                var use = nearest != null ? nearest.LandUse : Landuse.Undefined;
+                var use = nearest != null ? nearest.LandUse : AppLanduses.Undefined;
 
                 var newBldg = new Building(
                     envelope,

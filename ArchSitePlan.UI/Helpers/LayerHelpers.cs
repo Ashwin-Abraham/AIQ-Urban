@@ -1,14 +1,9 @@
-﻿using ArchSitePlan.Core.Extensions;
+﻿using System.Drawing;
+using ArchSitePlan.Core.Extensions;
+using ArchSitePlan.Core.Models;
 using ArchSitePlan.UI.Constants;
 using Rhino;
 using Rhino.DocObjects;
-using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using static ArchSitePlan.Core.Constants.Enums;
 
 namespace ArchSitePlan.UI.Helpers
 {
@@ -39,12 +34,12 @@ namespace ArchSitePlan.UI.Helpers
         }
         public static string GetParcelRhinoLayerName(Landuse use)
         {
-            return LayerConstants.ParcelsLayer + "::" + use.ToString();
+            return LayerConstants.ParcelsLayer + "::" + use.Name;
         }
 
         public static List<string> GetParcelRhinoLayerNames()
         {
-            var parcelLayerNames = Enum.GetValues<Landuse>()
+            var parcelLayerNames = AppLanduses.Uses
                 .Select(use => LayerHelpers.GetParcelRhinoLayerName(use))
                 .ToList();
 

@@ -1,10 +1,9 @@
 ﻿using System.Windows;
+using ArchSitePlan.Core.Models;
 using ArchSitePlan.Core.Pipeline;
 using ArchSitePlan.Core.Pipeline.CreationData;
-using ArchSitePlan.Licensing;
 using ArchSitePlan.UI.Actions;
 using Rhino;
-using static ArchSitePlan.Core.Constants.Enums;
 using static ArchSitePlan.UI.Constants.Enums;
 
 namespace ArchSitePlan.UI.CoreModelInterface
