@@ -23,6 +23,7 @@
   <ItemGroup>
     <ProjectReference Include="..\ArchSitePlan.Core\ArchSitePlan.Core.csproj" />
     <ProjectReference Include="..\ArchSitePlan.DebugModel\ArchSitePlan.DebugModel.csproj" />
+    <ProjectReference Include="..\ArchSitePlan.OSM\ArchSitePlan.OSM.csproj" />
   </ItemGroup>
 
   <ItemGroup>
