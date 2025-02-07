@@ -9,7 +9,8 @@ public enum TypeOfMessage
     Divider,
     Zone,
     ToolSelection,
-    LanduseListEdit
+    LanduseListEdit,
+    ReadOsm
 }
 
 // out T is the resulting output message created after handling the input
