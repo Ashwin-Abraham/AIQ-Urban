@@ -9,8 +9,6 @@ namespace ArchSitePlan.UI.RhinoBHoMInterop
     {
         public static Rhino.Geometry.Brep ToRhino(this PlanarSurface bhomSurface)
         {
-            //var rhinoPoints = bhomSurface.ExternalBoundary.IControlPoints().ToRhino();
-
             var crvList = bhomSurface.ExternalBoundary.ObjectToList();
             crvList.AddRange(bhomSurface.InternalBoundaries);
 

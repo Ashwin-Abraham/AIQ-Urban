@@ -199,9 +199,9 @@ namespace ArchSitePlan.UI.CoreModelInterface
 
         private static void RemoveEmptyAppLayers(RhinoDoc doc)
         {
-            LayerHelpers.CreateOrGetLayerIndex(doc, LayerConstants.MainLayer);
+            LayerHelpers.CreateOrGetLayerIndex(doc, LayerConstants.MainModellingLayer);
 
-            var mainLayerIndex = doc.Layers.FindByFullPath(LayerConstants.MainLayer, -1);
+            var mainLayerIndex = doc.Layers.FindByFullPath(LayerConstants.MainModellingLayer, -1);
             
             if (mainLayerIndex == -1) return;
             LayerHelpers.DeleteLayerAndChildrenIfEmpty(doc, doc.Layers[mainLayerIndex]);

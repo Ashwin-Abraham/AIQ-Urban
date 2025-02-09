@@ -10,7 +10,8 @@ public enum TypeOfMessage
     Zone,
     ToolSelection,
     LanduseListEdit,
-    ReadOsm
+    ReadOsm,
+    PickFile
 }
 
 // out T is the resulting output message created after handling the input

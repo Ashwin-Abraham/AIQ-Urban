@@ -37,7 +37,7 @@ public static class LayerManager
                 break;
 
             default:
-                layersToUnlock.Add(LayerConstants.MainLayer);
+                layersToUnlock.Add(LayerConstants.MainModellingLayer);
                 break;
         }
 
@@ -51,7 +51,7 @@ public static class LayerManager
 
     public static void ToggleLockModelLayers(RhinoDoc doc, bool lockLayers)
     {
-        var mainLayer = doc.Layers.FindByFullPath(LayerConstants.MainLayer, -1);
+        var mainLayer = doc.Layers.FindByFullPath(LayerConstants.MainModellingLayer, -1);
         if (mainLayer == -1) return;
 
         var appLayers = doc.Layers[mainLayer].GetChildren(true);
