@@ -1,0 +1,70 @@
+﻿using ArchSitePlan.OSM.Models.OsmPolygon;
+using ArchSitePlan.OSM.Models.OsmPolyline;
+using ArchSitePlan.UI.Constants;
+using ArchSitePlan.UI.Helpers;
+using ArchSitePlan.UI.RhinoBHoMInterop;
+using Rhino;
+using Rhino.DocObjects;
+using Rhino.Geometry;
+
+namespace ArchSitePlan.UI.RhinoOSM.Areas;
+
+public class BuildingRhOsm : IRhinoOSM<TransitOsm>
+{
+    public Guid RhinoId { get; private set; } = Guid.Empty;
+
+    readonly RhinoDoc _doc;
+    readonly Extrusion? _extrusion;
+    readonly ObjectAttributes _attributes;
+    readonly double _defaultStoreyHeight;
+    readonly int _defaultLevels;
+
+
+    public BuildingRhOsm(
+        BuildingOsm osmInput,
+        RhinoDoc doc,
+        ObjectAttributes attributes,
+        double defaultStoreyHeight = 3.5,
+        int defaultLevels = 4)
+    {
+        _doc = doc;
+        _defaultStoreyHeight = defaultStoreyHeight;
+        _defaultLevels = defaultLevels;
+        _extrusion = BuildGeometry(osmInput);
+        _attributes = attributes;
+    }
+
+    public static ObjectAttributes GetObjectAttributes(RhinoDoc doc)
+    {
+        var layerName = LayerConstants.BuildingOsmLayer;
+        int layerIndex = LayerHelpers.CreateOrGetLayerIndex(doc, layerName);
+        return new ObjectAttributes() { LayerIndex = layerIndex };
+    }
+
+    private Extrusion? BuildGeometry(BuildingOsm osmInput)
+    {
+        double height;
+        double seed = new Random().NextDouble() * 0.4 + 0.8;
+
+        if (osmInput.Height.HasValue)
+            height = osmInput.Height.Value;
+        else if (osmInput.Levels.HasValue)
+            height = osmInput.Levels.Value * _defaultStoreyHeight;
+        else
+            height = _defaultStoreyHeight * _defaultLevels * seed;
+
+        var planarSurface = osmInput.Boundary.ToOSMRhino();
+
+        if (planarSurface is null) return null;
+
+        return Extrusion.Create(planarSurface, Plane.WorldXY, height, true);
+    }
+
+    public bool AddToDocument()
+    {
+        if (_extrusion == null) return false;
+
+        RhinoId = _doc.Objects.AddExtrusion(_extrusion, _attributes);
+        return RhinoId != Guid.Empty;
+    }
+}

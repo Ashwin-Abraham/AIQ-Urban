@@ -1,3 +1,9 @@
-﻿namespace ArchSitePlan.OSM.Models;
+﻿using System.Drawing;
 
-public interface IOsmObject { }
+namespace ArchSitePlan.OSM.Models;
+
+public interface IOsmObject 
+{ 
+    public long? Id { get; init; }
+    public Color Color { get; init; }
+}

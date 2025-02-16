@@ -18,9 +18,8 @@ namespace ArchSitePlan.UI.Helpers
             int index = doc.Layers.FindByFullPath(layer, LayerConstants.DefaultLayerIndex);
 
             if (index == LayerConstants.DefaultLayerIndex)
-                index = doc.Layers.AddPath(layer);
-
-            doc.Layers[index].Color = (Color)layerColor;
+                index = doc.Layers.AddPath(layer, (Color) layerColor);
+            
             return index;
         }
 

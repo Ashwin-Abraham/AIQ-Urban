@@ -1,15 +1,10 @@
-﻿using System.Drawing;
-using ArchSitePlan.OSM;
-using ArchSitePlan.OSM.Models;
-using ArchSitePlan.UI.Constants;
-using ArchSitePlan.UI.Helpers;
+﻿using ArchSitePlan.OSM;
 using ArchSitePlan.UI.HTML_UI.MessageToUI;
-using ArchSitePlan.UI.RhinoBHoMInterop;
-using BH.Engine.Geometry;
+using ArchSitePlan.UI.RhinoOSM;
+using ArchSitePlan.UI.RhinoOSM.Areas;
+using ArchSitePlan.UI.RhinoOSM.Polylines;
 using Newtonsoft.Json;
 using Rhino;
-using Rhino.DocObjects;
-using Rhino.Geometry;
 
 namespace ArchSitePlan.UI.HTML_UI.MessagesFromUI
 {
@@ -22,100 +17,83 @@ namespace ArchSitePlan.UI.HTML_UI.MessagesFromUI
 
         public TextMessage HandleMessage()
         {
-            int roadCount = 0, parcelCount = 0;
+            int roadCount = 0, 
+                parcelCount = 0, 
+                buildingCount = 0, 
+                naturalClosedCount = 0,
+                miscCount = 0,
+                naturalOpenCount = 0,
+                powerCount = 0,
+                boundaryBarrierCount = 0;
+
             if(!OSMFileReader.TryReadFile(FilePath, out var osmModel)
                 || osmModel is null)
                 return new TextMessage($"File not found {FilePath}");
 
             RhinoDoc doc = RhinoDoc.ActiveDoc;
 
-            foreach(var road in osmModel.Highways)
-            {
-                var curve = road.Centerline.ToRhino();
-                var attributes = GetObjectAttributes(road, doc);
-                doc.Objects.AddCurve(curve, attributes);
-                roadCount++;
-            }
-
+            // Closed ways
             foreach(var parcel in osmModel.LandParcels)
             {
-                var surface = Create.PlanarSurface(parcel.Boundary).ToRhino();
-                if (surface is null) continue;
-
-                var attributes = GetObjectAttributes(parcel, doc);
-                doc.Objects.AddBrep(surface, attributes);
+                var added = new LandParcelRhOsm(parcel, doc).AddToDocument();
+                if (added) parcelCount++;
             }
 
-            double defaultStoreyHeight = 3.5;
-            int defaultLevels = 4;
-
+            var buildingAttrib = BuildingRhOsm.GetObjectAttributes(doc);
             foreach (var building in osmModel.Buildings)
             {
-                double height;
-
-                if (building.Height.HasValue)
-                    height = building.Height.Value;
-                else if (building.Levels.HasValue)
-                    height = building.Levels.Value * defaultStoreyHeight;
-                else
-                    height = defaultStoreyHeight * defaultLevels;
-
-                var planarSurface = building.Boundary.ToRhino();
-                if (planarSurface is null) continue;
-
-                var attributes = GetObjectAttributes(building, doc);
-                doc.Objects.AddExtrusion(
-                    Extrusion.Create(planarSurface, Plane.WorldXY, height, true),
-                    attributes);
+                var added = new BuildingRhOsm(building, doc, buildingAttrib)
+                    .AddToDocument();
+                if (added) buildingCount++;
             }
 
+            foreach(var natural in osmModel.NaturalAreas)
+            {
+                var added = new NaturalClosedRhOsm(natural, doc).AddToDocument();
+                if (added) naturalClosedCount++;
+            }
+
+            foreach (var misc in osmModel.MiscAreas)
+            {
+                var added = new MiscRhOsm(misc, doc).AddToDocument();
+                if (added) miscCount++;
+            }
+
+            // Open ways
+            foreach (var road in osmModel.Highways)
+            {
+                bool added = new TransitRhOsm
+                    (road, doc).AddToDocument();
+                if (added) roadCount++;
+            }
+
+            foreach ( var natural in osmModel.NaturalOpen)
+            {
+                bool added = new NaturalOpenRhOsm(natural, doc).AddToDocument();
+                if (added) naturalOpenCount++;
+            }
+
+            foreach (var power in osmModel.Power)
+            {
+                bool added = new PowerRhOsm(power, doc).AddToDocument();
+                if (added) powerCount++;
+            }
+
+            foreach (var boundary in osmModel.BoundaryBarrier)
+            {
+                bool added = new BoundaryBarrierRhOsm(boundary, doc).AddToDocument();
+                if (added) boundaryBarrierCount++;
+            }
+
+            foreach (var waterway in osmModel.Waterways)
+            {
+                bool added = new WaterwayRhOsm(waterway, doc).AddToDocument();
+                if (added) boundaryBarrierCount++;
+            }
+
+            doc.Views.EnableRedraw(true, true, true);
             doc.Views.Redraw();
             return new TextMessage($"Added {roadCount} roads to rhino");
-        }
-
-        private ObjectAttributes GetObjectAttributes(LandParcel parcel, RhinoDoc doc)
-        {
-            var layerName =
-                LayerConstants.LanduseOSMLayer + LayerConstants._Sep_
-                + parcel.Type;
-
-
-            Color color = LayerConstants.DefaultLanduseColor;
-            if (LayerConstants.LanduseColorDefaults.TryGetValue(parcel.Type, out var actualColor))
-                color = actualColor;
-
-            int layerIndex = LayerHelpers.CreateOrGetLayerIndex(
-                doc, 
-                layerName,
-                color);
-
-            return new ObjectAttributes() 
-            { 
-                LayerIndex = layerIndex 
-            };
-        }
-            
-        private ObjectAttributes GetObjectAttributes(Building _, RhinoDoc doc)
-        {
-            var layerName = LayerConstants.BuildingOSMLayer;
-
-            int layerIndex = LayerHelpers.CreateOrGetLayerIndex(doc, layerName);
-            return new ObjectAttributes() { LayerIndex = layerIndex };
-        }
-
-        private ObjectAttributes GetObjectAttributes(Highway highway, RhinoDoc doc)
-        {
-            string width = highway.Width.HasValue ? 
-                highway.Width.Value.ToString() 
-                : "Undefined Width";
-
-            var layerName = 
-                LayerConstants.RoadsOSMLayer + LayerConstants._Sep_
-                +highway.Type + LayerConstants._Sep_ 
-                + width;
-
-            int layerIndex = LayerHelpers.CreateOrGetLayerIndex( doc,layerName);
-            return new ObjectAttributes() { LayerIndex = layerIndex };
         }
     }
 }

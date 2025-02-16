@@ -2,16 +2,15 @@
 using OsmSharp;
 using OsmSharp.Db;
 
-namespace ArchSitePlan.OSM.Models;
+namespace ArchSitePlan.OSM.Models.OsmPolyline;
 
 public interface IOsmPolyline : IOsmObject
 {
     public Polyline Centerline { get; init; }
-    public double? Width { get; init; }
     public string Type { get; init; }
-    public string Key { get; init; }
+    public long? Id { get; init; }
     public static abstract IOsmPolyline? FromOsmWay(
-        Way way, 
-        List<Node> allNodes, 
+        Way way,
+        List<Node> allNodes,
         List<string>? typeFilter = null);
 }
