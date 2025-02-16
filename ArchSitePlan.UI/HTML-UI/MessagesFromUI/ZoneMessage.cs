@@ -1,18 +1,14 @@
-﻿
-using ArchSitePlan.Core.Extensions;
+﻿using ArchSitePlan.Core.Extensions;
 using ArchSitePlan.Core.Models;
 using ArchSitePlan.Core.Pipeline.CreationData;
 using ArchSitePlan.UI.Actions;
 using ArchSitePlan.UI.Constants;
 using ArchSitePlan.UI.CoreModelInterface;
-using ArchSitePlan.UI.Helpers;
 using ArchSitePlan.UI.HTML_UI.MessageToUI;
 using ArchSitePlan.UI.RhinoBHoMInterop;
-using Eto.Forms;
 using Rhino;
 using Rhino.DocObjects;
 using Rhino.Geometry;
-using static ArchSitePlan.Core.Constants.Enums;
 using static ArchSitePlan.UI.Constants.Enums;
 
 namespace ArchSitePlan.UI.HTML_UI.MessagesFromUI

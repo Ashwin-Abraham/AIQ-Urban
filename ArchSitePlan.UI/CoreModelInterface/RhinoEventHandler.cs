@@ -132,7 +132,7 @@ namespace ArchSitePlan.UI.Actions
                 var appObjects = objectsForUndelete
                     .Where(o => doc.Layers.FindIndex(o.Attributes.LayerIndex) != null
                     && !doc.Layers.FindIndex(o.Attributes.LayerIndex).IsDeleted
-                    && doc.Layers[o.Attributes.LayerIndex].FullPath.Contains(LayerConstants.MainLayer))
+                    && doc.Layers[o.Attributes.LayerIndex].FullPath.Contains(LayerConstants.MainModellingLayer))
                     .ToList();
 
                 var ids = appObjects.Select(o => o.Id).ToList();

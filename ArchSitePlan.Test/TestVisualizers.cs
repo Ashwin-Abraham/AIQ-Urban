@@ -2,12 +2,31 @@
 using ArchSitePlan.DebugModel.BHoMExtensions;
 using BH.Engine.Geometry;
 using BH.oM.Geometry;
+using Elements;
 using Elements.Geometry;
 using Circle = Elements.Geometry.Circle;
 
 namespace ArchSitePlan.Test;
-internal class TestVisualizers
+internal static class TestVisualizers
 {
+    internal static List<Element> ToElements(this IEnumerable<ICurve> curves)
+    {
+        return curves
+            .ToHypar()
+            .Select(x => new ModelCurve(x))
+            .Cast<Element>()
+            .ToList();
+    }
+
+    internal static void Visualize(this IEnumerable<Element> elements)
+    {
+#if DEBUG
+        DEBUGMODEL.Reset();
+        DEBUGMODEL.AddElements(elements);
+        DEBUGMODEL.OpenAsGlb();
+#endif
+    }
+
     internal static void VisualizeSplitResults(ICurve curve,
         ICurve splitter,
         IEnumerable<PlanarSurface> fragments)

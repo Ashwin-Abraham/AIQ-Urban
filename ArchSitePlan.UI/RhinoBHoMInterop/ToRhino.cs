@@ -2,6 +2,7 @@
 using ArchSitePlan.DebugModel;
 using BH.Engine.Geometry;
 using BH.oM.Geometry;
+using Rhino;
 
 namespace ArchSitePlan.UI.RhinoBHoMInterop
 {
@@ -9,8 +10,6 @@ namespace ArchSitePlan.UI.RhinoBHoMInterop
     {
         public static Rhino.Geometry.Brep ToRhino(this PlanarSurface bhomSurface)
         {
-            //var rhinoPoints = bhomSurface.ExternalBoundary.IControlPoints().ToRhino();
-
             var crvList = bhomSurface.ExternalBoundary.ObjectToList();
             crvList.AddRange(bhomSurface.InternalBoundaries);
 
@@ -54,6 +53,48 @@ namespace ArchSitePlan.UI.RhinoBHoMInterop
 
             return rhinoCrv;
         }
+        public static Rhino.Geometry.PolylineCurve ToOSMRhino(this Polygon curve)
+        {
+            var rhPoints = curve.ControlPoints().Select(x => x.ToOSMRhino());
+            var pline = new Rhino.Geometry.PolylineCurve(rhPoints);
+            pline.MakeClosed(1e-03);
+
+            var newCrv = new Rhino.Geometry.PolylineCurve(
+                new List<Rhino.Geometry.Point3d>
+                { rhPoints.ElementAt(0),
+                rhPoints.ElementAt(1),
+                rhPoints.ElementAt(2),
+                rhPoints.ElementAt(0) });
+
+
+            pline.SetEndPoint(pline.PointAtStart);
+            //var rhCrv = Rhino.Geometry.Curve.CreateControlPointCurve(rhPoints, 1);
+            //rhCrv.MakeClosed(1e-03);
+            pline.MakeClosed(1e-03);
+            var t = pline.IsClosed;
+
+            return pline;
+        }
+
+        public static Rhino.Geometry.Curve ToOSMRhino(this Polyline curve)
+        {
+            var rhPoints = curve.ControlPoints.Select(x => x.ToOSMRhino());
+            return Rhino.Geometry.Curve.CreateControlPointCurve(rhPoints, 1);
+        }
+
+        public static Rhino.Geometry.Point3d ToOSMRhino(this Point point)
+        {
+            return point.ToRhino();
+
+            var doc = RhinoDoc.ActiveDoc;
+            var xForm = doc.EarthAnchorPoint.GetModelToEarthTransform(doc.ModelUnitSystem);
+            xForm.TryGetInverse(out var inverse);
+            var rhPoint = point.ToRhino();
+            rhPoint.Transform(inverse);
+
+            return rhPoint;
+        }
+
         public static Rhino.Geometry.Curve ToRhino(this ICurve curve)
         {
             var arcCrv = curve as Arc;

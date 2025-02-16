@@ -30,44 +30,39 @@ namespace ArchSitePlan.DebugModel.BHoMExtensions
             return (perimeter, voids);
         }
 
-        public static List<BoundedCurve> ToHypar(this ICurve curve)
+        public static List<BoundedCurve> ToHypar(this IEnumerable<ICurve> curves)
+            => curves.SelectMany(x => x.ToHypar()).ToList();
+
+        public static List<BoundedCurve> ToHypar(this ICurve crv)
         {
             List<BoundedCurve> hyparCrvs = new List<BoundedCurve>();
-            var curves = new List<ICurve>();
 
-            if (curve == null) return hyparCrvs;
-
-            curves.AddRange(curve.ISubParts());
-
-            foreach (var crv in curves)
+            if (crv is Line l)
             {
-                if (crv is Line l)
-                {
-                    var line = ToHypar(l);
-                    if(line is not null) hyparCrvs.Add(line);
-                }
-
-                else if (crv is Polyline pline)
-                    hyparCrvs.Add(ToHypar(pline));
-
-                else if (crv is Arc arc)
-                    hyparCrvs.Add(ToHypar(arc));
-
-                else if (crv is Circle circle)
-                    hyparCrvs.Add(ToHypar(circle));
-
-                else if (crv is Polygon polygon)
-                    hyparCrvs.Add(ToHypar(polygon));
-
-                else if (crv is Polyline polyline)
-                    hyparCrvs.Add(ToHypar(polyline));
-
-                else if (crv is PolyCurve polyCurve)
-                    hyparCrvs.AddRange(ToHypar(polyCurve));
-
-                else if (crv is BoundaryCurve boundary)
-                    hyparCrvs.AddRange(ToHypar(boundary));
+                var line = ToHypar(l);
+                if(line is not null) hyparCrvs.Add(line);
             }
+
+            else if (crv is Polyline pline)
+                hyparCrvs.Add(ToHypar(pline));
+
+            else if (crv is Arc arc)
+                hyparCrvs.Add(ToHypar(arc));
+
+            else if (crv is Circle circle)
+                hyparCrvs.Add(ToHypar(circle));
+
+            else if (crv is Polygon polygon)
+                hyparCrvs.Add(ToHypar(polygon));
+
+            else if (crv is Polyline polyline)
+                hyparCrvs.Add(ToHypar(polyline));
+
+            else if (crv is PolyCurve polyCurve)
+                hyparCrvs.AddRange(ToHypar(polyCurve));
+
+            else if (crv is BoundaryCurve boundary)
+                hyparCrvs.AddRange(ToHypar(boundary));
 
             return hyparCrvs;
         }

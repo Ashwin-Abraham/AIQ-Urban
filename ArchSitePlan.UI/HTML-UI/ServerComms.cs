@@ -3,6 +3,7 @@ using System.Net;
 using System.Text;
 using System.Windows;
 using ArchSitePlan.UI.HTML_UI.HtmlCommsClasses;
+using ArchSitePlan.UI.HTML_UI.MessageToUI;
 using Newtonsoft.Json;
 using Rhino;
 
@@ -87,6 +88,12 @@ public class ServerComms
     {
         while (_serverRunning)
         {
+            RhinoApp.InvokeOnUiThread(() =>
+            {
+                RhinoDoc.ActiveDoc.Views.EnableRedraw(true, true, true);
+                RhinoDoc.ActiveDoc.Views.Redraw();
+            });
+
             HttpListenerContext context = await _httpListener.GetContextAsync();
             HttpListenerRequest request = context.Request;
             HttpListenerResponse response = context.Response;
@@ -119,7 +126,13 @@ public class ServerComms
 
                         // Process requestBody and use RhinoCommon to perform operations in Rhino
                         var messageObj = MessageConverter.ConvertMessageToJson(requestBody);
-                        var responseMessage = messageObj.HandleMessage();
+
+                        IMessageToUI responseMessage = null;
+                        //RhinoApp.InvokeOnUiThread(() =>
+                        //responseMessage = messageObj.HandleMessage());
+
+                        responseMessage = messageObj.HandleMessage();
+
                         response = AddCORSHeaders(response);
 
                         // Send response back to Vue.js
@@ -168,6 +181,8 @@ public class ServerComms
                     response.Close();
                 }
             }
+
+            
         }
     }
 

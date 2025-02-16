@@ -42,6 +42,12 @@ public static class MessageConverter
             case "LanduseListEdit":
                 return JsonConvert.DeserializeObject<LanduseListEditMessage>(json);
 
+            case "PickFile":
+                return JsonConvert.DeserializeObject<PickFileMessage>(json);
+
+            case "ReadOsm":
+                return JsonConvert.DeserializeObject<ReadOsmMessage>(json);
+
             default:
                 throw new Exception($"Unsupported message type: {messageType}");
         }

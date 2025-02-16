@@ -15,6 +15,7 @@
 	  <PackageReference Include="RhinoWindows" Version="8.4.24044.15001">
 		  <ExcludeAssets>runtime</ExcludeAssets>
 	  </PackageReference>
+	  <PackageReference Include="WebSocketSharp" Version="1.0.3-rc11" />
   </ItemGroup>
 	
 	
@@ -22,6 +23,7 @@
   <ItemGroup>
     <ProjectReference Include="..\ArchSitePlan.Core\ArchSitePlan.Core.csproj" />
     <ProjectReference Include="..\ArchSitePlan.Licensing\ArchSitePlan.Licensing.csproj" />
+    <ProjectReference Include="..\ArchSitePlan.OSM\ArchSitePlan.OSM.csproj" />
   </ItemGroup>
 	
 	
@@ -57,6 +59,10 @@
     <Page Update="Styles\Styles.xaml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Page>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="RhinoOSM\Nodes\" />
   </ItemGroup>
 
 </Project>
