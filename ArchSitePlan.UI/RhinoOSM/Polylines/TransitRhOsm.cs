@@ -4,28 +4,20 @@ using ArchSitePlan.UI.Helpers;
 using ArchSitePlan.UI.RhinoBHoMInterop;
 using Rhino;
 using Rhino.DocObjects;
-using Rhino.Geometry;
 
 namespace ArchSitePlan.UI.RhinoOSM.Polylines;
 
-public class TransitRhOsm : IRhinoOSM<TransitOsm>
+public class TransitRhOsm : RhinoOsm
 {
-    public Guid RhinoId { get; private set; } = Guid.Empty;
-
-    readonly RhinoDoc _doc;
-    readonly Curve _curve;
-    readonly ObjectAttributes _attributes;
-
-    public TransitRhOsm
-        (TransitOsm osmInput, RhinoDoc doc)
+    public TransitRhOsm(TransitOsm osmInput, RhinoDoc doc)
+        :base(doc)
     {
-        _doc = doc;
-        _curve = osmInput.Centerline.ToOSMRhino();
-        _attributes = GetObjectAttributes(osmInput);
+        _geometry = osmInput.Centerline.ToOSMRhino();
+        SetObjectAttributes(osmInput);
     }
 
     // Get Object Attribute
-    private ObjectAttributes GetObjectAttributes(TransitOsm osmInput)
+    private void SetObjectAttributes(TransitOsm osmInput)
     {
         string width = osmInput.Width.HasValue ?
             osmInput.Width.Value.ToString()
@@ -38,14 +30,9 @@ public class TransitRhOsm : IRhinoOSM<TransitOsm>
             + width;
 
         int layerIndex = LayerHelpers.CreateOrGetLayerIndex(_doc, layerName);
-        return new ObjectAttributes() { LayerIndex = layerIndex };
+        _attributes = new ObjectAttributes() { LayerIndex = layerIndex };
+        _attributes.SetUserString(
+            OSMConstants.OsmIdAttributeKey, 
+            osmInput.Id?.ToString()?? string.Empty);
     }
-
-    public bool AddToDocument()
-    {
-        RhinoId = _doc.Objects.AddCurve(_curve, _attributes);
-        return RhinoId != Guid.Empty;
-    }
-
-
 }

@@ -10,7 +10,7 @@ public class WebSocketComms
     /// <summary>
     /// Starts the WebSocket server on the specified port.
     /// </summary>
-    public static void StartServer(int port = 6300)
+    public static void StartServer(int port = 6400)
     {
         // Create a new WebSocket server listening on ws://localhost:port
         _wss = new WebSocketServer($"ws://localhost:{port}");
@@ -31,6 +31,18 @@ public class WebSocketComms
         {
             _wss.WebSocketServices.Broadcast(message);
             RhinoApp.WriteLine("Broadcasted message: " + message);
+        }
+    }
+
+    /// <summary>
+    /// Broadcast a message containing osm tags to all connected WebSocket clients.
+    /// </summary>
+    public static void BroadcastMessage(List<(string,string)> message)
+    {
+        if (_wss != null && _wss.IsListening)
+        {
+            _wss.WebSocketServices.Broadcast(message.ToString());
+            RhinoApp.WriteLine("Broadcasted message: osmTags");
         }
     }
 

@@ -10,7 +10,7 @@ public class OSMtoBHOMTests
     {
         string filePath = @"C:\Users\AshwinAbraham\Downloads\map.osm";
 
-        var result = OSMFileReader.TryReadFile(filePath, out var model);
+        var result = OSMFileReader.TryMakeOSMModelFromFile(filePath, out var model);
 
         // Preview
 #if DEBUG

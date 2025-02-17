@@ -1,7 +1,5 @@
 ﻿using ArchSitePlan.OSM.Models.OsmPolygon;
-using ArchSitePlan.OSM.Models.OsmPolyline;
 using ArchSitePlan.UI.Constants;
-using ArchSitePlan.UI.Helpers;
 using ArchSitePlan.UI.RhinoBHoMInterop;
 using Rhino;
 using Rhino.DocObjects;
@@ -9,36 +7,26 @@ using Rhino.Geometry;
 
 namespace ArchSitePlan.UI.RhinoOSM.Areas;
 
-public class BuildingRhOsm : IRhinoOSM<TransitOsm>
+public class BuildingRhOsm:RhinoOsm
 {
     public Guid RhinoId { get; private set; } = Guid.Empty;
 
-    readonly RhinoDoc _doc;
-    readonly Extrusion? _extrusion;
-    readonly ObjectAttributes _attributes;
     readonly double _defaultStoreyHeight;
     readonly int _defaultLevels;
-
 
     public BuildingRhOsm(
         BuildingOsm osmInput,
         RhinoDoc doc,
-        ObjectAttributes attributes,
         double defaultStoreyHeight = 3.5,
-        int defaultLevels = 4)
+        int defaultLevels = 4):base(doc)
     {
-        _doc = doc;
         _defaultStoreyHeight = defaultStoreyHeight;
         _defaultLevels = defaultLevels;
-        _extrusion = BuildGeometry(osmInput);
-        _attributes = attributes;
-    }
+        _geometry = BuildGeometry(osmInput);
 
-    public static ObjectAttributes GetObjectAttributes(RhinoDoc doc)
-    {
-        var layerName = LayerConstants.BuildingOsmLayer;
-        int layerIndex = LayerHelpers.CreateOrGetLayerIndex(doc, layerName);
-        return new ObjectAttributes() { LayerIndex = layerIndex };
+        SetObjectAttributes(LayerConstants.BuildingOsmLayer,
+            osmInput.Color,
+            osmInput.Id);
     }
 
     private Extrusion? BuildGeometry(BuildingOsm osmInput)
@@ -58,13 +46,5 @@ public class BuildingRhOsm : IRhinoOSM<TransitOsm>
         if (planarSurface is null) return null;
 
         return Extrusion.Create(planarSurface, Plane.WorldXY, height, true);
-    }
-
-    public bool AddToDocument()
-    {
-        if (_extrusion == null) return false;
-
-        RhinoId = _doc.Objects.AddExtrusion(_extrusion, _attributes);
-        return RhinoId != Guid.Empty;
     }
 }

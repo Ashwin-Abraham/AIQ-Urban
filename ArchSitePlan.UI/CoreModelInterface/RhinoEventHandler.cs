@@ -1,10 +1,12 @@
 ﻿using ArchSitePlan.Core.Models;
 using ArchSitePlan.Core.Pipeline.CreationData;
+using ArchSitePlan.OSM;
 using ArchSitePlan.UI.Constants;
 using ArchSitePlan.UI.CoreModelInterface;
 using ArchSitePlan.UI.Extensions;
 using ArchSitePlan.UI.Helpers;
 using ArchSitePlan.UI.HTML_UI.HtmlCommsClasses;
+using ArchSitePlan.UI.HTML_UI.Websockets;
 using ArchSitePlan.UI.InputValidation.Results;
 using ArchSitePlan.UI.InputValidation.Validators;
 using ArchSitePlan.UI.Models;
@@ -16,6 +18,7 @@ using Rhino;
 using Rhino.Display;
 using Rhino.DocObjects;
 using Rhino.Geometry;
+using System.IO;
 using System.Runtime.InteropServices;
 using System.Windows;
 using static ArchSitePlan.UI.Constants.Enums;
@@ -52,6 +55,39 @@ namespace ArchSitePlan.UI.Actions
             RhinoDoc.SelectObjects += (sender, args) => OnRhinoDocObjectSelection(args);
             RhinoDoc.DeselectObjects += (sender, args) => OnRhinoDocObjectDeSelection(args);
             RhinoDoc.DeselectAllObjects += (sender, args) => OnAllRhinoDocObjectDeSelection(args);
+
+            RhinoDoc.SelectObjects += (sender, args) => ShowObjectInfoEvent(args);
+
+        }
+
+        private static void ShowObjectInfoEvent(RhinoObjectSelectionEventArgs args)
+        {
+            var doc = RhinoDoc.ActiveDoc;
+            var osmObject = args.RhinoObjects
+                .FirstOrDefault(obj => doc.Layers[obj.Attributes.LayerIndex].FullPath
+                    .Contains(LayerConstants.MainOSMLayer));
+
+            // Trigger a websocket message containing the osmObject details
+            if(osmObject != null)
+            {
+                string? osmIdText = osmObject
+                    .Attributes.GetUserStrings()[OSMConstants.OsmIdAttributeKey];
+                
+                if(osmIdText != null && osmIdText != ""
+                    && long.TryParse(osmIdText, out long osmId)
+                    && OSMConstants.OsmIdsByFile.TryGetValue(osmId, out string? filePath))
+                {
+                    var tags = OSMFileReader.FindObjectTags(filePath, osmId);
+                    WebSocketComms.BroadcastMessage(tags);
+                }
+            }
+
+            var aiqModellingObjects = args.RhinoObjects
+                .Where(obj => doc.Layers[obj.Attributes.LayerIndex].FullPath.Contains(LayerConstants.MainModellingLayer))
+                .ToList();
+
+            // Trigger a eto form popup containing the aiq model objects' details
+
         }
 
         private static void QueueObjectForUndelete(RhinoObjectEventArgs args)
