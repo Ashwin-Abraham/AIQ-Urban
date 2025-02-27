@@ -1,4 +1,6 @@
-﻿using Rhino;
+﻿using ArchSitePlan.UI.HTML_UI.MessageToUI;
+using Newtonsoft.Json;
+using Rhino;
 using WebSocketSharp.Server;
 
 namespace ArchSitePlan.UI.HTML_UI.Websockets;
@@ -37,11 +39,12 @@ public class WebSocketComms
     /// <summary>
     /// Broadcast a message containing osm tags to all connected WebSocket clients.
     /// </summary>
-    public static void BroadcastMessage(List<(string,string)> message)
+    public static void BroadcastMessage(IMessageToUI message)
     {
         if (_wss != null && _wss.IsListening)
         {
-            _wss.WebSocketServices.Broadcast(message.ToString());
+            string json = JsonConvert.SerializeObject(message);
+            _wss.WebSocketServices.Broadcast(json);
             RhinoApp.WriteLine("Broadcasted message: osmTags");
         }
     }

@@ -12,6 +12,7 @@
 	  <PackageReference Include="Cryptolens.Licensing.CrossPlatform" Version="4.0.48" />
 	  <PackageReference Include="LiveCharts.Wpf.NetCore3" Version="0.9.8" />
 	  <PackageReference Include="MahApps.Metro" Version="3.0.0-alpha0492" />
+	  <PackageReference Include="OpenAI" Version="2.2.0-beta.2" />
 	  <PackageReference Include="RhinoWindows" Version="8.4.24044.15001">
 		  <ExcludeAssets>runtime</ExcludeAssets>
 	  </PackageReference>

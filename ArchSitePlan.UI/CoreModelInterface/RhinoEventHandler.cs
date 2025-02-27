@@ -6,6 +6,7 @@ using ArchSitePlan.UI.CoreModelInterface;
 using ArchSitePlan.UI.Extensions;
 using ArchSitePlan.UI.Helpers;
 using ArchSitePlan.UI.HTML_UI.HtmlCommsClasses;
+using ArchSitePlan.UI.HTML_UI.MessageToUI;
 using ArchSitePlan.UI.HTML_UI.Websockets;
 using ArchSitePlan.UI.InputValidation.Results;
 using ArchSitePlan.UI.InputValidation.Validators;
@@ -78,7 +79,7 @@ namespace ArchSitePlan.UI.Actions
                     && OSMConstants.OsmIdsByFile.TryGetValue(osmId, out string? filePath))
                 {
                     var tags = OSMFileReader.FindObjectTags(filePath, osmId);
-                    WebSocketComms.BroadcastMessage(tags);
+                    WebSocketComms.BroadcastMessage(new OsmTagsMessage(tags));
                 }
             }
 

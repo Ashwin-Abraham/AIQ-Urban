@@ -119,8 +119,8 @@
         <!--License Test-->
                 <StackPanel Grid.ColumnSpan="2">
                     <Button Grid.Row="0" 
-                     Content="Ping Stripe" 
-                     Command="{Binding VerifyLicense_Cmd}"/>
+                     Content="Test Command" 
+                     Command="{Binding Test_Cmd}"/>
 
                     <TextBox 
                      Text="{Binding LicenseKey, Mode=TwoWay}" 
