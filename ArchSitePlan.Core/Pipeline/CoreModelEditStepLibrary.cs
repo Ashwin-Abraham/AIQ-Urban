@@ -6,11 +6,10 @@ using ArchSitePlan.Core.Pipeline.CreationData;
 using BH.Engine.Geometry;
 using BH.oM.Geometry;
 using static ArchSitePlan.Core.Constants.Enums;
-using static ArchSitePlan.Core.ModelEditActions.BuildingAction;
 
 namespace ArchSitePlan.Core.Pipeline
 {
-    public class CoreModelEditStepLibrary
+    public static class CoreModelEditStepLibrary
     {
         public static void EditParcelUsesByClosestPoint(
             List<(Point point, Landuse use)> landuseData)
@@ -24,9 +23,6 @@ namespace ArchSitePlan.Core.Pipeline
             }
         }
         public static void ClearCoreModel() => CoreModel.ClearModel();
-        //public record ModelEditStep(
-        //   EditType EditMode,
-        //   List<IModelEditAction> ActionSequence);
         public static void RefreshStudyAreaMetrics()
         {
             CoreModel.RefreshStudyAreaMetrics();
@@ -72,16 +68,6 @@ namespace ArchSitePlan.Core.Pipeline
                 parcelBoundaryAndIds,
                 editType: EditType.Divide,
                 dividers: dividers);
-
-            //var roadsAndIds = CoreModel.Roads
-            //    .Select(rd => rd.ToTransitData())
-            //    .ToList();
-
-            // Divide Roads
-            //RoadAction.Run(roadsAndIds, EditType.Divide);
-
-            //RoadAction.Run(CoreModel.ROWs,
-            //    EditType.Divide);
         }
 
         public static void AddOrUpdateRoad( List<TransitData> transitData)
@@ -208,7 +194,7 @@ namespace ArchSitePlan.Core.Pipeline
                 configs.Add(config);
             }
 
-            Run(configs, EditType.Add);
+            BuildingAction.Run(configs, EditType.Add);
         }
 
         public static int TryDeleteBuildings(List<BuildingData> buildingData)
@@ -237,7 +223,7 @@ namespace ArchSitePlan.Core.Pipeline
                 .Select(b => new BuildingActionConfig(b))
                 .ToList();
 
-            Run(buildingConfigs, EditType.UpdateUse);
+            BuildingAction.Run(buildingConfigs, EditType.UpdateUse);
         }
 
         public static void ReplaceParcelUse(Landuse oldUse, Landuse newUse)

@@ -5,6 +5,11 @@ namespace ArchSitePlan.Core.Extensions
 {
     public static class LineExtensions
     {
+        public static Point Mid(this Line line)
+        {
+            return (line.Start + line.End)/ 2;
+        }
+
         /// <summary>
         /// Works only in XY plane
         /// Generates an arc between Line a End and Line b start

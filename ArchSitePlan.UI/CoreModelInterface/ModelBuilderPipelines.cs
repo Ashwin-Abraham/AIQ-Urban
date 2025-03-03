@@ -93,6 +93,12 @@ namespace ArchSitePlan.UI.CoreModelInterface
             //LayerManager.ToggleLayerStateBasedOnAppMode(doc, currentAppMode);
         }
 
+        internal static void AutoGenerateBuldingPipeline(RhinoDoc doc,
+            List<AutoBuildingData> buildingData,
+            ModellingTool currentAppMode)
+        {
+
+        }
         internal static void AddOrUpdateBuldingPipeline(
             RhinoDoc doc,
             List<BuildingData> buildingData,

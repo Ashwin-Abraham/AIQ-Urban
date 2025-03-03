@@ -12,13 +12,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="BHoM.Engine" Version="7.2.2-alpha" />
     <PackageReference Include="Clipper2" Version="1.4.0" />
     <PackageReference Include="ClosedXML" Version="0.104.2" />
     <PackageReference Include="DeepCloner" Version="0.10.0" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\ArchSitePlan.BHoM.Geometry\ArchSitePlan.BHoM.Geometry.csproj" />
     <ProjectReference Include="..\ArchSitePlan.DebugModel\ArchSitePlan.DebugModel.csproj" />
   </ItemGroup>
 

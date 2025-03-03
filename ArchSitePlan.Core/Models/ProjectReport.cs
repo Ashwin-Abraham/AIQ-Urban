@@ -1,4 +1,5 @@
-﻿using ArchSitePlan.Core.Constants;
+﻿using ArchSitePlan.BHoM.Geometry.Extensions;
+using ArchSitePlan.Core.Constants;
 using ArchSitePlan.Core.Extensions;
 using ArchSitePlan.Core.Metrics;
 using ClosedXML.Excel;

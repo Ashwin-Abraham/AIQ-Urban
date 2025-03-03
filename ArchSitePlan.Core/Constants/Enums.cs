@@ -21,4 +21,11 @@ public static class Enums
         ClearAll,
         UpdateUse
     }
+
+    public enum BuildingTargetMode
+    {
+        FAR,
+        GFA,
+        Height
+    }
 }

@@ -1,6 +1,5 @@
 ﻿using ArchSitePlan.Core.Extensions;
 using BH.Engine.Geometry;
-using BH.Engine.Spatial;
 using BH.oM.Geometry;
 
 namespace ArchSitePlan.Core.Models
@@ -71,6 +70,16 @@ namespace ArchSitePlan.Core.Models
         {
             List<PlanarSurface> floors = FloorPlates.Select(x => x.Profile).ToList();
             return floors;
+        }
+
+        public static Polyline GeneratePrimarySiteAxis(PolyCurve siteBoundary)
+        {
+            var minBox = siteBoundary.GetMinimumBoundingBox();
+            var contours = minBox.Contour(10);
+            var midPoints = contours.Select(x => x.Mid());
+            var primaryAxis = Create.Polyline(midPoints);
+
+            return primaryAxis;
         }
 
         //private List<(PlanarSurface, Guid)> CreateFloorPlates(PlanarSurface baseOutline)
