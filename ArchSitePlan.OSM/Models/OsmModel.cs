@@ -27,6 +27,20 @@ public class OsmModel(
     public List<PowerOsm> Power { get; set; } = power;
     public List<WaterwayOsm> Waterways { get; set; } = waterways;
 
+    public List<IOsmObject> GetModelObjects()
+    {
+        return Highways.Cast<IOsmObject>()
+            .Concat(LandParcels)
+            .Concat(Buildings)
+            .Concat(NaturalAreas)
+            .Concat(MiscAreas)
+            .Concat(NaturalOpen)
+            .Concat(BoundaryBarrier)
+            .Concat(Power)
+            .Concat(Waterways)
+            .ToList();
+    }
+
     public static OsmModel? FromOsmSource(XmlOsmStreamSource source)
     {
         var ways = source.Where(x => x is Way).Cast<Way>()

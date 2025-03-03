@@ -8,33 +8,16 @@ using Rhino.Geometry;
 
 namespace ArchSitePlan.UI.RhinoOSM.Areas;
 
-class MiscRhOsm : IRhinoOSM<MiscOsm>
+class MiscRhOsm : RhinoOsm
 {
     public Guid RhinoId { get; private set; } = Guid.Empty;
 
-    readonly RhinoDoc _doc;
-    readonly Curve? _boundary;
-    readonly ObjectAttributes _attributes;
-
     public MiscRhOsm(MiscOsm osmInput, RhinoDoc doc)
+        :base(doc)
     {
-        _doc = doc;
-        _boundary = osmInput.Boundary.ToOSMRhino();
-        _attributes = GetObjectAttributes(doc, osmInput);
-    }
-
-    public static ObjectAttributes GetObjectAttributes(RhinoDoc doc, MiscOsm osmInput)
-    {
-        var layerName = LayerConstants.MiscOsmLayer;
-        int layerIndex = LayerHelpers.CreateOrGetLayerIndex(doc, layerName, osmInput.Color);
-        return new ObjectAttributes() { LayerIndex = layerIndex };
-    }
-
-    public bool AddToDocument()
-    {
-        if (_boundary == null) return false;
-
-        RhinoId = _doc.Objects.AddCurve(_boundary, _attributes);
-        return RhinoId != Guid.Empty;
+        _geometry = osmInput.Boundary.ToOSMRhino();
+        SetObjectAttributes(LayerConstants.MiscOsmLayer,
+            osmInput.Color, 
+            osmInput.Id);
     }
 }

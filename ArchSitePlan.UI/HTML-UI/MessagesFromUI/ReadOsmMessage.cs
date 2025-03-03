@@ -1,4 +1,6 @@
-﻿using ArchSitePlan.OSM;
+﻿using System.IO;
+using ArchSitePlan.OSM;
+using ArchSitePlan.UI.Constants;
 using ArchSitePlan.UI.HTML_UI.MessageToUI;
 using ArchSitePlan.UI.RhinoOSM;
 using ArchSitePlan.UI.RhinoOSM.Areas;
@@ -17,6 +19,7 @@ namespace ArchSitePlan.UI.HTML_UI.MessagesFromUI
 
         public TextMessage HandleMessage()
         {
+            
             int roadCount = 0, 
                 parcelCount = 0, 
                 buildingCount = 0, 
@@ -26,69 +29,87 @@ namespace ArchSitePlan.UI.HTML_UI.MessagesFromUI
                 powerCount = 0,
                 boundaryBarrierCount = 0;
 
-            if(!OSMFileReader.TryReadFile(FilePath, out var osmModel)
+            // Save current osm file in new location
+            if(!File.Exists(FilePath))
+                return new TextMessage($"File not found {FilePath}");
+
+            var fileName = Path.GetFileName(FilePath);
+            string filePath = Path.Combine(OSMConstants.OsmFileDirectory, fileName);
+
+            if (File.Exists(filePath))
+                File.Delete(filePath);
+
+            File.Copy(FilePath, filePath);
+
+            if (!OSMFileReader.TryMakeOSMModelFromFile(FilePath, out var osmModel)
                 || osmModel is null)
                 return new TextMessage($"File not found {FilePath}");
 
             RhinoDoc doc = RhinoDoc.ActiveDoc;
 
+            // Save the object IDs into a singleton list
+            var idStore = OSMConstants.OsmIdsByFile;
+            osmModel.GetModelObjects()
+                .ForEach(x => idStore.TryAdd(x.Id.GetValueOrDefault(), filePath));
+
             // Closed ways
-            foreach(var parcel in osmModel.LandParcels)
+            foreach (var parcel in osmModel.LandParcels)
             {
-                var added = new LandParcelRhOsm(parcel, doc).AddToDocument();
-                if (added) parcelCount++;
+                var guid = new LandParcelRhOsm(parcel, doc).AddToDocument();
+                if (guid == Guid.Empty) continue;
+                
+                parcelCount++;
             }
 
-            var buildingAttrib = BuildingRhOsm.GetObjectAttributes(doc);
             foreach (var building in osmModel.Buildings)
             {
-                var added = new BuildingRhOsm(building, doc, buildingAttrib)
-                    .AddToDocument();
-                if (added) buildingCount++;
+                var guid = new BuildingRhOsm(building, doc) .AddToDocument();
+                if (guid != Guid.Empty) continue;
+
+                buildingCount++;
             }
 
             foreach(var natural in osmModel.NaturalAreas)
             {
-                var added = new NaturalClosedRhOsm(natural, doc).AddToDocument();
-                if (added) naturalClosedCount++;
+                var guid = new NaturalClosedRhOsm(natural, doc).AddToDocument();
+                if (guid != Guid.Empty) naturalClosedCount++;
             }
 
             foreach (var misc in osmModel.MiscAreas)
             {
-                var added = new MiscRhOsm(misc, doc).AddToDocument();
-                if (added) miscCount++;
+                var guid = new MiscRhOsm(misc, doc).AddToDocument();
+                if (guid != Guid.Empty) miscCount++;
             }
 
             // Open ways
             foreach (var road in osmModel.Highways)
             {
-                bool added = new TransitRhOsm
-                    (road, doc).AddToDocument();
-                if (added) roadCount++;
+                var guid = new TransitRhOsm(road, doc).AddToDocument();
+                if (guid != Guid.Empty) roadCount++;
             }
 
             foreach ( var natural in osmModel.NaturalOpen)
             {
-                bool added = new NaturalOpenRhOsm(natural, doc).AddToDocument();
-                if (added) naturalOpenCount++;
+                var guid = new NaturalOpenRhOsm(natural, doc).AddToDocument();
+                if (guid != Guid.Empty) naturalOpenCount++;
             }
 
             foreach (var power in osmModel.Power)
             {
-                bool added = new PowerRhOsm(power, doc).AddToDocument();
-                if (added) powerCount++;
+                var guid = new PowerRhOsm(power, doc).AddToDocument();
+                if (guid != Guid.Empty) powerCount++;
             }
 
             foreach (var boundary in osmModel.BoundaryBarrier)
             {
-                bool added = new BoundaryBarrierRhOsm(boundary, doc).AddToDocument();
-                if (added) boundaryBarrierCount++;
+                var guid = new BoundaryBarrierRhOsm(boundary, doc).AddToDocument();
+                if (guid != Guid.Empty) boundaryBarrierCount++;
             }
 
             foreach (var waterway in osmModel.Waterways)
             {
-                bool added = new WaterwayRhOsm(waterway, doc).AddToDocument();
-                if (added) boundaryBarrierCount++;
+                var guid = new WaterwayRhOsm(waterway, doc).AddToDocument();
+                if (guid != Guid.Empty) boundaryBarrierCount++;
             }
 
             doc.Views.EnableRedraw(true, true, true);

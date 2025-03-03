@@ -21,8 +21,7 @@ public static class WayExtensions
     {
         var wayIds = way.Nodes.ToList();
 
-        var filteredNodeLookup =
-            nodes
+        var filteredNodeLookup = nodes
             .Where(node => wayIds.Contains(node.Id ?? 0))
             .ToLookup(node => node.Id);
 

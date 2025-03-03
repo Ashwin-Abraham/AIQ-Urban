@@ -1,6 +1,5 @@
 ﻿using BH.oM.Geometry;
 using OsmSharp;
-using OsmSharp.Db;
 
 namespace ArchSitePlan.OSM.Models.OsmPolygon;
 

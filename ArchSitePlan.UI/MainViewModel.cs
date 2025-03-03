@@ -17,6 +17,7 @@ using ArchSitePlan.UI.HTML_UI;
 using ArchSitePlan.UI.InputValidation.Results;
 using ArchSitePlan.UI.InputValidation.Validators;
 using ArchSitePlan.UI.Models;
+using ArchSitePlan.UI.OpenAI;
 using ArchSitePlan.UI.RhinoBHoMInterop;
 using BH.Engine.Geometry;
 using LiveCharts;
@@ -681,25 +682,7 @@ public class MainViewModel : ViewModelBase, INotifyPropertyChanged
     {
         try
         {
-            var doc = RhinoDoc.ActiveDoc;
-            var selectedObjectCenter = doc.Objects.GetSelectedObjects(false, false)
-                .First()
-                .Geometry
-                .GetBoundingBox(false)
-                .Center;
-
-            var viewTopLeft = doc.Views.ActiveView.ActiveViewport.ClientToScreen(new Point2d(0,0));
-            var viewportPoint = doc.Views.ActiveView.ActiveViewport
-                .WorldToClient(selectedObjectCenter)
-                + new Point2d(viewTopLeft.X, viewTopLeft.Y);
-
-            // Create the dialog window
-            TestPopUp dialog = new();
-
-            // Show the dialog
-            dialog.ShowDialog();
-
-
+            OpenAIComms.SendMessage();
         }
         catch (Exception ex)
         {

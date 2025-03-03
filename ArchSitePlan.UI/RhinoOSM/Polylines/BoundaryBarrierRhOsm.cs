@@ -8,37 +8,16 @@ using Rhino.Geometry;
 
 namespace ArchSitePlan.UI.RhinoOSM;
 
-public class BoundaryBarrierRhOsm : IRhinoOSM<BoundaryBarrierOsm>
+public class BoundaryBarrierRhOsm :RhinoOsm
 {
-    public Guid RhinoId { get; private set; } = Guid.Empty;
-
-    readonly RhinoDoc _doc;
-    readonly Curve _curve;
-    readonly ObjectAttributes _attributes;
-
     public BoundaryBarrierRhOsm(BoundaryBarrierOsm osmInput, RhinoDoc doc)
-    {
-        _doc = doc;
-        _curve = osmInput.Centerline.ToOSMRhino();
-        _attributes = GetObjectAttributes(osmInput);
-    }
-
-    // Get Object Attribute
-    private ObjectAttributes GetObjectAttributes(BoundaryBarrierOsm osmInput)
+    :base(doc)
     {
         var layerName = LayerConstants.BoundaryOsmLayer +
             LayerConstants._Sep_ +
             osmInput.Type;
 
-        int layerIndex = LayerHelpers.CreateOrGetLayerIndex(_doc, layerName, osmInput.Color);
-        return new ObjectAttributes() { LayerIndex = layerIndex };
+        _geometry = osmInput.Centerline.ToOSMRhino();
+        SetObjectAttributes(layerName, osmInput.Color, osmInput.Id);
     }
-
-    public bool AddToDocument()
-    {
-        RhinoId = _doc.Objects.AddCurve(_curve, _attributes);
-        return RhinoId != Guid.Empty;
-    }
-
-
 }
