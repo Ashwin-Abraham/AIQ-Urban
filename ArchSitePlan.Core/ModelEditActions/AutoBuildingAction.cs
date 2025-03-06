@@ -29,7 +29,7 @@ namespace ArchSitePlan.Core.ModelEditActions
             foreach ( var building in buildings)
             {
                 var parcel = CoreModel.Parcels.Find(p => 
-                    p.Boundary.ExternalBoundary.IIsContaining(building.Origin.ObjectToList()));
+                    p.Boundary.ExternalBoundary.IIsContaining([building.Origin]));
 
                 building.Use = parcel is null ? AppLanduses.Undefined : parcel.LandUse;
             }
@@ -41,7 +41,7 @@ namespace ArchSitePlan.Core.ModelEditActions
             {
                 var origin = config.EnvelopeMesh.Bounds().Centre().ProjectToXY();
                 var nearest = CoreModel.Parcels
-                    .FirstOrDefault(p => p.Boundary.ExternalBoundary.IIsContaining(origin.ObjectToList()));
+                    .FirstOrDefault(p => p.Boundary.ExternalBoundary.IIsContaining([origin]));
 
                 var use = nearest is not null ? nearest.LandUse : AppLanduses.Undefined;
 
@@ -64,7 +64,7 @@ namespace ArchSitePlan.Core.ModelEditActions
         private static bool TryEditInCoreModel(Building building)
         {
             var parcel = CoreModel.Parcels
-                .FirstOrDefault(p => p.Boundary.ExternalBoundary.IIsContaining(building.Origin.ObjectToList()));
+                .FirstOrDefault(p => p.Boundary.ExternalBoundary.IIsContaining([building.Origin]));
             building.HostParcelId = parcel?.Id ?? Guid.Empty;
 
             return building.HostParcelId == Guid.Empty;

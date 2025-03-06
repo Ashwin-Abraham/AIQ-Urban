@@ -1,3 +1,4 @@
+using ArchSitePlan.BHoM.Geometry.Extensions;
 using ArchSitePlan.Core.Extensions;
 using ArchSitePlan.DebugModel;
 using ArchSitePlan.DebugModel.BHoMExtensions;

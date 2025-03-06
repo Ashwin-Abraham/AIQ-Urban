@@ -19,6 +19,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ArchSitePlan.OSM", "ArchSit
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ArchSitePlan.BHoM.Geometry", "ArchSitePlan.BHoM.Geometry\ArchSitePlan.BHoM.Geometry.csproj", "{AF85572A-3F94-4548-810B-9A18492BB1F1}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AIQ.Primitives", "AIQ.Primitives\AIQ.Primitives.csproj", "{34AEF067-F962-4B09-BECA-EA0CE169032B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -89,6 +91,14 @@ Global
 		{AF85572A-3F94-4548-810B-9A18492BB1F1}.Release|Any CPU.Build.0 = Release|Any CPU
 		{AF85572A-3F94-4548-810B-9A18492BB1F1}.Release|x64.ActiveCfg = Release|Any CPU
 		{AF85572A-3F94-4548-810B-9A18492BB1F1}.Release|x64.Build.0 = Release|Any CPU
+		{34AEF067-F962-4B09-BECA-EA0CE169032B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{34AEF067-F962-4B09-BECA-EA0CE169032B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{34AEF067-F962-4B09-BECA-EA0CE169032B}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{34AEF067-F962-4B09-BECA-EA0CE169032B}.Debug|x64.Build.0 = Debug|Any CPU
+		{34AEF067-F962-4B09-BECA-EA0CE169032B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{34AEF067-F962-4B09-BECA-EA0CE169032B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{34AEF067-F962-4B09-BECA-EA0CE169032B}.Release|x64.ActiveCfg = Release|Any CPU
+		{34AEF067-F962-4B09-BECA-EA0CE169032B}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

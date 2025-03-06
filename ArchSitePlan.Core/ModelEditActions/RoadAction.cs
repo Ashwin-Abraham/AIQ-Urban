@@ -1,4 +1,5 @@
-﻿using ArchSitePlan.Core.Extensions;
+﻿using ArchSitePlan.BHoM.Geometry.Extensions;
+using ArchSitePlan.Core.Extensions;
 using ArchSitePlan.Core.Models;
 using ArchSitePlan.Core.Pipeline.CreationData;
 using BH.Engine.Geometry;
@@ -101,7 +102,7 @@ namespace ArchSitePlan.Core.ModelEditActions
         {
             foreach(var data in roadData)
             {
-                var pCurve = Create.PolyCurve(data.Centerline.ObjectToList());
+                var pCurve = Create.PolyCurve([data.Centerline]);
                 if (Road.TryCreateRoad(pCurve, data.ID, data.RoadWidth, out Road? road))
                     CoreModel.Roads.Add(road!);
             }

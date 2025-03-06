@@ -1,4 +1,4 @@
-﻿using ArchSitePlan.Core.Extensions;
+﻿using ArchSitePlan.BHoM.Geometry.Extensions;
 using BH.Engine.Geometry;
 using BH.oM.Geometry;
 using static ArchSitePlan.Test.ICurveExtensions.CurvesTestData;
@@ -13,7 +13,7 @@ public class PlanarSurfaceExtensionsTests
         var planarSurface = Create.PlanarSurface(curve);
         var splitter = Create.Line(Create.Point(1, -1), Create.Point(1, 5));
 
-        List<PlanarSurface> fragments = planarSurface.Split(splitter.ObjectToList());
+        List<PlanarSurface> fragments = planarSurface.Split([splitter]);
 
         //var fragments = (curve as ICurve).Split(new List<ICurve>() { splitter });
 
@@ -31,7 +31,7 @@ public class PlanarSurfaceExtensionsTests
         var planarSurface = Create.PlanarSurface(curve);
         var splitter = Rectangle3;
 
-        List<PlanarSurface> fragments = planarSurface.Split(splitter.ObjectToList());
+        List<PlanarSurface> fragments = planarSurface.Split([splitter]);
 
 #if DEBUG
         TestVisualizers.VisualizeSplitResults(curve, splitter, fragments);
@@ -47,7 +47,7 @@ public class PlanarSurfaceExtensionsTests
         var planarSurface = Create.PlanarSurface(curve);
         var splitter = Rectangle4;
 
-        List<PlanarSurface> fragments = planarSurface.Split(splitter.ObjectToList());
+        List<PlanarSurface> fragments = planarSurface.Split([splitter]);
 
 #if DEBUG
         TestVisualizers.VisualizeSplitResults(curve, splitter, fragments);
@@ -63,7 +63,7 @@ public class PlanarSurfaceExtensionsTests
         var planarSurface = Create.PlanarSurface(curve);
         var splitter = Create.Line(Create.Point(1, 1), Create.Point(1, 5));
 
-        List<PlanarSurface> fragments = planarSurface.Split(splitter.ObjectToList());
+        List<PlanarSurface> fragments = planarSurface.Split([splitter]);
 
 #if DEBUG
         TestVisualizers.VisualizeSplitResults(curve, splitter, fragments);
@@ -80,7 +80,7 @@ public class PlanarSurfaceExtensionsTests
         var planarSurface = Create.PlanarSurface(curve);
         var splitter = DiffPolygon;
 
-        List<PlanarSurface> fragments = planarSurface.Split(splitter.ObjectToList());
+        List<PlanarSurface> fragments = planarSurface.Split([splitter]);
 #if DEBUG
         TestVisualizers.VisualizeSplitResults(curve, splitter, fragments);
 #endif
@@ -95,7 +95,7 @@ public class PlanarSurfaceExtensionsTests
         var planarSurface = Create.PlanarSurface(curve);
         var splitter = DiffPolyline;
 
-        List<PlanarSurface> fragments = planarSurface.Split(splitter.ObjectToList());
+        List<PlanarSurface> fragments = planarSurface.Split([splitter]);
 #if DEBUG
         TestVisualizers.VisualizeSplitResults(curve, splitter, fragments);
 #endif
@@ -110,7 +110,7 @@ public class PlanarSurfaceExtensionsTests
         var planarSurface = Create.PlanarSurface(curve);
         var splitter = DiffPolyline2;
 
-        List<PlanarSurface> fragments = planarSurface.Split(splitter.ObjectToList());
+        List<PlanarSurface> fragments = planarSurface.Split([splitter]);
 #if DEBUG
         TestVisualizers.VisualizeSplitResults(curve, splitter, fragments);
 #endif
@@ -126,7 +126,7 @@ public class PlanarSurfaceExtensionsTests
         var planarSurface = Create.PlanarSurface(curve, new() { hole });
         var splitter = Create.Line(Create.Point(1, -1), Create.Point(1, 5));
 
-        List<PlanarSurface> fragments = planarSurface.Split(splitter.ObjectToList());
+        List<PlanarSurface> fragments = planarSurface.Split([splitter]);
 
 #if DEBUG
         TestVisualizers.VisualizeSplitResults(curve, splitter, fragments);
@@ -142,7 +142,7 @@ public class PlanarSurfaceExtensionsTests
         var planarSurface = Create.PlanarSurface(curve);
         var splitter = Rectangle2;
 
-        List<PlanarSurface> fragments = planarSurface.Split(splitter.ObjectToList());
+        List<PlanarSurface> fragments = planarSurface.Split([splitter]);
 #if DEBUG
         TestVisualizers.VisualizeSplitResults(curve, splitter, fragments);
 #endif

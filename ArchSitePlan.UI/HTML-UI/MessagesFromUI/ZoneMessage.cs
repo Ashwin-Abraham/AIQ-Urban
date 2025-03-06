@@ -49,7 +49,7 @@ namespace ArchSitePlan.UI.HTML_UI.MessagesFromUI
 
             RhinoDoc doc2 = RhinoDoc.ActiveDoc;
             ModelBuilderPipelines.AddStudyAreaPipeline(doc: doc2,
-                studyData: new StudyData(bhomCrv!, rhinoObj.Id, Name).ObjectToList(),
+                studyData: [new StudyData(bhomCrv!, rhinoObj.Id, Name)],
                 ModellingTool.Zones);
 
             if (CoreModel.Studies.Exists(s => s.Name == Name))

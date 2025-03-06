@@ -1,3 +1,4 @@
+using ArchSitePlan.BHoM.Geometry.Extensions;
 using ArchSitePlan.Core.Extensions;
 using ArchSitePlan.DebugModel;
 using ArchSitePlan.DebugModel.BHoMExtensions;
@@ -16,7 +17,7 @@ namespace ArchSitePlan.Test.ICurveExtensions
                 Create.Point(2, 0),
                 Create.Point(2, 10));
 
-            var offset = line.Thicken(1, Enums.EndCapType.Butt, Vector.ZAxis);
+            var offset = line.Thicken(1, EndCapType.Butt, Vector.ZAxis);
 
 
             // Visualize
@@ -59,7 +60,7 @@ namespace ArchSitePlan.Test.ICurveExtensions
                 Create.Point(4, 11),
             });
 
-            var fragments = _rectangle.Split(splitter.ObjectToList<ICurve>());
+            var fragments = _rectangle.Split([splitter]);
 
             DEBUGMODEL.AddBoundedCurve(ToHyparInterop.ToHypar(_rectangle));
             DEBUGMODEL.AddBoundedCurves(fragments.ToHyparPolylines(), DebugMaterials.Blue, 0.5);
@@ -71,7 +72,7 @@ namespace ArchSitePlan.Test.ICurveExtensions
             var curve = _rectangle;
             var splitter = _rectangle;
 
-            var fragments = curve.Split(splitter.ObjectToList<ICurve>());
+            var fragments = curve.Split([splitter]);
             
             TestVisualizers.VisualizeSplitResults(curve, splitter, fragments);
             Assert.Equal(1, fragments.Count);
@@ -88,7 +89,7 @@ namespace ArchSitePlan.Test.ICurveExtensions
                 Create.Point(10, 5),
             });
 
-            var fragments = curve.Split(splitter.ObjectToList<ICurve>());
+            var fragments = curve.Split([splitter]);
 
             TestVisualizers.VisualizeSplitResults(_rectangle, splitter, fragments);
             
@@ -106,7 +107,7 @@ namespace ArchSitePlan.Test.ICurveExtensions
                 Create.Point(10, 5),
             });
 
-            var fragments = curve.Split(splitter.ObjectToList<ICurve>());
+            var fragments = curve.Split([splitter]);
 
             TestVisualizers.VisualizeSplitResults(_rectangle, splitter, fragments);
 

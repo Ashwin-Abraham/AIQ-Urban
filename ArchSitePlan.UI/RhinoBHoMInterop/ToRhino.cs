@@ -1,4 +1,5 @@
-﻿using ArchSitePlan.Core.Extensions;
+﻿using ArchSitePlan.BHoM.Geometry.Extensions;
+using ArchSitePlan.Core.Extensions;
 using ArchSitePlan.DebugModel;
 using BH.Engine.Geometry;
 using BH.oM.Geometry;
@@ -10,7 +11,7 @@ namespace ArchSitePlan.UI.RhinoBHoMInterop
     {
         public static Rhino.Geometry.Brep ToRhino(this PlanarSurface bhomSurface)
         {
-            var crvList = bhomSurface.ExternalBoundary.ObjectToList();
+            List<ICurve> crvList = [bhomSurface.ExternalBoundary];
             crvList.AddRange(bhomSurface.InternalBoundaries);
 
             var brep = Rhino.Geometry.Brep.CreatePlanarBreps(crvList.ToRhino(), 1E-06).First();

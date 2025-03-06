@@ -1,4 +1,7 @@
-﻿using ArchSitePlan.Core.Extensions;
+﻿using ArchSitePlan.BHoM.Geometry.Extensions;
+using ArchSitePlan.Core.Extensions;
+using ArchSitePlan.DebugModel;
+using ArchSitePlan.DebugModel.BHoMExtensions;
 using BH.Engine.Geometry;
 using BH.oM.Geometry;
 
@@ -62,7 +65,7 @@ namespace ArchSitePlan.Core.Models
 
         public Landuse FindHostParcelUse()
         {
-            var host = CoreModel.Parcels.Find(p => p.Boundary.ExternalBoundary.IIsContaining(Origin.ObjectToList()));
+            var host = CoreModel.Parcels.Find(p => p.Boundary.ExternalBoundary.IIsContaining([Origin]));
             return host?.LandUse?? AppLanduses.Undefined;
         }
 
@@ -75,11 +78,42 @@ namespace ArchSitePlan.Core.Models
         public static Polyline GeneratePrimarySiteAxis(PolyCurve siteBoundary)
         {
             var minBox = siteBoundary.GetMinimumBoundingBox();
-            var contours = minBox.Contour(10);
-            var midPoints = contours.Select(x => x.Mid());
-            var primaryAxis = Create.Polyline(midPoints);
+            var boxContours = minBox.Contour(10);
 
-            return primaryAxis;
+            List<Line> siteCountours = new();
+            foreach (var contour in boxContours)
+            {
+                var points = siteBoundary.ICurveIntersections(contour);
+
+                if (!points.Exists(p => p.AlmostEquals(contour.Start)))
+                    points.Add(contour.Start);
+
+                if (!points.Exists(p => p.AlmostEquals(contour.End)))
+                    points.Add(contour.End);
+
+                List<Point> orderedPoints = points.OrderAlong(contour).ToList();
+
+                var polyline = Create.Polyline(orderedPoints);
+
+                var selectedContour = polyline.SubParts()
+                    .Where(x => siteBoundary.IsContaining([x.Mid()]))
+                    .MaxBy(x => x.Length());
+
+                if(selectedContour != null)
+                    siteCountours.Add(selectedContour);
+            }
+
+            var midPoints = siteCountours.Select(x => x.Mid());
+            var primaryAxis = Create.Polyline(midPoints);
+            var length = primaryAxis.Length();
+            primaryAxis = primaryAxis.Extend(length, length);
+            var intersections = siteBoundary.ICurveIntersections(primaryAxis);
+            var axisParts = primaryAxis.SplitAtPoints(intersections);
+            var primaryAxisPart = axisParts
+                .Where(x => siteBoundary.IIsContaining([x.Mid()]))
+                .MaxBy(x => x.Length());
+
+            return primaryAxisPart;
         }
 
         //private List<(PlanarSurface, Guid)> CreateFloorPlates(PlanarSurface baseOutline)

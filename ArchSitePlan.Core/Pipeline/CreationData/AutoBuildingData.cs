@@ -3,46 +3,60 @@ using static ArchSitePlan.Core.Constants.Enums;
 
 namespace ArchSitePlan.Core.Pipeline.CreationData;
 
-public class AutoBuildingData
-{
-    public PolyCurve SiteBoundary { get; }
-    public BuildingTargetMode TargetMode { get; }
-    public double? TargetGFA { get; }
-    public double? TargetFAR { get; }
-    public double? TargetHeight { get; }
-    public double Setback { get; }
-    public double MaxHeight { get; }
-    public double MinHeight { get; }
-    public double FloorHeight { get; }
-}
+public record AutoBuildingData(
+    PolyCurve SiteBoundary,
+    BuildingTargetMode TargetMode,
+    double? TargetGFA,
+    double? TargetFAR,
+    double? TargetHeight,
+    double Setback,
+    double MaxHeight,
+    double MinHeight,
+    double FloorHeight);
 
-public class AutoRectangleBuildingData : AutoBuildingData
-{
-    public double MaxFloorPlateDepth { get; }
-    public double MinFloorPlateDepth { get; }
-}
+public record AutoRectangleBuildingData(
+    double MaxFloorPlateDepth,
+    double MinFloorPlateDepth,
+    PolyCurve SiteBoundary,
+    BuildingTargetMode TargetMode,
+    double? TargetGFA,
+    double? TargetFAR,
+    double? TargetHeight,
+    double Setback,
+    double MaxHeight,
+    double MinHeight,
+    double FloorHeight) : AutoBuildingData(
+        SiteBoundary,
+        TargetMode,
+        TargetGFA,
+        TargetFAR,
+        TargetHeight,
+        Setback,
+        MaxHeight,
+        MinHeight,
+        FloorHeight);
 
-public class AutoLShapedBuildingData :AutoBuildingData
+public record AutoLShapedBuildingData :AutoBuildingData
 {
     public double ArmRatio { get; }
     public double FloorPlateDepth { get; }
 }
 
-public class AutoOShapedBuildingData : AutoBuildingData
+public record AutoOShapedBuildingData : AutoBuildingData
 {
     public double MaxXYRatio { get; }
     public double FloorPlateDepth { get; }
     public double CourtyardDepth { get; }
 }
 
-public class AutoUShapedBuildingData : AutoBuildingData
+public record AutoUShapedBuildingData : AutoBuildingData
 {
     public double MaxXYRatio { get; }
     public double FloorPlateDepth { get; }
     public double CourtyardDepth { get; }
 }
 
-public class UnionedBoxesBuildingData : AutoBuildingData
+public record UnionedBoxesBuildingData : AutoBuildingData
 {
     public double Length { get; }
     public double Width { get; }

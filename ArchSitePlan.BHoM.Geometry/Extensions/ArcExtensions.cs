@@ -1,5 +1,6 @@
 using BH.Engine.Geometry;
 using BH.oM.Geometry;
+namespace ArchSitePlan.BHoM.Geometry.Extensions;
 
 public static class ArcExtensions
 {
