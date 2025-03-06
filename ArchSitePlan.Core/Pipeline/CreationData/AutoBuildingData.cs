@@ -15,7 +15,7 @@ public record AutoBuildingData(
     double FloorHeight);
 
 public record AutoRectangleBuildingData(
-    double MaxFloorPlateDepth,
+    double BuildingWidth,
     double MinFloorPlateDepth,
     PolyCurve SiteBoundary,
     BuildingTargetMode TargetMode,
@@ -24,6 +24,8 @@ public record AutoRectangleBuildingData(
     double? TargetHeight,
     double Setback,
     double MaxHeight,
+    double MaxLength,
+    double MinLength,
     double MinHeight,
     double FloorHeight) : AutoBuildingData(
         SiteBoundary,
@@ -36,27 +38,27 @@ public record AutoRectangleBuildingData(
         MinHeight,
         FloorHeight);
 
-public record AutoLShapedBuildingData :AutoBuildingData
+public record AutoLShapedBuildingData 
 {
     public double ArmRatio { get; }
     public double FloorPlateDepth { get; }
 }
 
-public record AutoOShapedBuildingData : AutoBuildingData
+public record AutoOShapedBuildingData 
 {
     public double MaxXYRatio { get; }
     public double FloorPlateDepth { get; }
     public double CourtyardDepth { get; }
 }
 
-public record AutoUShapedBuildingData : AutoBuildingData
+public record AutoUShapedBuildingData
 {
     public double MaxXYRatio { get; }
     public double FloorPlateDepth { get; }
     public double CourtyardDepth { get; }
 }
 
-public record UnionedBoxesBuildingData : AutoBuildingData
+public record UnionedBoxesBuildingData 
 {
     public double Length { get; }
     public double Width { get; }

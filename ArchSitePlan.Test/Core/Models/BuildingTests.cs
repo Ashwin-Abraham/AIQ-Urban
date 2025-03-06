@@ -111,7 +111,7 @@ public class BuildingTests
         ]);
 
         var config = new AutoRectangleBuildingData(
-            MaxFloorPlateDepth: 15,
+            BuildingWidth: 15,
             MinFloorPlateDepth: 5,
             SiteBoundary: Create.PolyCurve([siteBoundary]),
             TargetMode: BuildingTargetMode.GFA,
@@ -121,8 +121,10 @@ public class BuildingTests
             Setback: 6,
             MaxHeight: 24,
             MinHeight: 6,
+            MaxLength: 50,
+            MinLength: 10,
             FloorHeight: 3.6);
 
-        var building = new RectangleBuilding();
+        var building = Recta
     }
 }

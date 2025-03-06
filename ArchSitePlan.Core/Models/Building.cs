@@ -16,7 +16,7 @@ namespace ArchSitePlan.Core.Models
         public Guid HostParcelId { get; set;} = Guid.Empty;
         public Point Origin { get; private set; }
         public Mesh Envelope { get; private set; }
-        public Landuse Use { get; set; }
+        public Landuse? Use { get; set; }
 
         public List<(PlanarSurface Profile, Guid Id)> FloorPlates { get; set; }
 
@@ -24,8 +24,8 @@ namespace ArchSitePlan.Core.Models
             Mesh envelope,
             List<PlanarSurface> floorPlates,
             double floorToFloorHeight,
-            Guid envelopeId,
-            Landuse use,
+            Guid envelopeId = default,
+            Landuse? use = null,
             Guid footprintId = default)
         {
             Use = use;
@@ -83,21 +83,9 @@ namespace ArchSitePlan.Core.Models
             List<Line> siteCountours = new();
             foreach (var contour in boxContours)
             {
-                var points = siteBoundary.ICurveIntersections(contour);
+                var linesWithin = contour.LineBooleanIntersection(siteBoundary);
 
-                if (!points.Exists(p => p.AlmostEquals(contour.Start)))
-                    points.Add(contour.Start);
-
-                if (!points.Exists(p => p.AlmostEquals(contour.End)))
-                    points.Add(contour.End);
-
-                List<Point> orderedPoints = points.OrderAlong(contour).ToList();
-
-                var polyline = Create.Polyline(orderedPoints);
-
-                var selectedContour = polyline.SubParts()
-                    .Where(x => siteBoundary.IsContaining([x.Mid()]))
-                    .MaxBy(x => x.Length());
+                var selectedContour = linesWithin.MaxBy(x => x.Length());
 
                 if(selectedContour != null)
                     siteCountours.Add(selectedContour);

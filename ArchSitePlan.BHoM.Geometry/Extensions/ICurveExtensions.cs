@@ -7,6 +7,51 @@ namespace ArchSitePlan.BHoM.Geometry.Extensions;
 
 public static class ICurveExtensions
 {
+    private static void BooleanLine(
+        Line line,
+        PolyCurve boundary,
+        out List<Line> linesInside,
+        out List<Line> linesOutside)
+    {
+        linesInside = new();
+        linesOutside = new();
+
+        if (!boundary.IsClosed()) return;
+
+        var points = boundary.ICurveIntersections(line);
+
+        if (!points.Exists(p => p.AlmostEquals(line.Start)))
+            points.Add(line.Start);
+
+        if (!points.Exists(p => p.AlmostEquals(line.End)))
+            points.Add(line.End);
+
+        List<Point> orderedPoints = points.OrderAlong(line).ToList();
+
+        var fragments = Create.Polyline(orderedPoints).SubParts();
+
+        linesInside = fragments
+            .Where(x => boundary.IIsContaining([x.Mid()]))
+            .ToList();
+
+        var linesInside2 = linesInside;
+        
+        linesOutside = fragments
+            .Where(x => !linesInside2.Contains(x))
+            .ToList();
+    }
+
+    public static List<Line> LineBooleanDifference(this Line line, PolyCurve boundary)
+    {
+        BooleanLine(line, boundary, out var _, out var linesOutside);
+        return linesOutside;
+    }
+    public static List<Line> LineBooleanIntersection(this Line line, PolyCurve boundary)
+    {
+        BooleanLine(line, boundary, out var linesInside, out var _);
+        return linesInside;
+    }
+
     public static Point ControlPointCentroid(this ICurve curve)
     => curve.IControlPoints().Average();
     public static ICurve IClose(this ICurve curve, double tolerance = 1E-06)

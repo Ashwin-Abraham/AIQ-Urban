@@ -13,6 +13,7 @@
 
   <ItemGroup>
     <PackageReference Include="BHoM.Engine" Version="7.2.2-alpha" />
+    <PackageReference Include="BHoM.Interop.TriangleNet" Version="7.2.2-alpha" />
   </ItemGroup>
 
   <ItemGroup>
