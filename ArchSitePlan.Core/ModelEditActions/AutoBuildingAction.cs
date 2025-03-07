@@ -14,7 +14,7 @@ namespace ArchSitePlan.Core.ModelEditActions
             {
                 if (config is AutoRectangleBuildingData rectConfig)
                 {
-                    var building = RectangleBuilding.Generate(rectConfig);
+                   // var building = RectangleBuilding.Generate(rectConfig);
                     //CoreModel.Buildings.Add(building);
                 }
             }

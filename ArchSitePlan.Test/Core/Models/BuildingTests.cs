@@ -1,4 +1,5 @@
 ﻿using ArchSitePlan.BHoM.Geometry;
+using ArchSitePlan.Core.Factories;
 using ArchSitePlan.Core.Models;
 using ArchSitePlan.Core.Pipeline.CreationData;
 using ArchSitePlan.DebugModel;
@@ -105,8 +106,8 @@ public class BuildingTests
     {
         var siteBoundary = Create.Polygon([
             Create.Point(0,0),
-            Create.Point(100,0),
-            Create.Point(125, 70),
+            Create.Point(200,0),
+            Create.Point(225, 300),
             Create.Point(0,100)
         ]);
 
@@ -125,6 +126,9 @@ public class BuildingTests
             MinLength: 10,
             FloorHeight: 3.6);
 
-        var building = Recta
+        // Test Line Boolean Intersections
+        // Then test building
+
+        var building = new RectangleBuildingFactory(config).Generate();
     }
 }

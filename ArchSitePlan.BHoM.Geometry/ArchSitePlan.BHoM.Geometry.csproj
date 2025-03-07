@@ -18,6 +18,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\AIQ.Primitives\AIQ.Primitives.csproj" />
+    <ProjectReference Include="..\ArchSitePlan.DebugModel\ArchSitePlan.DebugModel.csproj" />
   </ItemGroup>
 
 </Project>

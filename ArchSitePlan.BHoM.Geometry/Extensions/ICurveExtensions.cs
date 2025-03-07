@@ -1,5 +1,7 @@
 ﻿using AIQ.Primitives.Extensions;
 using ArchSitePlan.BHoM.Geometry.Extensions;
+using ArchSitePlan.DebugModel;
+using ArchSitePlan.DebugModel.BHoMExtensions;
 using BH.Engine.Geometry;
 using BH.oM.Geometry;
 
@@ -7,6 +9,19 @@ namespace ArchSitePlan.BHoM.Geometry.Extensions;
 
 public static class ICurveExtensions
 {
+    public static PolyCurve OffsetAndMaintainClosure(
+        this PolyCurve curve, 
+        double offset,
+        Vector? normal = null)
+    {
+        var offsetCrv = curve.Offset(offset, normal);
+
+        if (curve.IsClosed() && !offsetCrv.IsClosed())
+            offsetCrv = offsetCrv.Close();
+
+        return offsetCrv;
+    }
+
     private static void BooleanLine(
         Line line,
         PolyCurve boundary,
@@ -19,6 +34,11 @@ public static class ICurveExtensions
         if (!boundary.IsClosed()) return;
 
         var points = boundary.ICurveIntersections(line);
+
+        //DEBUGMODEL.Reset();
+        //DEBUGMODEL.AddBoundedCurve(line.ToHypar());
+        //DEBUGMODEL.AddBoundedCurves(boundary.ToHypar());
+        //DEBUGMODEL.OpenAsGlb();
 
         if (!points.Exists(p => p.AlmostEquals(line.Start)))
             points.Add(line.Start);

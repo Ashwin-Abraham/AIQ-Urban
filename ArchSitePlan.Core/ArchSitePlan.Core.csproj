@@ -19,7 +19,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ArchSitePlan.BHoM.Geometry\ArchSitePlan.BHoM.Geometry.csproj" />
-    <ProjectReference Include="..\ArchSitePlan.DebugModel\ArchSitePlan.DebugModel.csproj" />
   </ItemGroup>
 
   <ItemGroup>
