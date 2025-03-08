@@ -79,6 +79,24 @@ public class BuildingTests
             Point.Origin,
             Point.Origin
          };
+
+        yield return new object[]
+         {
+            "3 Sided Star",
+            new Polygon(new List<Point>
+            {
+                Create.Point(2, 0),
+                Create.Point(10, 0),
+                Create.Point(10, 5),
+                Create.Point(8, 5),
+                Create.Point(4, 7),
+                Create.Point(3, 4),
+                Create.Point(-4, 1)
+            }),
+            Point.Origin,
+            Point.Origin,
+            Point.Origin
+         };
     }
 
     [MemberData(nameof(GetSiteBoundaries))]
@@ -95,7 +113,7 @@ public class BuildingTests
 
 #if DEBUG
         DEBUGMODEL.Reset();
-        DEBUGMODEL.AddBoundedCurves(axis.ToHypar());
+        DEBUGMODEL.AddBoundedCurves(axis.ToHypar(), DebugMaterials.Red);
         DEBUGMODEL.AddBoundedCurves(siteBoundary.ToHypar());
         DEBUGMODEL.OpenAsGlb();
 #endif
@@ -116,7 +134,7 @@ public class BuildingTests
             MinFloorPlateDepth: 5,
             SiteBoundary: Create.PolyCurve([siteBoundary]),
             TargetMode: BuildingTargetMode.GFA,
-            TargetGFA: 5000,
+            TargetGFA: 50000,
             TargetFAR: null,
             TargetHeight: null,
             Setback: 6,
@@ -130,5 +148,45 @@ public class BuildingTests
         // Then test building
 
         var building = new RectangleBuildingFactory(config).Generate();
+
+        var gfa = building.Sum(x => x.BUA());
+        Assert.Equal(50000, gfa, 1000.0);
+    }
+
+    [Fact]
+    public void GenerateRectangleBuilding_OddSite()
+    {
+        var siteBoundary = Create.Polygon([
+            Create.Point(0,0),
+            Create.Point(200,0),
+            Create.Point(400, 300),
+            Create.Point(225, 150),
+            Create.Point(0, 100),
+            Create.Point(-150, 150),
+            Create.Point(-50,20)
+        ]);
+
+        var config = new AutoRectangleBuildingData(
+            BuildingWidth: 15,
+            MinFloorPlateDepth: 5,
+            SiteBoundary: Create.PolyCurve([siteBoundary]),
+            TargetMode: BuildingTargetMode.GFA,
+            TargetGFA: 50000,
+            TargetFAR: null,
+            TargetHeight: null,
+            Setback: 6,
+            MaxHeight: 24,
+            MinHeight: 6,
+            MaxLength: 50,
+            MinLength: 10,
+            FloorHeight: 3.6);
+
+        // Test Line Boolean Intersections
+        // Then test building
+
+        var building = new RectangleBuildingFactory(config).Generate();
+
+        var gfa = building.Sum(x => x.BUA());
+        Assert.Equal(50000, gfa, 1000.0);
     }
 }

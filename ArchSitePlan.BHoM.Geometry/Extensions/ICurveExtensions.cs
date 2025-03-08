@@ -1,7 +1,5 @@
 ﻿using AIQ.Primitives.Extensions;
 using ArchSitePlan.BHoM.Geometry.Extensions;
-using ArchSitePlan.DebugModel;
-using ArchSitePlan.DebugModel.BHoMExtensions;
 using BH.Engine.Geometry;
 using BH.oM.Geometry;
 
@@ -9,17 +7,31 @@ namespace ArchSitePlan.BHoM.Geometry.Extensions;
 
 public static class ICurveExtensions
 {
+    public static List<Point> ICurveIntersections(this ICurve curve, IEnumerable<ICurve> curves, double tolerance = 1e-06)
+    {
+        return curves.SelectMany(x => curve.ICurveIntersections(x, tolerance)).ToList();
+    }
+
     public static PolyCurve OffsetAndMaintainClosure(
         this PolyCurve curve, 
         double offset,
         Vector? normal = null)
     {
-        var offsetCrv = curve.Offset(offset, normal);
+        var curveList = new List<ICurve>();
 
-        if (curve.IsClosed() && !offsetCrv.IsClosed())
-            offsetCrv = offsetCrv.Close();
+        foreach (var subCurve in curve.Curves)
+        {
+            if (subCurve is Polygon polygon)
+                curveList.Add(polygon.IOffset(offset, normal));
 
-        return offsetCrv;
+            else if (subCurve is BoundaryCurve boundary)
+                curveList.Add(boundary.IOffset(offset, normal));
+
+            else 
+                curveList.Add(subCurve.IOffset(offset, normal));
+        }
+
+        return Create.PolyCurve(curveList);
     }
 
     private static void BooleanLine(
@@ -34,11 +46,6 @@ public static class ICurveExtensions
         if (!boundary.IsClosed()) return;
 
         var points = boundary.ICurveIntersections(line);
-
-        //DEBUGMODEL.Reset();
-        //DEBUGMODEL.AddBoundedCurve(line.ToHypar());
-        //DEBUGMODEL.AddBoundedCurves(boundary.ToHypar());
-        //DEBUGMODEL.OpenAsGlb();
 
         if (!points.Exists(p => p.AlmostEquals(line.Start)))
             points.Add(line.Start);

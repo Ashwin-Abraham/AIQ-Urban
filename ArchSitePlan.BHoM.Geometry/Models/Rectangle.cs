@@ -3,7 +3,7 @@ using ArchSitePlan.BHoM.Geometry.Extensions;
 using BH.Engine.Geometry;
 using BH.oM.Geometry;
 
-namespace ArchSitePlan.BHoM.Geometry;
+namespace ArchSitePlan.BHoM.Geometry.Models;
 public class Rectangle:Polygon
 {
     public Point Min { get; }

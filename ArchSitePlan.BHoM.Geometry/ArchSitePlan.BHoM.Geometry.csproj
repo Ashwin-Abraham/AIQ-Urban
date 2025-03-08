@@ -8,12 +8,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Models\" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="BHoM.Engine" Version="7.2.2-alpha" />
-    <PackageReference Include="BHoM.Interop.TriangleNet" Version="7.2.2-alpha" />
+    <PackageReference Include="BHoM.Interop.TriangleNet" Version="8.1.0-alpha.4.0" />
+    <PackageReference Include="Triangle" Version="0.0.6-Beta3" />
   </ItemGroup>
 
   <ItemGroup>

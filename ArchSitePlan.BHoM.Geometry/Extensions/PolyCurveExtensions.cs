@@ -1,6 +1,6 @@
 ﻿using AIQ.Primitives.Extensions;
-using ArchSitePlan.BHoM.Geometry;
 using ArchSitePlan.BHoM.Geometry.Extensions;
+using ArchSitePlan.BHoM.Geometry.Models;
 using BH.Engine.Geometry;
 using BH.oM.Geometry;
 

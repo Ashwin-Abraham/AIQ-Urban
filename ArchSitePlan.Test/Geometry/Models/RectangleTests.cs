@@ -1,12 +1,12 @@
 ﻿using AIQ.Primitives.Extensions;
-using ArchSitePlan.BHoM.Geometry;
 using ArchSitePlan.BHoM.Geometry.Extensions;
+using ArchSitePlan.BHoM.Geometry.Models;
 using ArchSitePlan.DebugModel;
 using ArchSitePlan.DebugModel.BHoMExtensions;
 using BH.Engine.Geometry;
 using BH.oM.Geometry;
 
-namespace ArchSitePlan.Test.Geometry;
+namespace ArchSitePlan.Test.Geometry.Models;
 
 public class RectangleTests
 {
