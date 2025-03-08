@@ -91,7 +91,7 @@ namespace ArchSitePlan.UI.Helpers
         }
         internal static void DeleteLayerAndChildren(RhinoDoc doc, Layer layer)
         {
-            var layerIndicesToDelete = layer.Index.ObjectToList();
+            List<int> layerIndicesToDelete = [layer.Index];
             layer.GetChildren(true)
                 .ToList()
                 .ForEach(lay => layerIndicesToDelete.Add(lay.Index));

@@ -33,6 +33,33 @@ namespace ArchSitePlan.DebugModel.BHoMExtensions
         public static List<BoundedCurve> ToHypar(this IEnumerable<ICurve> curves)
             => curves.SelectMany(x => x.ToHypar()).ToList();
 
+        public static Elements.Geometry.Mesh ToHypar(this Mesh mesh)
+        {
+            mesh = mesh.Triangulate().MergeVertices(1e-04);
+            var meshVertices = mesh.Vertices
+                .Select(v => new Elements.Geometry.Vertex(v.ToHypar()))
+                .ToList();
+
+            var triangles = mesh.Faces
+                .Select(f => new Elements.Geometry.Triangle(meshVertices[f.A], meshVertices[f.B], meshVertices[f.C]))
+                .Where(tri => tri.IsValid())
+                .ToList();
+
+            return new Elements.Geometry.Mesh(meshVertices, triangles);
+        }
+
+        private static bool IsValid(this Elements.Geometry.Triangle triangle, double tolerance = 1e-06)
+        {
+            for(int i = 0; i < 2; i++)
+            {
+                for (int j = i + 1; j < 3; j++)
+                    if (triangle.Vertices[i].Position.IsAlmostEqualTo(triangle.Vertices[j].Position, tolerance))
+                        return false;
+            }
+
+            return true;
+        }
+
         public static List<BoundedCurve> ToHypar(this ICurve crv)
         {
             List<BoundedCurve> hyparCrvs = new List<BoundedCurve>();

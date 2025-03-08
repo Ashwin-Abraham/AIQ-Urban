@@ -1,4 +1,5 @@
-﻿using ArchSitePlan.Core.Extensions;
+﻿using ArchSitePlan.BHoM.Geometry.Extensions;
+using ArchSitePlan.Core.Extensions;
 using ArchSitePlan.Core.Models;
 using BH.Engine.Geometry;
 using BH.oM.Geometry;

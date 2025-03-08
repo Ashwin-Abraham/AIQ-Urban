@@ -7,11 +7,10 @@
 
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
+	  <LangVersion>12.0</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="BHoM.Engine" Version="7.2.2-alpha" />
-    <PackageReference Include="BHoM.Interop.CSharp" Version="6.3.0" />
     <PackageReference Include="coverlet.collector" Version="3.2.0" />
     <PackageReference Include="DeepCloner" Version="0.10.0" />
     <PackageReference Include="Hypar.Elements" Version="2.1.0" />
@@ -28,6 +27,10 @@
 
   <ItemGroup>
     <Using Include="Xunit" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="AIQPrimitives\" />
   </ItemGroup>
 
 </Project>

@@ -43,7 +43,7 @@ namespace ArchSitePlan.Core.Metrics
             foreach (Parcel p in parcels)
             {
                 var buildingsOnParcel = buildings
-                    .Where(b => p.Boundary.ExternalBoundary.IIsContaining(b.Origin.ObjectToList()))
+                    .Where(b => p.Boundary.ExternalBoundary.IIsContaining([b.Origin]))
                     .ToList();
 
                 ParcelMetrics.Add(new ParcelMetrics(p, buildingsOnParcel));

@@ -1,12 +1,5 @@
-﻿using ArchSitePlan.Core.Extensions;
-using BH.Engine.Geometry;
+﻿using BH.Engine.Geometry;
 using BH.oM.Geometry;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using static ArchSitePlan.Core.Constants.Enums;
 
 namespace ArchSitePlan.Core.Models
 {
@@ -43,7 +36,7 @@ namespace ArchSitePlan.Core.Models
         private List<Building> GetParcelsBuildings()
         {
             var buildings = CoreModel.Buildings
-                .Where(b => Boundary.ExternalBoundary.IIsContaining(b.Origin.ObjectToList()))
+                .Where(b => Boundary.ExternalBoundary.IIsContaining([b.Origin]))
                 .ToList();
 
             return buildings;

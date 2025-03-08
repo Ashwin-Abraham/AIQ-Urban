@@ -1,4 +1,6 @@
-﻿using ArchSitePlan.Core.Extensions;
+﻿using AIQ.Primitives.Extensions;
+using ArchSitePlan.BHoM.Geometry.Extensions;
+using ArchSitePlan.Core.Extensions;
 using ArchSitePlan.Core.Models;
 using ArchSitePlan.Core.Pipeline.CreationData;
 using ArchSitePlan.UI.RhinoBHoMInterop;
@@ -23,7 +25,7 @@ namespace ArchSitePlan.UI.Models
 
         public static RhinoRoadData? Create(RhinoObject obj, double roadWidth)
         {
-            if(roadWidth.AlmostEquals(0) || obj.Geometry is not Curve rhinoCrv) 
+            if(roadWidth.AlmostZero() || obj.Geometry is not Curve rhinoCrv) 
                 return null;
             if (rhinoCrv.Degree > 2) 
                 return null;

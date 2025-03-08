@@ -1,4 +1,6 @@
-﻿using ArchSitePlan.Core.Constants;
+﻿using AIQ.Primitives.Extensions;
+using ArchSitePlan.BHoM.Geometry.Extensions;
+using ArchSitePlan.Core.Constants;
 using ArchSitePlan.Core.Extensions;
 using ArchSitePlan.Core.Metrics;
 using ClosedXML.Excel;
@@ -72,10 +74,10 @@ namespace ArchSitePlan.Core.Models
             _studyAreasSummary = new();
             foreach (var study in studies)
             {
-                double builtPctg = totalBuiltArea.AlmostEquals(0)?
+                double builtPctg = totalBuiltArea.AlmostZero()?
                     0: study.Metrics.BuiltArea / totalBuiltArea;
 
-                double parcelPctg = totalDevArea.AlmostEquals(0) ?
+                double parcelPctg = totalDevArea.AlmostZero() ?
                     0 : study.Metrics.DevelopableArea / totalDevArea;
 
                 double transitArea = study.Metrics.TransitMetrics.Sum(tm => tm.Area);

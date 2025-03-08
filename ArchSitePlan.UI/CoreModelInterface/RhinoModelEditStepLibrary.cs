@@ -78,7 +78,7 @@ namespace ArchSitePlan.UI.CoreModelInterface
                 if (buildingEnvelopeAndFloors.ContainsKey(nearestMesh))
                     buildingEnvelopeAndFloors[nearestMesh].Append(floor);
                 else
-                    buildingEnvelopeAndFloors.Add(nearestMesh, floor.ObjectToList());
+                    buildingEnvelopeAndFloors.Add(nearestMesh, [floor]);
             }
 
             // Add a building for each dictionary entry

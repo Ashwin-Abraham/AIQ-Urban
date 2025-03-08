@@ -1,6 +1,8 @@
-﻿using ArchSitePlan.Core.Extensions;
+﻿using ArchSitePlan.BHoM.Geometry.Extensions;
+using ArchSitePlan.Core.Extensions;
+using ArchSitePlan.DebugModel;
+using ArchSitePlan.DebugModel.BHoMExtensions;
 using BH.Engine.Geometry;
-using BH.Engine.Spatial;
 using BH.oM.Geometry;
 
 namespace ArchSitePlan.Core.Models
@@ -14,7 +16,7 @@ namespace ArchSitePlan.Core.Models
         public Guid HostParcelId { get; set;} = Guid.Empty;
         public Point Origin { get; private set; }
         public Mesh Envelope { get; private set; }
-        public Landuse Use { get; set; }
+        public Landuse? Use { get; set; }
 
         public List<(PlanarSurface Profile, Guid Id)> FloorPlates { get; set; }
 
@@ -22,8 +24,8 @@ namespace ArchSitePlan.Core.Models
             Mesh envelope,
             List<PlanarSurface> floorPlates,
             double floorToFloorHeight,
-            Guid envelopeId,
-            Landuse use,
+            Guid envelopeId = default,
+            Landuse? use = null,
             Guid footprintId = default)
         {
             Use = use;
@@ -63,7 +65,7 @@ namespace ArchSitePlan.Core.Models
 
         public Landuse FindHostParcelUse()
         {
-            var host = CoreModel.Parcels.Find(p => p.Boundary.ExternalBoundary.IIsContaining(Origin.ObjectToList()));
+            var host = CoreModel.Parcels.Find(p => p.Boundary.ExternalBoundary.IIsContaining([Origin]));
             return host?.LandUse?? AppLanduses.Undefined;
         }
 
@@ -71,6 +73,35 @@ namespace ArchSitePlan.Core.Models
         {
             List<PlanarSurface> floors = FloorPlates.Select(x => x.Profile).ToList();
             return floors;
+        }
+
+        public static Polyline GeneratePrimarySiteAxis(PolyCurve siteBoundary)
+        {
+            var minBox = siteBoundary.GetMinimumBoundingBox();
+            var boxContours = minBox.Contour(10);
+
+            List<Line> siteCountours = new();
+            foreach (var contour in boxContours)
+            {
+                var linesWithin = contour.LineBooleanIntersection(siteBoundary);
+
+                var selectedContour = linesWithin.MaxBy(x => x.Length());
+
+                if(selectedContour != null)
+                    siteCountours.Add(selectedContour);
+            }
+
+            var midPoints = siteCountours.Select(x => x.Mid());
+            var primaryAxis = Create.Polyline(midPoints);
+            var length = primaryAxis.Length();
+            primaryAxis = primaryAxis.Extend(length, length);
+            var intersections = siteBoundary.ICurveIntersections(primaryAxis);
+            var axisParts = primaryAxis.SplitAtPoints(intersections);
+            var primaryAxisPart = axisParts
+                .Where(x => siteBoundary.IIsContaining([x.Mid()]))
+                .MaxBy(x => x.Length());
+
+            return primaryAxisPart;
         }
 
         //private List<(PlanarSurface, Guid)> CreateFloorPlates(PlanarSurface baseOutline)

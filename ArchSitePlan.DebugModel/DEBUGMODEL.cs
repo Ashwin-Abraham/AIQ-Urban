@@ -163,9 +163,10 @@ namespace ArchSitePlan.DebugModel
             AddBoundedCurve(zAxis, DebugMaterials.Blue);
         }
 
-        public static void AddMesh(Mesh hyparMesh, Material colour = null)
+        public static void AddMesh(Mesh hyparMesh, Material? material = null)
         {
-            _hyparModel.AddElement(new MeshElement(hyparMesh));
+            material ??= DebugMaterials.Gray;
+            _hyparModel.AddElement(new MeshElement(hyparMesh, material: material));
         }
 
         public static void AddColoredMesh(Mesh hyparMesh)

@@ -1,4 +1,5 @@
-﻿using ArchSitePlan.Core.Extensions;
+﻿using ArchSitePlan.BHoM.Geometry.Extensions;
+using ArchSitePlan.Core.Extensions;
 using ArchSitePlan.Core.Models;
 using BH.Engine.Geometry;
 using BH.oM.Geometry;
@@ -35,15 +36,15 @@ namespace ArchSitePlan.Core.ModelEditActions
             foreach(var data  in studyData)
             {
                 var parcelsWithin = CoreModel.Parcels
-                    .Where(p => data.Boundary.IIsContaining(p.Boundary.ControlPointCentroid().ObjectToList()))
+                    .Where(p => data.Boundary.IIsContaining([p.Boundary.ControlPointCentroid()]))
                     .ToList();
 
                 var buildingsWithin = CoreModel.Buildings
-                    .Where(bldg => data.Boundary.IIsContaining(bldg.Origin.ObjectToList()))
+                    .Where(bldg => data.Boundary.IIsContaining([bldg.Origin]))
                     .ToList();
 
                 var roadsWithin = CoreModel.Roads
-                    .Where(r => data.Boundary.IIsContaining(r.Centerline.PointAtParameter(0.5).ObjectToList()))
+                    .Where(r => data.Boundary.IIsContaining([r.Centerline.PointAtParameter(0.5)]))
                     .ToList();
 
                 var study = new StudyArea(data.Boundary,

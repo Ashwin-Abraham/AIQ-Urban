@@ -721,7 +721,7 @@ public class MainViewModel : ViewModelBase, INotifyPropertyChanged
                 
             RhinoDoc doc2 = RhinoDoc.ActiveDoc;
             ModelBuilderPipelines.AddStudyAreaPipeline(doc: doc2,
-                studyData: new StudyData(bhomCrv!, rhinoObj.Id, ActiveStudyAreaName).ObjectToList(),
+                studyData: [new StudyData(bhomCrv!, rhinoObj.Id, ActiveStudyAreaName)],
                 AppMode);
                 
             ActiveStudy = CoreModel.Studies.FirstOrDefault(s => rhinoObj.Id == s.Id);

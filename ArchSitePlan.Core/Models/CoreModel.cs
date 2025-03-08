@@ -1,4 +1,5 @@
 ﻿using System.Drawing;
+using ArchSitePlan.BHoM.Geometry.Extensions;
 using ArchSitePlan.Core.Comparer;
 using ArchSitePlan.Core.Constants;
 using ArchSitePlan.Core.Extensions;
@@ -24,7 +25,7 @@ namespace ArchSitePlan.Core.Models
         {
             foreach(var building in Buildings)
             {
-                var parcel = Parcels.FirstOrDefault(p => p.Boundary.ExternalBoundary.IIsContaining(building.Origin.ObjectToList()));
+                var parcel = Parcels.FirstOrDefault(p => p.Boundary.ExternalBoundary.IIsContaining([building.Origin]));
                 building.HostParcelId = parcel?.Id?? Guid.Empty;
             }
         }
@@ -39,7 +40,7 @@ namespace ArchSitePlan.Core.Models
                 else
                 {
                     var parcelsInArea = Parcels
-                        .Where(p => Studies[i].Boundary.IIsContaining(p.Boundary.ControlPointCentroid().ObjectToList()))
+                        .Where(p => Studies[i].Boundary.IIsContaining([p.Boundary.ControlPointCentroid()]))
                         .ToList();
 
                     var buildingsInArea = Buildings
@@ -47,14 +48,14 @@ namespace ArchSitePlan.Core.Models
                         {
                             var boundaryPt = Studies[i].Boundary.IStartPoint();
                             var bldgPt = bldg.Origin.Project(Create.Plane(boundaryPt, Vector.ZAxis));
-                            return Studies[i].Boundary.IIsContaining(bldgPt.ObjectToList());
+                            return Studies[i].Boundary.IIsContaining([bldgPt]);
                         })
                         .ToList();
 
                     var roadsInArea = Roads.Where(road =>
                     {
                         var roadPoint = road.Centerline.PointAtParameter(0.5);
-                        return Studies[i].Boundary.IIsContaining(roadPoint.ObjectToList());
+                        return Studies[i].Boundary.IIsContaining([roadPoint]);
                     }).ToList();
 
                     Studies[i] = new StudyArea(Studies[i], parcelsInArea, buildingsInArea, roadsInArea);
@@ -82,7 +83,7 @@ namespace ArchSitePlan.Core.Models
             foreach(var parcel in Parcels)
             {
                 var fragments = SplitParcelsByPolylines(
-                    parcel.Boundary.ObjectToList(),
+                    [parcel.Boundary],
                     dividerCrvs);
 
                 splitParcels.AddRange(fragments.Select(f => new Parcel(parcel, f)));
@@ -245,7 +246,7 @@ namespace ArchSitePlan.Core.Models
             {
                 var origin = Building.CalculateOrigin(envelope);
 
-                var nearest = Parcels.FirstOrDefault(p => p.Boundary.ExternalBoundary.IIsContaining(origin.ObjectToList()));
+                var nearest = Parcels.FirstOrDefault(p => p.Boundary.ExternalBoundary.IIsContaining([origin]));
                 var use = nearest != null ? nearest.LandUse : AppLanduses.Undefined;
 
                 var newBldg = new Building(

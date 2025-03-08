@@ -7,7 +7,7 @@ using Elements.Geometry;
 using Circle = Elements.Geometry.Circle;
 
 namespace ArchSitePlan.Test;
-internal static class TestVisualizers
+public static class TestVisualizers
 {
     internal static List<Element> ToElements(this IEnumerable<ICurve> curves)
     {
@@ -61,6 +61,20 @@ internal static class TestVisualizers
         Visualize(curve, splitter, hyparCrvs, circles);
     }
 
+    public static void Visualize(this IEnumerable<ICurve> curves)
+    {
+        curves.Debug();
+        DEBUGMODEL.OpenAsGlb();
+    }
+    public static void Debug(this IEnumerable<ICurve> curves)
+        => curves.ToList().ForEach(x => x.Debug());
+    
+    public static void Debug(this ICurve curve)
+    {
+#if DEBUG
+        DEBUGMODEL.AddBoundedCurves(curve.ToHypar());
+#endif
+    }
     private static void Visualize(ICurve curve,
         ICurve splitter,
         IEnumerable<BoundedCurve> hyparCrvs,
