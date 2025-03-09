@@ -1,15 +1,93 @@
 using ArchSitePlan.BHoM.Geometry.Extensions;
-using ArchSitePlan.Core.Extensions;
 using ArchSitePlan.DebugModel;
 using ArchSitePlan.DebugModel.BHoMExtensions;
+using ArchSitePlan.Test;
 using BH.Engine.Geometry;
 using BH.oM.Geometry;
-using static ArchSitePlan.Test.ICurveExtensions.CurvesTestData;
+using static ArchSitePlan.Test.Geometry.Extensions.CurvesTestData;
 
-namespace ArchSitePlan.Test.ICurveExtensions
+namespace ArchSitePlan.Test.Geometry.Extensions
 {
-    public class ICurveTests
+    public class ICurveExtensionsTests
     {
+        [Fact]
+        public void CanThicken_Polygon()
+        {
+            var polygon = Create.Polygon(new() {
+                Create.Point(2, 0),
+                Create.Point(2, 10),
+                Create.Point(10,10),
+                Create.Point(10,0)});
+
+            var offset = polygon.Thicken(1, EndCapType.Butt, Vector.ZAxis);
+
+
+            // Visualize
+            polygon.ToHypar().Debug();
+            offset.ToHypar().Debug(DebugMaterials.Red);
+            DEBUGMODEL.OpenAsGlb();
+
+            // Assert
+            Assert.Equal(72, offset.ILength());
+            Assert.Equal(6, offset.IControlPoints().Count);
+        }
+
+        [Fact]
+        public void CanThicken_CollapseToPointPolygon()
+        {
+            var polygon = Create.Polygon(new() {
+                Create.Point(0, 0),
+                Create.Point(2, 0),
+                Create.Point(2,2),
+                Create.Point(0,2)});
+
+            var offset = polygon.Thicken(1, EndCapType.Butt, Vector.ZAxis);
+
+
+            // Visualize
+            polygon.ToHypar().Debug();
+            offset.ToHypar().Debug(DebugMaterials.Red);
+            DEBUGMODEL.OpenAsGlb();
+
+            // Assert
+            Assert.Equal(16, offset.ILength());
+            Assert.Equal(5, offset.IControlPoints().Count);
+            Assert.True(offset is Polygon);
+        }
+
+        [Fact]
+        public void CanThicken_PolyCurve()
+        {
+            var polyline = Create.Polyline(new List<Point>() {
+                Create.Point(0, 0),
+                Create.Point(2, 0),
+                Create.Point(2,2)});
+
+            var arc = Create.Arc(
+                Create.Point(2, 2),
+                Create.Point(1, 3),
+                Create.Point(0, 2));
+
+            var line = Create.Line(
+                Create.Point(0, 2),
+                Create.Point(0, 0));
+
+            var pCurve = Create.PolyCurve([polyline, arc, line]);
+
+            var offset = pCurve.Thicken(1, EndCapType.Butt, Vector.ZAxis);
+
+
+            // Visualize
+            pCurve.ToHypar().Debug();
+            offset.ToHypar().Debug(DebugMaterials.Red);
+            DEBUGMODEL.OpenAsGlb();
+
+            // Assert
+            Assert.Equal(16.2831, offset.ILength(), 1e-03);
+            Assert.Equal(8, offset.IControlPoints().Count);
+            Assert.True(offset is PolyCurve);
+        }
+
         [Fact]
         public void CanIOffset_ThickenedLine()
         {
@@ -21,8 +99,8 @@ namespace ArchSitePlan.Test.ICurveExtensions
 
 
             // Visualize
-            DEBUGMODEL.AddBoundedCurve(line.ToHypar());
-            DEBUGMODEL.AddBoundedCurves(offset.ToHypar(), DebugMaterials.Red);
+            line.ToHypar().Debug();
+            offset.ToHypar().Debug(DebugMaterials.Red);
             DEBUGMODEL.OpenAsGlb();
 
             // Assert
@@ -46,8 +124,8 @@ namespace ArchSitePlan.Test.ICurveExtensions
 
             var fragments = (_rectangle as ICurve).Split(new List<ICurve>() { splitter });
 
-            DEBUGMODEL.AddBoundedCurve(ToHyparInterop.ToHypar(_rectangle));
-            DEBUGMODEL.AddBoundedCurves(fragments.ToHyparPolylines(), DebugMaterials.Blue, 0.5);
+            ((Elements.Geometry.BoundedCurve)ToHyparInterop.ToHypar(_rectangle)).Debug();
+            fragments.ToHyparPolylines().Debug(DebugMaterials.Blue, 0.5);
             DEBUGMODEL.OpenAsGlb();
         }
 
@@ -62,8 +140,8 @@ namespace ArchSitePlan.Test.ICurveExtensions
 
             var fragments = _rectangle.Split([splitter]);
 
-            DEBUGMODEL.AddBoundedCurve(ToHyparInterop.ToHypar(_rectangle));
-            DEBUGMODEL.AddBoundedCurves(fragments.ToHyparPolylines(), DebugMaterials.Blue, 0.5);
+            ((Elements.Geometry.BoundedCurve)ToHyparInterop.ToHypar(_rectangle)).Debug();
+            fragments.ToHyparPolylines().Debug(DebugMaterials.Blue, 0.5);
             DEBUGMODEL.OpenAsGlb();
         }
         [Fact]
@@ -125,8 +203,8 @@ namespace ArchSitePlan.Test.ICurveExtensions
             var fragments = (_rectangle as ICurve)
                 .Split(new List<ICurve>() { splitter });
 
-            DEBUGMODEL.AddBoundedCurve(ToHyparInterop.ToHypar(_rectangle));
-            DEBUGMODEL.AddBoundedCurves(fragments.ToHyparPolylines(), DebugMaterials.Blue, 0.5);
+            ((Elements.Geometry.BoundedCurve)ToHyparInterop.ToHypar(_rectangle)).Debug();
+            fragments.ToHyparPolylines().Debug(DebugMaterials.Blue, 0.5);
             DEBUGMODEL.OpenAsGlb();
         }
 
@@ -139,8 +217,8 @@ namespace ArchSitePlan.Test.ICurveExtensions
 
             var fragments = (_rectangle as ICurve).Split(new List<ICurve>() { splitter });
 
-            DEBUGMODEL.AddBoundedCurve(ToHyparInterop.ToHypar(_rectangle));
-            DEBUGMODEL.AddBoundedCurves(fragments.ToHyparPolylines(), DebugMaterials.Blue, 0.5);
+            ((Elements.Geometry.BoundedCurve)ToHyparInterop.ToHypar(_rectangle)).Debug();
+            fragments.ToHyparPolylines().Debug(DebugMaterials.Blue, 0.5);
             DEBUGMODEL.OpenAsGlb();
         }
 
@@ -153,8 +231,8 @@ namespace ArchSitePlan.Test.ICurveExtensions
 
             var fragments = (_rectangle as ICurve).Split(new List<ICurve>() { splitter });
 
-            DEBUGMODEL.AddBoundedCurve(ToHyparInterop.ToHypar(_rectangle));
-            DEBUGMODEL.AddBoundedCurves(fragments.ToHyparPolylines(), DebugMaterials.Blue, 0.5);
+            ((Elements.Geometry.BoundedCurve)ToHyparInterop.ToHypar(_rectangle)).Debug();
+            fragments.ToHyparPolylines().Debug(DebugMaterials.Blue, 0.5);
             DEBUGMODEL.OpenAsGlb();
         }
 

@@ -15,7 +15,7 @@ namespace ArchSitePlan.DebugModel.Extensions
         {
             List<BoundedCurve> crvs = ToHyparInterop.ToHypar(crv);
 
-            DEBUGMODEL.AddBoundedCurves(crvs);
+            DEBUGMODEL.Debug(crvs);
             DEBUGMODEL.OpenAsGlb();
         }
     }

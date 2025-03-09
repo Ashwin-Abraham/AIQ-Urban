@@ -15,8 +15,8 @@ public class UnitTest1
         Line line = Create.Line(Point.Origin, Create.Point(3,5));
         Line offsetLine = line.Offset(1, Vector.ZAxis);
 
-        DEBUGMODEL.AddBoundedCurve(ToHyparInterop.ToHypar(line));
-        DEBUGMODEL.AddBoundedCurve(ToHyparInterop.ToHypar(offsetLine), DebugMaterials.Red);
+        DEBUGMODEL.Debug(ToHyparInterop.ToHypar(line));
+        DEBUGMODEL.Debug(ToHyparInterop.ToHypar(offsetLine), DebugMaterials.Red);
         DEBUGMODEL.OpenAsGlb();
     }
 
@@ -35,8 +35,8 @@ public class UnitTest1
         //Polyline offset = pline.Offset(1, Vector.ZAxis);
         Polyline offset = pline.IOffset(1, Vector.ZAxis) as Polyline;
 
-        DEBUGMODEL.AddBoundedCurve(ToHyparInterop.ToHypar(pline));
-        DEBUGMODEL.AddBoundedCurve(ToHyparInterop.ToHypar(offset), DebugMaterials.Red);
+        DEBUGMODEL.Debug((Elements.Geometry.BoundedCurve)ToHyparInterop.ToHypar(pline));
+        DEBUGMODEL.Debug((Elements.Geometry.BoundedCurve)ToHyparInterop.ToHypar(offset), DebugMaterials.Red);
         DEBUGMODEL.OpenAsGlb();
     }
 
@@ -56,10 +56,10 @@ public class UnitTest1
         if (pCurve.ValidateContinuity())
         {
             offsetCrv = Modify.Offset(pCurve, 1, Vector.ZAxis);
-            DEBUGMODEL.AddBoundedCurves(ToHyparInterop.ToHypar(offsetCrv), DebugMaterials.Red);
+            DEBUGMODEL.Debug(ToHyparInterop.ToHypar(offsetCrv), DebugMaterials.Red);
         }
 
-        DEBUGMODEL.AddBoundedCurves(ToHyparInterop.ToHypar(pCurve));
+        DEBUGMODEL.Debug(ToHyparInterop.ToHypar(pCurve));
         DEBUGMODEL.OpenAsGlb();
     }
 
@@ -68,7 +68,7 @@ public class UnitTest1
     {
         var line = new Elements.Geometry.Line(Vector3.Origin, new Vector3(25,0));
 
-        DEBUGMODEL.AddBoundedCurve(line);
+        DEBUGMODEL.Debug(line);
         DEBUGMODEL.OpenAsGlb();
     }
 
@@ -110,7 +110,7 @@ public class UnitTest1
         PolyCurve filletted = pline.Fillet(2);
 
         //DEBUGMODEL.AddBoundedCurve(ToHyparInterop.ToHypar(pline));
-        DEBUGMODEL.AddBoundedCurves(ToHyparInterop.ToHypar(filletted), DebugMaterials.Red);
+        DEBUGMODEL.Debug(ToHyparInterop.ToHypar(filletted), DebugMaterials.Red);
         DEBUGMODEL.OpenAsGlb();
     }
 
@@ -126,7 +126,7 @@ public class UnitTest1
         var result = a.ArcBetweenLinesThatMeet(b, 0.3);
 
         //DEBUGMODEL.AddBoundedCurve(ToHyparInterop.ToHypar(pline));
-        DEBUGMODEL.AddBoundedCurves(ToHyparInterop.ToHypar(result), DebugMaterials.Red);
+        DEBUGMODEL.Debug(ToHyparInterop.ToHypar(result), DebugMaterials.Red);
         DEBUGMODEL.OpenAsGlb();
     }
 
@@ -150,7 +150,7 @@ public class UnitTest1
             Create.Point(1),
             Create.Point(0,1));
 
-        DEBUGMODEL.AddBoundedCurve(ToHyparInterop.ToHypar(arc));
+        DEBUGMODEL.Debug(ToHyparInterop.ToHypar(arc));
         DEBUGMODEL.OpenAsGlb();
     }
 }

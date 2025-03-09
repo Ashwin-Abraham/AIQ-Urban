@@ -9,7 +9,47 @@ namespace ArchSitePlan.BHoM.Geometry.Extensions;
 public static class PolyCurveExtensions
 {
     private sealed record MinBox(double Area, double Rotation, BoundingBox Bounds, PolyCurve RotatedCrv);
-    
+ 
+    //public static PolyCurve FlattenPolycurveSubParts(this PolyCurve curve)
+    //{
+    //    foreach(var subCurve in curve.SubParts())
+    //    {
+    //        List<ICurve> fragments;
+    //        if(subCurve is PolyCurve nestedCurve)
+                
+
+    //    }
+    //}
+
+    //public static List<ICurve> SubPartsWithoutNesting(this PolyCurve curve)
+    //{
+    //    List<ICurve> subParts = new();
+    //    foreach(var subCurve in curve.SubParts())
+    //    {
+    //        if (subCurve is PolyCurve polyCrv)
+    //            subParts.AddRange(polyCrv.SubPartsWithoutNesting());
+    //        else if(subCurve is BoundaryCurve boundaryCrv)
+    //            subParts.AddRange(boundaryCrv.SubPartsWithoutNesting())
+    //        else
+    //            subParts.Add(subCurve);
+    //    }
+    //}
+
+    //public static PolyCurve ThickenPolyCurve(
+    //    this PolyCurve curve, 
+    //    double offset,
+    //    EndCapType cap,
+    //    Vector? normal = null,
+    //    bool tangentExtensions = false,
+    //    double tolerance = 1e-06)
+    //{
+    //    return curve.Thicken(
+    //        offset, 
+    //        cap,
+    //        normal,
+    //        tangentExtensions, 
+    //        tolerance) as PolyCurve;
+    //}
     public static PolyCurve ToPolyCurve(this ICurve curve)
     => Create.PolyCurve([curve]);
     

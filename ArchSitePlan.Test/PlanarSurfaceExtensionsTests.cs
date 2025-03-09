@@ -1,7 +1,7 @@
 ﻿using ArchSitePlan.BHoM.Geometry.Extensions;
 using BH.Engine.Geometry;
 using BH.oM.Geometry;
-using static ArchSitePlan.Test.ICurveExtensions.CurvesTestData;
+using static ArchSitePlan.Test.Geometry.Extensions.CurvesTestData;
 
 namespace ArchSitePlan.Test;
 public class PlanarSurfaceExtensionsTests

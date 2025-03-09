@@ -31,6 +31,7 @@
 
   <ItemGroup>
     <Folder Include="AIQPrimitives\" />
+    <Folder Include="ICurveExtensionsTests\" />
   </ItemGroup>
 
 </Project>

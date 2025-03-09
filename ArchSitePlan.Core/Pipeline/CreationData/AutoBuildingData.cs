@@ -11,7 +11,6 @@ public record AutoBuildingData(
     double? TargetHeight,
     double Setback,
     double MaxHeight,
-    double MinHeight,
     double FloorHeight);
 
 public record AutoRectangleBuildingData(
@@ -26,7 +25,6 @@ public record AutoRectangleBuildingData(
     double MaxHeight,
     double MaxLength,
     double MinLength,
-    double MinHeight,
     double FloorHeight) : AutoBuildingData(
         SiteBoundary,
         TargetMode,
@@ -35,7 +33,27 @@ public record AutoRectangleBuildingData(
         TargetHeight,
         Setback,
         MaxHeight,
-        MinHeight,
+        FloorHeight);
+
+public record AutoPeripheralBuildingData(
+    double BuildingWidth,
+    double MinFloorPlateDepth,
+    PolyCurve SiteBoundary,
+    BuildingTargetMode TargetMode,
+    double? TargetGFA,
+    double? TargetFAR,
+    double? TargetHeight,
+    double Setback,
+    double MaxHeight,
+    double MaxLength,
+    double FloorHeight):AutoBuildingData(
+        SiteBoundary,
+        TargetMode,
+        TargetGFA,
+        TargetFAR,
+        TargetHeight,
+        Setback,
+        MaxHeight,
         FloorHeight);
 
 public record AutoLShapedBuildingData 

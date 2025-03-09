@@ -66,8 +66,8 @@ public class RectangleTests
         var contours = rect.Contour(contourCount);
 
         // Preview
-        DEBUGMODEL.AddBoundedCurves(contours.ToHypar(), DebugMaterials.Red, 0.05);
-        DEBUGMODEL.AddBoundedCurves(rect.ToHypar());
+        DEBUGMODEL.Debug(contours.ToHypar(), DebugMaterials.Red, 0.05);
+        DEBUGMODEL.Debug(rect.ToHypar());
         DEBUGMODEL.OpenAsGlb();
 
         // Assert

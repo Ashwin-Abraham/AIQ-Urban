@@ -1,7 +1,4 @@
 ﻿using ArchSitePlan.BHoM.Geometry.Extensions;
-using ArchSitePlan.Core.Extensions;
-using ArchSitePlan.DebugModel;
-using ArchSitePlan.DebugModel.BHoMExtensions;
 using BH.Engine.Geometry;
 using BH.oM.Geometry;
 
@@ -73,35 +70,6 @@ namespace ArchSitePlan.Core.Models
         {
             List<PlanarSurface> floors = FloorPlates.Select(x => x.Profile).ToList();
             return floors;
-        }
-
-        public static Polyline GeneratePrimarySiteAxis(PolyCurve siteBoundary)
-        {
-            var minBox = siteBoundary.GetMinimumBoundingBox();
-            var boxContours = minBox.Contour(10);
-
-            List<Line> siteCountours = new();
-            foreach (var contour in boxContours)
-            {
-                var linesWithin = contour.LineBooleanIntersection(siteBoundary);
-
-                var selectedContour = linesWithin.MaxBy(x => x.Length());
-
-                if(selectedContour != null)
-                    siteCountours.Add(selectedContour);
-            }
-
-            var midPoints = siteCountours.Select(x => x.Mid());
-            var primaryAxis = Create.Polyline(midPoints);
-            var length = primaryAxis.Length();
-            primaryAxis = primaryAxis.Extend(length, length);
-            var intersections = siteBoundary.ICurveIntersections(primaryAxis);
-            var axisParts = primaryAxis.SplitAtPoints(intersections);
-            var primaryAxisPart = axisParts
-                .Where(x => siteBoundary.IIsContaining([x.Mid()]))
-                .MaxBy(x => x.Length());
-
-            return primaryAxisPart;
         }
 
         //private List<(PlanarSurface, Guid)> CreateFloorPlates(PlanarSurface baseOutline)

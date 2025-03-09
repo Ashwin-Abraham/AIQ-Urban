@@ -1,6 +1,4 @@
-﻿using ArchSitePlan.BHoM.Geometry;
-using ArchSitePlan.Core.Factories;
-using ArchSitePlan.Core.Models;
+﻿using ArchSitePlan.Core.Factories;
 using ArchSitePlan.Core.Pipeline.CreationData;
 using ArchSitePlan.DebugModel;
 using ArchSitePlan.DebugModel.BHoMExtensions;
@@ -32,7 +30,7 @@ public class BuildingTests
 
         yield return new object[]
          {
-             "Rectangle-Angled",
+            "Rectangle-Angled",
             new Polygon(new List<Point>
             {
                 Create.Point(2, 0),
@@ -108,13 +106,13 @@ public class BuildingTests
             Point mid,
             Point pointAtParam75)
     {
-        var axis = Building.GeneratePrimarySiteAxis(
+        var axis = BuildingFactoryBase.GeneratePrimarySiteAxis(
             Create.PolyCurve([siteBoundary]));
 
 #if DEBUG
         DEBUGMODEL.Reset();
-        DEBUGMODEL.AddBoundedCurves(axis.ToHypar(), DebugMaterials.Red);
-        DEBUGMODEL.AddBoundedCurves(siteBoundary.ToHypar());
+        axis.Debug(DebugMaterials.Red);
+        DEBUGMODEL.Debug(siteBoundary.ToHypar());
         DEBUGMODEL.OpenAsGlb();
 #endif
     }
@@ -139,7 +137,6 @@ public class BuildingTests
             TargetHeight: null,
             Setback: 6,
             MaxHeight: 24,
-            MinHeight: 6,
             MaxLength: 50,
             MinLength: 10,
             FloorHeight: 3.6);
@@ -149,7 +146,7 @@ public class BuildingTests
 
         var building = new RectangleBuildingFactory(config).Generate();
 
-        var gfa = building.Sum(x => x.BUA());
+        var gfa = building.Buildings.Sum(x => x.BUA());
         Assert.Equal(50000, gfa, 1000.0);
     }
 
@@ -176,7 +173,6 @@ public class BuildingTests
             TargetHeight: null,
             Setback: 6,
             MaxHeight: 24,
-            MinHeight: 6,
             MaxLength: 50,
             MinLength: 10,
             FloorHeight: 3.6);
@@ -186,7 +182,43 @@ public class BuildingTests
 
         var building = new RectangleBuildingFactory(config).Generate();
 
-        var gfa = building.Sum(x => x.BUA());
+        var gfa = building.Buildings.Sum(x => x.BUA());
+        Assert.Equal(50000, gfa, 1000.0);
+    }
+
+    [Fact]
+    public void GeneratePeripheralBuilding()
+    {
+        var siteBoundary = Create.Polygon([
+            Create.Point(0,0),
+            Create.Point(200,0),
+            Create.Point(225, 300),
+            Create.Point(0,100)
+        ]);
+
+        var config = new AutoPeripheralBuildingData(
+            BuildingWidth: 15,
+            MinFloorPlateDepth: 5,
+            SiteBoundary: Create.PolyCurve([siteBoundary]),
+            TargetMode: BuildingTargetMode.GFA,
+            TargetGFA: 50000,
+            TargetFAR: null,
+            TargetHeight: null,
+            Setback: 6,
+            MaxHeight: 24,
+            MaxLength: 50,
+            FloorHeight: 3.6);
+
+        // Test Line Boolean Intersections
+        // Then test building
+
+        var building = new PeripheralBuildingFactory(config)
+            .Generate(Create.PolyCurve([siteBoundary]));
+
+        var gfa = building.Buildings.Sum(x => x.BUA());
+        DEBUGMODEL.Reset();
+        DEBUGMODEL.Debug(building.Buildings.Select(x => x.Envelope.ToHypar()));
+        DEBUGMODEL.OpenAsGlb();
         Assert.Equal(50000, gfa, 1000.0);
     }
 }

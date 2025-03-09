@@ -9,6 +9,16 @@ public static class PolylineExtensions
 {
     private record FaceId(int a, int b, int c);
 
+    public static ICurve ClosedPolylineToPolygon(this Polyline polyline)
+    {
+        var points = polyline.IControlPoints();
+
+        if (points.Count > 2 && polyline.IsClosed())
+            return Create.Polygon(points.SkipLast(1).ToList());
+
+        return polyline;
+    }
+
     public static Mesh ToMesh(this Polyline polyline)
     {
         var triangles = polyline.DelaunayTriangulation();

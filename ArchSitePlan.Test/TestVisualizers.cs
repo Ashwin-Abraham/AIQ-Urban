@@ -22,7 +22,7 @@ public static class TestVisualizers
     {
 #if DEBUG
         DEBUGMODEL.Reset();
-        DEBUGMODEL.AddElements(elements);
+        DEBUGMODEL.Debug(elements);
         DEBUGMODEL.OpenAsGlb();
 #endif
     }
@@ -72,7 +72,7 @@ public static class TestVisualizers
     public static void Debug(this ICurve curve)
     {
 #if DEBUG
-        DEBUGMODEL.AddBoundedCurves(curve.ToHypar());
+        DEBUGMODEL.Debug(curve.ToHypar());
 #endif
     }
     private static void Visualize(ICurve curve,
@@ -85,10 +85,10 @@ public static class TestVisualizers
 
 #if DEBUG
         DEBUGMODEL.Reset();
-        DEBUGMODEL.AddBoundedCurves(splitter.ToHypar(), DebugMaterials.Red);
-        DEBUGMODEL.AddBoundedCurves(curve.ToHypar());
-        DEBUGMODEL.AddBoundedCurves(hyparCrvs, DebugMaterials.Blue, 0.01);
-        DEBUGMODEL.AddBoundedCurves(circles.Select(c => c.ToPolygonalCircle()), DebugMaterials.Blue, 0.01);
+        DEBUGMODEL.Debug(splitter.ToHypar(), DebugMaterials.Red);
+        DEBUGMODEL.Debug(curve.ToHypar());
+        DEBUGMODEL.Debug(hyparCrvs, DebugMaterials.Blue, 0.01);
+        DEBUGMODEL.Debug(circles.Select(c => c.ToPolygonalCircle()), DebugMaterials.Blue, 0.01);
         DEBUGMODEL.OpenAsGlb();
 #endif
     }

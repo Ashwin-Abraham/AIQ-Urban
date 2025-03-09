@@ -7,31 +7,62 @@ namespace ArchSitePlan.BHoM.Geometry.Extensions;
 
 public static class ICurveExtensions
 {
+    public static ICurve EnsureAntiClockwise(this ICurve curve, Vector? normal = null)
+    {
+        normal = normal ?? curve.INormal();
+        return curve.IIsClockwise(normal) ? curve.IFlip() : curve;
+    }
+
+    public static ICurve EnsureClockwise(this ICurve curve, Vector? normal = null)
+    {
+        normal = normal ?? curve.INormal();
+        return curve.IIsClockwise(normal) ? curve : curve.IFlip();
+    }
+
+
     public static List<Point> ICurveIntersections(this ICurve curve, IEnumerable<ICurve> curves, double tolerance = 1e-06)
     {
         return curves.SelectMany(x => curve.ICurveIntersections(x, tolerance)).ToList();
     }
 
-    public static PolyCurve OffsetAndMaintainClosure(
-        this PolyCurve curve, 
+    public static ICurve OffsetAndMaintainClosure(
+        this ICurve curve, 
         double offset,
-        Vector? normal = null)
+        Vector? normal = null,
+        bool tangentExtensions = false,
+        double distTol = 1e-06,
+        double angleTol = 1e-06 )
     {
-        var curveList = new List<ICurve>();
+        List<ICurve> subParts = new();
+        bool isPolyCrv = false, isBoundaryCrv = false;
 
-        foreach (var subCurve in curve.Curves)
+        if (curve is PolyCurve pCrv)
         {
-            if (subCurve is Polygon polygon)
-                curveList.Add(polygon.IOffset(offset, normal));
-
-            else if (subCurve is BoundaryCurve boundary)
-                curveList.Add(boundary.IOffset(offset, normal));
-
-            else 
-                curveList.Add(subCurve.IOffset(offset, normal));
+            subParts = pCrv.Curves;
+            isPolyCrv = true;
+        }
+        else if (curve is BoundaryCurve bCrv)
+        {
+            subParts = bCrv.Curves.ToList();
+            isBoundaryCrv = true;
         }
 
-        return Create.PolyCurve(curveList);
+        if (!isBoundaryCrv && !isPolyCrv)
+            return curve.IOffset(offset, normal, tangentExtensions, distTol, angleTol);
+
+        var areAllPolygons = subParts.All(x => x is Polygon);
+
+        if(!areAllPolygons)
+            return curve.IOffset(offset, normal, tangentExtensions, distTol, angleTol);
+
+        var offsetPolygons = subParts
+        .Select(polygon => polygon.IOffset(offset, normal, tangentExtensions, distTol, angleTol))
+        .Select(x => x is Polyline pline? pline.ClosedPolylineToPolygon(): x)
+        .ToList();
+
+        return isPolyCrv ?
+            Create.PolyCurve(offsetPolygons)
+            : Create.BoundaryCurve(offsetPolygons);
     }
 
     private static void BooleanLine(
@@ -93,7 +124,19 @@ public static class ICurveExtensions
         return polyCurve;
     }
 
-    public static ICurve Thicken(
+    public static bool IsPoint(this ICurve curve)
+    {
+        var points = curve.IControlPoints();
+        var firstPoint = points[0];
+
+        for (int i = 1; i < points.Count; i++) 
+            if (!points[i].AlmostEquals(firstPoint))
+                return false;
+
+        return true;
+    }
+
+    public static ICurve? Thicken(
         this ICurve curve,
         double offset,
         EndCapType cap,
@@ -101,43 +144,60 @@ public static class ICurveExtensions
         bool tangentExtensions = false,
         double tolerance = 1E-06)
     {
-        var type = curve.GetType();
-        switch(cap)
+        if (cap != EndCapType.Butt) throw new NotImplementedException();
+        ICurve curve1, curve2;
+
+        if(curve is Polyline && curve.IControlPoints().Count == 2)
         {
+            var line = Create.Line(curve.IStartPoint(), curve.IEndPoint());
 
-            case EndCapType.Round:
-                throw new NotImplementedException();
+            // TODO: Wrap this in the IOffset method as an extension
+            curve1 = line.Offset(offset, normal, tangentExtensions, tolerance);
 
-            // EndCapType.Butt and None:
-            default:
-                ICurve curve1, curve2;
-
-                if(curve is Polyline && curve.IControlPoints().Count == 2)
-                {
-                    var line = Create.Line(curve.IStartPoint(), curve.IEndPoint());
-
-                    // TODO: Wrap this in the IOffset method as an extension
-                    curve1 = line.Offset(offset, normal, tangentExtensions, tolerance);
-
-                    curve2 = line
-                        .Offset(-offset, normal, tangentExtensions, tolerance)
-                        .Flip();
-                }
-                else
-                {
-                    curve1 = curve.IOffset(offset, normal, tangentExtensions, tolerance);
-                    curve2 = curve
-                        .IOffset(-offset, normal, tangentExtensions, tolerance)
-                        .IFlip();
-                }
-                
-
-                var cap1 = Create.Line(curve1.IEndPoint(), curve2.IStartPoint());
-                var cap2 = Create.Line(curve2.IEndPoint(), curve1.IStartPoint());
-                var combined = Create.PolyCurve(new ICurve[] { curve1, cap1, curve2, cap2 });
-                return combined;
+            curve2 = line
+                .Offset(-offset, normal, tangentExtensions, tolerance)
+                .Flip();
         }
+        if(curve.IIsClosed())
+        {
+            List<ICurve> parts = new();
+            curve1 = curve.OffsetAndMaintainClosure(-offset, normal, tangentExtensions, tolerance);
+            curve2 = curve.OffsetAndMaintainClosure(+offset, normal, tangentExtensions, tolerance);
+
+            bool badCurve1 = curve1 == null || curve1.IsPoint() || curve1.IArea().AlmostZero();
+            bool badCurve2 = curve2 == null || curve2.IsPoint() || curve2.IArea().AlmostZero();
+
+            if (!badCurve1)
+                parts.Add(curve1!);
+            if (!badCurve2)
+                parts.Add(curve2!);
+            if (parts.Count == 0) 
+                return null;
+
+            // Prevent polygon to polyline conversion
+            if (curve is Polygon)
+                for(int i = 0; i< parts.Count; i++)
+                    if (parts[i] is Polyline pline)
+                        parts[i] = pline.ClosedPolylineToPolygon();
+
+            return parts.Count == 1 ?
+                parts[0]
+                : Create.PolyCurve(parts);
+        }
+        else
+        {
+            curve1 = curve.IOffset(offset, normal, tangentExtensions, tolerance);
+            curve2 = curve
+                .IOffset(-offset, normal, tangentExtensions, tolerance)
+                .IFlip();
+        }
+                
+        var cap1 = Create.Line(curve1.IEndPoint(), curve2.IStartPoint());
+        var cap2 = Create.Line(curve2.IEndPoint(), curve1.IStartPoint());
+        var combined = Create.PolyCurve(new ICurve[] { curve1, cap1, curve2, cap2 });
+        return combined;
     }
+
     public static List<ICurve> Split(this ICurve curve,
         IEnumerable<ICurve> splitters,
         double tolerance = 1E-06)

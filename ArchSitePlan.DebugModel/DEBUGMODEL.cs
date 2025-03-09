@@ -23,20 +23,22 @@ namespace ArchSitePlan.DebugModel
 
         public static void OpenAsGlb(string path = defaultPath)
         {
+#if DEBUG
             path += glbExtension;
             Elements.Serialization.glTF.GltfExtensions.ToGlTF(_hyparModel, path);
             Process.Start(new ProcessStartInfo(path)
             {
                 UseShellExecute = true
             });
+#endif
         }
 
-        public static void AddMass(Mass testMass)
+        public static void Debug(this Mass testMass)
         {
             _hyparModel.AddElement(testMass);
         }
 
-        public static void AddMasses(IEnumerable<Mass> masses, Material material = null)
+        public static void Debug(this IEnumerable<Mass> masses, Material? material = null)
         {
             if (material != null)
                 masses.ToList().ForEach(mass => mass.Material = material);
@@ -45,67 +47,72 @@ namespace ArchSitePlan.DebugModel
             _hyparModel.AddElements(massElements);
         }
 
-        public static void AddPolygon(Polygon p,
-                                Material material = null)
+        public static void Debug(this Polygon p,
+                                Material? material = null)
         {
             _hyparModel.AddElement(new ModelCurve(p, material));
         }
 
-        public static void AddPolygons(IEnumerable<Polygon> polygonList,
-                                Material material = null)
+        public static void Debug(this IEnumerable<Polygon> polygonList,
+                                Material? material = null)
         {
-            polygonList.ToList().ForEach(polygon => AddPolygon(polygon, material));
+            polygonList.ToList().ForEach(polygon => Debug(polygon, material));
         }
 
-        public static void AddBoundedCurve(BoundedCurve crv,
-                                Material material = null,
+
+        public static void Debug(this BoundedCurve crv,
+                                Material? material = null,
                                 double zMovt = 0)
         {
             crv = crv.Transformed(new Transform(new Vector3(0, 0, zMovt))) as BoundedCurve;
             _hyparModel.AddElement(new ModelCurve(crv, material));
         }
 
-        public static void AddBoundedCurves(IEnumerable<BoundedCurve> boundedCrvList,
-                                Material material = null,
+        public static void Debug(this IEnumerable<BoundedCurve> boundedCrvList,
+                                Material? material = null,
                                 double zMovt = 0)
         {
-            boundedCrvList.ToList().ForEach(crv => AddBoundedCurve(crv, material, zMovt));
+            boundedCrvList.ToList().ForEach(crv => Debug(crv, material, zMovt));
         }
 
-        public static void AddPolygonalCircles(IEnumerable<Circle> circleList,
-                                Material material = null)
+        public static void DebugAsPolygons(this IEnumerable<Circle> circleList,
+                                Material? material = null,
+                                double zMovt = 0)
         {
             circleList
                 .ToList()
-                .ForEach(circ => AddPolygonalCircle(circ, material));
+                .ForEach(circ => DebugAsPolygons(circ, material, zMovt));
         }
 
-        public static void AddPolygonalCircle(Circle circle, Material material = null)
+        public static void DebugAsPolygons(this Circle circle, Material? material = null, double zMovt = 0)
         {
-            AddBoundedCurve(circle.ToPolygonalCircle(), material);
+            Debug((BoundedCurve)circle.ToPolygonalCircle(), material, zMovt);
         }
 
-        public static void MoveModelInZ(double distance)
+        public static void Debug(this double distance)
         {
             _hyparModel.Transform.Move(0, 0, distance);
         }
 
-        public static void AddPoints(List<Vector3> points, Material material = null)
+        public static void Debug(this List<Vector3> points, Material? material = null)
         {
             _hyparModel.AddElements(new ModelPoints(points, material));
         }
 
-        public static void AddPointsAsCircles(List<Vector3> points, double radius = 0.15, Material material = null)
+        public static void Debug(this List<Vector3> points, double radius = 0.15, Material? material = null)
         {
-            points.ForEach(pt => AddPointAsCircle(pt, radius, material));
+            points.ForEach(pt => Debug(pt, radius, material));
         }
 
-        public static void AddPointAsCircle(Vector3 point, double radius = 0.15, Material material = null)
+        public static void Debug(this Vector3 point, 
+            double radius = 0.15, 
+            Material? material = null,
+            double zMovt = 0)
         {
-            AddPolygonalCircle(new Circle(point, radius), material);
+            DebugAsPolygons(new Circle(point, radius), material, zMovt);
         }
 
-        public static void AddModelText(List<Vector3> placementPoints,
+        public static void Debug(this List<Vector3> placementPoints,
                                         List<string> text,
                                         Color? color = null)
         {
@@ -129,87 +136,87 @@ namespace ArchSitePlan.DebugModel
             _hyparModel.AddElement(txt);
         }
 
-        public static void AddModelPoint(Vector3 point, Material material = null)
+        public static void Debug(this Vector3 point, Material? material = null)
         {
             ModelPoints points = new ModelPoints(new List<Vector3>() { point }, material);
             _hyparModel.AddElement(points);
         }
 
-        public static void AddModelPoints(IEnumerable<Vector3> points, Material material = null)
+        public static void Debug(this IEnumerable<Vector3> points, Material? material = null)
         {
             _hyparModel.AddElements(new ModelPoints(points.ToList()));
         }
 
-        public static void AddPlanes(IEnumerable<Transform> planes, double length = 0.3, Material colour = null)
+        public static void Debug(this IEnumerable<Transform> planes, double length = 0.3, Material colour = null)
         {
-            planes.ToList().ForEach(t => AddPlane(t, length, colour));
+            planes.ToList().ForEach(t => Debug(t, length, colour));
         }
 
-        public static void AddPlanes(IEnumerable<Vector3> XYplaneOrigins, double length = 0.3, Material colour = null)
+        public static void Debug(this IEnumerable<Vector3> XYplaneOrigins, double length = 0.3, Material colour = null)
         {
             IEnumerable<Transform> planes = XYplaneOrigins.Select(o => new Transform(o));
-            planes.ToList().ForEach(t => AddPlane(t, length, colour));
+            planes.ToList().ForEach(t => Debug(t, length, colour));
         }
 
-        public static void AddPlane(Transform plane, double length = 0.5, Material colour = null)
+        public static void Debug(this Transform plane, double length = 0.5, Material colour = null)
         {
             Line xAxis = new Line(plane.Origin, plane.XAxis, length);
             Line yAxis = new Line(plane.Origin, plane.YAxis, length);
             Line zAxis = new Line(plane.Origin, plane.ZAxis, length);
 
-            AddBoundedCurve(HyparDebugExtensions.CreateRectangle(plane, length / 3, length / 3), colour);
-            AddBoundedCurve(xAxis, DebugMaterials.Red);
-            AddBoundedCurve(yAxis, DebugMaterials.Green);
-            AddBoundedCurve(zAxis, DebugMaterials.Blue);
+            Debug((BoundedCurve)HyparExtensions.CreateRectangle(plane, length / 3, length / 3), colour);
+            Debug(xAxis, DebugMaterials.Red);
+            Debug(yAxis, DebugMaterials.Green);
+            Debug(zAxis, DebugMaterials.Blue);
         }
 
-        public static void AddMesh(Mesh hyparMesh, Material? material = null)
+        public static void Debug(this Mesh hyparMesh, Material? material = null)
         {
             material ??= DebugMaterials.Gray;
             _hyparModel.AddElement(new MeshElement(hyparMesh, material: material));
         }
 
-        public static void AddColoredMesh(Mesh hyparMesh)
+        //public static void Debug(this Mesh hyparMesh)
+        //{
+        //    List<Mass> masses = new List<Mass>();
+        //    int count = 0;
+        //    foreach (Triangle tri in hyparMesh.Triangles)
+        //    {
+        //        Mass m = new Mass(profile: new Profile(tri.ToPolygon()),
+        //                            material: new Material("x", tri.Vertices.First().Color),
+        //                            height: 0.1
+        //                        );
+
+        //        masses.Add(m);
+
+        //        count++;
+        //        if (count > 25) break;
+        //    }
+        //    _hyparModel.AddElements(masses);
+        //}
+
+        public static void Debug(this IEnumerable<Mesh> meshes)
         {
-            List<Mass> masses = new List<Mass>();
-            int count = 0;
-            foreach (Triangle tri in hyparMesh.Triangles)
-            {
-                Mass m = new Mass(profile: new Profile(tri.ToPolygon()),
-                                    material: new Material("x", tri.Vertices.First().Color),
-                                    height: 0.1
-                                );
-
-                masses.Add(m);
-
-                count++;
-                if (count > 25) break;
-            }
-            _hyparModel.AddElements(masses);
+            meshes.ToList().ForEach(m => Debug(m));
         }
 
-        public static void AddMeshes(IEnumerable<Mesh> meshes)
-        {
-            meshes.ToList().ForEach(m => AddMesh(m));
-        }
-
-        public static void AddElements(IEnumerable<Element> elements)
+        public static void Debug(this IEnumerable<Element> elements)
         {
             _hyparModel.AddElements(elements);
         }
 
-        public static void AddProfiles(IEnumerable<Profile> profiles)
+        public static void Debug(this IEnumerable<Profile> profiles)
         {
-            profiles.ToList().ForEach(p => AddProfile(p));
+            profiles.ToList().ForEach(p => Debug(p));
         }
 
-        public static void AddProfile(Profile profile)
+        public static void Debug(this Profile profile)
         {
-            AddBoundedCurve(profile.Perimeter);
-            AddBoundedCurves(profile.Voids);
+            Debug((BoundedCurve)profile.Perimeter);
+            Debug((IEnumerable<BoundedCurve>)profile.Voids);
         }
 
-        public static void AddPointDataField(List<(Vector3, double)> field, double radius = 0.15)
+        public static void DebugPointField(this List<(Vector3, double)> field, double radius = 0.15)
         {
             if (!field.Any()) return;
 
@@ -232,7 +239,7 @@ namespace ArchSitePlan.DebugModel
 
                 var material = new Material("", new Color(r, g, b, 1));
 
-                AddPointAsCircle(fieldPt.Item1, radius: radius, material);
+                Debug(fieldPt.Item1, radius: radius, material);
             }
         }
 
