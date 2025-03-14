@@ -11,6 +11,19 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Remove="C:\Users\AshwinAbraham\.nuget\packages\hypar.elements\2.1.0\contentFiles\any\netstandard2.0\Fonts\Roboto-Medium.ttf" />
+    <Content Remove="C:\Users\AshwinAbraham\.nuget\packages\hypar.elements\2.1.0\contentFiles\any\netstandard2.0\ProfileData\C.csv" />
+    <Content Remove="C:\Users\AshwinAbraham\.nuget\packages\hypar.elements\2.1.0\contentFiles\any\netstandard2.0\ProfileData\HSS.csv" />
+    <Content Remove="C:\Users\AshwinAbraham\.nuget\packages\hypar.elements\2.1.0\contentFiles\any\netstandard2.0\ProfileData\L.csv" />
+    <Content Remove="C:\Users\AshwinAbraham\.nuget\packages\hypar.elements\2.1.0\contentFiles\any\netstandard2.0\ProfileData\MC.csv" />
+    <Content Remove="C:\Users\AshwinAbraham\.nuget\packages\hypar.elements\2.1.0\contentFiles\any\netstandard2.0\ProfileData\ST.csv" />
+    <Content Remove="C:\Users\AshwinAbraham\.nuget\packages\hypar.elements\2.1.0\contentFiles\any\netstandard2.0\ProfileData\W.csv" />
+    <Content Remove="C:\Users\AshwinAbraham\.nuget\packages\hypar.elements\2.1.0\contentFiles\any\netstandard2.0\ProfileData\WT.csv" />
+    <Content Remove="C:\Users\AshwinAbraham\.nuget\packages\hypar.elements\2.1.0\contentFiles\any\netstandard2.0\Textures\Checkerboard.png" />
+    <Content Remove="C:\Users\AshwinAbraham\.nuget\packages\hypar.elements\2.1.0\contentFiles\any\netstandard2.0\Textures\UV.jpg" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="coverlet.collector" Version="3.2.0" />
     <PackageReference Include="DeepCloner" Version="0.10.0" />
     <PackageReference Include="Hypar.Elements" Version="2.1.0" />
@@ -30,8 +43,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="AIQPrimitives\" />
-    <Folder Include="ICurveExtensionsTests\" />
+    <Folder Include="AIQ.Primitives\" />
   </ItemGroup>
 
 </Project>

@@ -7,6 +7,115 @@ namespace ArchSitePlan.BHoM.Geometry.Extensions;
 
 public static class ICurveExtensions
 {
+    public static ICurve IOffsetSafe(
+        this ICurve curve,
+        double offset,
+        Vector? normal = null,
+        bool tangentExtensions = false,
+        double distTol = 1e-06,
+        double angleTol = 1e-06)
+    {
+        if(curve is Line line)
+        {
+            if (normal == null)
+                normal = AssumeLineNormal(line);
+
+            return line.Offset(offset, normal, tangentExtensions, distTol, angleTol);
+        }
+
+        else if( curve is PolyCurve pCrv && pCrv.Curves.All(x => x is Line))
+        {
+            if (normal == null)
+            {
+                var lineRepresentation = Create.Line(pCrv.StartPoint(), pCrv.EndPoint());
+                normal = AssumeLineNormal(lineRepresentation);
+            }
+            
+            return curve.IOffset(offset, normal, tangentExtensions, distTol, angleTol);
+        }
+
+        else
+            return curve.IOffset(offset, normal, tangentExtensions, distTol, angleTol);
+    }
+
+    /// <summary>
+    /// Assumes the normal of a line preferring to use the Z axis, unless the line is in Z.
+    /// </summary>
+    private static Vector AssumeLineNormal(Line line)
+    {
+        if (!line.Direction().IsEqual(Vector.ZAxis))
+            return Vector.ZAxis;
+        else
+            return line.Direction().Rotate(Math.PI / 2, Vector.ZAxis);
+    }
+
+
+    // If BoundaryCurve or PolyCurve, this will divide each
+    // curve within the ICurve into a number of fragments
+    // Otherwise simply divides at relevant parameters
+    public static List<ICurve> IDivideByCount(this ICurve curve, int count)
+    {
+        if (count < 2) return [curve];
+
+        var divisionStepSize = 1.0 / (double)count;
+        var divisionParams = new List<double>();
+
+        for (double pos = divisionStepSize; pos < 1.0; pos += divisionStepSize)
+            divisionParams.Add(pos);
+
+        return IDivideAtParameters(curve, divisionParams);
+    }
+
+    //public static List<ICurve> IDivideAtParameters(this BoundaryCurve curve, List<double> divisionParams)
+    //{
+    //    List<ICurve> fragments = new();
+
+    //    foreach(var subCurve in curve.Curves)
+    //        fragments.AddRange(IDivideAtParameters((dynamic)subCurve, divisionParams));
+
+    //    return fragments;
+    //}
+
+    //public static List<ICurve> IDivideAtParameters(this PolyCurve curve, List<double> divisionParams)
+    //{
+    //    List<ICurve> fragments = new();
+
+    //    foreach (var subCurve in curve.Curves)
+    //        fragments.AddRange(IDivideAtParameters((dynamic)subCurve, divisionParams));
+
+    //    return fragments;
+    //}
+
+    public static List<ICurve> IDivideAtParameters(this ICurve curve, List<double> divisionParams)
+    {
+        List<Point> divisionPoints = GetDivisionPointsOnCurve((dynamic)curve, divisionParams); 
+        return curve.ISplitAtPoints(divisionPoints);
+    }
+
+    private static List<Point> GetDivisionPointsOnCurve(Polygon curve, List<double> divisionParams)
+    {
+        return GetDivisionPointsOnCurve(curve as ICurve, divisionParams)
+            .Prepend(curve.IStartPoint())
+            .ToList();
+    }
+
+    private static List<Point> GetDivisionPointsOnCurve(BoundaryCurve curve, List<double> divisionParams)
+    {
+        return GetDivisionPointsOnCurve(curve as ICurve, divisionParams)
+            .Prepend(curve.IStartPoint())
+            .ToList();
+    }
+
+    private static List<Point> GetDivisionPointsOnCurve(ICurve curve, List<double> divisionParams)
+    {
+        List<Point> divisionPoints = divisionParams
+            .Select(x => Math.Clamp(x, 0 + 1e-05, 1 - 1e-05))
+            .Select(param => curve.IPointAtParameter(param))
+            .ToList();
+
+        return divisionPoints;
+    }
+
     public static ICurve EnsureAntiClockwise(this ICurve curve, Vector? normal = null)
     {
         normal = normal ?? curve.INormal();
@@ -48,15 +157,15 @@ public static class ICurveExtensions
         }
 
         if (!isBoundaryCrv && !isPolyCrv)
-            return curve.IOffset(offset, normal, tangentExtensions, distTol, angleTol);
+            return curve.IOffsetSafe(offset, normal, tangentExtensions, distTol, angleTol);
 
         var areAllPolygons = subParts.All(x => x is Polygon);
 
         if(!areAllPolygons)
-            return curve.IOffset(offset, normal, tangentExtensions, distTol, angleTol);
+            return curve.IOffsetSafe(offset, normal, tangentExtensions, distTol, angleTol);
 
         var offsetPolygons = subParts
-        .Select(polygon => polygon.IOffset(offset, normal, tangentExtensions, distTol, angleTol))
+        .Select(polygon => polygon.IOffsetSafe(offset, normal, tangentExtensions, distTol, angleTol))
         .Select(x => x is Polyline pline? pline.ClosedPolylineToPolygon(): x)
         .ToList();
 
@@ -186,9 +295,9 @@ public static class ICurveExtensions
         }
         else
         {
-            curve1 = curve.IOffset(offset, normal, tangentExtensions, tolerance);
+            curve1 = curve.IOffsetSafe(offset, normal, tangentExtensions, tolerance);
             curve2 = curve
-                .IOffset(-offset, normal, tangentExtensions, tolerance)
+                .IOffsetSafe(-offset, normal, tangentExtensions, tolerance)
                 .IFlip();
         }
                 
@@ -370,7 +479,7 @@ public static class ICurveExtensions
         else if (curve is BoundaryCurve bc)
             return Create.PolyCurve(bc.Curves);
 
-        return Create.PolyCurve(new ICurve[] { curve });
+        return Create.PolyCurve([curve]);
     }
     private static List<ICurve>? ToArcsAndLines(this ICurve curve)
     {

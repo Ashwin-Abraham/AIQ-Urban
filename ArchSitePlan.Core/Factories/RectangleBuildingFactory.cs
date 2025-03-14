@@ -1,5 +1,6 @@
 ﻿using AIQ.Primitives.Extensions;
 using ArchSitePlan.BHoM.Geometry.Extensions;
+using ArchSitePlan.Core.Factories.Models;
 using ArchSitePlan.Core.Models;
 using ArchSitePlan.Core.Pipeline.CreationData;
 using BH.Engine.Geometry;
@@ -31,7 +32,11 @@ public class RectangleBuildingFactory:BuildingFactoryBase
             .Select(x => Create.PolyCurve([x]))
             .ToList();
 
-        var buildingCreationData = GenerateMassingForTargetGFA(footprints);
+        var buildingCreationData = GenerateMassingForTargetGFA(
+            footprints,
+            (int)Math.Floor(_config.MaxHeight/ _config.FloorHeight),
+            // TODO: Find target gfa
+            _config.TargetGFA.Value);
 
         // Make buildings
         List<Building> buildings = buildingCreationData
@@ -97,43 +102,4 @@ public class RectangleBuildingFactory:BuildingFactoryBase
 
         return footprints;
     }
-
-    private List<BuildingCreationSpecs> GenerateMassingForTargetGFA(List<PolyCurve> footprints)
-    {
-        if (footprints.Count == 0) return new();
-
-        int maxFloorCount = (int)Math.Floor(_config.MaxHeight / _config.FloorHeight);
-        double totalGFA = 0;
-
-        List<BuildingCreationSpecs> buildingsWIP  =
-            footprints
-            .Select(x => new BuildingCreationSpecs(x, x.IArea(), 0))
-            .ToList();
-
-        // First pack the buildings to the brim
-        var smallestFootPrint = buildingsWIP.Min(x => x.FootprintArea);
-
-        while (totalGFA < _config.TargetGFA)
-        {
-            foreach(var buildingWIP in buildingsWIP)
-            {
-                var totalGFACheck = totalGFA + buildingWIP.FootprintArea;
-                if (totalGFACheck > _config.TargetGFA || buildingWIP.FloorCount >= maxFloorCount) continue;
-
-                buildingWIP.FloorCount++;
-                totalGFA += buildingWIP.FootprintArea;
-            }
-
-            if (totalGFA + smallestFootPrint > _config.TargetGFA) break;
-        }
-
-        // Next Apply variance
-
-        buildingsWIP.RemoveAll(x => x.FloorCount == 0);
-        return buildingsWIP;
-    }
-
-
-
-   
 }

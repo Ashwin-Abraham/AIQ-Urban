@@ -1,13 +1,7 @@
-﻿using ArchSitePlan.Core.Extensions;
-using BH.Engine.Geometry;
+﻿using BH.Engine.Geometry;
 using BH.oM.Geometry;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace ArchSitePlan.Test.Geometry.Extensions
+namespace ArchSitePlan.Test.BHoM.Geometry.Extensions
 {
     internal static class CurvesTestData
     {

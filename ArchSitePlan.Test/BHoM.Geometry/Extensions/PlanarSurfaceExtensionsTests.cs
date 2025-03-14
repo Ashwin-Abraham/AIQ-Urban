@@ -1,9 +1,9 @@
 ﻿using ArchSitePlan.BHoM.Geometry.Extensions;
 using BH.Engine.Geometry;
 using BH.oM.Geometry;
-using static ArchSitePlan.Test.Geometry.Extensions.CurvesTestData;
+using static ArchSitePlan.Test.BHoM.Geometry.Extensions.CurvesTestData;
 
-namespace ArchSitePlan.Test;
+namespace ArchSitePlan.Test.BHoM.Geometry.Extensions;
 public class PlanarSurfaceExtensionsTests
 {
     [Fact]

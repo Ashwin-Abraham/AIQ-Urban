@@ -2,7 +2,7 @@
 using BH.Engine.Geometry;
 using BH.oM.Geometry;
 
-namespace ArchSitePlan.Test.Geometry.Extensions;
+namespace ArchSitePlan.Test.BHoM.Geometry.Extensions;
 
 public class PolylineExtensionTests
 {

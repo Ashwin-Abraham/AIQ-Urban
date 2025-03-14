@@ -46,6 +46,7 @@ public record AutoPeripheralBuildingData(
     double Setback,
     double MaxHeight,
     double MaxLength,
+    double MinLength,
     double FloorHeight):AutoBuildingData(
         SiteBoundary,
         TargetMode,

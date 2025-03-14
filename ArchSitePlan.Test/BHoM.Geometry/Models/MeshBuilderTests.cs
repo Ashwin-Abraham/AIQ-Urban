@@ -4,7 +4,7 @@ using ArchSitePlan.DebugModel.BHoMExtensions;
 using BH.Engine.Geometry;
 using BH.oM.Geometry;
 
-namespace ArchSitePlan.Test.Geometry.Models;
+namespace ArchSitePlan.Test.BHoM.Geometry.Models;
 
 public class MeshBuilderTests
 {

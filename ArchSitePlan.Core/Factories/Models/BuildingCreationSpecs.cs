@@ -1,6 +1,6 @@
 ﻿using BH.oM.Geometry;
 
-namespace ArchSitePlan.Core.Factories;
+namespace ArchSitePlan.Core.Factories.Models;
 
 public class BuildingCreationSpecs
 {

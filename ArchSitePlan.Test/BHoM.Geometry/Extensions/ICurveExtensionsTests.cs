@@ -6,7 +6,7 @@ using BH.Engine.Geometry;
 using BH.oM.Geometry;
 using static ArchSitePlan.Test.Geometry.Extensions.CurvesTestData;
 
-namespace ArchSitePlan.Test.Geometry.Extensions
+namespace ArchSitePlan.Test.BHoM.Geometry.Extensions
 {
     public class ICurveExtensionsTests
     {
@@ -87,6 +87,18 @@ namespace ArchSitePlan.Test.Geometry.Extensions
             Assert.Equal(8, offset.IControlPoints().Count);
             Assert.True(offset is PolyCurve);
         }
+
+        [Fact(Skip = "Polycurves with lines only and a null normal inp")]
+        public void IOffsetFailsOnLine()
+        {
+            Line line = Create.Line(Create.Point(23.5, 13.5), Create.Point(73.5, 15));
+
+            // Fails if it is one line or many lines, but passes if another curve type is added
+            var pCrv = Create.PolyCurve([line]);
+
+            var offset = line.IOffset(15);
+        }
+
 
         [Fact]
         public void CanIOffset_ThickenedLine()
@@ -297,8 +309,98 @@ namespace ArchSitePlan.Test.Geometry.Extensions
             Assert.Equal(curve.Area(), fragments.Sum(f => f.IArea()), 1E-04);
         }
 
-        
+        public static IEnumerable<object[]> ComplexCurves()
+        {
+            yield return new object[]
+            {
+                Create.RandomPolyCurve(3),  5
+            };
 
+            yield return new object[]
+            {
+                Create.RandomPolyCurve(3),  0
+            };
+
+            yield return new object[]
+            {
+                Create.RandomPolyCurve(3),  1
+            };
+
+            yield return new object[]
+            {
+                Create.PolyCurve(new List<ICurve>()
+                {
+                    Create.RandomPolyline(2),
+                    Create.RandomPolyline(4)
+                }),  5
+            };
+
+            yield return new object[]
+            {
+                Create.BoundaryCurve(new List<ICurve>()
+                {
+                    Rectangle1,
+                }),  8
+            };
+        }
+
+        public static IEnumerable<object[]> SimpleCurves()
+        {
+            yield return new object[]
+            {
+            Create.Line(Create.Point(0, 0),Create.Point(10, 0)),  5
+            };
+
+            yield return new object[]
+            {
+            Create.Line(Create.Point(0, 0),Create.Point(10, 0)),  1
+            };
+
+            yield return new object[]
+            {
+            Create.Line(Create.Point(0, 0),Create.Point(10, 0)),  0
+            };
+
+            yield return new object[]
+            {
+            Create.RandomArc(),  3
+            };
+
+            yield return new object[]
+            {
+            Create.RandomPolyline(),  3
+            };
+
+            yield return new object[]
+            {
+            Create.Polygon( new List<Point>()
+            {
+                Point.Origin,
+                Create.Point(3,0),
+                Create.Point(3,1),
+                Create.Point(0,1)
+            }),
+            3
+            };
+        }
+
+        [Theory]
+        [MemberData(nameof(SimpleCurves))]
+        [MemberData(nameof(ComplexCurves))]
+        public void CanDivideByCount_SimpleCurves(ICurve curve, int count)
+        {
+            // Arrange
+
+            // Act
+            var fragments = curve.IDivideByCount(count);
+
+            // Assert
+            count = Math.Max(1, count);
+            var lengths = fragments.Select(x => Math.Round(x.ILength(), 2)).ToList();
+            var allEqual = lengths.Distinct().Count() == 1;
+            Assert.Equal(count, fragments.Count);
+            Assert.True(allEqual);
+        }
 
     }
 }

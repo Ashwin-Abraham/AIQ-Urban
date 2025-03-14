@@ -1,6 +1,7 @@
 ﻿using AIQ.Primitives.Extensions;
 using ArchSitePlan.BHoM.Geometry.Comparers;
 using ArchSitePlan.BHoM.Geometry.Extensions;
+using ArchSitePlan.Core.Factories.Models;
 using ArchSitePlan.Core.Models;
 using BH.Engine.Geometry;
 using BH.Engine.Geometry.Triangulation;
@@ -28,6 +29,48 @@ public class BuildingFactoryBase
                 return 0;
         }
 
+    }
+
+    public List<BuildingCreationSpecs> GenerateMassingForTargetGFA(
+        List<PolyCurve> footprints,
+        double maxFloors,
+        double targetGFA)
+    {
+        if (footprints.Count == 0) return new();
+
+        int maxFloorCount = (int)Math.Floor(maxFloors);
+
+        double totalFootprintArea = footprints.Sum(x => x.Area());
+        int startingFloorCount = (int)Math.Floor(targetGFA / totalFootprintArea);
+
+        double totalGFA = totalFootprintArea * startingFloorCount;
+
+        List<BuildingCreationSpecs> buildingsWIP =
+            footprints
+            .Select(x => new BuildingCreationSpecs(x, x.IArea(), startingFloorCount))
+            .ToList();
+
+        // First pack the buildings to the brim
+        var smallestFootPrint = buildingsWIP.Min(x => x.FootprintArea);
+
+        while (totalGFA < targetGFA)
+        {
+            foreach (var buildingWIP in buildingsWIP)
+            {
+                var totalGFACheck = totalGFA + buildingWIP.FootprintArea;
+                if (totalGFACheck > targetGFA || buildingWIP.FloorCount >= maxFloorCount) continue;
+
+                buildingWIP.FloorCount++;
+                totalGFA += buildingWIP.FootprintArea;
+            }
+
+            if (totalGFA + smallestFootPrint > targetGFA) break;
+        }
+
+        // Next Apply variance
+
+        buildingsWIP.RemoveAll(x => x.FloorCount == 0);
+        return buildingsWIP;
     }
 
     public static Polyline? GeneratePrimarySiteAxis(PolyCurve siteBoundary)
@@ -98,13 +141,14 @@ public class BuildingFactoryBase
             floorHeight);
 
         List<PlanarSurface> floorPlates = new();
+
         var typicalFloorPlate = Create.PlanarSurface(buildingData.FootPrint);
 
-        //for (int i = 0; i < buildingData.FloorCount; i++)
-        //{
-        //    var mover = Vector.ZAxis * i * floorHeight;
-        //    floorPlates.Add(typicalFloorPlate.Translate(mover));
-        //}
+        for (int i = 0; i < buildingData.FloorCount; i++)
+        {
+            var mover = Vector.ZAxis * i * floorHeight;
+            floorPlates.Add(typicalFloorPlate.Translate(mover));
+        }
 
         return new Building(envelope, floorPlates, floorHeight);
     }
@@ -113,7 +157,7 @@ public class BuildingFactoryBase
     {
         var mover = Vector.ZAxis * (double)floorCount * floorHeight;
 
-        if (footprint.Curves.Count == 1)
+        if (true || footprint.Curves.Count == 1)
         {
             var simpleExtrude = Create.Extrusion(footprint, mover, true);
             var renderMesh = BH.Engine.Representation.Compute.RenderMesh(simpleExtrude);
@@ -134,7 +178,6 @@ public class BuildingFactoryBase
             .Select(face => FindTriangleVertexIndices(face, vertices))
             .Where(faceIds => faceIds.Count == 3);
 
-
         var baseSurface = Create.PlanarSurface(outerCurve, [innerCurve]);
         var topSurface = baseSurface.Translate(mover);
         var outerFaces = Create.Extrusion(outerCurve, mover, false);
@@ -147,8 +190,6 @@ public class BuildingFactoryBase
             innerFaces,
             outerFaces
         });
-
-
 
         return ToMesh(compositeGeometry.RenderMesh());
     }
