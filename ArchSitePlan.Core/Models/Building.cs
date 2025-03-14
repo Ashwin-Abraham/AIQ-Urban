@@ -14,12 +14,38 @@ namespace ArchSitePlan.Core.Models
         public Point Origin { get; private set; }
         public Mesh Envelope { get; private set; }
         public Landuse? Use { get; set; }
-
         public List<(PlanarSurface Profile, Guid Id)> FloorPlates { get; set; }
+
+        public Building(
+            Building building,
+            Mesh envelope,
+            List<(PlanarSurface, Guid)> floorPlates)
+            : this(envelope,
+                  floorPlates,
+                  building.FloorToFloorHeight,
+                  building.EnvelopeId,
+                  building.Use,
+                  building.FootprintId) { }
 
         public Building(
             Mesh envelope,
             List<PlanarSurface> floorPlates,
+            double floorToFloorHeight,
+            Guid envelopeId = default,
+            Landuse? use = null,
+            Guid footprintId = default)
+            : this(
+                envelope,
+                floorPlates.Select(x => (x, Guid.Empty)).ToList(),
+                floorToFloorHeight,
+                envelopeId,
+                use,
+                footprintId)
+        { }
+
+        public Building(
+            Mesh envelope,
+            List<(PlanarSurface, Guid)> floorPlates,
             double floorToFloorHeight,
             Guid envelopeId = default,
             Landuse? use = null,
@@ -30,15 +56,25 @@ namespace ArchSitePlan.Core.Models
             FloorToFloorHeight = floorToFloorHeight;
             
             FloorPlates = floorPlates
-                .Where(p => p!=null && Math.Abs(p.Area()) > 1E-06)
-                .OrderBy(p => p.ControlPointCentroid().Z)
-                .Select(f => (f, Guid.Empty))
+                .Where(p => p.Item1 !=null && Math.Abs(p.Item1.Area()) > 1E-06)
+                .OrderBy(p => p.Item1.ControlPointCentroid().Z)
+                .Select(f => (f.Item1, f.Item2))
                 .ToList();
 
             FootprintId = footprintId;
             EnvelopeId = envelopeId;
             Origin = CalculateOrigin(envelope);
             FloorCount = floorPlates.Count;
+        }
+
+        public Building Transformed(TransformMatrix transform)
+        {
+            var transformedEnvelope = Envelope.Transform(transform);
+            var transformedFloors = FloorPlates
+                .Select(x => (x.Profile.Transform(transform), x.Id))
+                .ToList();
+
+            return new(this, transformedEnvelope, transformedFloors);
         }
 
         public static Point CalculateOrigin(Mesh envelope)

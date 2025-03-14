@@ -1,7 +1,15 @@
-﻿using BH.oM.Geometry;
+﻿using ArchSitePlan.Core.Factories.Models;
+using BH.oM.Geometry;
 using static ArchSitePlan.Core.Constants.Enums;
 
 namespace ArchSitePlan.Core.Pipeline.CreationData;
+
+public record BuildingAlongRoadConfig(
+    List<BuildingDefinition> Definitions,
+    BuildingTargetMode TargetMode,
+    double? TargetGFA,
+    double? TargetFAR,
+    double Setback);
 
 public record AutoBuildingData(
     PolyCurve SiteBoundary,

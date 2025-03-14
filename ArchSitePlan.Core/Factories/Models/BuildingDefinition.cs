@@ -11,6 +11,20 @@ public class BuildingDefinition(
     public Building Building { get; } = buildingNearOrigin;
     public double FrontageWidth { get; } = frontageWidth;
     public TransformMatrix Transform { get; } = TransformMatrix.Identity;
+    public Polyline FootprintConvexHull {get;} = CalculateConvexHull(buildingNearOrigin);
+
+    public BuildingInstance CreateInstance(TransformMatrix transform)
+    {
+        return new BuildingInstance(this, transform);
+    }
+    private static Polyline CalculateConvexHull(Building building)
+    {
+        var points = building.Envelope.Vertices
+            .Select(x => x.ProjectToXY())
+            .ToList();
+
+        return Compute.ConvexHull(points);
+    }
 
     public static BuildingDefinition FromFootprint(
         PolyCurve buildingFootprint,

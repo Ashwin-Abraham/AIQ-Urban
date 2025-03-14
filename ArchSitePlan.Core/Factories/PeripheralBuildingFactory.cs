@@ -78,11 +78,11 @@ public class PeripheralBuildingFactory:BuildingLayoutFactoryBase
             var footprint = buildingFootprints[i];
             var points = footprint.ControlPoints();
 
-            if (validFootprints[^1].IsContainingAny(points))
+            if (validFootprints[^1].IIsContainingAny(points))
                 continue;
 
             if (i == buildingFootprints.Count - 1
-                && buildingFootprints[0].IsContainingAny(points))
+                && buildingFootprints[0].IIsContainingAny(points))
                 continue;
 
             validFootprints.Add(footprint);

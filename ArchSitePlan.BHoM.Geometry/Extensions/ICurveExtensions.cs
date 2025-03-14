@@ -554,7 +554,7 @@ public static class ICurveExtensions
             arcsLinesPolylines:null;
     }
 
-    
+
     //public static List<ICurve> Split(
     //    this ICurve curve,
     //    ICurve divider,
@@ -590,4 +590,15 @@ public static class ICurveExtensions
 
     //    return splitCurves;
     //}
+
+    public static bool IIsContainingAny(this ICurve curve, List<Point> points, bool acceptOnEdge = true, double tolerance = 1E-06)
+    {
+        foreach (Point point in points)
+        {
+            if (curve.IIsContaining([point], acceptOnEdge, tolerance))
+                return true;
+        }
+
+        return false;
+    }
 }

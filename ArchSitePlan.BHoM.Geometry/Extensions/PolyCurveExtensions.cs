@@ -142,14 +142,4 @@ public static class PolyCurveExtensions
         return [joinedCrv];
     }
 
-    public static bool IsContainingAny(this PolyCurve curve, List<Point> points, bool acceptOnEdge = true, double tolerance = 1E-06)
-    {
-        foreach (Point point in points)
-        {
-            if (curve.IsContaining([point], acceptOnEdge, tolerance))
-                return true;
-        }
-
-        return false;
-    }
 }
