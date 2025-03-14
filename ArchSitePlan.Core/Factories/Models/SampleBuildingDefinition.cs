@@ -10,15 +10,14 @@ namespace ArchSitePlan.Core.Factories.Models;
 
 public static class SampleBuildingDefinition
 {
-    public static BuildingDefinition DetachedHouse = new(
-        siteBoundary: new Rectangle(
-            Create.Point(-8, 0),
-            Create.Point(8, 25)),
-        footprint: Create.PolyCurve([
+    public static BuildingDefinition DetachedHouse = BuildingDefinition.FromFootprint(
+        buildingFootprint: Create.PolyCurve([
             new Rectangle(
                 Create.Point(-6,2),
                 Create.Point(12,20))
             ]),
-        floorCount: 3);
+        floorHeight: 3.6,
+        floorCount: 3,
+        frontageWidth: 20);
 
 }
