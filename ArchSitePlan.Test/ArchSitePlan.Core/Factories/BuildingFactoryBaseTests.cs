@@ -104,7 +104,7 @@ public class BuildingFactoryBaseTests
             Point mid,
             Point pointAtParam75)
     {
-        var axis = BuildingFactoryBase.GeneratePrimarySiteAxis(
+        var axis = BuildingLayoutFactoryBase.GeneratePrimarySiteAxis(
             Create.PolyCurve([siteBoundary]));
 
 #if DEBUG
@@ -130,7 +130,7 @@ public class BuildingFactoryBaseTests
 
         //Act
         var fragments = PeripheralBuildingFactory
-            .ApplySolidVoidPattern(Create.PolyCurve([curve]), 180, 5)
+            .ApplySolidVoidPattern(Create.PolyCurve([curve]), 180, 25)
             .ToList();
 
         // Visualize
@@ -139,6 +139,63 @@ public class BuildingFactoryBaseTests
         DEBUGMODEL.OpenAsGlb();
 
         // Assert
-        Assert.Equal(50000, 1000.0);
+        var solidTotal = fragments.Sum(x => x.Length());
+        Assert.Equal(777, solidTotal, 1.0);
+    }
+
+    [Fact]
+    public void SplitUpCurveIntoFragments_ArcPolycurve()
+    {
+        // Arrange
+        var polyline = Create.Polyline([
+                Create.Point(0,0),
+                Create.Point(200,0),
+                Create.Point(225, 300),
+                Create.Point(0,100)
+            ]);
+
+        var arc = Create.Arc(
+            start: Create.Point(0, 100),
+            middle: Create.Point(-50, 50),
+            end: Create.Point(0, 0));
+
+        var curve = Create.PolyCurve([polyline, arc]);
+
+        //Act
+        var fragments = PeripheralBuildingFactory
+            .ApplySolidVoidPattern(Create.PolyCurve([curve]), 180, 25)
+            .ToList();
+
+        // Visualize
+        DEBUGMODEL.Reset();
+        DEBUGMODEL.Debug(fragments.ToHypar());
+        DEBUGMODEL.OpenAsGlb();
+
+        // Assert
+        var solidTotal = fragments.Sum(x => x.Length());
+        Assert.Equal(834.15, solidTotal, 0.1);
+    }
+
+    [Fact]
+    public void SplitUpCurveIntoFragments_Circle()
+    {
+        // Arrange
+        var circle = Create.Circle(Create.Point(10,10), 200 );
+
+        var curve = Create.PolyCurve([circle]);
+
+        //Act
+        var fragments = PeripheralBuildingFactory
+            .ApplySolidVoidPattern(Create.PolyCurve([curve]), 180, 25)
+            .ToList();
+
+        // Visualize
+        DEBUGMODEL.Reset();
+        DEBUGMODEL.Debug(fragments.ToHypar());
+        DEBUGMODEL.OpenAsGlb();
+
+        // Assert
+        var solidTotal = fragments.Sum(x => x.Length());
+        Assert.Equal(1081.637, solidTotal, 0.1);
     }
 }

@@ -4,7 +4,7 @@ using ArchSitePlan.DebugModel.BHoMExtensions;
 using ArchSitePlan.Test;
 using BH.Engine.Geometry;
 using BH.oM.Geometry;
-using static ArchSitePlan.Test.Geometry.Extensions.CurvesTestData;
+using static ArchSitePlan.Test.BHoM.Geometry.Extensions.CurvesTestData;
 
 namespace ArchSitePlan.Test.BHoM.Geometry.Extensions
 {

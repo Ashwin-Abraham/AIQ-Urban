@@ -12,7 +12,7 @@ using static ArchSitePlan.Core.Constants.Enums;
 
 namespace ArchSitePlan.Core.Factories;
 
-public class BuildingFactoryBase
+public class BuildingLayoutFactoryBase
 {
     public static double GetRequiredGFA(
         BuildingTargetMode targetMode,
@@ -28,7 +28,6 @@ public class BuildingFactoryBase
             default:
                 return 0;
         }
-
     }
 
     public List<BuildingCreationSpecs> GenerateMassingForTargetGFA(
@@ -153,7 +152,7 @@ public class BuildingFactoryBase
         return new Building(envelope, floorPlates, floorHeight);
     }
 
-    private Mesh CreateEnvelopeMesh(PolyCurve footprint, int floorCount, double floorHeight)
+    public static Mesh CreateEnvelopeMesh(PolyCurve footprint, int floorCount, double floorHeight)
     {
         var mover = Vector.ZAxis * (double)floorCount * floorHeight;
 
@@ -194,7 +193,7 @@ public class BuildingFactoryBase
         return ToMesh(compositeGeometry.RenderMesh());
     }
 
-    private List<int> FindTriangleVertexIndices(Polyline polylineTriangles, List<Point> vertices)
+    private static List<int> FindTriangleVertexIndices(Polyline polylineTriangles, List<Point> vertices)
     {
         List<int> ids = new();
         var polylinePoints = polylineTriangles.Vertices();
@@ -210,7 +209,7 @@ public class BuildingFactoryBase
         return ids;
     }
 
-    private Mesh ToMesh(RenderMesh renderMesh)
+    private static Mesh ToMesh(RenderMesh renderMesh)
     {
         return Create.Mesh(renderMesh.Vertices.Select(x => x.Point).ToList(), renderMesh.Faces); 
     }

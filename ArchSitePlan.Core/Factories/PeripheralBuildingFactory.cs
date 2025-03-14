@@ -7,7 +7,7 @@ using BH.oM.Geometry;
 
 namespace ArchSitePlan.Core.Factories;
 
-public class PeripheralBuildingFactory:BuildingFactoryBase
+public class PeripheralBuildingFactory:BuildingLayoutFactoryBase
 {
     AutoPeripheralBuildingData _config;
     public PeripheralBuildingFactory(AutoPeripheralBuildingData config)

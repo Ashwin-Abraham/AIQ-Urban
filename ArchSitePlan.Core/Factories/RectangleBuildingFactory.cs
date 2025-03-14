@@ -8,7 +8,7 @@ using BH.oM.Geometry;
 
 namespace ArchSitePlan.Core.Factories;
 
-public class RectangleBuildingFactory:BuildingFactoryBase
+public class RectangleBuildingFactory:BuildingLayoutFactoryBase
 {
     AutoRectangleBuildingData _config;
 
