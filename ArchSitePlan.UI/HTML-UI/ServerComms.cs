@@ -2,10 +2,13 @@
 using System.Net;
 using System.Text;
 using System.Windows;
+using ArchSitePlan.UI.Actions;
 using ArchSitePlan.UI.HTML_UI.HtmlCommsClasses;
 using ArchSitePlan.UI.HTML_UI.MessageToUI;
+using Eto.Forms;
 using Newtonsoft.Json;
 using Rhino;
+using MessageBox = Eto.Forms.MessageBox;
 
 namespace ArchSitePlan.UI.HTML_UI;
 
@@ -29,6 +32,7 @@ public class ServerComms
         _httpListener.Prefixes.Add("http://localhost:6300/");
         _httpListener.Start();
         //SetupVueIndexPage();
+
         Task.Run(() => HandleRequestsAsync());
 
 
@@ -121,6 +125,7 @@ public class ServerComms
                 {
                     using (var reader = new System.IO.StreamReader(request.InputStream, request.ContentEncoding))
                     {
+                        var vm = RhinoEventHandler.HTMLViewModel;
                         string requestBody = await reader.ReadToEndAsync();
                         RhinoApp.WriteLine("Received data from Vue.js: " + requestBody);
 

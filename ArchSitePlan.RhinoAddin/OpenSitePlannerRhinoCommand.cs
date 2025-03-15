@@ -1,10 +1,10 @@
-﻿using Rhino;
+﻿using System;
+using ArchSitePlan.RhinoInterface.Actions;
+using ArchSitePlan.RhinoInterface.HTML_UI;
+using Eto.Forms;
+using Rhino;
 using Rhino.Commands;
-using Rhino.Geometry;
-using Rhino.Input;
-using Rhino.Input.Custom;
-using System;
-using System.Windows;
+using Command = Rhino.Commands.Command;
 
 namespace ArchSitePlan.RhinoAddin
 {
@@ -27,8 +27,12 @@ namespace ArchSitePlan.RhinoAddin
         {
             try
             {
-                Rhino.UI.Panels.OpenPanel(MainViewHost.PanelId);
-                RhinoApp.WriteLine("Loaded plugin");
+                //Rhino.UI.Panels.OpenPanel(MainViewHost.PanelId);
+                //RhinoApp.WriteLine("Loaded plugin");
+                ServerComms.StartServer();
+                VueUI.OpenWindow();
+                RhinoEventHandler.AppUsageLog = new();
+
                 return Result.Success;
             }
             catch(Exception ex)

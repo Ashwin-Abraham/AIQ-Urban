@@ -270,7 +270,7 @@ namespace ArchSitePlan.Core.Models
             return study != null;
         }
 
-        public static bool TryGetStudyArea(string name, out StudyArea study)
+        public static bool TryGetStudyArea(string name, out StudyArea? study)
         {
             study = Studies.Find(s => s.Name == name);
             return study != null;

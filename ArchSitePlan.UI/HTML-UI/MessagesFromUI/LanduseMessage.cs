@@ -4,7 +4,6 @@ using ArchSitePlan.UI.Constants;
 using ArchSitePlan.UI.CoreModelInterface;
 using ArchSitePlan.UI.Helpers;
 using ArchSitePlan.UI.HTML_UI.MessageToUI;
-using Eto.Forms;
 using Rhino;
 using Rhino.DocObjects;
 
@@ -21,7 +20,6 @@ namespace ArchSitePlan.UI.HTML_UI.MessagesFromUI
             if(!AppLanduses.TryGetUse(Use, out var use))
                 throw new Exception("Invalid land use received from UI");
 
-            var vm = RhinoEventHandler.WPFViewModel;
             RhinoDoc doc = RhinoDoc.ActiveDoc;
             int parcelLayerIndex = LayerHelpers.CreateOrGetLayerIndex(
                 doc,
@@ -39,7 +37,7 @@ namespace ArchSitePlan.UI.HTML_UI.MessagesFromUI
             ModelBuilderPipelines.ChangeParcelUsePipeline(doc,
                 srfObjs.Select(s => s.Id).ToList(),
                 use,
-                vm.AppMode);
+                RhinoEventHandler.HTMLViewModel.AppMode);
 
                 
             RhinoEventHandler.HTMLViewModel.UpdateGraphMessage();

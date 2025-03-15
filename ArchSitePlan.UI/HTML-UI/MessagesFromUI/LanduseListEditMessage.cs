@@ -31,7 +31,7 @@ namespace ArchSitePlan.UI.HTML_UI.MessagesFromUI
         public EmptyMessage HandleMessage()
         {
             var doc = RhinoDoc.ActiveDoc;
-            var appMode = RhinoEventHandler.WPFViewModel.AppMode;
+            var appMode = RhinoEventHandler.HTMLViewModel.AppMode;
 
             switch (EditType)
             {
@@ -56,7 +56,7 @@ namespace ArchSitePlan.UI.HTML_UI.MessagesFromUI
 
             // Modify core model and outputted model parcels and buildings
             ModelBuilderPipelines.ReloadAppPipeline(RhinoDoc.ActiveDoc,
-                RhinoEventHandler.WPFViewModel.AppMode);
+                RhinoEventHandler.HTMLViewModel.AppMode);
 
             return new EmptyMessage();
         }

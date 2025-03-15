@@ -1,5 +1,5 @@
-﻿using ArchSitePlan.UI;
-using ArchSitePlan.UI.Actions;
+﻿using ArchSitePlan.RhinoInterface;
+using ArchSitePlan.RhinoInterface.Actions;
 using Eto.Forms;
 using Rhino;
 using System;
@@ -28,38 +28,38 @@ public class ArchSitePlanRhinoPlugin : Rhino.PlugIns.PlugIn
     public static ArchSitePlanRhinoPlugin Instance { get; private set; }
     protected override Rhino.PlugIns.LoadReturnCode OnLoad(ref string errorMessage)
     {
-        Type mainPanel = typeof(MainViewHost);
-        var outPutDirectory = Path.GetDirectoryName(Assembly.Location);
-        string path = outPutDirectory + "\\EmbeddedResources\\LOGO.ico";
-        Icon icon = new Icon(path, new Size(16,16));
-        Rhino.UI.Panels.RegisterPanel(this,
-            mainPanel,
-            "AIQ Urban",
-            icon);
+        //Type mainPanel = typeof(MainViewHost);
+        //var outPutDirectory = Path.GetDirectoryName(Assembly.Location);
+        //string path = outPutDirectory + "\\EmbeddedResources\\LOGO.ico";
+        //Icon icon = new Icon(path, new Size(16,16));
+        //Rhino.UI.Panels.RegisterPanel(this,
+        //    mainPanel,
+        //    "AIQ Urban",
+        //    icon);
 
         return Rhino.PlugIns.LoadReturnCode.Success;
     }
 }
 
-[Guid("0874C691-A083-4C05-9E31-96C2C63F7C7E")]
-public class MainViewHost : RhinoWindows.Controls.WpfElementHost
+//[Guid("0874C691-A083-4C05-9E31-96C2C63F7C7E")]
+//public class MainViewHost : RhinoWindows.Controls.WpfElementHost
 
-{
-    public static MainViewModel viewModel = new MainViewModel();
-    public static Main view = new Main();
-    public MainViewHost() : base(view, viewModel)
-    {
-        RhinoEventHandler.WPFViewModel = viewModel;
-    }
+//{
+//    //public static MainViewModel viewModel = new MainViewModel();
+//    //public static Main view = new Main();
+//    public MainViewHost() : base(view, viewModel)
+//    {
+//        RhinoEventHandler.WPFViewModel = viewModel;
+//    }
 
-    /// <summary>
-    /// Returns the ID of this panel.
-    /// </summary>
-    public static System.Guid PanelId
-    {
-        get
-        {
-            return typeof(MainViewHost).GUID;
-        }
-    }
-}
+//    /// <summary>
+//    /// Returns the ID of this panel.
+//    /// </summary>
+//    public static System.Guid PanelId
+//    {
+//        get
+//        {
+//            return typeof(MainViewHost).GUID;
+//        }
+//    }
+//}

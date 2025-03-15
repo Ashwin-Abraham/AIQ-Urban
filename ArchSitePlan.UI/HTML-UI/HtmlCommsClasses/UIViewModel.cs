@@ -1,6 +1,7 @@
 ﻿using ArchSitePlan.Core.Constants;
 using ArchSitePlan.Core.Metrics;
 using ArchSitePlan.Core.Models;
+using ArchSitePlan.UI.Actions;
 using ArchSitePlan.UI.CoreModelInterface;
 using ArchSitePlan.UI.HTML_UI.MessageToUI;
 using Rhino;
@@ -18,12 +19,13 @@ namespace ArchSitePlan.UI.HTML_UI.HtmlCommsClasses;
 /// </summary>
 public class UIViewModel
 {
-    public ModellingTool ModelToolMode { get; private set; }
+    public ModellingTool AppMode { get; set; }
     public MetricsMessage MetricsMessageData { get; private set; }
     public ZonesInModelMessage ZoneMessageData { get; private set; }
     public ExportLocationMessage ExportLocationMessageData { get; private set; }
     public string ModelFileName { get; private set; }
     public string ExportsFolder { get; private set; }
+    public StudyArea ActiveStudy { get; private set; }
 
     public UIViewModel()
     {
@@ -31,6 +33,30 @@ public class UIViewModel
         ZoneMessageData = new ZonesInModelMessage(activeZoneName);
         MetricsMessageData = new MetricsMessage(activeZoneName);
         ExportLocationMessageData = new ExportLocationMessage();
+    }
+
+    public void ReloadApp()
+    {
+        RhinoDoc doc = RhinoDoc.ActiveDoc;
+        // AppEnabled = !AppEnabled;
+
+        //bool expanderOpen = AppMode != ModellingTool.None;
+        // AppMode = ModellingTool.None;
+
+        //SetAppMode(AppMode, expanderOpen);
+
+        //if (!AppEnabled || AppMode == ModellingTool.None)
+        //{
+            // Hard lock to avoid complex refactor
+            LayerManager.ToggleLockModelLayers(doc, true);
+        //    return;
+        //}
+
+        ModelBuilderPipelines.ReloadAppPipeline(doc, /*AppMode*/ ModellingTool.None);
+        ActiveStudy = CoreModel.Studies.First();
+        //ActiveStudyAreaName = ActiveStudy.Name;
+        //StudyAreasNames = CoreModel.Studies.Select(s => s.Name).ToList();
+        LayerManager.ToggleLayerStateBasedOnAppMode(doc, /*AppMode*/ ModellingTool.None);
     }
 
     internal void UpdateGraphMessage()

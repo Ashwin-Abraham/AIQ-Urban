@@ -22,9 +22,11 @@ public class MetricsMessage :IMessageToUI
     public void RefreshActiveStudyAndMetrics()
     {
         if (StudyName == string.Empty
-            || !CoreModel.TryGetStudyArea(StudyName, out StudyArea study))
-            study = CoreModel.Studies.First(s => s.Name == CoreGeneralConstants.FullProjectStudyName);
-        
+            || !CoreModel.TryGetStudyArea(StudyName, out StudyArea? study))
+            study = CoreModel.Studies.FirstOrDefault(s => s.Name == CoreGeneralConstants.FullProjectStudyName);
+
+        if (study == null) return;
+
         UrbanLandAreaData = UpdateLandUseGraphData(study.Metrics);
         UrbanBuiltAreaData = UpdateBuiltUseGraphData(study.Metrics);
         RoadAreaData = UpdateRoadAreaGraphData(study.Metrics);

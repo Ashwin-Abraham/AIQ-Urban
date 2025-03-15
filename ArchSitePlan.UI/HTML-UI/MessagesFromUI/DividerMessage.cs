@@ -20,7 +20,7 @@ namespace ArchSitePlan.UI.HTML_UI.MessagesFromUI
 
         public MetricsMessage HandleMessage()
         {
-            RhinoEventHandler.WPFViewModel.AppMode = ModellingTool.Dividers;
+            RhinoEventHandler.HTMLViewModel.AppMode = ModellingTool.Dividers;
 
             RhinoDoc doc = RhinoDoc.ActiveDoc;
             int parcelDividerLayerIndex = LayerHelpers.CreateOrGetLayerIndex(
