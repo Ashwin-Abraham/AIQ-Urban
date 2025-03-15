@@ -1,17 +1,14 @@
 ﻿using AIQ.Primitives.Extensions;
 using ArchSitePlan.BHoM.Geometry.Extensions;
+using ArchSitePlan.Core.Factories.Models;
 using ArchSitePlan.Core.Models;
 using ArchSitePlan.Core.Pipeline.CreationData;
-using ArchSitePlan.DebugModel;
-using ArchSitePlan.DebugModel.BHoMExtensions;
-using ArchSitePlan.DebugModel.Extensions;
 using BH.Engine.Geometry;
-using BH.Engine.Representation;
 using BH.oM.Geometry;
 
 namespace ArchSitePlan.Core.Factories;
 
-public class RectangleBuildingFactory
+public class RectangleBuildingFactory:BuildingLayoutFactoryBase
 {
     AutoRectangleBuildingData _config;
 
@@ -20,42 +17,34 @@ public class RectangleBuildingFactory
         _config = config;
     }
 
-    private class BuildingCreationSpecs(Polygon footPrint, double footprintArea, int floorCount)
+    public BuildingLayout? Generate()
     {
-        public Polygon Footprint = footPrint;
-        public double FootprintArea = footprintArea;
-        public int FloorCount = floorCount;
-    }
-
-    public List<RectangleBuilding> Generate()
-    {
-        List<RectangleBuilding> buildings = new();
-
         var site = _config.SiteBoundary;
-        Polyline primaryAxis = Building.GeneratePrimarySiteAxis(_config.SiteBoundary);
-        var buildableZone = site.OffsetAndMaintainClosure(-_config.Setback);
-        List<Polygon> footprints = GenerateFootprints(primaryAxis, buildableZone);
+        var buildableZone = site.OffsetAndMaintainClosure(-_config.Setback) as PolyCurve;
+        
+        if (buildableZone == null) return null;
 
-        DEBUGMODEL.AddBoundedCurves(footprints.ToHypar());
-        DEBUGMODEL.AddBoundedCurves(_config.SiteBoundary.ToHypar());
-        DEBUGMODEL.AddBoundedCurves(buildableZone.ToHypar());
-        DEBUGMODEL.OpenAsGlb();
+        Polyline? primaryAxis = GeneratePrimarySiteAxis(_config.SiteBoundary);
+        if (primaryAxis is null || buildableZone is null)
+            return null;
 
-        var buildingCreationData = GenerateMassingForTargetGFA( footprints);
+        List<PolyCurve> footprints = GenerateFootprints(primaryAxis, buildableZone)
+            .Select(x => Create.PolyCurve([x]))
+            .ToList();
+
+        var buildingCreationData = GenerateMassingForTargetGFA(
+            footprints,
+            (int)Math.Floor(_config.MaxHeight/ _config.FloorHeight),
+            // TODO: Find target gfa
+            _config.TargetGFA.Value);
 
         // Make buildings
-        foreach (var buildingData in buildingCreationData)
-            buildings.Add(CreateRectangularBuilding(buildingData));
+        List<Building> buildings = buildingCreationData
+            .Select(x => CreateBuilding(x, _config.FloorHeight))
+            .ToList();
 
-        DEBUGMODEL.Reset();
-        var hyparMeshes = buildings.Select(x => x.Envelope.ToHypar()).ToList();
-        DEBUGMODEL.AddMeshes(hyparMeshes);
-        DEBUGMODEL.AddBoundedCurves(footprints.ToHypar());
-        DEBUGMODEL.AddBoundedCurves(_config.SiteBoundary.ToHypar());
-        DEBUGMODEL.AddBoundedCurves(buildableZone.ToHypar());
-        DEBUGMODEL.OpenAsGlb();
-
-        return buildings;
+        var buildingLayout = new BuildingLayout(site, buildableZone, buildings);
+        return buildingLayout;
     }
 
     private List<Polygon> GenerateFootprints(Polyline primaryAxis, PolyCurve buildableZone)
@@ -111,91 +100,6 @@ public class RectangleBuildingFactory
             i += widthParamSize;
         }
 
-        DEBUGMODEL.Reset();
-        DEBUGMODEL.AddBoundedCurves(primaryAxis.ToHypar(), DebugMaterials.Red);
-        DEBUGMODEL.AddBoundedCurves(footprints.ToHypar());
-        DEBUGMODEL.AddBoundedCurves(_config.SiteBoundary.ToHypar());
-        DEBUGMODEL.AddBoundedCurves(buildableZone.ToHypar());
-        DEBUGMODEL.OpenAsGlb();
-
         return footprints;
-    }
-
-    //private static Polygon CreateBuildingFootPrint(
-    //    double buildingWidth,
-    //    double buildingLength,
-    //    Point center,
-    //    Vector lengthDirection)
-    //{
-    //    var widthDirection = lengthDirection.Rotate(90d.ToRadians(), Vector.ZAxis);
-    //    var lengthMover = lengthDirection * buildingLength / 2;
-    //    var widthMover = widthDirection * buildingWidth / 2;
-
-    //    var pointA = center - widthMover - lengthMover;
-    //    var pointB = center + widthMover - lengthMover;
-    //    var pointC = center + widthMover + lengthMover;
-    //    var pointD = center - widthMover + lengthMover;
-
-    //    var footprint = Create.Polygon([pointA, pointB, pointC, pointD]);
-    //    return footprint;
-    //}
-
-    private List<BuildingCreationSpecs> GenerateMassingForTargetGFA(List<Polygon> footprints)
-    {
-        if (footprints.Count == 0) return new();
-
-        int maxFloorCount = (int)Math.Floor(_config.MaxHeight / _config.FloorHeight);
-        double totalGFA = 0;
-
-        List<BuildingCreationSpecs> buildingsWIP  =
-            footprints
-            .Select(x => new BuildingCreationSpecs(x, x.IArea(), 0))
-            .ToList();
-
-        // First pack the buildings to the brim
-        var smallestFootPrint = buildingsWIP.Min(x => x.FootprintArea);
-
-        while (totalGFA < _config.TargetGFA)
-        {
-            foreach(var buildingWIP in buildingsWIP)
-            {
-                var totalGFACheck = totalGFA + buildingWIP.FootprintArea;
-                if (totalGFACheck > _config.TargetGFA || buildingWIP.FloorCount >= maxFloorCount) continue;
-
-                buildingWIP.FloorCount++;
-                totalGFA += buildingWIP.FootprintArea;
-            }
-
-            if (totalGFA + smallestFootPrint > _config.TargetGFA) break;
-        }
-
-        // Next Apply variance
-
-        buildingsWIP.RemoveAll(x => x.FloorCount == 0);
-        return buildingsWIP;
-    }
-
-    private RectangleBuilding CreateRectangularBuilding(BuildingCreationSpecs buildingData)
-    {
-        Mesh envelope = CreateEnvelopeMesh(buildingData.Footprint,  buildingData.FloorCount);
-        List<PlanarSurface> floorPlates = new();
-        var typicalFloorPlate = Create.PlanarSurface(buildingData.Footprint);
-
-        for(int i = 0; i < buildingData.FloorCount; i ++)
-        {
-            var mover = Vector.ZAxis * i * _config.FloorHeight;
-            floorPlates.Add(typicalFloorPlate.Translate(mover));
-        }
-
-        return new RectangleBuilding(envelope, floorPlates, _config.FloorHeight);
-    }
-
-    private Mesh CreateEnvelopeMesh( Polygon footprint, int floorCount)
-    {
-        var mover = Vector.ZAxis * (double)floorCount * _config.FloorHeight;
-        Extrusion extrude = Create.Extrusion(footprint, mover, true);
-        var renderMesh = BH.Engine.Representation.Compute.RenderMesh(extrude);
-        var meshEnvelope = Create.Mesh(renderMesh.Vertices.Select(x => x.Point).ToList(), renderMesh.Faces);
-        return meshEnvelope;
     }
 }

@@ -15,7 +15,6 @@ namespace ArchSitePlan.DebugModel.BHoMExtensions
             return new Elements.Geometry.Polyline(verts);
                
         }
-
         public static IEnumerable<Elements.Geometry.Polyline> ToHyparPolylines(
             this IEnumerable<ICurve> curves)
         {
@@ -41,11 +40,29 @@ namespace ArchSitePlan.DebugModel.BHoMExtensions
                 .ToList();
 
             var triangles = mesh.Faces
-                .Select(f => new Elements.Geometry.Triangle(meshVertices[f.A], meshVertices[f.B], meshVertices[f.C]))
+                .Select(f => CreateTriangle(f, meshVertices))
                 .Where(tri => tri.IsValid())
                 .ToList();
 
             return new Elements.Geometry.Mesh(meshVertices, triangles);
+        }
+
+        private static Elements.Geometry.Triangle CreateTriangle(Face f, List<Elements.Geometry.Vertex> vertices)
+        {
+            var vertexList = new List<Elements.Geometry.Vertex>()
+            {
+                vertices[f.A],
+                vertices[f.B],
+                vertices[f.C]
+            };
+
+            var AToB = vertices[f.B].Position - vertices[f.A].Position;
+            var BToC = vertices[f.C].Position - vertices[f.B].Position;
+            var normal = AToB.Cross(BToC).Unitized();
+
+            normal = new Random().Next() % 2 == 0 ? normal : normal.Negate();
+
+            return new Elements.Geometry.Triangle(vertexList, normal);
         }
 
         private static bool IsValid(this Elements.Geometry.Triangle triangle, double tolerance = 1e-06)

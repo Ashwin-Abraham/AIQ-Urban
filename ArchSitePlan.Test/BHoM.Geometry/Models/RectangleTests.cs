@@ -6,7 +6,7 @@ using ArchSitePlan.DebugModel.BHoMExtensions;
 using BH.Engine.Geometry;
 using BH.oM.Geometry;
 
-namespace ArchSitePlan.Test.Geometry.Models;
+namespace ArchSitePlan.Test.BHoM.Geometry.Models;
 
 public class RectangleTests
 {
@@ -66,8 +66,8 @@ public class RectangleTests
         var contours = rect.Contour(contourCount);
 
         // Preview
-        DEBUGMODEL.AddBoundedCurves(contours.ToHypar(), DebugMaterials.Red, 0.05);
-        DEBUGMODEL.AddBoundedCurves(rect.ToHypar());
+        DEBUGMODEL.Debug(contours.ToHypar(), DebugMaterials.Red, 0.05);
+        DEBUGMODEL.Debug(rect.ToHypar());
         DEBUGMODEL.OpenAsGlb();
 
         // Assert

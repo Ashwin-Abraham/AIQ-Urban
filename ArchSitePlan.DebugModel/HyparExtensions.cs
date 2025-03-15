@@ -2,7 +2,7 @@
 
 namespace ArchSitePlan.DebugModel
 {
-    public static class HyparDebugExtensions
+    public static class HyparExtensions
     {
         public static Polygon ToPolygon(this Triangle triangle)
         {

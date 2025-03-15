@@ -1,7 +1,15 @@
-﻿using BH.oM.Geometry;
+﻿using ArchSitePlan.Core.Factories.Models;
+using BH.oM.Geometry;
 using static ArchSitePlan.Core.Constants.Enums;
 
 namespace ArchSitePlan.Core.Pipeline.CreationData;
+
+public record BuildingAlongRoadConfig(
+    List<BuildingDefinition> Definitions,
+    BuildingTargetMode TargetMode,
+    double? TargetGFA,
+    double? TargetFAR,
+    double Setback);
 
 public record AutoBuildingData(
     PolyCurve SiteBoundary,
@@ -11,7 +19,6 @@ public record AutoBuildingData(
     double? TargetHeight,
     double Setback,
     double MaxHeight,
-    double MinHeight,
     double FloorHeight);
 
 public record AutoRectangleBuildingData(
@@ -26,7 +33,6 @@ public record AutoRectangleBuildingData(
     double MaxHeight,
     double MaxLength,
     double MinLength,
-    double MinHeight,
     double FloorHeight) : AutoBuildingData(
         SiteBoundary,
         TargetMode,
@@ -35,7 +41,28 @@ public record AutoRectangleBuildingData(
         TargetHeight,
         Setback,
         MaxHeight,
-        MinHeight,
+        FloorHeight);
+
+public record AutoPeripheralBuildingData(
+    double BuildingWidth,
+    double MinFloorPlateDepth,
+    PolyCurve SiteBoundary,
+    BuildingTargetMode TargetMode,
+    double? TargetGFA,
+    double? TargetFAR,
+    double? TargetHeight,
+    double Setback,
+    double MaxHeight,
+    double MaxLength,
+    double MinLength,
+    double FloorHeight):AutoBuildingData(
+        SiteBoundary,
+        TargetMode,
+        TargetGFA,
+        TargetFAR,
+        TargetHeight,
+        Setback,
+        MaxHeight,
         FloorHeight);
 
 public record AutoLShapedBuildingData 

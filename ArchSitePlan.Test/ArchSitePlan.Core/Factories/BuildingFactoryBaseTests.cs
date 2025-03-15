@@ -1,16 +1,12 @@
-﻿using ArchSitePlan.BHoM.Geometry;
-using ArchSitePlan.Core.Factories;
-using ArchSitePlan.Core.Models;
-using ArchSitePlan.Core.Pipeline.CreationData;
+﻿using ArchSitePlan.Core.Factories;
 using ArchSitePlan.DebugModel;
 using ArchSitePlan.DebugModel.BHoMExtensions;
 using BH.Engine.Geometry;
 using BH.oM.Geometry;
-using static ArchSitePlan.Core.Constants.Enums;
 
-namespace ArchSitePlan.Test.Core.Models;
+namespace ArchSitePlan.Test.ArchSitePlan.Core.Factories;
 
-public class BuildingTests
+public class BuildingFactoryBaseTests
 {
     public static IEnumerable<object[]> GetSiteBoundaries()
     {
@@ -32,7 +28,7 @@ public class BuildingTests
 
         yield return new object[]
          {
-             "Rectangle-Angled",
+            "Rectangle-Angled",
             new Polygon(new List<Point>
             {
                 Create.Point(2, 0),
@@ -108,85 +104,98 @@ public class BuildingTests
             Point mid,
             Point pointAtParam75)
     {
-        var axis = Building.GeneratePrimarySiteAxis(
+        var axis = BuildingLayoutFactoryBase.GeneratePrimarySiteAxis(
             Create.PolyCurve([siteBoundary]));
 
 #if DEBUG
         DEBUGMODEL.Reset();
-        DEBUGMODEL.AddBoundedCurves(axis.ToHypar(), DebugMaterials.Red);
-        DEBUGMODEL.AddBoundedCurves(siteBoundary.ToHypar());
+        axis.Debug(DebugMaterials.Red);
+        DEBUGMODEL.Debug(siteBoundary.ToHypar());
         DEBUGMODEL.OpenAsGlb();
 #endif
     }
 
     [Fact]
-    public void GenerateRectangleBuilding()
+    public void SplitUpCurveIntoFragments()
     {
-        var siteBoundary = Create.Polygon([
-            Create.Point(0,0),
-            Create.Point(200,0),
-            Create.Point(225, 300),
-            Create.Point(0,100)
-        ]);
+        // Arrange
+        var curve = Create.PolyCurve([
+            Create.Polygon([
+                Create.Point(0,0),
+                Create.Point(200,0),
+                Create.Point(225, 300),
+                Create.Point(0,100)
+            ])
+            ]);
 
-        var config = new AutoRectangleBuildingData(
-            BuildingWidth: 15,
-            MinFloorPlateDepth: 5,
-            SiteBoundary: Create.PolyCurve([siteBoundary]),
-            TargetMode: BuildingTargetMode.GFA,
-            TargetGFA: 50000,
-            TargetFAR: null,
-            TargetHeight: null,
-            Setback: 6,
-            MaxHeight: 24,
-            MinHeight: 6,
-            MaxLength: 50,
-            MinLength: 10,
-            FloorHeight: 3.6);
+        //Act
+        var fragments = PeripheralBuildingFactory
+            .ApplySolidVoidPattern(Create.PolyCurve([curve]), 180, 25)
+            .ToList();
 
-        // Test Line Boolean Intersections
-        // Then test building
+        // Visualize
+        DEBUGMODEL.Reset();
+        DEBUGMODEL.Debug(fragments.ToHypar());
+        DEBUGMODEL.OpenAsGlb();
 
-        var building = new RectangleBuildingFactory(config).Generate();
-
-        var gfa = building.Sum(x => x.BUA());
-        Assert.Equal(50000, gfa, 1000.0);
+        // Assert
+        var solidTotal = fragments.Sum(x => x.Length());
+        Assert.Equal(777, solidTotal, 1.0);
     }
 
     [Fact]
-    public void GenerateRectangleBuilding_OddSite()
+    public void SplitUpCurveIntoFragments_ArcPolycurve()
     {
-        var siteBoundary = Create.Polygon([
-            Create.Point(0,0),
-            Create.Point(200,0),
-            Create.Point(400, 300),
-            Create.Point(225, 150),
-            Create.Point(0, 100),
-            Create.Point(-150, 150),
-            Create.Point(-50,20)
-        ]);
+        // Arrange
+        var polyline = Create.Polyline([
+                Create.Point(0,0),
+                Create.Point(200,0),
+                Create.Point(225, 300),
+                Create.Point(0,100)
+            ]);
 
-        var config = new AutoRectangleBuildingData(
-            BuildingWidth: 15,
-            MinFloorPlateDepth: 5,
-            SiteBoundary: Create.PolyCurve([siteBoundary]),
-            TargetMode: BuildingTargetMode.GFA,
-            TargetGFA: 50000,
-            TargetFAR: null,
-            TargetHeight: null,
-            Setback: 6,
-            MaxHeight: 24,
-            MinHeight: 6,
-            MaxLength: 50,
-            MinLength: 10,
-            FloorHeight: 3.6);
+        var arc = Create.Arc(
+            start: Create.Point(0, 100),
+            middle: Create.Point(-50, 50),
+            end: Create.Point(0, 0));
 
-        // Test Line Boolean Intersections
-        // Then test building
+        var curve = Create.PolyCurve([polyline, arc]);
 
-        var building = new RectangleBuildingFactory(config).Generate();
+        //Act
+        var fragments = PeripheralBuildingFactory
+            .ApplySolidVoidPattern(Create.PolyCurve([curve]), 180, 25)
+            .ToList();
 
-        var gfa = building.Sum(x => x.BUA());
-        Assert.Equal(50000, gfa, 1000.0);
+        // Visualize
+        DEBUGMODEL.Reset();
+        DEBUGMODEL.Debug(fragments.ToHypar());
+        DEBUGMODEL.OpenAsGlb();
+
+        // Assert
+        var solidTotal = fragments.Sum(x => x.Length());
+        Assert.Equal(834.15, solidTotal, 0.1);
+    }
+
+    [Fact]
+    public void SplitUpCurveIntoFragments_Circle()
+    {
+        // Arrange
+        var circle = Create.Circle(Create.Point(10,10), 200 );
+
+        var curve = Create.PolyCurve([circle]);
+
+        //Act
+        var fragments = PeripheralBuildingFactory
+            .ApplySolidVoidPattern(Create.PolyCurve([curve]), 180, 25)
+            .ToList();
+
+        // Visualize
+        DEBUGMODEL.Reset();
+        DEBUGMODEL.Debug(fragments.ToHypar());
+        DEBUGMODEL.OpenAsGlb();
+
+        // Assert
+        var solidTotal = fragments.Sum(x => x.Length());
+        Assert.Equal(1081.637, solidTotal, 0.1);
     }
 }
