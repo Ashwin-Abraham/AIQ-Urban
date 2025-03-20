@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net7.0-windows</TargetFramework>
+    <TargetFramework>net7.0</TargetFramework>
     <Nullable>enable</Nullable>
     <UseWPF>true</UseWPF>
     <ImplicitUsings>enable</ImplicitUsings>
@@ -9,13 +9,16 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="RhinoOSM\Nodes\**" />
+    <EmbeddedResource Remove="RhinoOSM\Nodes\**" />
+    <None Remove="RhinoOSM\Nodes\**" />
+    <Page Remove="RhinoOSM\Nodes\**" />
+  </ItemGroup>
+
+  <ItemGroup>
 	  <PackageReference Include="Cryptolens.Licensing.CrossPlatform" Version="4.0.48" />
-	  <PackageReference Include="LiveCharts.Wpf.NetCore3" Version="0.9.8" />
-	  <PackageReference Include="MahApps.Metro" Version="3.0.0-alpha0492" />
 	  <PackageReference Include="OpenAI" Version="2.2.0-beta.2" />
-	  <PackageReference Include="RhinoWindows" Version="8.4.24044.15001">
-		  <ExcludeAssets>runtime</ExcludeAssets>
-	  </PackageReference>
+	  <PackageReference Include="RhinoCommon" Version="8.17.25066.7001" />
 	  <PackageReference Include="WebSocketSharp" Version="1.0.3-rc11" />
   </ItemGroup>
 	
@@ -25,14 +28,6 @@
     <ProjectReference Include="..\ArchSitePlan.Core\ArchSitePlan.Core.csproj" />
     <ProjectReference Include="..\ArchSitePlan.Licensing\ArchSitePlan.Licensing.csproj" />
     <ProjectReference Include="..\ArchSitePlan.OSM\ArchSitePlan.OSM.csproj" />
-  </ItemGroup>
-	
-	
-
-  <ItemGroup>
-    <Reference Include="System.Windows.Forms">
-      <HintPath>..\..\..\..\..\..\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.8\System.Windows.Forms.dll</HintPath>
-    </Reference>
   </ItemGroup>
 
   <ItemGroup>
@@ -54,16 +49,6 @@
     <Resource Include="Resources\Question.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Page Update="Styles\Styles.xaml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Page>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="RhinoOSM\Nodes\" />
   </ItemGroup>
 
 </Project>

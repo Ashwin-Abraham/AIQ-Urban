@@ -1,4 +1,4 @@
-﻿namespace ArchSitePlan.UI.UsageLogs;
+﻿namespace ArchSitePlan.RhinoInterface.UsageLogs;
 
 public interface IFeatureUsageLog
 {

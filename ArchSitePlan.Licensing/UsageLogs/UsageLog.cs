@@ -1,5 +1,5 @@
 ﻿
-namespace ArchSitePlan.UI.UsageLogs;
+namespace ArchSitePlan.RhinoInterface.UsageLogs;
 
 public class UsageLog:IFeatureUsageLog
 {

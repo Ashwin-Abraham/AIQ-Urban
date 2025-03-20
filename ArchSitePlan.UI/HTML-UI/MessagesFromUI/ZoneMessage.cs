@@ -1,5 +1,4 @@
-﻿using ArchSitePlan.Core.Extensions;
-using ArchSitePlan.Core.Models;
+﻿using ArchSitePlan.Core.Models;
 using ArchSitePlan.Core.Pipeline.CreationData;
 using ArchSitePlan.UI.Actions;
 using ArchSitePlan.UI.Constants;
@@ -21,7 +20,7 @@ namespace ArchSitePlan.UI.HTML_UI.MessagesFromUI
         public ZonesInModelMessage HandleMessage()
     {
             var vm = RhinoEventHandler.HTMLViewModel;
-            RhinoEventHandler.WPFViewModel.AppMode = ModellingTool.Zones;
+            RhinoEventHandler.HTMLViewModel.AppMode = ModellingTool.Zones;
 
             var rhinoObjs = RhinoDoc.ActiveDoc.Objects.GetSelectedObjects(false, false).ToList();
 

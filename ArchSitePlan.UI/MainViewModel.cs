@@ -1,17 +1,11 @@
-﻿using System.ComponentModel;
-using System.Diagnostics;
-using System.Drawing;
+﻿using System.Diagnostics;
 using System.IO;
-using System.Windows.Forms;
 using System.Windows.Input;
-using ArchSitePlan.Core.Extensions;
-using ArchSitePlan.Core.Metrics;
 using ArchSitePlan.Core.Models;
 using ArchSitePlan.Core.Pipeline.CreationData;
 using ArchSitePlan.UI.Actions;
 using ArchSitePlan.UI.Constants;
 using ArchSitePlan.UI.CoreModelInterface;
-using ArchSitePlan.UI.Extensions;
 using ArchSitePlan.UI.Helpers;
 using ArchSitePlan.UI.HTML_UI;
 using ArchSitePlan.UI.InputValidation.Results;
@@ -20,14 +14,11 @@ using ArchSitePlan.UI.Models;
 using ArchSitePlan.UI.OpenAI;
 using ArchSitePlan.UI.RhinoBHoMInterop;
 using BH.Engine.Geometry;
-using LiveCharts;
-using LiveCharts.Wpf;
+using Eto.Forms;
 using Rhino;
 using Rhino.DocObjects;
 using Rhino.Geometry;
 using static ArchSitePlan.UI.Constants.Enums;
-using MessageBox = System.Windows.Forms.MessageBox;
-using SolidColorBrush = System.Windows.Media.SolidColorBrush;
 
 namespace ArchSitePlan.UI;
 public record VMActiveParcelsDetails(
@@ -37,7 +28,7 @@ public record VMActiveParcelsDetails(
     string CoveragePctg,
     string FAR);
 
-public class MainViewModel : ViewModelBase, INotifyPropertyChanged
+public class MainViewModel // ViewModelBase, INotifyPropertyChanged
 {
     #region VARIABLES
     private string _licenseKey = "licenseKey";
@@ -164,6 +155,11 @@ public class MainViewModel : ViewModelBase, INotifyPropertyChanged
         }
     }
 
+    private void OnPropertyChanged(string v)
+    {
+        throw new NotImplementedException();
+    }
+
     private bool _studyAreaExpanderOpen = false;
     public bool StudyAreaExpanderOpen
     {
@@ -230,18 +226,18 @@ public class MainViewModel : ViewModelBase, INotifyPropertyChanged
         }
     }
 
-    private SolidColorBrush _selectedLandUseColour = new SolidColorBrush(
-        AppLanduses.Undefined.Color.ToWindowsMediaColor());
+    //private SolidColorBrush _selectedLandUseColour = new SolidColorBrush(
+    //    AppLanduses.Undefined.Color.ToWindowsMediaColor());
 
-    public SolidColorBrush SelectedLandUseColour
-    {
-        get => _selectedLandUseColour;
-        set
-        {
-            _selectedLandUseColour = value;
-            OnPropertyChanged(nameof(SelectedLandUseColour));
-        }
-    }
+    //public SolidColorBrush SelectedLandUseColour
+    //{
+    //    get => _selectedLandUseColour;
+    //    set
+    //    {
+    //        _selectedLandUseColour = value;
+    //        OnPropertyChanged(nameof(SelectedLandUseColour));
+    //    }
+    //}
 
     public BuildingSelectorMode BuildingSelectorMode { get; set; } = BuildingSelectorMode.Footprint;
 
@@ -313,38 +309,38 @@ public class MainViewModel : ViewModelBase, INotifyPropertyChanged
             OnPropertyChanged(nameof(ActiveStudy));
         }
     }
-    private SeriesCollection _roadLengthSeries;
-    public SeriesCollection RoadLengthSeries
-    {
-        get => _roadLengthSeries;
-        set
-        {
-            _roadLengthSeries = value;
-            OnPropertyChanged(nameof(RoadLengthSeries));
-        }
-    }
+    //private SeriesCollection _roadLengthSeries;
+    //public SeriesCollection RoadLengthSeries
+    //{
+    //    get => _roadLengthSeries;
+    //    set
+    //    {
+    //        _roadLengthSeries = value;
+    //        OnPropertyChanged(nameof(RoadLengthSeries));
+    //    }
+    //}
 
-    private SeriesCollection _roadAreaSeries;
-    public SeriesCollection RoadAreaSeries
-    {
-        get => _roadAreaSeries;
-        set
-        {
-            _roadAreaSeries = value;
-            OnPropertyChanged(nameof(RoadAreaSeries));
-        }
-    }
+    //private SeriesCollection _roadAreaSeries;
+    //public SeriesCollection RoadAreaSeries
+    //{
+    //    get => _roadAreaSeries;
+    //    set
+    //    {
+    //        _roadAreaSeries = value;
+    //        OnPropertyChanged(nameof(RoadAreaSeries));
+    //    }
+    //}
 
-    private SeriesCollection _parcelSeriesCollection;
-    public SeriesCollection ParcelSeriesCollection
-    {
-        get => _parcelSeriesCollection;
-        set
-        {
-            _parcelSeriesCollection = value;
-            OnPropertyChanged(nameof(ParcelSeriesCollection));
-        }
-    }
+    //private SeriesCollection _parcelSeriesCollection;
+    //public SeriesCollection ParcelSeriesCollection
+    //{
+    //    get => _parcelSeriesCollection;
+    //    set
+    //    {
+    //        _parcelSeriesCollection = value;
+    //        OnPropertyChanged(nameof(ParcelSeriesCollection));
+    //    }
+    //}
 
     private double _graphHeight = 100;
     public double GraphHeight
@@ -525,23 +521,24 @@ public class MainViewModel : ViewModelBase, INotifyPropertyChanged
     {
         try
         {
-            using (FolderBrowserDialog folderBrowserDialog = new FolderBrowserDialog())
-            {
-                folderBrowserDialog.Description = "Set export location";
-                folderBrowserDialog.ShowNewFolderButton = false;  
+            MessageBox.Show("Excel dialog box not implemented");
 
-                if (folderBrowserDialog.ShowDialog() == DialogResult.OK)
-                {
-                    string rhinoName = RhinoDoc.ActiveDoc.Name;
-                    rhinoName = rhinoName is null || rhinoName == "" ? 
-                        "Untitled" : rhinoName;
+            //using (SelectFolderDialog folderBrowserDialog = new SelectFolderDialog())
+            //{
+            //    folderBrowserDialog.Title = "Set export location";
 
-                    // Get the selected folder path
-                    ExcelPath = Path.Combine(
-                        folderBrowserDialog.SelectedPath,
-                        $"{rhinoName}_ProjectReport.xlsx");
-                }
-            }
+            //    if (folderBrowserDialog.ShowDialog() == DialogResult.OK)
+            //    {
+            //        string rhinoName = RhinoDoc.ActiveDoc.Name;
+            //        rhinoName = rhinoName is null || rhinoName == "" ? 
+            //            "Untitled" : rhinoName;
+
+            //        // Get the selected folder path
+            //        ExcelPath = Path.Combine(
+            //            folderBrowserDialog.SelectedPath,
+            //            $"{rhinoName}_ProjectReport.xlsx");
+            //    }
+            //}
         }
         catch(Exception ex)
         {
@@ -602,81 +599,81 @@ public class MainViewModel : ViewModelBase, INotifyPropertyChanged
           
     }
 
-    private void UpdateLandUseGraphData(StudyAreaMetrics metrics)
-    {
-        var groupedByUse = metrics.ParcelMetrics.GroupBy(p => p.Use);
-        ParcelSeriesCollection = new SeriesCollection();
-        foreach(var landUseGroup in groupedByUse)
-        {
-            var area = _builtOrLandArea ?
-                Math.Round(landUseGroup.Sum(p => p.BUA))
-                : Math.Round(landUseGroup.Sum(p => p.Area));
-            var use = landUseGroup.First().Use;
+    //private void UpdateLandUseGraphData(StudyAreaMetrics metrics)
+    //{
+    //    var groupedByUse = metrics.ParcelMetrics.GroupBy(p => p.Use);
+    //    ParcelSeriesCollection = new SeriesCollection();
+    //    foreach(var landUseGroup in groupedByUse)
+    //    {
+    //        var area = _builtOrLandArea ?
+    //            Math.Round(landUseGroup.Sum(p => p.BUA))
+    //            : Math.Round(landUseGroup.Sum(p => p.Area));
+    //        var use = landUseGroup.First().Use;
                 
-            ParcelSeriesCollection.Add(new ColumnSeries()
-            {
-                Title = landUseGroup.First().Use.ToString(),
-                Values = new ChartValues<double> { area },
-                Fill = new SolidColorBrush(use.Color.ToWindowsMediaColor()),
-                Height = 40,
+    //        ParcelSeriesCollection.Add(new ColumnSeries()
+    //        {
+    //            Title = landUseGroup.First().Use.ToString(),
+    //            Values = new ChartValues<double> { area },
+    //            Fill = new SolidColorBrush(use.Color.ToWindowsMediaColor()),
+    //            Height = 40,
                     
-            });
-        }
-        GraphHeight = groupedByUse.Count() * 12 + 50;
-    }
+    //        });
+    //    }
+    //    GraphHeight = groupedByUse.Count() * 12 + 50;
+    //}
 
-    private void UpdateRoadLengthGraphData(StudyAreaMetrics metrics)
-    {
-        var groupedByWidth = metrics.TransitMetrics.GroupBy(p => Math.Round(p.RoadWidth,1));
-        RoadLengthSeries = new SeriesCollection();
-        var widthColors = CoreModel.SetRoadColorsByWidth();
+    //private void UpdateRoadLengthGraphData(StudyAreaMetrics metrics)
+    //{
+    //    var groupedByWidth = metrics.TransitMetrics.GroupBy(p => Math.Round(p.RoadWidth,1));
+    //    RoadLengthSeries = new SeriesCollection();
+    //    var widthColors = CoreModel.SetRoadColorsByWidth();
 
-        foreach (var transitGroup in groupedByWidth)
-        {
-            var length = Math.Round(transitGroup.Sum(p => p.RunningLength));
-            var label = "Width (" + Math.Round(transitGroup.First().RoadWidth, 1).ToString() +"m)";
+    //    foreach (var transitGroup in groupedByWidth)
+    //    {
+    //        var length = Math.Round(transitGroup.Sum(p => p.RunningLength));
+    //        var label = "Width (" + Math.Round(transitGroup.First().RoadWidth, 1).ToString() +"m)";
 
-            var newRow = new PieSeries()
-            {
-                Title = label,
-                Values = new ChartValues<double> { length },
-            };
+    //        var newRow = new PieSeries()
+    //        {
+    //            Title = label,
+    //            Values = new ChartValues<double> { length },
+    //        };
 
-            widthColors.TryGetValue(transitGroup.Key, out Color color);
-            if (color != default)
-                newRow.Fill = new SolidColorBrush(color.ToWindowsMediaColor());
+    //        widthColors.TryGetValue(transitGroup.Key, out Color color);
+    //        if (color != default)
+    //            newRow.Fill = new SolidColorBrush(color.ToWindowsMediaColor());
 
-            RoadLengthSeries.Add(newRow);
-        }
-    }
+    //        RoadLengthSeries.Add(newRow);
+    //    }
+    //}
 
         
-    private void UpdateRoadAreaGraphData(StudyAreaMetrics metrics)
-    {
-        var groupedByWidth = metrics.TransitMetrics.GroupBy(p => Math.Round(p.RoadWidth, 1));
-        RoadAreaSeries = new SeriesCollection();
+    //private void UpdateRoadAreaGraphData(StudyAreaMetrics metrics)
+    //{
+    //    var groupedByWidth = metrics.TransitMetrics.GroupBy(p => Math.Round(p.RoadWidth, 1));
+    //    RoadAreaSeries = new SeriesCollection();
 
-        var widthColors = CoreModel.SetRoadColorsByWidth();
+    //    var widthColors = CoreModel.SetRoadColorsByWidth();
 
-        foreach (var transitGroup in groupedByWidth)
-        {
-            var area = Math.Round(transitGroup.Sum(p => p.Area));
-            var label = "Width (" + Math.Round(transitGroup.First().RoadWidth, 1).ToString() + "m)";
+    //    foreach (var transitGroup in groupedByWidth)
+    //    {
+    //        var area = Math.Round(transitGroup.Sum(p => p.Area));
+    //        var label = "Width (" + Math.Round(transitGroup.First().RoadWidth, 1).ToString() + "m)";
                 
 
-            var newRow = new PieSeries()
-            {
-                Title = label,
-                Values = new ChartValues<double> { area },
-            };
+    //        var newRow = new PieSeries()
+    //        {
+    //            Title = label,
+    //            Values = new ChartValues<double> { area },
+    //        };
 
-            widthColors.TryGetValue(transitGroup.Key, out Color color);
-            if (color != default)
-                newRow.Fill = new SolidColorBrush(color.ToWindowsMediaColor());
+    //        widthColors.TryGetValue(transitGroup.Key, out Color color);
+    //        if (color != default)
+    //            newRow.Fill = new SolidColorBrush(color.ToWindowsMediaColor());
 
-            RoadAreaSeries.Add(newRow);
-        }
-    }
+    //        RoadAreaSeries.Add(newRow);
+    //    }
+    //}
 
     private void Test_Exec(object obj)
     {
@@ -809,8 +806,8 @@ public class MainViewModel : ViewModelBase, INotifyPropertyChanged
 
     private void UpdateSelectedLanduseColour(string use)
     {
-        var landuse = AppLanduses.GetUse(use);
-        SelectedLandUseColour = new SolidColorBrush(landuse.Color.ToWindowsMediaColor());
+        //var landuse = AppLanduses.GetUse(use);
+        //SelectedLandUseColour = new SolidColorBrush(landuse.Color.ToWindowsMediaColor());
     }
 
     private void AddOrUpdateRoads_Exec(object obj)
@@ -866,9 +863,9 @@ public class MainViewModel : ViewModelBase, INotifyPropertyChanged
         {
             if (study == null) return;
 
-            UpdateLandUseGraphData(study.Metrics);
-            UpdateRoadLengthGraphData(study.Metrics);
-            UpdateRoadAreaGraphData(study.Metrics);
+            //UpdateLandUseGraphData(study.Metrics);
+            //UpdateRoadLengthGraphData(study.Metrics);
+            //UpdateRoadAreaGraphData(study.Metrics);
         }
         catch (Exception ex)
         {

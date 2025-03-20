@@ -3,8 +3,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.9.34723.18
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ArchSitePlan.UI", "ArchSitePlan.UI\ArchSitePlan.UI.csproj", "{CF6929A0-7072-4E23-B4B7-17EC3D199CE8}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ArchSitePlan.Core", "ArchSitePlan.Core\ArchSitePlan.Core.csproj", "{4E4FD939-5D3B-458E-873F-7D7F747524B0}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ArchSitePlan.RhinoAddin", "ArchSitePlan.RhinoAddin\ArchSitePlan.RhinoAddin.csproj", "{3987EFEF-0145-4AB0-AEDE-12B176D6020D}"
@@ -21,6 +19,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ArchSitePlan.BHoM.Geometry"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AIQ.Primitives", "AIQ.Primitives\AIQ.Primitives.csproj", "{34AEF067-F962-4B09-BECA-EA0CE169032B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ArchSitePlan.RhinoInterface", "ArchSitePlan.RhinoInterface\ArchSitePlan.RhinoInterface.csproj", "{4F5A6A49-43DB-4182-8B81-ADBE0B8D5553}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -29,14 +29,6 @@ Global
 		Release|x64 = Release|x64
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{CF6929A0-7072-4E23-B4B7-17EC3D199CE8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{CF6929A0-7072-4E23-B4B7-17EC3D199CE8}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{CF6929A0-7072-4E23-B4B7-17EC3D199CE8}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{CF6929A0-7072-4E23-B4B7-17EC3D199CE8}.Debug|x64.Build.0 = Debug|Any CPU
-		{CF6929A0-7072-4E23-B4B7-17EC3D199CE8}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{CF6929A0-7072-4E23-B4B7-17EC3D199CE8}.Release|Any CPU.Build.0 = Release|Any CPU
-		{CF6929A0-7072-4E23-B4B7-17EC3D199CE8}.Release|x64.ActiveCfg = Release|Any CPU
-		{CF6929A0-7072-4E23-B4B7-17EC3D199CE8}.Release|x64.Build.0 = Release|Any CPU
 		{4E4FD939-5D3B-458E-873F-7D7F747524B0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{4E4FD939-5D3B-458E-873F-7D7F747524B0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4E4FD939-5D3B-458E-873F-7D7F747524B0}.Debug|x64.ActiveCfg = Debug|Any CPU
@@ -99,6 +91,14 @@ Global
 		{34AEF067-F962-4B09-BECA-EA0CE169032B}.Release|Any CPU.Build.0 = Release|Any CPU
 		{34AEF067-F962-4B09-BECA-EA0CE169032B}.Release|x64.ActiveCfg = Release|Any CPU
 		{34AEF067-F962-4B09-BECA-EA0CE169032B}.Release|x64.Build.0 = Release|Any CPU
+		{4F5A6A49-43DB-4182-8B81-ADBE0B8D5553}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4F5A6A49-43DB-4182-8B81-ADBE0B8D5553}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4F5A6A49-43DB-4182-8B81-ADBE0B8D5553}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{4F5A6A49-43DB-4182-8B81-ADBE0B8D5553}.Debug|x64.Build.0 = Debug|Any CPU
+		{4F5A6A49-43DB-4182-8B81-ADBE0B8D5553}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4F5A6A49-43DB-4182-8B81-ADBE0B8D5553}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4F5A6A49-43DB-4182-8B81-ADBE0B8D5553}.Release|x64.ActiveCfg = Release|Any CPU
+		{4F5A6A49-43DB-4182-8B81-ADBE0B8D5553}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

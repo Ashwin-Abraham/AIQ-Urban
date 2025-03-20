@@ -3,7 +3,7 @@ using Rhino.Commands;
 using Rhino.Input;
 using Rhino.DocObjects;
 using System;
-using ArchSitePlan.UI.HTML_UI.Websockets;
+using ArchSitePlan.RhinoInterface.HTML_UI.Websockets;
 
 namespace ArchSitePlan.RhinoAddin;
 
