@@ -19,7 +19,8 @@ namespace ArchSitePlan.Core.Metrics
         public double BuiltArea_Display { get; private set; } = 2;
         public List<ParcelMetrics> ParcelMetrics = new();
         public List<TransitMetrics> TransitMetrics = new();
-        private void UpdateParcelMetrics(ICurve boundary, 
+        private void UpdateParcelMetrics(
+            ICurve? boundary, 
             List<Parcel> parcels, 
             List<Building> buildings,
             List<Road> transitRoutes)
@@ -70,7 +71,7 @@ namespace ArchSitePlan.Core.Metrics
         }
 
         public StudyAreaMetrics(
-            ICurve boundary, 
+            ICurve? boundary, 
             List<Parcel> parcels, 
             List<Building> buildings,
             List<Road> transitRoutes)

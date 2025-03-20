@@ -10,11 +10,12 @@ namespace ArchSitePlan.Core.Models
 {
     public static class CoreModel
     {
+        private static StudyArea _allStudy = new(null, Guid.NewGuid(), CoreGeneralConstants.FullProjectStudyName, new(), new(), new()); 
         public static List<Road> Roads = new List<Road>();
         public static List<PlanarSurface> ROWs = new List<PlanarSurface>();
         public static List<Parcel> Parcels = new List<Parcel>();
         public static List<Building> Buildings = new List<Building>();
-        public static List<StudyArea> Studies = new ();
+        public static List<StudyArea> Studies = new([_allStudy]);
         public static List<ParcelDivider> Dividers = new ();
         static CoreModel() { }
 

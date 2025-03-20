@@ -18,7 +18,7 @@ namespace ArchSitePlan.Core.Models
 
         public StudyAreaMetrics Metrics { get; private set; }
         public StudyArea(
-            ICurve boundary, 
+            ICurve? boundary, 
             Guid id, 
             string name,
             List<Parcel> parcels,

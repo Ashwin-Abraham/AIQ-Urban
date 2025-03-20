@@ -125,7 +125,6 @@ public class ServerComms
                 {
                     using (var reader = new System.IO.StreamReader(request.InputStream, request.ContentEncoding))
                     {
-                        var vm = RhinoEventHandler.HTMLViewModel;
                         string requestBody = await reader.ReadToEndAsync();
                         RhinoApp.WriteLine("Received data from Vue.js: " + requestBody);
 

@@ -14,8 +14,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="RhinoCommon" Version="8.17.25066.7001" />
-    <PackageReference Include="WebSocketSharp" Version="1.0.3-rc11" />
+	  <PackageReference Include="RhinoCommon" Version="8.17.25066.7001">
+		  <IncludeAssets>compile</IncludeAssets>
+		  <ExcludeAssets>runtime</ExcludeAssets>
+	  </PackageReference>
+
+	  <PackageReference Include="WebSocketSharp" Version="1.0.3-rc11" />
   </ItemGroup>
 
   <ItemGroup>

@@ -12,8 +12,6 @@ public static class VueUI
         var layout = new DynamicLayout { DefaultSpacing = new Size(5, 5), Padding = new Padding(0) };
         webView.Url = new Uri(@"http://localhost:6300/index.html");
 
-        //webView.LoadHtml(html);
-
         layout.AddSeparateRow(webView);
         layout.Add(null);
 
