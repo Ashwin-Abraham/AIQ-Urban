@@ -1,7 +1,5 @@
 ﻿using ArchSitePlan.Core.Constants;
-using ArchSitePlan.Core.Metrics;
 using ArchSitePlan.Core.Models;
-using ArchSitePlan.RhinoInterface.Actions;
 using ArchSitePlan.RhinoInterface.CoreModelInterface;
 using ArchSitePlan.RhinoInterface.HTML_UI.MessageToUI;
 using Rhino;
@@ -20,19 +18,9 @@ namespace ArchSitePlan.RhinoInterface.HTML_UI.HtmlCommsClasses;
 public class UIViewModel
 {
     public ModellingTool AppMode { get; set; }
-    public MetricsMessage MetricsMessageData { get; private set; }
-    public ZonesInModelMessage ZoneMessageData { get; private set; }
-    public ExportLocationMessage ExportLocationMessageData { get; private set; }
-    public string ModelFileName { get; private set; }
-    public string ExportsFolder { get; private set; }
-    public StudyArea ActiveStudy { get; private set; }
-
     public UIViewModel()
     {
         string activeZoneName = CoreGeneralConstants.FullProjectStudyName;
-        ZoneMessageData = new ZonesInModelMessage(activeZoneName);
-        MetricsMessageData = new MetricsMessage(activeZoneName);
-        ExportLocationMessageData = new ExportLocationMessage();
     }
 
     public void ReloadApp()
@@ -53,28 +41,9 @@ public class UIViewModel
         //}
 
         ModelBuilderPipelines.ReloadAppPipeline(doc, /*AppMode*/ ModellingTool.None);
-        ActiveStudy = CoreModel.Studies.First();
+        // ActiveStudy = CoreModel.Studies.First();
         //ActiveStudyAreaName = ActiveStudy.Name;
         //StudyAreasNames = CoreModel.Studies.Select(s => s.Name).ToList();
         LayerManager.ToggleLayerStateBasedOnAppMode(doc, /*AppMode*/ ModellingTool.None);
-    }
-
-    internal void UpdateGraphMessage()
-    {
-        MetricsMessageData = new MetricsMessage(ZoneMessageData.ZoneName);
-    }
-
-    public void UpdateZonesInModelMessage(string activeZone)
-    {
-        ZoneMessageData = new ZonesInModelMessage(activeZone);
-    }
-
-    public void SetModellingMode(ModellingTool newAppTool)
-    {
-        if (newAppTool == ModellingTool.None)
-            LayerManager.ToggleLockModelLayers(RhinoDoc.ActiveDoc, true);
-
-        LayerManager.ToggleLayerStateBasedOnAppMode(RhinoDoc.ActiveDoc, newAppTool);
-        RhinoDoc.ActiveDoc.Views.Redraw();
     }
 }

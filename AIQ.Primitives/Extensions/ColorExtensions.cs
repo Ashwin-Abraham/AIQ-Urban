@@ -23,4 +23,9 @@ public static class ColorExtensions
 
         return Color.FromArgb(color.A, red, green, blue);
     }
+
+    public static Color ToRGB(this Color color)
+    {
+        return Color.FromArgb(color.R, color.G, color.B);
+    }
 }

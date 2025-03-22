@@ -13,13 +13,13 @@ using static ArchSitePlan.RhinoInterface.Constants.Enums;
 
 namespace ArchSitePlan.RhinoInterface.HTML_UI.MessagesFromUI;
 
-public class TransitMessage : IMessageFromUI<MetricsMessage>
+public class TransitMessage : IMessageFromUI<StudyAreaMetricsMessage>
 {
     public TypeOfMessage MessageType { get; init; } = TypeOfMessage.Transit;
     public double RoadWidth { get; init; }
     public double RightPavementWidth { get; init; }
     public double LeftPavementWidth { get; init; }
-    public MetricsMessage HandleMessage()
+    public StudyAreaMetricsMessage HandleMessage()
     {
         RhinoEventHandler.HTMLViewModel.AppMode = ModellingTool.Transit;
 
@@ -56,11 +56,10 @@ public class TransitMessage : IMessageFromUI<MetricsMessage>
         }
 
         var vm = RhinoEventHandler.HTMLViewModel;
-        if (!transitData.Any()) return vm.MetricsMessageData;
+        if (!transitData.Any()) return new();
 
         ModelBuilderPipelines.AddOrUpdateRoadPipeline(doc, transitData, ModellingTool.Transit);
 
-        vm.UpdateGraphMessage();
-        return vm.MetricsMessageData;
+        return new();
     }
 }

@@ -14,11 +14,11 @@ using static ArchSitePlan.RhinoInterface.Constants.Enums;
 
 namespace ArchSitePlan.RhinoInterface.HTML_UI.MessagesFromUI
 {
-    public class DividerMessage:IMessageFromUI<MetricsMessage>
+    public class DividerMessage:IMessageFromUI<StudyAreaMetricsMessage>
     {
         public TypeOfMessage MessageType { get; init; } = TypeOfMessage.Divider;
 
-        public MetricsMessage HandleMessage()
+        public StudyAreaMetricsMessage HandleMessage()
         {
             RhinoEventHandler.HTMLViewModel.AppMode = ModellingTool.Dividers;
 
@@ -61,12 +61,11 @@ namespace ArchSitePlan.RhinoInterface.HTML_UI.MessagesFromUI
                     $"\n 2. Self intersecting");
 
             var vm = RhinoEventHandler.HTMLViewModel;
-            if (!dividerData.Any()) return vm.MetricsMessageData;
+            if (!dividerData.Any()) return new();
 
             ModelBuilderPipelines.AddOrUpdateParcelDividerPipeline(doc, dividerData, ModellingTool.Dividers);
 
-            vm.UpdateGraphMessage();
-            return vm.MetricsMessageData;
+            return new();
         }
     }
 }

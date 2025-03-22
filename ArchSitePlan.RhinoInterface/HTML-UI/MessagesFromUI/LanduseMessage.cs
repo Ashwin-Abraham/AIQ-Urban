@@ -9,13 +9,13 @@ using Rhino.DocObjects;
 
 namespace ArchSitePlan.RhinoInterface.HTML_UI.MessagesFromUI
 {
-    public class LanduseMessage: IMessageFromUI<MetricsMessage>
+    public class LanduseMessage: IMessageFromUI<StudyAreaMetricsMessage>
     {
         public TypeOfMessage MessageType { get; init; } = TypeOfMessage.Landuse;
         public string Use { get; init; }
         public string Category { get; init; }
 
-        public MetricsMessage HandleMessage()
+        public StudyAreaMetricsMessage HandleMessage()
         {
             if(!AppLanduses.TryGetUse(Use, out var use))
                 throw new Exception("Invalid land use received from UI");
@@ -38,10 +38,8 @@ namespace ArchSitePlan.RhinoInterface.HTML_UI.MessagesFromUI
                 srfObjs.Select(s => s.Id).ToList(),
                 use,
                 RhinoEventHandler.HTMLViewModel.AppMode);
-
                 
-            RhinoEventHandler.HTMLViewModel.UpdateGraphMessage();
-            return RhinoEventHandler.HTMLViewModel.MetricsMessageData;
+            return new();
         }
     }
 }

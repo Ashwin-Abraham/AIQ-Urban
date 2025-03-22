@@ -12,12 +12,12 @@ using static ArchSitePlan.RhinoInterface.Constants.Enums;
 
 namespace ArchSitePlan.RhinoInterface.HTML_UI.MessagesFromUI
 {
-    public class ZoneMessage:IMessageFromUI<ZonesInModelMessage>
+    public class ZoneMessage:IMessageFromUI<StudyAreaMetricsMessage>
     {
         public TypeOfMessage MessageType { get; init; } = TypeOfMessage.Zone;
         public string Name { get; init; }
 
-        public ZonesInModelMessage HandleMessage()
+        public StudyAreaMetricsMessage HandleMessage()
     {
             var vm = RhinoEventHandler.HTMLViewModel;
             RhinoEventHandler.HTMLViewModel.AppMode = ModellingTool.Zones;
@@ -51,10 +51,7 @@ namespace ArchSitePlan.RhinoInterface.HTML_UI.MessagesFromUI
                 studyData: [new StudyData(bhomCrv!, rhinoObj.Id, Name)],
                 ModellingTool.Zones);
 
-            if (CoreModel.Studies.Exists(s => s.Name == Name))
-                vm.UpdateZonesInModelMessage(Name);
-
-            return vm.ZoneMessageData;
+            return new StudyAreaMetricsMessage();
         }
     }
 }
