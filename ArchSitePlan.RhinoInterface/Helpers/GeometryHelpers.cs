@@ -1,9 +1,4 @@
 ﻿using Rhino.Geometry;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ArchSitePlan.RhinoInterface.Helpers
 {
@@ -16,9 +11,13 @@ namespace ArchSitePlan.RhinoInterface.Helpers
                 mesh, 
                 new Point3d(0,0, bounds.Min.Z),
                 new Point3d(0,0, bounds.Max.Z),
-                contourInterval);
+                contourInterval,
+                1e-06);
 
-            return result;
+            var groups = result.GroupBy(x => x.PointAtStart.Z);
+            var joined = groups.SelectMany(x => Curve.JoinCurves(x, 1e-04, true)).ToArray();
+
+            return joined;
         }
 
         internal static Mesh ConvertToMesh(Brep? brep)
