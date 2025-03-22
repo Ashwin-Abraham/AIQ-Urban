@@ -13,7 +13,7 @@ using static ArchSitePlan.RhinoInterface.Constants.Enums;
 
 namespace ArchSitePlan.RhinoInterface.HTML_UI.MessagesFromUI
 {
-    public class BuildingMessage:IMessageFromUI<MetricsMessage>
+    public class BuildingMessage:IMessageFromUI<StudyAreaMetricsMessage>
     {
 
         public TypeOfMessage MessageType { get; init; } = TypeOfMessage.Building;
@@ -27,7 +27,7 @@ namespace ArchSitePlan.RhinoInterface.HTML_UI.MessagesFromUI
         [JsonProperty("manual_generationType")]
         public string GenerationType;
 
-        public MetricsMessage HandleMessage()
+        public StudyAreaMetricsMessage HandleMessage()
         {
             RhinoEventHandler.HTMLViewModel.AppMode = ModellingTool.Building;
             bool validMode = Enum.TryParse<BuildingSelectorMode>(GenerationType, out var buildingMode);
@@ -53,8 +53,8 @@ namespace ArchSitePlan.RhinoInterface.HTML_UI.MessagesFromUI
                 throw new Exception(validation.Message);
 
             var vm = RhinoEventHandler.HTMLViewModel;
-            if (validation.ValidObjects.Count == 0) 
-                return vm.MetricsMessageData;
+            if (validation.ValidObjects.Count == 0)
+                return new();
 
             var rhinoBuildingData = validation.ValidObjects
                 .Select(o => RhinoBuildingData.FromRhinoObject(o, FloorCount, FloorHeight))
@@ -63,8 +63,7 @@ namespace ArchSitePlan.RhinoInterface.HTML_UI.MessagesFromUI
             DocObjectHelpers.DeleteRhinoObjectsIfPresent(doc, rhinoObjs.Select(r => r.Id));
             RhinoEventHandler.UpdateSelectedBuildingsPosition(rhinoBuildingData);
 
-            vm.UpdateGraphMessage();
-            return vm.MetricsMessageData;
+            return new();
         }
     }
 

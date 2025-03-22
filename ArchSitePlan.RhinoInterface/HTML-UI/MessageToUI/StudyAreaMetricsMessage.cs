@@ -1,36 +1,43 @@
-﻿using ArchSitePlan.Core.Constants;
+﻿using AIQ.Primitives.Extensions;
+using ArchSitePlan.Core.Constants;
 using ArchSitePlan.Core.Metrics;
 using ArchSitePlan.Core.Models;
 
 namespace ArchSitePlan.RhinoInterface.HTML_UI.MessageToUI;
-public class MetricsMessage :IMessageToUI
+public record StudyAreasDataForUI(
+        string StudyName,
+        List<GraphData> RoadLengthData,
+        List<GraphData> RoadAreaData,
+        List<GraphData> UrbanLandAreaData,
+        List<GraphData> UrbanBuiltAreaData,
+        double TotalArea,
+        double TotalBuiltArea,
+        double FAR,
+        double LandCoverage);
+public class StudyAreaMetricsMessage :IMessageToUI
 {
-    public string Type { get; } = "MetricsMessage";
-    public string StudyName { get; }
-    public List<GraphData> RoadLengthData { get; private set; }
-    public List<GraphData> RoadAreaData { get; private set; }
-    public List<GraphData> UrbanLandAreaData { get; private set; }
-    public List<GraphData> UrbanBuiltAreaData { get; private set; } 
-
-
-    public MetricsMessage(string studyName)
+    
+    public string Type { get; } = nameof(StudyAreaMetricsMessage);
+    public List<StudyAreasDataForUI> StudyAreaDataForUI { get; private set; }
+    public StudyAreaMetricsMessage()
     {
-        StudyName = studyName;
-        RefreshActiveStudyAndMetrics();
+        StudyAreaDataForUI = CoreModel.Studies
+            .Select(x => RefreshActiveStudyAndMetrics(x))
+            .ToList();
     }
 
-    public void RefreshActiveStudyAndMetrics()
+    private static StudyAreasDataForUI RefreshActiveStudyAndMetrics(StudyArea study)
     {
-        if (StudyName == string.Empty
-            || !CoreModel.TryGetStudyArea(StudyName, out StudyArea? study))
-            study = CoreModel.Studies.FirstOrDefault(s => s.Name == CoreGeneralConstants.FullProjectStudyName);
-
-        if (study == null) return;
-
-        UrbanLandAreaData = UpdateLandUseGraphData(study.Metrics);
-        UrbanBuiltAreaData = UpdateBuiltUseGraphData(study.Metrics);
-        RoadAreaData = UpdateRoadAreaGraphData(study.Metrics);
-        RoadLengthData = UpdateRoadLengthGraphData(study.Metrics);
+        return new(
+            study.Name,
+            RoadLengthData: UpdateRoadLengthGraphData(study.Metrics),
+            RoadAreaData: UpdateRoadAreaGraphData(study.Metrics),
+            UrbanLandAreaData: UpdateLandUseGraphData(study.Metrics),
+            UrbanBuiltAreaData: UpdateBuiltUseGraphData(study.Metrics),
+            study.Metrics.BoundedArea,
+            study.Metrics.BuiltArea,
+            study.Metrics.FAR,
+            study.Metrics.CoverageRatio);
     }
 
     private static List<GraphData> UpdateLandUseGraphData(StudyAreaMetrics metrics)
@@ -82,7 +89,7 @@ public class MetricsMessage :IMessageToUI
             if (colorIndex > AppColours.StandardColors.Count - 1)
                 colorIndex = 0;
 
-            var color = AppColours.StandardColors[colorIndex];
+            var color = AppColours.StandardColors[colorIndex].ToRGB();
             colorIndex++;
 
             graphData.Add(
@@ -108,7 +115,7 @@ public class MetricsMessage :IMessageToUI
             if (colorIndex > AppColours.StandardColors.Count - 1)
                 colorIndex = 0;
 
-            var color = AppColours.StandardColors[colorIndex];
+            var color = AppColours.StandardColors[colorIndex].ToRGB();
             colorIndex++;
 
             graphData.Add(

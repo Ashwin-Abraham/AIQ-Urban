@@ -17,6 +17,8 @@ namespace ArchSitePlan.Core.Metrics
         public double DevelopableArea_Display { get; private set; } = 5;
         public double BuiltArea { get; private set; } = 2;
         public double BuiltArea_Display { get; private set; } = 2;
+        public double BuiltCoverageArea { get; private set; } = 0;
+        public double CoverageRatio { get; private set; } = 0;
         public List<ParcelMetrics> ParcelMetrics = new();
         public List<TransitMetrics> TransitMetrics = new();
         private void UpdateParcelMetrics(
@@ -33,8 +35,15 @@ namespace ArchSitePlan.Core.Metrics
             BuiltArea = buildings.SelectMany(b => b.FloorPlates)
                 .Sum(flr => Math.Abs(flr.Profile.Area()));
             FAR = BuiltArea / DevelopableArea;
-
+            BuiltCoverageArea = SetBuiltCoverage(buildings);
+            CoverageRatio = BuiltCoverageArea / DevelopableArea;
             PopulateDisplayAreas();
+        }
+
+        private double SetBuiltCoverage(List<Building> buildings)
+        {
+            return buildings.Select(x => x.FloorPlates.MinBy(f => f.Profile.ExternalBoundary.IStartPoint().Z))
+                .Sum(floor => floor.Profile.ExternalBoundary.IArea());
         }
 
         private void CalculateParcelMetrics(List<Parcel> parcels, List<Building> buildings)
