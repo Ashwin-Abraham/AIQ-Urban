@@ -40,7 +40,6 @@ public class PeripheralBuildingFactory:BuildingLayoutFactoryBase
             _config.TargetMode,
             _config.TargetGFA,
             _config.TargetFAR,
-            _config.TargetHeight,
             site.Area());
 
         var floorCount = (int) Math.Floor(requiredGfa / site.Area());

@@ -12,11 +12,9 @@ public record BuildingAlongRoadConfig(
     double Setback);
 
 public record AutoBuildingData(
-    PolyCurve SiteBoundary,
     BuildingTargetMode TargetMode,
     double? TargetGFA,
     double? TargetFAR,
-    double? TargetHeight,
     double Setback,
     double MaxHeight,
     double FloorHeight);
@@ -24,21 +22,17 @@ public record AutoBuildingData(
 public record AutoRectangleBuildingData(
     double BuildingWidth,
     double MinFloorPlateDepth,
-    PolyCurve SiteBoundary,
     BuildingTargetMode TargetMode,
     double? TargetGFA,
     double? TargetFAR,
-    double? TargetHeight,
     double Setback,
     double MaxHeight,
     double MaxLength,
     double MinLength,
     double FloorHeight) : AutoBuildingData(
-        SiteBoundary,
         TargetMode,
         TargetGFA,
         TargetFAR,
-        TargetHeight,
         Setback,
         MaxHeight,
         FloorHeight);
@@ -46,21 +40,17 @@ public record AutoRectangleBuildingData(
 public record AutoPeripheralBuildingData(
     double BuildingWidth,
     double MinFloorPlateDepth,
-    PolyCurve SiteBoundary,
     BuildingTargetMode TargetMode,
     double? TargetGFA,
     double? TargetFAR,
-    double? TargetHeight,
     double Setback,
     double MaxHeight,
     double MaxLength,
     double MinLength,
     double FloorHeight):AutoBuildingData(
-        SiteBoundary,
         TargetMode,
         TargetGFA,
         TargetFAR,
-        TargetHeight,
         Setback,
         MaxHeight,
         FloorHeight);

@@ -18,7 +18,6 @@ public class BuildingLayoutFactoryBase
         BuildingTargetMode targetMode,
         double? targetGfa,
         double? targetFar,
-        double? targetHeight,
         double siteArea)
     {
         switch(targetMode)

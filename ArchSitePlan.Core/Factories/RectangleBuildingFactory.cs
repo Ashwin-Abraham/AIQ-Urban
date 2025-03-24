@@ -17,14 +17,13 @@ public class RectangleBuildingFactory:BuildingLayoutFactoryBase
         _config = config;
     }
 
-    public BuildingLayout? Generate()
+    public BuildingLayout? Generate(PolyCurve site)
     {
-        var site = _config.SiteBoundary;
         var buildableZone = site.OffsetAndMaintainClosure(-_config.Setback) as PolyCurve;
         
         if (buildableZone == null) return null;
 
-        Polyline? primaryAxis = GeneratePrimarySiteAxis(_config.SiteBoundary);
+        Polyline? primaryAxis = GeneratePrimarySiteAxis(site);
         if (primaryAxis is null || buildableZone is null)
             return null;
 
