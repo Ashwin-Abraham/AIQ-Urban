@@ -21,7 +21,6 @@ public record AutoBuildingData(
 
 public record AutoRectangleBuildingData(
     double BuildingWidth,
-    double MinFloorPlateDepth,
     BuildingTargetMode TargetMode,
     double? TargetGFA,
     double? TargetFAR,

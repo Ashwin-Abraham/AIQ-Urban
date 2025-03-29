@@ -10,8 +10,9 @@ namespace ArchSitePlan.Core.ModelEditActions
     public class ParcelAction:IModelEditAction
     {
         public void Run(
-            List<(ICurve? boundary, Guid id)> boundaryAndIds,
             EditType editType,
+            List<ICurve>? boundariesToAdd = null,
+            List<Guid>? clientIdsToModifyOrRemove = null,
             // use is only used during EditType.Edit
             Landuse? use= null,
             // dividers only used during EditType.Divide
@@ -26,20 +27,26 @@ namespace ArchSitePlan.Core.ModelEditActions
             switch (editType)
             {
                 case EditType.Remove:
-                    TryRemoveFromCoreModel(GetIds(boundaryAndIds));
+                    if(clientIdsToModifyOrRemove != null)
+                        RemoveFromCoreModel(clientIdsToModifyOrRemove);
                     break;
 
                 case EditType.Add:
-                    TryRemoveFromCoreModel(GetIds(boundaryAndIds));
-                    TryAddToCoreModel(boundaryAndIds, existingUsesAndCenters);
+                    if (clientIdsToModifyOrRemove != null 
+                        && boundariesToAdd != null)
+                        RemoveFromCoreModel(clientIdsToModifyOrRemove);
+                        AddToCoreModel(boundariesToAdd!, existingUsesAndCenters);
                     break;
 
                 case EditType.Divide:
-                    TryDivideInCoreModel(boundaryAndIds, dividers);
+                    if (clientIdsToModifyOrRemove != null
+                        && dividers != null)
+                        DivideInCoreModel(clientIdsToModifyOrRemove, dividers);
                     break;
 
                 case EditType.Edit:
-                    TryEditInCoreModel(boundaryAndIds, use);
+                    if(clientIdsToModifyOrRemove != null)
+                        ModifyLanduse(clientIdsToModifyOrRemove, use);
                     break;
 
                 default: 
@@ -48,58 +55,52 @@ namespace ArchSitePlan.Core.ModelEditActions
         }
 
 
-        private bool TryEditInCoreModel(List<(ICurve boundary, Guid id)> boundaryAndIds, Landuse use)
+        private static void ModifyLanduse(List<Guid> clientModelIDs, Landuse use)
         {
-            var ids = boundaryAndIds.Select(x => x.id).ToList();
-
-            CoreModel.Parcels.Where(p => ids.Contains(p.Id))
+            CoreModel.Parcels.Where(p => clientModelIDs.Contains(p.ClientModelId))
                 .ToList()
                 .ForEach(p => p.LandUse = use);
-            
-            return true;
         }
 
-        private bool TryDivideInCoreModel(List<(ICurve? boundary, Guid id)> boundaryAndIds,
-            List<ICurve?> dividers)
+        private static void DivideInCoreModel(
+            List<Guid> clientIds,
+            List<ICurve> dividers)
         {
-            var ids = boundaryAndIds.Select(x => x.id).ToList();
-            List<ICurve> cleanedDividers = dividers
-                .Where(d => d is not null)
-                .Cast<ICurve>()
-                .ToList();
+            var parcels = CoreModel.Parcels.Where(x => clientIds.Contains(x.ClientModelId)).ToList();
+
+            List<ICurve> cleanedDividers = dividers.ToList();
 
             List<Parcel> newParcels = new();
-            foreach(var id in ids)
+            foreach(var parcel in parcels)
             {
-                var parcel = CoreModel.Parcels.Find(p => p.Id == id);
-                if (parcel is null) return false;
+                if (parcel is null) return;
 
                 var srfFragments = parcel.Boundary.Split(cleanedDividers);
 
-                var parcels = srfFragments
-                    .Select(srf => new Parcel(parcel, srf))
+                var fragments = srfFragments
+                    .Select(srf => new Parcel(srf, parcel.LandUse))
                     .ToList();
 
-                newParcels.AddRange(parcels);
+                newParcels.AddRange(fragments);
             }
 
             CoreModel.Parcels = newParcels;
-            return ids.Count > 0;
         }
 
-        private static bool TryAddToCoreModel(List<(ICurve boundary, Guid id)> boundaryAndIds,
+        private static void AddToCoreModel(
+            List<ICurve> boundaries,
             List<(Landuse Use,Point Center)> priorUsesAndCenters)
         {
             var parcels = new List<Parcel>();
 
-            foreach(var boundaryId in boundaryAndIds)
+            foreach(var boundary in boundaries)
             {
-                var srf = Create.PlanarSurface(boundaryId.boundary);
+                var srf = Create.PlanarSurface(boundary);
                 Landuse use = AppLanduses.Undefined;
 
-                if (priorUsesAndCenters.Any())
+                if (priorUsesAndCenters.Count > 0)
                     use = priorUsesAndCenters
-                        .MinBy(x => x.Center.Distance(boundaryId.boundary.ControlPointCentroid()))
+                        .MinBy(x => x.Center.Distance(boundary.ControlPointCentroid()))
                         .Use;
 
                 if (srf != null)
@@ -107,19 +108,11 @@ namespace ArchSitePlan.Core.ModelEditActions
             }
 
             CoreModel.Parcels.AddRange(parcels);
-
-            return parcels.Count > 0;
         }
 
-        private static bool TryRemoveFromCoreModel(List<Guid> ids)
+        private static void RemoveFromCoreModel(List<Guid> ids)
         {
-            int count = CoreModel.Parcels.RemoveAll(p => ids.Contains(p.Id));
-            return count > 0;
-        }
-
-        private static List<Guid> GetIds(List<(ICurve? obj, Guid id)> objectsAndIds)
-        {
-            return objectsAndIds.Select(x => x.id).ToList();
+            CoreModel.Parcels.RemoveAll(p => ids.Contains(p.CoreModelId));
         }
     }
 }

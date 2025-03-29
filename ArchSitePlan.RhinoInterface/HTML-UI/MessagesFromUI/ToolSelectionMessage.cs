@@ -20,6 +20,7 @@ public class ToolSelectionMessage : IMessageFromUI<EmptyMessage>
         if (Tool == ModellingTool.None)
             LayerManager.ToggleLockModelLayers(RhinoDoc.ActiveDoc, true);
 
+        RhinoEventHandler.HTMLViewModel.AppMode = Tool;
         LayerManager.ToggleLayerStateBasedOnAppMode(RhinoDoc.ActiveDoc, Tool);
         RhinoDoc.ActiveDoc.Views.Redraw();
 

@@ -1,0 +1,37 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	
+  <PropertyGroup>
+    <!-- Select the framework(s) you wish to target.
+        Rhino 8 Windows: net48, net7.0-windows, net7.0-windows10.0.22000.0, etc
+    -->
+    <TargetFrameworks>net7.0-windows</TargetFrameworks>
+    <LangVersion>11</LangVersion>
+  </PropertyGroup>
+  
+  <PropertyGroup>
+    <Version>1.0</Version>
+    <Title>AIQ.RhinoTests</Title>
+    <Company>AIQ.RhinoTests Authors</Company>
+    <Description>Description of AIQ.RhinoTests</Description>
+
+    <NoWarn>NU1701;MSB3277</NoWarn>
+  </PropertyGroup>
+  
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.13.0" />
+    <PackageReference Include="NUnit3TestAdapter" Version="5.0.0" />
+    <PackageReference Include="NUnit" Version="4.3.2" />
+    <PackageReference Include="Rhino.Testing" Version="8.0.23-beta" />
+
+    <PackageReference Include="RhinoCommon" Version="8.17.25066.7001" ExcludeAssets="runtime" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <ProjectReference Include="..\ArchSitePlan.RhinoInterface\ArchSitePlan.RhinoInterface.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Rhino.Testing.Configs.xml" CopyToOutputDirectory="always" />
+  </ItemGroup>
+
+</Project>

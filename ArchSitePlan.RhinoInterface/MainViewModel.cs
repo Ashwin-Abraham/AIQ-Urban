@@ -237,7 +237,7 @@ public class MainViewModel // ViewModelBase, INotifyPropertyChanged
     //    }
     //}
 
-    public BuildingSelectorMode BuildingSelectorMode { get; set; } = BuildingSelectorMode.Footprint;
+    public BuildingGeneratorStartPoint BuildingSelectorMode { get; set; } = BuildingGeneratorStartPoint.Footprint;
 
 
     private bool _buildingFootprintSelectorModeActive = true;
@@ -250,7 +250,7 @@ public class MainViewModel // ViewModelBase, INotifyPropertyChanged
             OnPropertyChanged(nameof(BuildingFootprintSelectorModeActive));
 
             if (_buildingFootprintSelectorModeActive)
-                BuildingSelectorMode = BuildingSelectorMode.Footprint;
+                BuildingSelectorMode = BuildingGeneratorStartPoint.Footprint;
 
         }
     }
@@ -265,7 +265,7 @@ public class MainViewModel // ViewModelBase, INotifyPropertyChanged
             OnPropertyChanged(nameof(BuildingMassSelectorModeActive));
 
             if (_buildingMassSelectorModeActive)
-                BuildingSelectorMode = BuildingSelectorMode.Mass;
+                BuildingSelectorMode = BuildingGeneratorStartPoint.Mass;
         }
     }
 

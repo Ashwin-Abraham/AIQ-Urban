@@ -10,7 +10,7 @@ namespace ArchSitePlan.Core.Models
         public double FloorToFloorHeight { get; set;}
         public Guid FootprintId { get; init;}
         public Guid EnvelopeId { get; set;} = Guid.Empty;
-        public Guid HostParcelId { get; set;} = Guid.Empty;
+        public Guid HostParcelCoreModelId { get; set;} = Guid.Empty;
         public Point Origin { get; private set; }
         public Mesh Envelope { get; private set; }
         public Landuse? Use { get; set; }

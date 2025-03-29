@@ -1,4 +1,5 @@
-﻿using ArchSitePlan.DebugModel;
+﻿using ArchSitePlan.Core.Factories.Models;
+using ArchSitePlan.DebugModel;
 using ArchSitePlan.DebugModel.BHoMExtensions;
 using BH.Engine.Geometry;
 using BH.oM.Geometry;
@@ -91,5 +92,25 @@ public static class TestVisualizers
         DEBUGMODEL.Debug(circles.Select(c => c.ToPolygonalCircle()), DebugMaterials.Blue, 0.01);
         DEBUGMODEL.OpenAsGlb();
 #endif
+    }
+
+    public static void VisualizeBuildingLayout(BuildingLayout layout)
+    {
+        DEBUGMODEL.Reset();
+        DebugBuildingLayout(layout);
+        DEBUGMODEL.OpenAsGlb();
+    }
+
+    private static void DebugBuildingLayout(BuildingLayout layout)
+    {
+        var floors = layout.Buildings
+            .SelectMany(x => x.FloorPlates)
+            .SelectMany(x => x.Profile.InternalBoundaries
+                .Append(x.Profile.ExternalBoundary));
+
+        DEBUGMODEL.Debug(floors.ToHypar());
+        DEBUGMODEL.Debug(layout.SiteBoundary.ToHypar());
+        DEBUGMODEL.Debug(layout.SetBackBoundary.ToHypar());
+        DEBUGMODEL.Debug(layout.Buildings.Select(x => x.Envelope.ToHypar()));
     }
 }

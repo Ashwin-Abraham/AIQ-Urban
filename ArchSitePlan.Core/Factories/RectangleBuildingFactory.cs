@@ -17,9 +17,9 @@ public class RectangleBuildingFactory:BuildingLayoutFactoryBase
         _config = config;
     }
 
-    public BuildingLayout? Generate(PolyCurve site)
+    public BuildingLayout? Generate(ICurve site)
     {
-        var buildableZone = site.OffsetAndMaintainClosure(-_config.Setback) as PolyCurve;
+        var buildableZone = site.OffsetAndMaintainClosure(-_config.Setback);
         
         if (buildableZone == null) return null;
 
@@ -46,7 +46,7 @@ public class RectangleBuildingFactory:BuildingLayoutFactoryBase
         return buildingLayout;
     }
 
-    private List<Polygon> GenerateFootprints(Polyline primaryAxis, PolyCurve buildableZone)
+    private List<Polygon> GenerateFootprints(Polyline primaryAxis, ICurve buildableZone)
     {
         List<Polygon> footprints = new();
         var primaryAxisLength = primaryAxis.Length();

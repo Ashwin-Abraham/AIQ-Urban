@@ -1,4 +1,5 @@
-﻿using ArchSitePlan.RhinoInterface.Constants;
+﻿using AIQ.Primitives.Extensions;
+using ArchSitePlan.RhinoInterface.Constants;
 using ArchSitePlan.RhinoInterface.InputValidation.Results;
 using Rhino.DocObjects;
 using Rhino.Geometry;
@@ -10,9 +11,9 @@ namespace ArchSitePlan.RhinoInterface.InputValidation.Validators
     public class BuildingInputValidator
         : IRhinoInputValidator<BuildingInputValidationResult>
     {
-        readonly BuildingSelectorMode _inputType;
+        readonly BuildingGeneratorStartPoint _inputType;
 
-        public BuildingInputValidator(BuildingSelectorMode inputType)
+        public BuildingInputValidator(BuildingGeneratorStartPoint inputType)
         {
             _inputType = inputType;
         }
@@ -29,12 +30,12 @@ namespace ArchSitePlan.RhinoInterface.InputValidation.Validators
 
             switch (_inputType)
             {
-                case BuildingSelectorMode.Mass:
+                case BuildingGeneratorStartPoint.Mass:
                     removed = rhinoObjs.RemoveAll(o => !RHGeneralConstants.BuildingEnvelopeObjectTypes.Contains(o.ObjectType));
                     message += $"\nSkipped {removed} objects because they were not a brep, extrusion or mesh.";
                     break;
 
-                case BuildingSelectorMode.Footprint:
+                case BuildingGeneratorStartPoint.Footprint:
 
                     List<(RhinoObject Object, Curve Curve)> crvs = rhinoObjs
                         .Where(o => o.ObjectType == ObjectType.Curve)
@@ -59,6 +60,16 @@ namespace ArchSitePlan.RhinoInterface.InputValidation.Validators
 
                     rhinoObjs = crvs.Select(x => x.Object).ToList();
                     removed = wrongType + highDegree + open + selfIntersecting;
+                    break;
+                
+                case BuildingGeneratorStartPoint.WithinParcel:
+                    var validObjects = rhinoObjs
+                        .Where(x => x.ObjectType == ObjectType.Brep 
+                        && ((x.Geometry as Brep)?.Surfaces[0].IsPlanar()?? false))
+                        .ToList();
+
+                    removed = validObjects.Count - rhinoObjs.Count;
+                    rhinoObjs = validObjects;
                     break;
 
                 default:

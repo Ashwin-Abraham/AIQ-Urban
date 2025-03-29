@@ -176,14 +176,14 @@ public static class ICurveExtensions
 
     private static void BooleanLine(
         Line line,
-        PolyCurve boundary,
+        ICurve boundary,
         out List<Line> linesInside,
         out List<Line> linesOutside)
     {
         linesInside = new();
         linesOutside = new();
 
-        if (!boundary.IsClosed()) return;
+        if (!boundary.IIsClosed()) return;
 
         var points = boundary.ICurveIntersections(line);
 
@@ -208,12 +208,12 @@ public static class ICurveExtensions
             .ToList();
     }
 
-    public static List<Line> LineBooleanDifference(this Line line, PolyCurve boundary)
+    public static List<Line> LineBooleanDifference(this Line line, ICurve boundary)
     {
         BooleanLine(line, boundary, out var _, out var linesOutside);
         return linesOutside;
     }
-    public static List<Line> LineBooleanIntersection(this Line line, PolyCurve boundary)
+    public static List<Line> LineBooleanIntersection(this Line line, ICurve boundary)
     {
         BooleanLine(line, boundary, out var linesInside, out var _);
         return linesInside;
@@ -249,7 +249,7 @@ public static class ICurveExtensions
         this ICurve curve,
         double offset,
         EndCapType cap,
-        Vector? normal = null,
+        Vector normal,
         bool tangentExtensions = false,
         double tolerance = 1E-06)
     {

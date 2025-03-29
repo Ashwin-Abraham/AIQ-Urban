@@ -1,18 +1,23 @@
 ﻿using ArchSitePlan.Core.Factories;
 using ArchSitePlan.Core.Factories.Models;
 using ArchSitePlan.Core.Pipeline.CreationData;
+using ArchSitePlan.RhinoInterface.CoreModelInterface;
 using ArchSitePlan.RhinoInterface.HTML_UI.MessageToUI;
-using ArchSitePlan.RhinoInterface.Models;
+using ArchSitePlan.RhinoInterface.InputValidation.Results;
+using ArchSitePlan.RhinoInterface.InputValidation.Validators;
+using ArchSitePlan.RhinoInterface.RhinoBHoMInterop;
 using BH.oM.Geometry;
 using Newtonsoft.Json;
+using Rhino;
 using static ArchSitePlan.Core.Constants.Enums;
+using static ArchSitePlan.RhinoInterface.Constants.Enums;
 
 namespace ArchSitePlan.RhinoInterface.HTML_UI.MessagesFromUI;
 
 public enum AutoGenerationType { Row, Peripheral}
 class AutoBuildingMessage : IMessageFromUI<StudyAreaMetricsMessage>
 {
-    public TypeOfMessage MessageType { get => throw new NotImplementedException(); init => throw new NotImplementedException(); }
+    public TypeOfMessage MessageType { get; init; }
 
     [JsonProperty("autoGenerationType")]
     public AutoGenerationType AutoGenerationType { get; init; }
@@ -43,7 +48,20 @@ class AutoBuildingMessage : IMessageFromUI<StudyAreaMetricsMessage>
 
     public StudyAreaMetricsMessage HandleMessage()
     {
-        var siteBoundaries = new List<PolyCurve>();
+        RhinoDoc doc = RhinoDoc.ActiveDoc;
+        var rhinoObjs = doc.Objects.GetSelectedObjects(false, false).ToList();
+
+        var validation = new BuildingInputValidator(BuildingGeneratorStartPoint.WithinParcel)
+                .ValidateInput(rhinoObjs);
+
+        if (validation.Result != ValidationResult.All_Valid)
+            throw new Exception(validation.Message);
+
+        var siteBoundaries = validation.ValidObjects
+            .Select(x => x.Geometry as Rhino.Geometry.Brep)
+            .Select(x => x.ToBHoMXYOutline())
+            .ToList();
+
         var layouts = new List<BuildingLayout>();
 
         switch (AutoGenerationType)
@@ -59,17 +77,15 @@ class AutoBuildingMessage : IMessageFromUI<StudyAreaMetricsMessage>
 
         }
 
-        var buildings = layouts.SelectMany(x => x.Buildings).ToList();
+        ModelBuilderPipelines.AutoGenerateBuildingsOnParcel( doc, layouts);
 
-        RhinoBuildingData.Create();
-        
+        return new();
     }
 
-    private List<BuildingLayout> ComputeAutoRectangleLayouts(List<PolyCurve> sites)
+    private List<BuildingLayout> ComputeAutoRectangleLayouts(List<ICurve> sites)
     {
         var rowConfig = new AutoRectangleBuildingData(
                     BuildingWidth: FloorDepth,
-                    MinFloorPlateDepth: FloorDepth,
                     TargetMode: ModeIsGFA ? BuildingTargetMode.GFA : BuildingTargetMode.FAR,
                     TargetGFA: GFA,
                     TargetFAR: FAR,
@@ -91,7 +107,7 @@ class AutoBuildingMessage : IMessageFromUI<StudyAreaMetricsMessage>
         return layouts;
     }
 
-    private List<BuildingLayout> ComputeAutoPeripheralLayouts(List<PolyCurve> sites)
+    private List<BuildingLayout> ComputeAutoPeripheralLayouts(List<ICurve> sites)
     {
         var peripheralConfig = new AutoPeripheralBuildingData(
                    BuildingWidth: FloorDepth,
@@ -115,20 +131,5 @@ class AutoBuildingMessage : IMessageFromUI<StudyAreaMetricsMessage>
         }
 
         return layouts;
-    }
-
-    private AutoRectangleBuildingData GetAutoRectangleConfig()
-    {
-        return new AutoRectangleBuildingData(
-                    BuildingWidth: FloorDepth,
-                    MinFloorPlateDepth: FloorDepth,
-                    TargetMode: ModeIsGFA ? BuildingTargetMode.GFA : BuildingTargetMode.FAR,
-                    TargetGFA: GFA,
-                    TargetFAR: FAR,
-                    Setback: Setback,
-                    MaxHeight: MaxHeight,
-                    MaxLength: MaxLength,
-                    MinLength: FloorDepth,
-                    FloorHeight: FloorHeight);
     }
 }

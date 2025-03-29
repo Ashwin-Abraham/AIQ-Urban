@@ -119,7 +119,7 @@ public class BuildingsAlongRoadFactoryTests
         var config = new BuildingAlongRoadConfig(
             Definitions: definitions,
             TargetMode: BuildingTargetMode.GFA,
-            TargetGFA: 50000,
+            TargetGFA: 5000,
             TargetFAR: 1,
             Setback: 3);
 

@@ -24,6 +24,9 @@ public class BuildingLayoutFactoryBase
         {
             case BuildingTargetMode.GFA:
                 return targetGfa.HasValue? targetGfa.Value :0;
+            case BuildingTargetMode.FAR:
+                return siteArea 
+                    * (targetFar.HasValue ? targetFar.Value : 0);
             default:
                 return 0;
         }
@@ -62,6 +65,13 @@ public class BuildingLayoutFactoryBase
                 totalGFA += buildingWIP.FootprintArea;
             }
 
+            var buildingsBelowHeight = buildingsWIP
+                .Where(x => x.FloorCount < maxFloorCount)
+                .ToList();
+
+            if (buildingsBelowHeight.Count == 0) break;
+
+            smallestFootPrint = buildingsBelowHeight.Min(x => x.FootprintArea);
             if (totalGFA + smallestFootPrint > targetGFA) break;
         }
 
@@ -71,9 +81,9 @@ public class BuildingLayoutFactoryBase
         return buildingsWIP;
     }
 
-    public static Polyline? GeneratePrimarySiteAxis(PolyCurve siteBoundary)
+    public static Polyline? GeneratePrimarySiteAxis(ICurve siteBoundary)
     {
-        if (siteBoundary.Length().AlmostZero()) return null;
+        if (siteBoundary.ILength().AlmostZero()) return null;
 
         var minBox = siteBoundary.GetMinimumBoundingBox();
         var boxContours = minBox.Contour(10);

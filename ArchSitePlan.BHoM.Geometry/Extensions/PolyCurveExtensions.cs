@@ -8,7 +8,7 @@ namespace ArchSitePlan.BHoM.Geometry.Extensions;
 
 public static class PolyCurveExtensions
 {
-    private sealed record MinBox(double Area, double Rotation, BoundingBox Bounds, PolyCurve RotatedCrv);
+    private sealed record MinBox(double Area, double Rotation, BoundingBox Bounds);
  
     //public static PolyCurve FlattenPolycurveSubParts(this PolyCurve curve)
     //{
@@ -53,22 +53,22 @@ public static class PolyCurveExtensions
     public static PolyCurve ToPolyCurve(this ICurve curve)
     => Create.PolyCurve([curve]);
     
-    public static Rectangle GetMinimumBoundingBox(this PolyCurve curve)
+    public static Rectangle GetMinimumBoundingBox(this ICurve curve)
     {
-        var minBox = new MinBox(double.MaxValue, 0, new(), new());
+        MinBox minBox = new MinBox(double.MaxValue, 0, new());
 
         for (double rotation = 0; rotation < 360 ; rotation++)
         {
-            var rotated = curve.Rotate(
+            var rotated = curve.IRotate(
                 Point.Origin, 
                 Vector.ZAxis, 
                 rotation.ToRadians());
 
-            var bounds = rotated.Bounds();
+            var bounds = rotated.IBounds();
             var area = (bounds.Max.X - bounds.Min.X) * (bounds.Max.Y - bounds.Min.Y);
 
             if(minBox.Area > area)
-                minBox = new MinBox(area, rotation, bounds, rotated);
+                minBox = new MinBox(area, rotation, bounds);
         }
 
         var minRectangle = new Rectangle(minBox.Bounds.Min, minBox.Bounds.Max);

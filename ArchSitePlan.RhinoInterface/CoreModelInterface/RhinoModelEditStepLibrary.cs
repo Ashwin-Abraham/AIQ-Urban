@@ -365,7 +365,7 @@ namespace ArchSitePlan.RhinoInterface.CoreModelInterface
             {
                 var rhinoSrf = parcel.Boundary.ToRhino();
                 if (rhinoSrf != null)
-                    parcel.Id
+                    parcel.ClientModelId
                         = doc.Objects.AddBrep(rhinoSrf, parcelGeometryAttributes[parcel.LandUse]);
             }
         }

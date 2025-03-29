@@ -11,14 +11,16 @@
             Zones,
             Export,
             Parking,
+            AutoBuilding,
             None
         }
 
-        public enum BuildingSelectorMode
+        public enum BuildingGeneratorStartPoint
         {
             Footprint,
             Mass,
-            None
+            None,
+            WithinParcel
         }
     }
 }

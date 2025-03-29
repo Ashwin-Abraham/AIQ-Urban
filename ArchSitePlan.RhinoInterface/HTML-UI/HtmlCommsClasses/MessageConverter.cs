@@ -48,6 +48,9 @@ public static class MessageConverter
             case "ReadOsm":
                 return JsonConvert.DeserializeObject<ReadOsmMessage>(json);
 
+            case "AutoBuilding":
+                return JsonConvert.DeserializeObject<AutoBuildingMessage>(json);
+
             default:
                 throw new Exception($"Unsupported message type: {messageType}");
         }
