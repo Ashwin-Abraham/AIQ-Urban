@@ -11,7 +11,8 @@ public enum TypeOfMessage
     ToolSelection,
     LanduseListEdit,
     ReadOsm,
-    PickFile
+    PickFile,
+    AutoBuilding
 }
 
 // out T is the resulting output message created after handling the input

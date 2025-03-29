@@ -2,6 +2,8 @@
 using ArchSitePlan.Core.Factories.Models;
 using ArchSitePlan.Core.Models;
 using ArchSitePlan.Core.Pipeline.CreationData;
+using ArchSitePlan.DebugModel;
+using ArchSitePlan.DebugModel.BHoMExtensions;
 using BH.Engine.Geometry;
 using BH.oM.Geometry;
 
@@ -15,21 +17,20 @@ public class PeripheralBuildingFactory:BuildingLayoutFactoryBase
         _config = config;
     }
 
-    public BuildingLayout Generate(PolyCurve site)
+    public BuildingLayout? Generate(ICurve site)
     {
-        var setBackLine = site.OffsetAndMaintainClosure(-(_config.Setback)) as PolyCurve;
+        var setBackLine = site.OffsetAndMaintainClosure(-(_config.Setback));
 
         if (setBackLine == null) return null;
 
         var buildingCL = site
-            .OffsetAndMaintainClosure(-(_config.Setback + _config.BuildingWidth / 2))
-            as PolyCurve;
+            .OffsetAndMaintainClosure(-(_config.Setback + _config.BuildingWidth / 2));
 
         // Split up based on max length constraints
         var buildingCLFragments = ApplySolidVoidPattern(buildingCL, _config.MaxLength, 10);
-        
+
         var buildingFootprints = buildingCLFragments
-            .Select(f => f.Thicken(_config.BuildingWidth, EndCapType.Butt))
+            .Select(f => f.Thicken(_config.BuildingWidth/2, EndCapType.Butt, Vector.ZAxis))
             .Cast<PolyCurve>()
             .ToList();
 
@@ -40,15 +41,12 @@ public class PeripheralBuildingFactory:BuildingLayoutFactoryBase
             _config.TargetMode,
             _config.TargetGFA,
             _config.TargetFAR,
-            _config.TargetHeight,
-            site.Area());
-
-        var floorCount = (int) Math.Floor(requiredGfa / site.Area());
+            site.IArea());
 
         var buildingSpecs = GenerateMassingForTargetGFA(
             buildingFootprints,
             (int)Math.Floor(_config.MaxHeight / _config.FloorHeight),
-            _config.TargetGFA.Value);
+            requiredGfa);
 
         var buildings = buildingSpecs
             //.Select(x => new BuildingCreationSpecs(x, x.IArea(), floorCount))
@@ -71,34 +69,32 @@ public class PeripheralBuildingFactory:BuildingLayoutFactoryBase
         if (buildingFootprints.Count == 0)
             return buildingFootprints;
 
-        List<PolyCurve> validFootprints = new() { buildingFootprints[0] };
+        List<PolyCurve> validFootprints = new();
 
-        for(int i = 1; i < buildingFootprints.Count; i ++)
+        for(int i = 0; i < buildingFootprints.Count; i ++)
         {
             var footprint = buildingFootprints[i];
             var points = footprint.ControlPoints();
 
-            if (validFootprints[^1].IIsContainingAny(points))
-                continue;
-
-            if (i == buildingFootprints.Count - 1
-                && buildingFootprints[0].IIsContainingAny(points))
+            if (footprint.ICurveIntersections(validFootprints).Count > 0)
                 continue;
 
             validFootprints.Add(footprint);
+
+
         }
 
         return validFootprints;
     }
 
-    public static List<PolyCurve> ApplySolidVoidPattern(
-        PolyCurve curve,
+    public static List<ICurve> ApplySolidVoidPattern(
+        ICurve curve,
         double solidsLength,
         double gapLength)
     {
         solidsLength = Math.Abs(solidsLength);
         gapLength = Math.Abs(gapLength);
-        var curveLength = curve.Length();
+        var curveLength = curve.ILength();
 
         if (curveLength <= solidsLength)
             return [curve];
@@ -113,12 +109,11 @@ public class PeripheralBuildingFactory:BuildingLayoutFactoryBase
 
         var splitPoints = pattern
             .Where(pos => pos < curveLength)
-            .Select(pos => curve.PointAtLength(pos)).ToList();
+            .Select(pos => curve.IPointAtLength(pos)).ToList();
 
-        var fragments = curve.SplitAtPoints(splitPoints);
+        var fragments = curve.ISplitAtPoints(splitPoints);
         var solids = fragments
             .Where((x, i) => int.IsOddInteger(i))
-            .Select(x => x.ToPolycurve())
             .ToList();
 
         return solids;

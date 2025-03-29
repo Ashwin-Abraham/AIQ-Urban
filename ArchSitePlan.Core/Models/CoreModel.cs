@@ -27,7 +27,7 @@ namespace ArchSitePlan.Core.Models
             foreach(var building in Buildings)
             {
                 var parcel = Parcels.FirstOrDefault(p => p.Boundary.ExternalBoundary.IIsContaining([building.Origin]));
-                building.HostParcelId = parcel?.Id?? Guid.Empty;
+                building.HostParcelCoreModelId = parcel?.CoreModelId?? Guid.Empty;
             }
         }
         internal static void RefreshStudyAreaMetrics()
@@ -62,178 +62,6 @@ namespace ArchSitePlan.Core.Models
                     Studies[i] = new StudyArea(Studies[i], parcelsInArea, buildingsInArea, roadsInArea);
                 }
             }
-        }
-        public static List<Guid> GetBuildingIds()
-        => Buildings.Select(b => b.EnvelopeId).ToList();
-        
-        private static void SplitCoreModel()
-        {
-            var studyBoundaries = Studies.Select(sa => sa.Boundary)
-                .Where(crv => crv != null && crv.IIsClosed())
-                .Cast<ICurve>()
-                .ToList();
-
-            var dividerCrvs = Dividers
-                .Select(d => d.Curve)
-                .Cast<ICurve>()
-                .ToList();
-
-            dividerCrvs.AddRange(studyBoundaries);
-
-            var splitParcels = new List<Parcel>();
-            foreach(var parcel in Parcels)
-            {
-                var fragments = SplitParcelsByPolylines(
-                    [parcel.Boundary],
-                    dividerCrvs);
-
-                splitParcels.AddRange(fragments.Select(f => new Parcel(parcel, f)));
-            }
-
-            Parcels = splitParcels;
-        }
-
-        private static List<PlanarSurface> SplitParcelsByPolylines(
-            List<PlanarSurface> parcels, 
-            List<ICurve> dividers)
-        {
-            var splitParcels = parcels.Select(p => p.ExternalBoundary)
-                .SelectMany(crv => crv.Split(dividers))
-                .Select(crv => new PlanarSurface(crv, new List<ICurve>()))
-                .ToList();
-
-            return splitParcels;
-        }
-        private static void SplitRoadRoWsByStudyAreas()
-        {
-            //var studyBoundaries = StudyAreas.Select(sa => sa.Boundary).ToList();
-
-            //foreach (var boundary in studyBoundaries)
-            //{
-            //    // For each road recalculate the split roads
-            //    var splitRoWs = new List<PlanarSurface>();
-
-            //    foreach (var row in ROWs)
-            //    {
-            //        Compute.BooleanDifference()
-            //        var insideStudy = Compute.BooleanIntersection(splitRoWs.Select(r => r.ExternalBoundary), boundary);
-
-            //        if (insideStudy.Any())
-            //        {
-            //            var outsideStudy = Compute.BooleanDifference(parcel.Boundary.ExternalBoundary, boundary.ObjectToList());
-
-            //            List<PolyCurve> splitBoundaries = insideStudy.Concat(outsideStudy).ToList();
-            //            var parcelFragments = insideStudy
-            //                .Concat(outsideStudy)
-            //                .Select(b => new Parcel(parcel, new PlanarSurface((ICurve)b, new List<ICurve>())));
-
-            //            splitParcels.AddRange(parcelFragments);
-            //        }
-            //        else
-            //        {
-            //            splitParcels.Add(parcel);
-            //        }
-            //        _roads = splitRoads;
-            //}
-        }
-
-        private static void SplitRoadsByStudyAreas()
-        {
-            var studyBoundaries = Studies.Select(sa => sa.Boundary).ToList();
-
-            foreach (var boundary in studyBoundaries)
-            {
-                // For each road recalculate the split roads
-                var splitRoads = new List<Road>();
-
-                foreach (var road in Roads)
-                {
-                    var intersectionPts = road.Centerline.ICurveIntersections(boundary);
-
-                    if (intersectionPts.Any())
-                    {
-                        var centerLineFragments = road.Centerline.SplitAtPoints(intersectionPts);
-
-                        var roadFragments = centerLineFragments
-                            .Select(cl => new Road((PolyCurve)cl, road));
-
-                        splitRoads.AddRange(roadFragments);
-                    }
-                    else
-                    {
-                        splitRoads.Add(road);
-                    }
-                }
-                //_roads = splitRoads;
-            }
-        }
-       
-        //public static bool TryRemoveRoad(Guid roadCLId)
-        //{
-        //    int count = Roads.RemoveAll(r => r.CenterLineId == roadCLId);
-        //    //UpdateParcelsAndRoWs();
-        //    return count > 0;
-        //}
-
-        private static void UpdateParcelsAndRoWs()
-        {
-            //var externalBoundaries = _roads.Select(r => r.RoW.ExternalBoundary);
-            //var union = Compute.BooleanUnion(externalBoundaries)
-            //    //.Select(pCrv => Create.PlanarSurface(pCrv))
-            //    .ToList();
-
-            //var roadPoints = Roads
-            //    .Select(r => r.Centerline.PointAtParameter(0.5))
-            //    .ToList();
-
-            //var roads = union
-            //    .Where(pCrv => pCrv.IsContainingAny(roadPoints))
-            //    .ToList();
-
-            ///// TODO: More detailed road ROWs
-            //// var roadNetwork = new RoadNetwork(Roads);
-
-            //var parcels = union.Where(pCrv => !roads.Contains(pCrv))
-            //    //.Select(p => p.ExternalBoundary.Fillet())
-            //    .Select(p => p.ToPolycurve())
-            //    .ToList();
-
-            //var studyCrvs = Studies
-            //    .Select(s => s.Boundary)
-            //    .Where(crv => crv is not null)
-            //    .ToList();
-
-            //union.AddRange(studyCrvs.Select(p => p.ToPolycurve()));
-
-            //var dividers = Dividers.Select(d => d.Curve).ToList();
-            //dividers.AddRange(studyCrvs);
-
-            //// Divide created parcels
-            //parcels = parcels
-            //    .SelectMany(p => p.Split(dividers.Cast<ICurve>().ToList()))
-            //    .Select(p => p.ToPolycurve())
-            //    .ToList();
-            
-            //var roadSrfs = roads
-            //    .Select(r => Create.PlanarSurface(
-            //        r, 
-            //        parcels.Cast<ICurve>().ToList()))
-            //    .ToList();
-
-            //List<Parcel> newParcels = new();
-            //foreach(var pCrv in union)
-            //{
-            //    if (roads.Contains(pCrv)) continue;
-
-            //    Landuse nearestUse = Parcels.Any()?
-            //        Parcels.MinBy(p => p.Boundary.ControlPointCentroid().Distance(pCrv.ControlPointCentroid())).LandUse
-            //        :Landuse.Undefined;
-
-            //    newParcels.Add(new Parcel(Create.PlanarSurface(pCrv), nearestUse));
-            //}
-
-            //Parcels = newParcels;
-            //ROWs = roadSrfs;
         }
 
         public static bool TryAddBuilding(Mesh envelope,
@@ -312,8 +140,8 @@ namespace ArchSitePlan.Core.Models
 
         public static List<Building> FindBuildingsInParcels(List<Parcel> parcels)
         {
-            var parcelGuids = parcels.Select(p => p.Id).ToList();
-            var buildings = Buildings.Where(b => parcelGuids.Contains(b.HostParcelId)).ToList();
+            var parcelGuids = parcels.Select(p => p.CoreModelId).ToList();
+            var buildings = Buildings.Where(b => parcelGuids.Contains(b.HostParcelCoreModelId)).ToList();
 
             return buildings;
         }

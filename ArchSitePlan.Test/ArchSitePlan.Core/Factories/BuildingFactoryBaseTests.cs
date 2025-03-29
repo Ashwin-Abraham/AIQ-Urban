@@ -139,7 +139,7 @@ public class BuildingFactoryBaseTests
         DEBUGMODEL.OpenAsGlb();
 
         // Assert
-        var solidTotal = fragments.Sum(x => x.Length());
+        var solidTotal = fragments.Sum(x => x.ILength());
         Assert.Equal(777, solidTotal, 1.0);
     }
 
@@ -172,7 +172,7 @@ public class BuildingFactoryBaseTests
         DEBUGMODEL.OpenAsGlb();
 
         // Assert
-        var solidTotal = fragments.Sum(x => x.Length());
+        var solidTotal = fragments.Sum(x => x.ILength());
         Assert.Equal(834.15, solidTotal, 0.1);
     }
 
@@ -195,7 +195,7 @@ public class BuildingFactoryBaseTests
         DEBUGMODEL.OpenAsGlb();
 
         // Assert
-        var solidTotal = fragments.Sum(x => x.Length());
+        var solidTotal = fragments.Sum(x => x.ILength());
         Assert.Equal(1081.637, solidTotal, 0.1);
     }
 }

@@ -46,7 +46,13 @@ namespace ArchSitePlan.Core.ModelEditActions
                 var parcel = CoreModel.Parcels.Find(p => 
                     p.Boundary.ExternalBoundary.IIsContaining([building.Origin]));
 
-                building.Use = parcel is null ? AppLanduses.Undefined : parcel.LandUse;
+                if (parcel != null)
+                {
+                    building.Use = parcel.LandUse;
+                    building.HostParcelCoreModelId = parcel.CoreModelId;
+                }
+                else
+                    building.Use = AppLanduses.Undefined;
             }
         }
 
@@ -80,9 +86,9 @@ namespace ArchSitePlan.Core.ModelEditActions
         {
             var parcel = CoreModel.Parcels
                 .FirstOrDefault(p => p.Boundary.ExternalBoundary.IIsContaining([building.Origin]));
-            building.HostParcelId = parcel?.Id ?? Guid.Empty;
+            building.HostParcelCoreModelId = parcel?.CoreModelId ?? Guid.Empty;
 
-            return building.HostParcelId == Guid.Empty;
+            return building.HostParcelCoreModelId == Guid.Empty;
         }
 
         private static bool TryRemoveFromCoreModel(List<BuildingActionConfig> configs)

@@ -5,13 +5,13 @@ namespace ArchSitePlan.Core.Factories.Models;
 
 public class BuildingLayout
 {
-    public PolyCurve SiteBoundary { get; }
-    public PolyCurve SetBackBoundary { get; }
+    public ICurve SiteBoundary { get; }
+    public ICurve SetBackBoundary { get; }
     public List<Building> Buildings { get; }
 
     public BuildingLayout(
-        PolyCurve siteBoundary,
-        PolyCurve setBackBoundary,
+        ICurve siteBoundary,
+        ICurve setBackBoundary,
         List<Building> buildings)
     {
         SiteBoundary = siteBoundary;

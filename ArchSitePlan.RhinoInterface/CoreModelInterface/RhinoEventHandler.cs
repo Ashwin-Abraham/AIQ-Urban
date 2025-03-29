@@ -12,10 +12,12 @@ using ArchSitePlan.RhinoInterface.HTML_UI.Websockets;
 using ArchSitePlan.RhinoInterface.InputValidation.Results;
 using ArchSitePlan.RhinoInterface.InputValidation.Validators;
 using ArchSitePlan.RhinoInterface.Models;
+using ArchSitePlan.RhinoInterface.NewFolder;
 using ArchSitePlan.RhinoInterface.RhinoBHoMInterop;
 using ArchSitePlan.RhinoInterface.UsageLogs;
 using BH.Engine.Geometry;
 using BH.oM.Geometry;
+using Eto.Forms;
 using Rhino;
 using Rhino.Display;
 using Rhino.DocObjects;
@@ -37,6 +39,7 @@ namespace ArchSitePlan.RhinoInterface.Actions
         public static UIViewModel HTMLViewModel = new();
 
         private static bool _isReplacement = false;
+        private static MetricsPopUp _popUp = new MetricsPopUp();
 
         private static List<RhinoObject> _objectsForReplace = new();
         private static List<RhinoObject> _objectsForAddition = new();
@@ -51,9 +54,9 @@ namespace ArchSitePlan.RhinoInterface.Actions
             RhinoDoc.DeleteRhinoObject += (sender, args) => QueueObjectForRemoval(args);
             RhinoDoc.UndeleteRhinoObject += (sender, args) => QueueObjectForUndelete(args);
 
-            //RhinoDoc.SelectObjects += (sender, args) => OnRhinoDocObjectSelection(args);
-            //RhinoDoc.DeselectObjects += (sender, args) => OnRhinoDocObjectDeSelection(args);
-            //RhinoDoc.DeselectAllObjects += (sender, args) => OnAllRhinoDocObjectDeSelection(args);
+            RhinoDoc.SelectObjects += (sender, args) => OnRhinoDocObjectSelection(args);
+            RhinoDoc.DeselectObjects += (sender, args) => OnRhinoDocObjectDeSelection(args);
+            RhinoDoc.DeselectAllObjects += (sender, args) => OnAllRhinoDocObjectDeSelection(args);
 
             RhinoDoc.SelectObjects += (sender, args) => ShowObjectInfoEvent(args);
 
@@ -144,15 +147,15 @@ namespace ArchSitePlan.RhinoInterface.Actions
             _objectsForUndelete.Clear();
         }
 
-        //private static void OnAllRhinoDocObjectDeSelection(RhinoDeselectAllObjectsEventArgs args)
-        //{
-        //    RhinoApp.InvokeOnUiThread(() => _popUp.Close());
-        //}
+        private static void OnAllRhinoDocObjectDeSelection(RhinoDeselectAllObjectsEventArgs args)
+        {
+            RhinoApp.InvokeOnUiThread(() => _popUp.Close());
+        }
 
-        //private static void OnRhinoDocObjectDeSelection(RhinoObjectSelectionEventArgs args)
-        //{
-        //    RhinoApp.InvokeOnUiThread(() => _popUp.Close());
-        //}
+        private static void OnRhinoDocObjectDeSelection(RhinoObjectSelectionEventArgs args)
+        {
+            RhinoApp.InvokeOnUiThread(() => _popUp.Close());
+        }
         private static void RunCoreModelUndoOperations(List<RhinoObject> objectsForUndelete)
         {
             try
@@ -396,7 +399,7 @@ namespace ArchSitePlan.RhinoInterface.Actions
                         break;
 
                     case ModellingTool.Building:
-                        var buildingResult = new BuildingInputValidator(BuildingSelectorMode.Mass)
+                        var buildingResult = new BuildingInputValidator(BuildingGeneratorStartPoint.Mass)
                             .ValidateInput(removedObjects);
 
                         if (buildingResult.Result == ValidationResult.All_Invalid
@@ -466,67 +469,68 @@ namespace ArchSitePlan.RhinoInterface.Actions
 
             return screenPoint2;
         }
-        //private static void OnRhinoDocObjectSelection(RhinoObjectSelectionEventArgs args)
-        //{
-        //    try
-        //    {
-        //        _popUp.Close();
+        private static void OnRhinoDocObjectSelection(RhinoObjectSelectionEventArgs args)
+        {
+            try
+            {
+                _popUp.Close();
 
-        //        RhinoDoc doc = RhinoDoc.ActiveDoc;
-        //        var ids = doc.Objects
-        //            .GetSelectedObjects(false, false)
-        //            .Select(obj => obj.Id).ToList();
-                
-        //        List<Guid> coreModelIds = FindCoreModelObjs(ids, WPFViewModel.AppMode);
+                RhinoDoc doc = RhinoDoc.ActiveDoc;
+                var ids = doc.Objects
+                    .GetSelectedObjects(false, false)
+                    .Select(obj => obj.Id).ToList();
 
-        //        if (!WPFViewModel.AppEnabled || ids.Count == 0) return;
+                List<Guid> coreModelIds = FindCoreModelObjs(ids, HTMLViewModel.AppMode);
 
-        //        // Find screen point
-        //        var selectedObjects = doc.Objects.Where(obj => coreModelIds.Contains(obj.Id));
-        //        var center = CalculateObjectsCenter(selectedObjects);
-        //        var pointOnScreen = ToScreenPoint(center, doc.Views.ActiveView.ActiveViewport);
+                if (/*!WPFViewModel.AppEnabled || */ids.Count == 0) return;
 
-        //        RhinoApp.InvokeOnUiThread(() =>
-        //        {
-        //            // Position window
-        //            _popUp = new();
+                // Find screen point
+                var selectedObjects = doc.Objects.Where(obj => coreModelIds.Contains(obj.Id));
+                var center = CalculateObjectsCenter(selectedObjects);
+                var pointOnScreen = ToScreenPoint(center, doc.Views.ActiveView.ActiveViewport);
 
-        //            switch (WPFViewModel.AppMode)
-        //            {
-        //                case ModellingTool.Transit:
-        //                    var roads = CoreModel.Roads.Where(rd => coreModelIds.Contains(rd.CenterLineId)).ToList();
-        //                    if (roads.Count == 0) break;
-        //                    PopUpViewModel.ConfigureRoadsInPopUp(_popUp, roads);
-        //                    _popUp.Show();
-        //                    break;
+                RhinoApp.InvokeOnUiThread(() =>
+                {
+                    // Position window
+                    _popUp = new();
 
-        //                case ModellingTool.LandUse:
-        //                    var parcels = CoreModel.Parcels.Where(p => coreModelIds.Contains(p.Id)).ToList();
-        //                    if (parcels.Count == 0) break;
-        //                    PopUpViewModel.ConfigureLandUseInPopUp(_popUp, parcels);
-        //                    _popUp.Show();
-        //                    break;
+                    switch (HTMLViewModel.AppMode)
+                    {
+                        case ModellingTool.Transit:
+                            var roads = CoreModel.Roads.Where(rd => coreModelIds.Contains(rd.CenterLineId)).ToList();
+                            if (roads.Count == 0) break;
+                            //PopUpViewModel.ConfigureRoadsInPopUp(_popUp, roads);
+                            _popUp.Show();
+                            break;
 
-        //                case ModellingTool.Building:
-        //                    var buildings = CoreModel.Buildings
-        //                        .Where(bldg => coreModelIds.Contains(bldg.EnvelopeId))
-        //                        .ToList();
-        //                    if (buildings.Count == 0) break;
-        //                    PopUpViewModel.ConfigureBuildingsInPopUp(_popUp, buildings);
-        //                    _popUp.Show();
-        //                    break;
-        //            }
-        //            var dpi = System.Windows.Media.VisualTreeHelper.GetDpi(_popUp);
-        //            _popUp.Left = pointOnScreen.X / dpi.DpiScaleX;
-        //            _popUp.Top = pointOnScreen.Y / dpi.DpiScaleY;
-        //            FocusRhinoWindow();
-        //        });
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        MessageBox.Show(ex.Message);
-        //    }
-        //}
+                        case ModellingTool.LandUse:
+                            var parcels = CoreModel.Parcels.Where(p => coreModelIds.Contains(p.ClientModelId)).ToList();
+                            if (parcels.Count == 0) break;
+                            //PopUpViewModel.ConfigureLandUseInPopUp(_popUp, parcels);
+                            _popUp.Show();
+                            break;
+
+                        case ModellingTool.Building:
+                            var buildings = CoreModel.Buildings
+                                .Where(bldg => coreModelIds.Contains(bldg.EnvelopeId))
+                                .ToList();
+                            if (buildings.Count == 0) break;
+                            //PopUpViewModel.ConfigureBuildingsInPopUp(_popUp, buildings);
+                            _popUp.Show();
+                            break;
+                    }
+                    //var dpi = System.Windows.Media.VisualTreeHelper.GetDpi(_popUp);
+                    //_popUp.Left = pointOnScreen.X / dpi.DpiScaleX;
+                    //_popUp.Top = pointOnScreen.Y / dpi.DpiScaleY;
+                    FocusRhinoWindow();
+                });
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        }
+
         // Import the SetForegroundWindow function from user32.dll
         [DllImport("user32.dll")]
         private static extern bool SetForegroundWindow(IntPtr hWnd);
@@ -549,11 +553,13 @@ namespace ArchSitePlan.RhinoInterface.Actions
                         .Select(rd => rd.CenterLineId)
                         .ToList();
 
+                case ModellingTool.Dividers:
                 case ModellingTool.LandUse: return CoreModel.Parcels
-                        .Where(p => selectedIds.Contains(p.Id))
-                        .Select(p => p.Id)
+                        .Where(p => selectedIds.Contains(p.ClientModelId))
+                        .Select(p => p.ClientModelId)
                         .ToList();
 
+                case ModellingTool.AutoBuilding:
                 case ModellingTool.Building: return CoreModel.Buildings
                         .Where(b => selectedIds.Contains(b.EnvelopeId))
                         .Select(b => b.EnvelopeId)

@@ -1,8 +1,10 @@
 ﻿using System.Windows;
+using ArchSitePlan.Core.Factories.Models;
 using ArchSitePlan.Core.Models;
 using ArchSitePlan.Core.Pipeline;
 using ArchSitePlan.Core.Pipeline.CreationData;
 using ArchSitePlan.RhinoInterface.Actions;
+using BH.Engine.Geometry;
 using Eto.Forms;
 using Rhino;
 using static ArchSitePlan.RhinoInterface.Constants.Enums;
@@ -94,12 +96,6 @@ namespace ArchSitePlan.RhinoInterface.CoreModelInterface
             //LayerManager.ToggleLayerStateBasedOnAppMode(doc, currentAppMode);
         }
 
-        internal static void AutoGenerateBuldingPipeline(RhinoDoc doc,
-            List<AutoBuildingData> buildingData,
-            ModellingTool currentAppMode)
-        {
-
-        }
         internal static void AddOrUpdateBuldingPipeline(
             RhinoDoc doc,
             List<BuildingData> buildingData,
@@ -109,6 +105,33 @@ namespace ArchSitePlan.RhinoInterface.CoreModelInterface
                 return;
 
             CoreModelEditStepLibrary.AddOrUpdateBulding(buildingData);
+            CoreModelEditStepLibrary.RefreshBuildingUse();
+            CoreModelEditStepLibrary.RefreshStudyAreaMetrics();
+            RhinoModelEditStepLibrary.ReplaceRhinoModel(doc, true);
+            //LayerManager.ToggleLayerStateBasedOnAppMode(doc, currentAppMode);
+
+            RhinoEventHandler.AppUsageLog.ModelLog.Building++;
+        }
+
+        internal static void AutoGenerateBuildingsOnParcel(
+            RhinoDoc doc,
+            List<BuildingLayout> layoutsToAdd,
+            ModellingTool currentAppMode = ModellingTool.AutoBuilding)
+        {
+            CoreModelEditStepLibrary.RemoveBuildingsOnParcels(layoutsToAdd);
+            var buildings = layoutsToAdd.SelectMany(x=> x.Buildings).ToList();
+            AddOrUpdateBuldingPipeline(doc, buildings, currentAppMode);
+        }
+
+        internal static void AddOrUpdateBuldingPipeline(
+            RhinoDoc doc,
+            List<Building> buildingsToAdd,
+            ModellingTool currentAppMode)
+        {
+            if (!RhinoEventHandler.ValidLicense)
+                return;
+
+            CoreModelEditStepLibrary.AddOrUpdateBulding(buildingsToAdd);
             CoreModelEditStepLibrary.RefreshBuildingUse();
             CoreModelEditStepLibrary.RefreshStudyAreaMetrics();
             RhinoModelEditStepLibrary.ReplaceRhinoModel(doc, true);

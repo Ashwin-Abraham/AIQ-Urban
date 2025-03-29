@@ -30,7 +30,7 @@ namespace ArchSitePlan.RhinoInterface.HTML_UI.MessagesFromUI
         public StudyAreaMetricsMessage HandleMessage()
         {
             RhinoEventHandler.HTMLViewModel.AppMode = ModellingTool.Building;
-            bool validMode = Enum.TryParse<BuildingSelectorMode>(GenerationType, out var buildingMode);
+            bool validMode = Enum.TryParse<BuildingGeneratorStartPoint>(GenerationType, out var buildingMode);
             
             if (!validMode)
                 throw new Exception("Invalid building generation mode");
@@ -52,7 +52,6 @@ namespace ArchSitePlan.RhinoInterface.HTML_UI.MessagesFromUI
             if (validation.Result != ValidationResult.All_Valid)
                 throw new Exception(validation.Message);
 
-            var vm = RhinoEventHandler.HTMLViewModel;
             if (validation.ValidObjects.Count == 0)
                 return new();
 

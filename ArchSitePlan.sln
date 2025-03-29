@@ -21,6 +21,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AIQ.Primitives", "AIQ.Primi
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ArchSitePlan.RhinoInterface", "ArchSitePlan.RhinoInterface\ArchSitePlan.RhinoInterface.csproj", "{4F5A6A49-43DB-4182-8B81-ADBE0B8D5553}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AIQ.RhinoTests", "AIQ.RhinoTests\AIQ.RhinoTests.csproj", "{21297317-915E-4CFE-99E4-1AD484B4EF30}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -99,6 +101,14 @@ Global
 		{4F5A6A49-43DB-4182-8B81-ADBE0B8D5553}.Release|Any CPU.Build.0 = Release|Any CPU
 		{4F5A6A49-43DB-4182-8B81-ADBE0B8D5553}.Release|x64.ActiveCfg = Release|Any CPU
 		{4F5A6A49-43DB-4182-8B81-ADBE0B8D5553}.Release|x64.Build.0 = Release|Any CPU
+		{21297317-915E-4CFE-99E4-1AD484B4EF30}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{21297317-915E-4CFE-99E4-1AD484B4EF30}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{21297317-915E-4CFE-99E4-1AD484B4EF30}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{21297317-915E-4CFE-99E4-1AD484B4EF30}.Debug|x64.Build.0 = Debug|Any CPU
+		{21297317-915E-4CFE-99E4-1AD484B4EF30}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{21297317-915E-4CFE-99E4-1AD484B4EF30}.Release|Any CPU.Build.0 = Release|Any CPU
+		{21297317-915E-4CFE-99E4-1AD484B4EF30}.Release|x64.ActiveCfg = Release|Any CPU
+		{21297317-915E-4CFE-99E4-1AD484B4EF30}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

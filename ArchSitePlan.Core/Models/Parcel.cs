@@ -7,16 +7,14 @@ namespace ArchSitePlan.Core.Models
     {
         public PlanarSurface Boundary {  get; set; }
         public Landuse LandUse { get; set; }
-        public Guid Id { get; set; }
-        internal Parcel(PlanarSurface boundary, Landuse use, Guid? id = null)
+        public Guid CoreModelId { get; set; }
+        public Guid ClientModelId { get; set; }
+        internal Parcel(PlanarSurface boundary, Landuse use, Guid? coreId = null, Guid? clientId = null)
         {
             Boundary = boundary;
             LandUse = use;
-            Id = id ?? Guid.NewGuid();
-        }
-        internal Parcel(Parcel parcel, PlanarSurface boundary):this(boundary, parcel.LandUse)
-        {
-            Id = parcel.Id;
+            CoreModelId = coreId ?? Guid.NewGuid();
+            ClientModelId = clientId ?? Guid.NewGuid();
         }
 
         public double Area()

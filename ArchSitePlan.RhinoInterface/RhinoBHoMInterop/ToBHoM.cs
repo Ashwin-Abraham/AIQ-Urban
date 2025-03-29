@@ -5,6 +5,24 @@ using bhom = BH.oM.Geometry;
 namespace ArchSitePlan.RhinoInterface.RhinoBHoMInterop;
 public static class ToBHoMExtensions
 {
+    public static bhom.ICurve? ToBHoMXYOutline(this Brep rhinoSrf)
+    {
+        var boundaryCurves = rhinoSrf.Loops
+            .Select(x => x.To3dCurve())
+            .ToList();
+
+        var boundary = Curve.JoinCurves(boundaryCurves, 1e-06).MaxBy(x => x.GetLength());
+        if (boundary == null) return null;
+
+        var isPlanar = boundary.TryGetPlane(out Plane plane);
+        if (!isPlanar) return null;
+
+        var isVertical = plane.Normal.IsPerpendicularTo(Vector3d.ZAxis);
+        if (isVertical) return null;
+
+        var crv = boundary.ToBHoM();
+        return crv;
+    }
     public static bhom.ICurve? ToBHoM2DegreeCrv(this Curve rhinoCrv)
     {
         if (rhinoCrv.TryGetPolyline(out Polyline pline))

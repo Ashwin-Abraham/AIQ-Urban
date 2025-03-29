@@ -1,5 +1,6 @@
 ﻿using ArchSitePlan.BHoM.Geometry.Extensions;
 using ArchSitePlan.Core.Extensions;
+using ArchSitePlan.Core.Factories.Models;
 using ArchSitePlan.Core.ModelEditActions;
 using ArchSitePlan.Core.ModelEditActions.Configs;
 using ArchSitePlan.Core.Models;
@@ -31,15 +32,12 @@ namespace ArchSitePlan.Core.Pipeline
         /// <summary>
         /// Updates the parcel use if it exists
         /// </summary>
-        public static void UpdateParcelUse(List<Guid> parcelIds, Landuse use)
+        public static void UpdateParcelUse(List<Guid> clientModelIDs, Landuse use)
         {
-            List<(ICurve?, Guid)> parcelsAndIds = new();
-            foreach (Guid parcelId in parcelIds)
-            {
-                parcelsAndIds.Add((null, parcelId));
-            }
-
-            new ParcelAction().Run(parcelsAndIds, EditType.Edit, use);
+            new ParcelAction().Run(
+                editType: EditType.Edit,
+                clientIdsToModifyOrRemove: clientModelIDs, 
+                use: use);
         }
 
         public static bool TryRemoveRoad(IEnumerable<TransitData> transitData)
@@ -53,20 +51,15 @@ namespace ArchSitePlan.Core.Pipeline
         {
             var dividers = CoreModel.Dividers
                 .Select(d => d.Curve)
+                .Concat(CoreModel.Studies.Select(s => s.Boundary))
+                .Where(x => x != null)
                 .Cast<ICurve>()
                 .ToList();
 
-            dividers.AddRange(CoreModel.Studies.Select(s => s.Boundary));
-            dividers.RemoveAll(x => x is null);
-
             if (dividers.Count == 0) return;
 
-            var parcelBoundaryAndIds = CoreModel.Parcels
-                .Select(p => (p.Boundary.ExternalBoundary, p.Id))
-                .ToList();
-
             new ParcelAction().Run(
-                parcelBoundaryAndIds,
+                clientIdsToModifyOrRemove: CoreModel.Parcels.Select(p => p.ClientModelId).ToList(),
                 editType: EditType.Divide,
                 dividers: dividers);
         }
@@ -87,12 +80,10 @@ namespace ArchSitePlan.Core.Pipeline
                 out List<PlanarSurface> roadSrfs,
                 out List<ICurve> parcelBoundaries);
 
-            var parcels = parcelBoundaries.Select(x => (x, Guid.Empty)).ToList();
             new ParcelAction().Run(
                 editType: EditType.Add,
-                boundaryAndIds: parcels,
-                dividers: null,
-                    existingUsesAndCenters: priorUsesAndCenters);
+                boundariesToAdd: parcelBoundaries,
+                existingUsesAndCenters: priorUsesAndCenters);
 
             RoadAction.Run(roadSrfs);
         }
@@ -178,6 +169,10 @@ namespace ArchSitePlan.Core.Pipeline
         public static void AddDivders(List<DividerData> dividerData) =>
             new DividerAction().Run(dividerData, EditType.Add);
 
+        public static void AddOrUpdateBulding(List<Building> buildings)
+        {
+            CoreModel.Buildings.AddRange(buildings);
+        }
         public static void AddOrUpdateBulding(List<BuildingData> buildingData)
         {
             var configs = new List<BuildingActionConfig>();
@@ -241,6 +236,31 @@ namespace ArchSitePlan.Core.Pipeline
                 .Where(x => x.Use == oldUse)
                 .ToList()
                 .ForEach(x => x.Use = newUse);
+        }
+
+        public static void RemoveBuildingsOnParcels(List<BuildingLayout> layoutsToAdd)
+        {
+            var pointsOnParcel = layoutsToAdd
+                .Select(x => x.SiteBoundary.IControlPoints())
+                .ToList();
+
+            var hostParcelIds = new List<Guid>();
+
+            foreach (var parcel in CoreModel.Parcels)
+            {
+                foreach(var layoutParcelPoints in pointsOnParcel)
+                {
+                    bool foundParcel = parcel.Boundary.ExternalBoundary.IIsContaining(layoutParcelPoints);
+                    if (!foundParcel) continue;
+                    
+                    hostParcelIds.Add(parcel.CoreModelId);
+                }
+            }
+            var buildingsToDelete = CoreModel.Buildings
+                .Where(x => hostParcelIds.Contains(x.HostParcelCoreModelId))
+                .ToList();
+
+            buildingsToDelete.ForEach(x => CoreModel.Buildings.Remove(x));
         }
     }
 }

@@ -17,10 +17,10 @@ public class BuildingsAlongRoadFactory
 
     public BuildingLayout Generate(PolyCurve site, PolyCurve generatorEdge)
     {
-        var targetGFA = GetRequiredGFA(_config.TargetMode,
+        var targetGFA = GetRequiredGFA(
+            _config.TargetMode,
             _config.TargetGFA,
             _config.TargetFAR,
-            0,
             site.Area());
 
         var smallestBuildingGfa = _config.Definitions.Min(def => def.Building.BUA());
