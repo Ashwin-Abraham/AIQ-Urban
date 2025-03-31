@@ -7,7 +7,9 @@ public static class VueUI
 {
     public static void OpenWindow()
     {
-        WebView webView = new WebView { Height = 1000 };
+        WebView webView = new WebView { 
+            Height = 1000 ,
+        };
 
         var layout = new DynamicLayout { DefaultSpacing = new Size(5, 5), Padding = new Padding(0) };
         webView.Url = new Uri(@"http://localhost:6300/index.html");
@@ -20,7 +22,8 @@ public static class VueUI
             Title = "Rhino Web Plugin",
             Width = 350,
             Height = 800,
-            Topmost = true
+            Topmost = true,
+            Opacity=0.5
         };
 
         dialog.Content = layout;

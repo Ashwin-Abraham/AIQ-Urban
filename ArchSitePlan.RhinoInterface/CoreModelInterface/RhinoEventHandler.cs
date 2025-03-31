@@ -39,7 +39,7 @@ namespace ArchSitePlan.RhinoInterface.Actions
         public static UIViewModel HTMLViewModel = new();
 
         private static bool _isReplacement = false;
-        private static MetricsPopUp _popUp = new MetricsPopUp();
+        private static MetricsPopUp _popUp = new MetricsPopUp(null);
 
         private static List<RhinoObject> _objectsForReplace = new();
         private static List<RhinoObject> _objectsForAddition = new();
@@ -489,25 +489,29 @@ namespace ArchSitePlan.RhinoInterface.Actions
                 var center = CalculateObjectsCenter(selectedObjects);
                 var pointOnScreen = ToScreenPoint(center, doc.Views.ActiveView.ActiveViewport);
 
+                var viewBounds = doc.Views.ActiveView.Bounds;
+                var etoClientPoint = ToScreenPoint(doc.Views.ActiveView.ActiveViewport);
+
                 RhinoApp.InvokeOnUiThread(() =>
                 {
                     // Position window
-                    _popUp = new();
+                    _popUp = new(etoClientPoint);
 
                     switch (HTMLViewModel.AppMode)
                     {
                         case ModellingTool.Transit:
                             var roads = CoreModel.Roads.Where(rd => coreModelIds.Contains(rd.CenterLineId)).ToList();
                             if (roads.Count == 0) break;
-                            //PopUpViewModel.ConfigureRoadsInPopUp(_popUp, roads);
+                            _popUp.ConfigureRoads(roads);
                             _popUp.Show();
                             break;
 
                         case ModellingTool.LandUse:
                             var parcels = CoreModel.Parcels.Where(p => coreModelIds.Contains(p.ClientModelId)).ToList();
                             if (parcels.Count == 0) break;
-                            //PopUpViewModel.ConfigureLandUseInPopUp(_popUp, parcels);
+                            _popUp.ConfigureLanduse(parcels);
                             _popUp.Show();
+                            _popUp.OutputToRhino();
                             break;
 
                         case ModellingTool.Building:
@@ -515,7 +519,7 @@ namespace ArchSitePlan.RhinoInterface.Actions
                                 .Where(bldg => coreModelIds.Contains(bldg.EnvelopeId))
                                 .ToList();
                             if (buildings.Count == 0) break;
-                            //PopUpViewModel.ConfigureBuildingsInPopUp(_popUp, buildings);
+                            _popUp.ConfigureBuildings(buildings);
                             _popUp.Show();
                             break;
                     }
@@ -529,6 +533,18 @@ namespace ArchSitePlan.RhinoInterface.Actions
             {
                 MessageBox.Show(ex.Message);
             }
+        }
+
+        private static Eto.Drawing.Point? ToScreenPoint(RhinoViewport viewport)
+        {
+            //var origin = viewport.ClientToScreen(new Point2d(0,0));
+            var viewOrigin = viewport.ParentView.ClientRectangle.Location;
+            var origin = viewport.ParentView.ClientToScreen(new Point2d(0, 0));
+            //var point = Rhino.UI.RhinoEtoApp.MainWindow.PointFromScreen(new Eto.Drawing.PointF(0f, 0f));
+
+            var etoPoint = new Eto.Drawing.Point((int)origin.X, (int)origin.Y);
+
+            return etoPoint;
         }
 
         // Import the SetForegroundWindow function from user32.dll

@@ -33,9 +33,10 @@ public class RhinoTest
         };
 
         var brep = Brep.CreateEdgeSurface(curves);
-        var surface = brep.Surfaces[0];
+        var bhom = brep.ToBHoMXYOutline();
 
-        var bhom = surface.ToBHoMXYOutline();
+        var isNull = bhom == null;
+        Assert.Equals(isNull, false);
     }
 
     [Test]

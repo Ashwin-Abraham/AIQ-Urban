@@ -45,7 +45,7 @@ public class WebSocketComms
         {
             string json = JsonConvert.SerializeObject(message);
             _wss.WebSocketServices.Broadcast(json);
-            RhinoApp.WriteLine("Broadcasted message: osmTags");
+            RhinoApp.WriteLine("Broadcasted message: "+ json);
         }
     }
 
