@@ -132,9 +132,6 @@ public class ServerComms
                         var messageObj = MessageConverter.ConvertMessageToJson(requestBody);
 
                         IMessageToUI responseMessage = null;
-                        //RhinoApp.InvokeOnUiThread(() =>
-                        //responseMessage = messageObj.HandleMessage());
-
                         responseMessage = messageObj.HandleMessage();
 
                         response = AddCORSHeaders(response);
