@@ -12,12 +12,10 @@ using ArchSitePlan.RhinoInterface.HTML_UI.Websockets;
 using ArchSitePlan.RhinoInterface.InputValidation.Results;
 using ArchSitePlan.RhinoInterface.InputValidation.Validators;
 using ArchSitePlan.RhinoInterface.Models;
-using ArchSitePlan.RhinoInterface.NewFolder;
 using ArchSitePlan.RhinoInterface.RhinoBHoMInterop;
 using ArchSitePlan.RhinoInterface.UsageLogs;
 using BH.Engine.Geometry;
 using BH.oM.Geometry;
-using Eto.Forms;
 using Rhino;
 using Rhino.Display;
 using Rhino.DocObjects;
@@ -39,8 +37,6 @@ namespace ArchSitePlan.RhinoInterface.Actions
         public static UIViewModel HTMLViewModel = new();
 
         private static bool _isReplacement = false;
-        private static MetricsPopUp _popUp = new MetricsPopUp(null);
-
         private static List<RhinoObject> _objectsForReplace = new();
         private static List<RhinoObject> _objectsForAddition = new();
         private static List<RhinoObject> _objectsForRemoval = new();
@@ -149,12 +145,12 @@ namespace ArchSitePlan.RhinoInterface.Actions
 
         private static void OnAllRhinoDocObjectDeSelection(RhinoDeselectAllObjectsEventArgs args)
         {
-            RhinoApp.InvokeOnUiThread(() => _popUp.Close());
+            RhinoApp.InvokeOnUiThread(() => SelectedObjectMetricsMessage.FromEmpty().BroadcastMessage());
         }
 
         private static void OnRhinoDocObjectDeSelection(RhinoObjectSelectionEventArgs args)
         {
-            RhinoApp.InvokeOnUiThread(() => _popUp.Close());
+            RhinoApp.InvokeOnUiThread(() => SelectedObjectMetricsMessage.FromEmpty().BroadcastMessage());
         }
         private static void RunCoreModelUndoOperations(List<RhinoObject> objectsForUndelete)
         {
@@ -452,81 +448,54 @@ namespace ArchSitePlan.RhinoInterface.Actions
             }
         }
 
-        private static Point3d CalculateObjectsCenter(IEnumerable<RhinoObject> objs)
-        {
-            var centers = objs.Select(obj => obj.Geometry.GetBoundingBox(false).Center)
-                .ToList();
-
-            return centers.AveragePoint();
-        }
-        private static System.Drawing.Point ToScreenPoint(Point3d modelPoint, RhinoViewport viewport)
-        {
-            var viewportPoint = viewport.WorldToClient(modelPoint);
-            var screenPoint1 = viewport.ClientToScreen(viewportPoint);
-            var point = viewport.ParentView.ClientToScreen(viewportPoint);
-
-            var screenPoint2 = new System.Drawing.Point((int)point.X, (int)point.Y);
-
-            return screenPoint2;
-        }
         private static void OnRhinoDocObjectSelection(RhinoObjectSelectionEventArgs args)
         {
             try
             {
-                _popUp.Close();
-
                 RhinoDoc doc = RhinoDoc.ActiveDoc;
-                var ids = doc.Objects
+                var selectedIDs = doc.Objects
                     .GetSelectedObjects(false, false)
                     .Select(obj => obj.Id).ToList();
 
-                List<Guid> coreModelIds = FindCoreModelObjs(ids, HTMLViewModel.AppMode);
-
-                if (/*!WPFViewModel.AppEnabled || */ids.Count == 0) return;
-
-                // Find screen point
-                var selectedObjects = doc.Objects.Where(obj => coreModelIds.Contains(obj.Id));
-                var center = CalculateObjectsCenter(selectedObjects);
-                var pointOnScreen = ToScreenPoint(center, doc.Views.ActiveView.ActiveViewport);
-
-                var viewBounds = doc.Views.ActiveView.Bounds;
-                var etoClientPoint = ToScreenPoint(doc.Views.ActiveView.ActiveViewport);
+                if (/*!WPFViewModel.AppEnabled || */selectedIDs.Count == 0) return;
 
                 RhinoApp.InvokeOnUiThread(() =>
                 {
-                    // Position window
-                    _popUp = new(etoClientPoint);
+                    var message = SelectedObjectMetricsMessage.FromEmpty();
 
                     switch (HTMLViewModel.AppMode)
                     {
                         case ModellingTool.Transit:
-                            var roads = CoreModel.Roads.Where(rd => coreModelIds.Contains(rd.CenterLineId)).ToList();
-                            if (roads.Count == 0) break;
-                            _popUp.ConfigureRoads(roads);
-                            _popUp.Show();
+                            var roads = CoreModel.Roads.Where(rd => selectedIDs.Contains(rd.CenterLineId)).ToList();
+                            
+                            if (roads.Count > 0)
+                                message = SelectedObjectMetricsMessage.FromRoads(roads);
                             break;
 
                         case ModellingTool.LandUse:
-                            var parcels = CoreModel.Parcels.Where(p => coreModelIds.Contains(p.ClientModelId)).ToList();
-                            if (parcels.Count == 0) break;
-                            _popUp.ConfigureLanduse(parcels);
-                            _popUp.Show();
-                            _popUp.OutputToRhino();
+                            var parcels = CoreModel.Parcels.Where(p => selectedIDs.Contains(p.ClientModelId)).ToList();
+
+                            if (parcels.Count > 0)
+                                message = SelectedObjectMetricsMessage.FromParcels(parcels);
                             break;
 
+                        case ModellingTool.AutoBuilding:
                         case ModellingTool.Building:
-                            var buildings = CoreModel.Buildings
-                                .Where(bldg => coreModelIds.Contains(bldg.EnvelopeId))
-                                .ToList();
-                            if (buildings.Count == 0) break;
-                            _popUp.ConfigureBuildings(buildings);
-                            _popUp.Show();
+                            var buildings = CoreModel.Buildings.Where(bldg => selectedIDs.Contains(bldg.EnvelopeId)).ToList();
+
+                            if (buildings.Count > 0) 
+                                message = SelectedObjectMetricsMessage.FromBuildings(buildings);
                             break;
+
+                        case ModellingTool.Dividers:
+                            var dividers = CoreModel.Dividers.Where(bldg => selectedIDs.Contains(bldg.Id)).ToList();
+
+                            if (dividers.Count > 0)
+                                message = SelectedObjectMetricsMessage.FromDividers(dividers);
+                            break;
+
                     }
-                    //var dpi = System.Windows.Media.VisualTreeHelper.GetDpi(_popUp);
-                    //_popUp.Left = pointOnScreen.X / dpi.DpiScaleX;
-                    //_popUp.Top = pointOnScreen.Y / dpi.DpiScaleY;
-                    FocusRhinoWindow();
+                    message.BroadcastMessage();
                 });
             }
             catch (Exception ex)
@@ -534,178 +503,6 @@ namespace ArchSitePlan.RhinoInterface.Actions
                 MessageBox.Show(ex.Message);
             }
         }
-
-        private static Eto.Drawing.Point? ToScreenPoint(RhinoViewport viewport)
-        {
-            //var origin = viewport.ClientToScreen(new Point2d(0,0));
-            var viewOrigin = viewport.ParentView.ClientRectangle.Location;
-            var origin = viewport.ParentView.ClientToScreen(new Point2d(0, 0));
-            //var point = Rhino.UI.RhinoEtoApp.MainWindow.PointFromScreen(new Eto.Drawing.PointF(0f, 0f));
-
-            var etoPoint = new Eto.Drawing.Point((int)origin.X, (int)origin.Y);
-
-            return etoPoint;
-        }
-
-        // Import the SetForegroundWindow function from user32.dll
-        [DllImport("user32.dll")]
-        private static extern bool SetForegroundWindow(IntPtr hWnd);
-        private static void FocusRhinoWindow()
-        {
-            // Get Rhino's main window handle
-            IntPtr rhinoWindowHandle = RhinoApp.MainWindowHandle();
-
-            // Set Rhino's window as the foreground window
-            SetForegroundWindow(rhinoWindowHandle);
-        }
-
-        private static List<Guid> FindCoreModelObjs(List<Guid> selectedIds, ModellingTool mode)
-        {
-            switch(mode)
-            {
-                case ModellingTool.Transit:
-                    return CoreModel.Roads
-                        .Where(rd => selectedIds.Contains(rd.CenterLineId))
-                        .Select(rd => rd.CenterLineId)
-                        .ToList();
-
-                case ModellingTool.Dividers:
-                case ModellingTool.LandUse: return CoreModel.Parcels
-                        .Where(p => selectedIds.Contains(p.ClientModelId))
-                        .Select(p => p.ClientModelId)
-                        .ToList();
-
-                case ModellingTool.AutoBuilding:
-                case ModellingTool.Building: return CoreModel.Buildings
-                        .Where(b => selectedIds.Contains(b.EnvelopeId))
-                        .Select(b => b.EnvelopeId)
-                        .ToList();
-
-                case ModellingTool.Zones:
-                    return CoreModel.Studies
-                        .Where(st => selectedIds.Contains(st.Id))
-                        .Select(b => b.Id)
-                        .ToList();
-
-                default: return new();
-            }
-        }
-
-        internal static void UpdateSelectedBuildings(
-            List<RhinoObject> rhinoObjs,
-            int floorCount,
-            double floorToFloorHt)
-        {
-            RhinoDoc doc = RhinoDoc.ActiveDoc;
-
-            var buildingEnvelopeGuids = new List<Guid>();
-            List<(BH.oM.Geometry.Mesh? Envelope, Guid ID, List<PlanarSurface> FloorPlates)> buildingData = new();
-
-
-            foreach (var obj in rhinoObjs)
-            {
-                bool buildingExists = CoreModel.TryGetBuilding(obj.Id, obj.Id, out Building building);
-                Guid footPrintID = Guid.Empty;
-                Guid envelopeID = Guid.Empty;
-
-                // Build Rhino Mesh 
-                Rhino.Geometry.Mesh rhinoMesh = null;
-                envelopeID = obj.Id;
-                if (obj.ObjectType == ObjectType.Mesh)
-                {
-                    rhinoMesh = obj.Geometry as Rhino.Geometry.Mesh;
-                }
-                else if (obj.ObjectType == ObjectType.Brep)
-                {
-                    rhinoMesh = GeometryHelpers.ConvertToMesh(obj.Geometry as Rhino.Geometry.Brep);
-                }
-                else if (obj.ObjectType == ObjectType.Extrusion)
-                {
-                    rhinoMesh = GeometryHelpers.ConvertToMesh(obj.Geometry as Rhino.Geometry.Extrusion);
-                }
-                else if (obj.ObjectType == ObjectType.Curve)
-                {
-                    footPrintID = obj.Id;
-                    envelopeID = Guid.Empty;
-
-                    var extrusion = Rhino.Geometry.Extrusion.Create(
-                        obj.Geometry as Curve,
-                        Rhino.Geometry.Plane.WorldXY,
-                        floorCount * floorToFloorHt,
-                        true);
-
-                    rhinoMesh = GeometryHelpers.ConvertToMesh(extrusion);
-                }
-                else
-                {
-                    continue;
-                }
-
-                // Rebuild the mesh if this is an editing operation, to match the floor params
-
-                if (buildingExists)
-                {
-                    buildingEnvelopeGuids.Add(envelopeID);
-                    rhinoMesh = RescaleRhinoMeshForNewParameters(rhinoMesh, floorCount, floorToFloorHt);
-                }
-
-                var floorPlates = GeometryHelpers
-                    .GetContours(rhinoMesh, floorToFloorHt)
-                    .Select(c => c.ToBHoM())
-                    .Select(c => new PlanarSurface(c, new List<ICurve>()))
-                    .ToList();
-
-                var bhomMesh = rhinoMesh.ToBHoM();
-
-                buildingData.Add((bhomMesh,
-                    envelopeID,
-                    floorPlates));
-
-            }
-
-            EventLock = true;
-            rhinoObjs.ForEach(o => doc.Objects.Delete(o, true, true));
-
-            //ModelBuilderPipelines.DeleteBuildingPipeline(doc, buildingData);
-
-            //ModelBuilderPipelines.AddOrUpdateBuldingPipeline(doc, buildingData)
-            EventLock = false;
-
-        }
-
-        private static Rhino.Geometry.Mesh? RescaleRhinoMeshForNewParameters(Rhino.Geometry.Mesh? rhinoMesh, int floorCount, double floorToFloorHt)
-        {
-            floorCount = floorCount <= 1 ? 1 : floorCount - 1;
-
-            var bbox = rhinoMesh.GetBoundingBox(false);
-            var zHt = bbox.Max.Z - bbox.Min.Z;
-            var newZHt = floorToFloorHt * floorCount;
-            var basePlane = Plane.CreateFromNormal(bbox.Min, Vector3d.ZAxis);
-            var scaler = Transform.Scale(basePlane, 1, 1, newZHt / zHt);
-            rhinoMesh.Transform(scaler);
-            return rhinoMesh;
-        }
-
-        private static PlanarSurface GetFootPrint(RhinoObject crv)
-        {
-            var curve = crv.Geometry as Curve;
-            BH.oM.Geometry.Polyline bhom = null;
-
-            if (curve != null && curve.TryGetPolyline(out Rhino.Geometry.Polyline polyline)
-                && polyline.IsClosed)
-                bhom = polyline.ToBHoMPolyline();
-            else
-                return null;
-
-            bhom = bhom.IsClockwise(Vector.ZAxis) ? bhom : bhom.Flip();
-
-            bool clockWise = bhom.IsClockwise(Vector.ZAxis);
-
-            PlanarSurface footPrint = Create.PlanarSurface(bhom);
-            return footPrint;
-        }
-
-        
     }
 }
     
