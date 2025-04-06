@@ -2,7 +2,6 @@
 using ArchSitePlan.BHoM.Geometry.Extensions;
 using ArchSitePlan.Core.Comparer;
 using ArchSitePlan.Core.Constants;
-using ArchSitePlan.Core.Extensions;
 using BH.Engine.Geometry;
 using BH.oM.Geometry;
 

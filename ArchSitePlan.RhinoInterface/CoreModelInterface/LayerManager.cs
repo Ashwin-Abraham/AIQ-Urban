@@ -25,6 +25,7 @@ public static class LayerManager
                 layersToUnlock.AddRange(new string[] { LayerConstants.ParcelsLayer, LayerConstants.ParcelDividerLayer });
                 break;
 
+            case ModellingTool.AutoBuilding:
             case ModellingTool.Building:
                 {
                     layersToUnlock.Add(LayerConstants.BuildingLayer);
@@ -34,6 +35,11 @@ public static class LayerManager
 
             case ModellingTool.Zones:
                 layersToUnlock.Add(LayerConstants.StudyAreaLayer);
+                break;
+
+            case ModellingTool.Dividers:
+                layersToUnlock.Add(LayerConstants.ParcelDividerLayer);
+                layersToUnlock.Add(LayerConstants.ParcelsLayer);
                 break;
 
             default:
