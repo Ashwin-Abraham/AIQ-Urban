@@ -42,7 +42,6 @@ namespace ArchSitePlan.RhinoInterface.HTML_UI.MessagesFromUI
                     AppLanduses.ReplaceUse(OldUseName, NewUseName, NewUseHtmlColor);
                     // Simple reloading is fine because the Landuse object is modified
                     // Therefore any objects carrying it will also have changed
-                    ModelBuilderPipelines.ReloadAppPipeline(doc, appMode);
                     break;
 
                 case UseEditType.Delete:
@@ -55,7 +54,8 @@ namespace ArchSitePlan.RhinoInterface.HTML_UI.MessagesFromUI
             }
 
             // Modify core model and outputted model parcels and buildings
-            ModelBuilderPipelines.ReloadAppPipeline(RhinoDoc.ActiveDoc,
+            ModelBuilderPipelines.ReloadAppPipeline(
+                RhinoDoc.ActiveDoc,
                 RhinoEventHandler.HTMLViewModel.AppMode);
 
             return new EmptyMessage();

@@ -200,7 +200,7 @@ namespace ArchSitePlan.RhinoInterface.CoreModelInterface
             RhinoEventHandler.AppUsageLog.ModelLog.Zoning++;
         }
 
-        internal static void ReloadAppPipeline(RhinoDoc doc, ModellingTool currentAppMode)
+        public static void ReloadAppPipeline(RhinoDoc doc, ModellingTool currentAppMode)
         {
             if (!RhinoEventHandler.ValidLicense)
                 return;
@@ -213,6 +213,7 @@ namespace ArchSitePlan.RhinoInterface.CoreModelInterface
             var dividerData = RhinoModelEditStepLibrary.ExtractDividerData(doc);
 
             // Edit Core Model
+            RhinoEventHandler.SubscribeModelEvents();
             CoreModelEditStepLibrary.ClearCoreModel();
             CoreModelEditStepLibrary.AddOrUpdateRoad(transitData);
             CoreModelEditStepLibrary.AddOrUpdateStudyArea(studyData);
