@@ -2,38 +2,28 @@
 using Newtonsoft.Json;
 using Rhino;
 using WebSocketSharp.Server;
+using WebSocketSharp;
 
 namespace ArchSitePlan.RhinoInterface.HTML_UI.Websockets;
 
 public class WebSocketComms
 {
-    private static WebSocketServer _wss;
-
+    private static WebSocketServer? _wss = null;
+    private static string _serverUrl;
     /// <summary>
     /// Starts the WebSocket server on the specified port.
     /// </summary>
     public static void StartServer(int port = 6400)
     {
-        // Create a new WebSocket server listening on ws://localhost:port
-        _wss = new WebSocketServer($"ws://localhost:{port}");
+        if (_wss?.IsListening?? false) return;
 
-        // Add a WebSocket service at the root URL
+        _serverUrl = $"ws://localhost:{port}";
+        _wss = new WebSocketServer(_serverUrl);
+        _wss.Start();
+
         _wss.AddWebSocketService<RhinoWebSocketBehavior>("/");
 
-        _wss.Start();
         RhinoApp.WriteLine($"WebSocket Server is running on ws://localhost:{port}");
-    }
-
-    /// <summary>
-    /// Broadcast a message to all connected WebSocket clients.
-    /// </summary>
-    public static void BroadcastMessage(string message)
-    {
-        if (_wss != null && _wss.IsListening)
-        {
-            _wss.WebSocketServices.Broadcast(message);
-            RhinoApp.WriteLine("Broadcasted message: " + message);
-        }
     }
 
     /// <summary>

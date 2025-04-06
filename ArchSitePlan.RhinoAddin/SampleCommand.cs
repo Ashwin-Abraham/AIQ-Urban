@@ -21,10 +21,6 @@ public class SampleCommand:Command
 
     protected override Result RunCommand(RhinoDoc doc, RunMode mode)
     {
-        string message = "RunCommand triggered broadcast at " + DateTime.Now.ToString("T");
-        WebSocketComms.BroadcastMessage(message);
-        RhinoApp.WriteLine(message);
-
         return Result.Success;
     }
 }
