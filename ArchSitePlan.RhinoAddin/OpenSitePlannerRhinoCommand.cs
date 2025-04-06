@@ -1,6 +1,7 @@
 ﻿using System;
 using ArchSitePlan.RhinoInterface.Actions;
 using ArchSitePlan.RhinoInterface.HTML_UI;
+using ArchSitePlan.RhinoInterface.HTML_UI.Websockets;
 using Eto.Forms;
 using Rhino;
 using Rhino.Commands;
@@ -30,6 +31,7 @@ namespace ArchSitePlan.RhinoAddin
                 //Rhino.UI.Panels.OpenPanel(MainViewHost.PanelId);
                 //RhinoApp.WriteLine("Loaded plugin");
                 ServerComms.StartServer();
+                WebSocketComms.StartServer();
                 VueUI.OpenWindow();
                 RhinoEventHandler.AppUsageLog = new();
 

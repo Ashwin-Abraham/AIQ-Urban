@@ -1,29 +1,19 @@
-﻿using System.Runtime.InteropServices;
-using ArchSitePlan.Core.Models;
+﻿using ArchSitePlan.Core.Models;
 using ArchSitePlan.Core.Pipeline.CreationData;
 using ArchSitePlan.OSM;
 using ArchSitePlan.RhinoInterface.Constants;
 using ArchSitePlan.RhinoInterface.CoreModelInterface;
-using ArchSitePlan.RhinoInterface.Extensions;
-using ArchSitePlan.RhinoInterface.Helpers;
 using ArchSitePlan.RhinoInterface.HTML_UI.HtmlCommsClasses;
 using ArchSitePlan.RhinoInterface.HTML_UI.MessageToUI;
 using ArchSitePlan.RhinoInterface.HTML_UI.Websockets;
 using ArchSitePlan.RhinoInterface.InputValidation.Results;
 using ArchSitePlan.RhinoInterface.InputValidation.Validators;
 using ArchSitePlan.RhinoInterface.Models;
-using ArchSitePlan.RhinoInterface.RhinoBHoMInterop;
 using ArchSitePlan.RhinoInterface.UsageLogs;
-using BH.Engine.Geometry;
-using BH.oM.Geometry;
 using Rhino;
-using Rhino.Display;
 using Rhino.DocObjects;
-using Rhino.Geometry;
 using static ArchSitePlan.RhinoInterface.Constants.Enums;
 using MessageBox = Eto.Forms.MessageBox;
-using Plane = Rhino.Geometry.Plane;
-using Vector = BH.oM.Geometry.Vector;
 
 namespace ArchSitePlan.RhinoInterface.Actions
 {
@@ -32,6 +22,7 @@ namespace ArchSitePlan.RhinoInterface.Actions
     {
         public static UsageLog AppUsageLog = new();
         public static bool EventLock = false;
+        public static bool ModellingToolModeActive = false;
         public static bool ValidLicense = true;
 
         public static UIViewModel HTMLViewModel = new();
@@ -44,17 +35,29 @@ namespace ArchSitePlan.RhinoInterface.Actions
         
         static RhinoEventHandler()
         {
+            EventHandler<RhinoObjectEventArgs> undeleteHandler = (sender, args) => QueueObjectForUndelete(args);
+
+
             RhinoApp.Idle += ProcessEventPipepline;
             RhinoDoc.ReplaceRhinoObject += (sender, args) => QueueObjectForReplacement(args);
             RhinoDoc.AddRhinoObject += (sender, args) => QueueObjectForAddition(args); 
             RhinoDoc.DeleteRhinoObject += (sender, args) => QueueObjectForRemoval(args);
-            RhinoDoc.UndeleteRhinoObject += (sender, args) => QueueObjectForUndelete(args);
+
+            var que = (RhinoObjectEventArgs args) => QueueObjectForUndelete(args);
+
+            RhinoDoc.UndeleteRhinoObject += undeleteHandler;
+            //RhinoDoc.UndeleteRhinoObject -= undeleteHandler;
 
             RhinoDoc.SelectObjects += (sender, args) => OnRhinoDocObjectSelection(args);
             RhinoDoc.DeselectObjects += (sender, args) => OnRhinoDocObjectDeSelection(args);
             RhinoDoc.DeselectAllObjects += (sender, args) => OnAllRhinoDocObjectDeSelection(args);
 
             RhinoDoc.SelectObjects += (sender, args) => ShowObjectInfoEvent(args);
+
+        }
+
+        public static void UnloadModelEvents()
+        {
 
         }
 
@@ -145,6 +148,8 @@ namespace ArchSitePlan.RhinoInterface.Actions
 
         private static void OnAllRhinoDocObjectDeSelection(RhinoDeselectAllObjectsEventArgs args)
         {
+            if (HTMLViewModel.AppMode == ModellingTool.None) return;
+
             RhinoApp.InvokeOnUiThread(() => SelectedObjectMetricsMessage.FromEmpty().BroadcastMessage());
         }
 
@@ -214,7 +219,6 @@ namespace ArchSitePlan.RhinoInterface.Actions
                     }
 
                     UpdateSelectedBuildingsPosition(buildingData);
-                    // HTMLViewModel.RefreshActiveStudyAndMetrics();
                 }
                 else if (HTMLViewModel.AppMode == ModellingTool.Transit)
                 {
@@ -233,7 +237,6 @@ namespace ArchSitePlan.RhinoInterface.Actions
                         HTMLViewModel.AppMode);
 
                     AppUsageLog.ModelLog.Transit++;
-                    //WPFViewModel.RefreshActiveStudyAndMetrics();
                 }
 
                 // This is actually for dividers
@@ -255,7 +258,6 @@ namespace ArchSitePlan.RhinoInterface.Actions
                         coreDividerData,
                         HTMLViewModel.AppMode);
 
-                    //WPFViewModel.RefreshActiveStudyAndMetrics();
                 }
                 else if (HTMLViewModel.AppMode == ModellingTool.Zones)
                 {
@@ -269,7 +271,6 @@ namespace ArchSitePlan.RhinoInterface.Actions
                     }
 
                     ModelBuilderPipelines.UpdateStudyAreas(RhinoDoc.ActiveDoc, coreStudyData, HTMLViewModel.AppMode);
-                    //WPFViewModel.RefreshActiveStudyAndMetrics();
                 }
 
                 EventLock = false;
@@ -329,7 +330,6 @@ namespace ArchSitePlan.RhinoInterface.Actions
                     }
 
                     ModelBuilderPipelines.AddOrUpdateRoadPipeline(doc, coreRoadData, HTMLViewModel.AppMode);
-                    //WPFViewModel.RefreshActiveStudyAndMetrics();
                 }
                 // Landuse (ie Dividers) needs the add event because the join command
                 // on curves in rhino will not trigger a replace event
@@ -355,8 +355,6 @@ namespace ArchSitePlan.RhinoInterface.Actions
                         RhinoDoc.ActiveDoc, 
                         coreDividerData,
                         HTMLViewModel.AppMode);
-
-                    //WPFViewModel.RefreshActiveStudyAndMetrics();
                 }
 
                 EventLock = false;
@@ -390,8 +388,6 @@ namespace ArchSitePlan.RhinoInterface.Actions
                             break;
 
                         ModelBuilderPipelines.RemoveRoadPipeline(transitData,doc, HTMLViewModel.AppMode);
-
-                        //WPFViewModel.RefreshActiveStudyAndMetrics();
                         break;
 
                     case ModellingTool.Building:
@@ -410,7 +406,6 @@ namespace ArchSitePlan.RhinoInterface.Actions
                             .ToList();
 
                         ModelBuilderPipelines.DeleteBuildingPipeline(doc, buildingData, HTMLViewModel.AppMode);
-                        //WPFViewModel.RefreshActiveStudyAndMetrics();
                         break;
 
                     case ModellingTool.Zones:
@@ -421,7 +416,6 @@ namespace ArchSitePlan.RhinoInterface.Actions
                             return;
                         }
                         ModelBuilderPipelines.DeleteStudyAreaPipeline(doc, removedIDs, HTMLViewModel.AppMode);
-                        //WPFViewModel.RefreshActiveStudyAndMetrics();
                         break;
 
                     case ModellingTool.LandUse:
@@ -435,7 +429,6 @@ namespace ArchSitePlan.RhinoInterface.Actions
                             .ToList();
 
                         ModelBuilderPipelines.DeleteParcelDividers(doc, divData, HTMLViewModel.AppMode);
-                        //WPFViewModel.RefreshActiveStudyAndMetrics();
                         break;
                 }
 
