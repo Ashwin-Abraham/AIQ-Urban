@@ -26,11 +26,13 @@ public static class LayerManager
                 break;
 
             case ModellingTool.AutoBuilding:
+                layersToUnlock.Add(LayerConstants.BuildingLayer);
+                layersToUnlock.Add(LayerConstants.ParcelsLayer);
+                additionalLayersToLock.Add(LayerConstants.BuildingFloorOutlineLayer);
+                break;
             case ModellingTool.Building:
-                {
-                    layersToUnlock.Add(LayerConstants.BuildingLayer);
-                    additionalLayersToLock.Add(LayerConstants.BuildingFloorOutlineLayer);
-                }
+                layersToUnlock.Add(LayerConstants.BuildingLayer);
+                additionalLayersToLock.Add(LayerConstants.BuildingFloorOutlineLayer);
                 break;
 
             case ModellingTool.Zones:

@@ -130,7 +130,11 @@ namespace ArchSitePlan.RhinoInterface.Actions
         {
             if (EventLock) return;
 
-            bool runEvents = _objectsForReplace.Count > 0 || _objectsForUndelete.Count > 0;
+            bool runEvents = _objectsForReplace.Count > 0 
+                || _objectsForUndelete.Count > 0
+                || _objectsForAddition.Count > 0
+                || _objectsForRemoval.Count > 0
+                ;
 
             // Pick the actions to execute.
             // Because Rhino sometimes sends both remove + add as well as replace objects events, we need to pick the one of these pathways only
@@ -156,8 +160,6 @@ namespace ArchSitePlan.RhinoInterface.Actions
             ResetEventQueueAndObjects();
             WS.SendMessage(new StudyAreaMetricsMessage());
         }
-
-      
 
         public static void ResetEventQueueAndObjects()
         {
@@ -411,6 +413,7 @@ namespace ArchSitePlan.RhinoInterface.Actions
                         ModelBuilderPipelines.RemoveRoadPipeline(transitData,doc, HTMLViewModel.AppMode);
                         break;
 
+                    case ModellingTool.AutoBuilding:
                     case ModellingTool.Building:
                         var buildingResult = new BuildingInputValidator(BuildingGeneratorStartPoint.Mass)
                             .ValidateInput(removedObjects);
