@@ -1,10 +1,13 @@
 ﻿using System;
 using ArchSitePlan.RhinoInterface.Actions;
+using ArchSitePlan.RhinoInterface.CoreModelInterface;
 using ArchSitePlan.RhinoInterface.HTML_UI;
+using ArchSitePlan.RhinoInterface.HTML_UI.MessageToUI;
 using ArchSitePlan.RhinoInterface.HTML_UI.Websockets;
 using Eto.Forms;
 using Rhino;
 using Rhino.Commands;
+using static ArchSitePlan.RhinoInterface.Constants.Enums;
 using Command = Rhino.Commands.Command;
 
 namespace ArchSitePlan.RhinoAddin
@@ -34,7 +37,7 @@ namespace ArchSitePlan.RhinoAddin
                 WebSocketComms.StartServer();
                 VueUI.OpenWindow();
                 RhinoEventHandler.AppUsageLog = new();
-
+                ModelBuilderPipelines.ReloadAppPipeline(doc, ModellingTool.Transit);
                 return Result.Success;
             }
             catch(Exception ex)

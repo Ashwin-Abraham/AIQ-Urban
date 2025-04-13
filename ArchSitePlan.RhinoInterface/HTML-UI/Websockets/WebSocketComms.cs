@@ -2,7 +2,6 @@
 using Newtonsoft.Json;
 using Rhino;
 using WebSocketSharp.Server;
-using WebSocketSharp;
 
 namespace ArchSitePlan.RhinoInterface.HTML_UI.Websockets;
 

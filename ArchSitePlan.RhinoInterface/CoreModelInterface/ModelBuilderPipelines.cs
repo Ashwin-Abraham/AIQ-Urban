@@ -1,10 +1,8 @@
-﻿using System.Windows;
-using ArchSitePlan.Core.Factories.Models;
+﻿using ArchSitePlan.Core.Factories.Models;
 using ArchSitePlan.Core.Models;
 using ArchSitePlan.Core.Pipeline;
 using ArchSitePlan.Core.Pipeline.CreationData;
 using ArchSitePlan.RhinoInterface.Actions;
-using BH.Engine.Geometry;
 using Eto.Forms;
 using Rhino;
 using static ArchSitePlan.RhinoInterface.Constants.Enums;
@@ -108,7 +106,7 @@ namespace ArchSitePlan.RhinoInterface.CoreModelInterface
             CoreModelEditStepLibrary.RefreshBuildingUse();
             CoreModelEditStepLibrary.RefreshStudyAreaMetrics();
             RhinoModelEditStepLibrary.ReplaceRhinoModel(doc, true);
-            //LayerManager.ToggleLayerStateBasedOnAppMode(doc, currentAppMode);
+            LayerManager.ToggleLayerStateBasedOnAppMode(doc, currentAppMode);
 
             RhinoEventHandler.AppUsageLog.ModelLog.Building++;
         }
@@ -200,10 +198,12 @@ namespace ArchSitePlan.RhinoInterface.CoreModelInterface
             RhinoEventHandler.AppUsageLog.ModelLog.Zoning++;
         }
 
-        internal static void ReloadAppPipeline(RhinoDoc doc, ModellingTool currentAppMode)
+        public static void ReloadAppPipeline(RhinoDoc doc, ModellingTool currentAppMode)
         {
             if (!RhinoEventHandler.ValidLicense)
                 return;
+
+            RhinoEventHandler.SubscribeModelEvents();
 
             // Extract required data
             var landuseData = RhinoModelEditStepLibrary.ExtractRhinoLanduseData(doc);

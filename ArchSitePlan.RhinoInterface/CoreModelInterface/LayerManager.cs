@@ -25,15 +25,23 @@ public static class LayerManager
                 layersToUnlock.AddRange(new string[] { LayerConstants.ParcelsLayer, LayerConstants.ParcelDividerLayer });
                 break;
 
+            case ModellingTool.AutoBuilding:
+                layersToUnlock.Add(LayerConstants.BuildingLayer);
+                layersToUnlock.Add(LayerConstants.ParcelsLayer);
+                additionalLayersToLock.Add(LayerConstants.BuildingFloorOutlineLayer);
+                break;
             case ModellingTool.Building:
-                {
-                    layersToUnlock.Add(LayerConstants.BuildingLayer);
-                    additionalLayersToLock.Add(LayerConstants.BuildingFloorOutlineLayer);
-                }
+                layersToUnlock.Add(LayerConstants.BuildingLayer);
+                additionalLayersToLock.Add(LayerConstants.BuildingFloorOutlineLayer);
                 break;
 
             case ModellingTool.Zones:
                 layersToUnlock.Add(LayerConstants.StudyAreaLayer);
+                break;
+
+            case ModellingTool.Dividers:
+                layersToUnlock.Add(LayerConstants.ParcelDividerLayer);
+                layersToUnlock.Add(LayerConstants.ParcelsLayer);
                 break;
 
             default:

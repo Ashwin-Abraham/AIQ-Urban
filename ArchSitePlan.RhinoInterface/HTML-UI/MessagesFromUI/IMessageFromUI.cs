@@ -12,7 +12,8 @@ public enum TypeOfMessage
     LanduseListEdit,
     ReadOsm,
     PickFile,
-    AutoBuilding
+    AutoBuilding,
+    WebSocketConnected
 }
 
 // out T is the resulting output message created after handling the input

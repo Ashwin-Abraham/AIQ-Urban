@@ -32,33 +32,48 @@ namespace ArchSitePlan.RhinoInterface.Actions
         private static List<RhinoObject> _objectsForAddition = new();
         private static List<RhinoObject> _objectsForRemoval = new();
         private static List<RhinoObject> _objectsForUndelete = new();
-        
-        static RhinoEventHandler()
+
+        private static EventHandler<RhinoObjectEventArgs> _undeleteQueueBuilder = (sender, args) => QueueObjectForUndelete(args);
+        private static EventHandler _processPipeline = (sender, args) => ProcessEventPipepline(sender, args);
+        private static EventHandler<RhinoReplaceObjectEventArgs> _replacementQueueBuilder = (sender, args) => QueueObjectForReplacement(args);
+        private static EventHandler<RhinoObjectEventArgs> _addObjectQueueBuilder = (sender, args) => QueueObjectForAddition(args);
+        private static EventHandler<RhinoObjectEventArgs> _removeObjectQueueBuilder = (sender, args) => QueueObjectForRemoval(args);
+        private static EventHandler<RhinoObjectSelectionEventArgs> _selectObjectHandler = (sender, args) => OnRhinoDocObjectSelection(args);
+        private static EventHandler<RhinoObjectSelectionEventArgs> _deselectObjectHandler = (sender, args) => OnRhinoDocObjectDeSelection(args);
+        private static EventHandler<RhinoDeselectAllObjectsEventArgs> _deselectAllObjectsHandler = (sender, args) => OnAllRhinoDocObjectDeSelection(args);
+
+        private static bool _eventsSubscribed = false;
+        // TODO: Implement osm objects data pop up
+        // RhinoDoc.SelectObjects += (sender, args) => ShowObjectInfoEvent(args);
+
+        public static RhinoWebSocketBehavior WS = new();
+
+        public static void UnsubscribeModelEvents()
         {
-            EventHandler<RhinoObjectEventArgs> undeleteHandler = (sender, args) => QueueObjectForUndelete(args);
+            if (!_eventsSubscribed) return;
 
-
-            RhinoApp.Idle += ProcessEventPipepline;
-            RhinoDoc.ReplaceRhinoObject += (sender, args) => QueueObjectForReplacement(args);
-            RhinoDoc.AddRhinoObject += (sender, args) => QueueObjectForAddition(args); 
-            RhinoDoc.DeleteRhinoObject += (sender, args) => QueueObjectForRemoval(args);
-
-            var que = (RhinoObjectEventArgs args) => QueueObjectForUndelete(args);
-
-            RhinoDoc.UndeleteRhinoObject += undeleteHandler;
-            //RhinoDoc.UndeleteRhinoObject -= undeleteHandler;
-
-            RhinoDoc.SelectObjects += (sender, args) => OnRhinoDocObjectSelection(args);
-            RhinoDoc.DeselectObjects += (sender, args) => OnRhinoDocObjectDeSelection(args);
-            RhinoDoc.DeselectAllObjects += (sender, args) => OnAllRhinoDocObjectDeSelection(args);
-
-            RhinoDoc.SelectObjects += (sender, args) => ShowObjectInfoEvent(args);
-
+            RhinoApp.Idle -= _processPipeline;
+            RhinoDoc.ReplaceRhinoObject -= _replacementQueueBuilder;
+            RhinoDoc.AddRhinoObject -= _addObjectQueueBuilder;
+            RhinoDoc.DeleteRhinoObject -= _removeObjectQueueBuilder;
+            RhinoDoc.UndeleteRhinoObject -= _undeleteQueueBuilder;
+            RhinoDoc.SelectObjects -= _selectObjectHandler;
+            RhinoDoc.DeselectObjects -= _deselectObjectHandler;
+            RhinoDoc.DeselectAllObjects -= _deselectAllObjectsHandler;
         }
 
-        public static void UnloadModelEvents()
+        public static void SubscribeModelEvents()
         {
+            if (_eventsSubscribed) return;
 
+            RhinoApp.Idle += _processPipeline;
+            RhinoDoc.ReplaceRhinoObject += _replacementQueueBuilder;
+            RhinoDoc.AddRhinoObject += _addObjectQueueBuilder;
+            RhinoDoc.DeleteRhinoObject += _removeObjectQueueBuilder;
+            RhinoDoc.UndeleteRhinoObject += _undeleteQueueBuilder;
+            RhinoDoc.SelectObjects += _selectObjectHandler;
+            RhinoDoc.DeselectObjects += _deselectObjectHandler;
+            RhinoDoc.DeselectAllObjects += _deselectAllObjectsHandler;
         }
 
         private static void ShowObjectInfoEvent(RhinoObjectSelectionEventArgs args)
@@ -115,12 +130,20 @@ namespace ArchSitePlan.RhinoInterface.Actions
         {
             if (EventLock) return;
 
+            bool runEvents = _objectsForReplace.Count > 0 
+                || _objectsForUndelete.Count > 0
+                || _objectsForAddition.Count > 0
+                || _objectsForRemoval.Count > 0
+                ;
+
             // Pick the actions to execute.
             // Because Rhino sometimes sends both remove + add as well as replace objects events, we need to pick the one of these pathways only
             _objectsForAddition = _objectsForAddition.Where(id => !_objectsForReplace.Contains(id)).ToList();
             _objectsForRemoval = _objectsForRemoval.Where(id => !_objectsForReplace.Contains(id)).ToList();
 
-            if(_objectsForReplace.Count > 0) 
+            if (!runEvents) return;
+
+            if (_objectsForReplace.Count > 0) 
                 RunReplacementOperations(_objectsForReplace);
             
             if(_objectsForRemoval.Count > 0)
@@ -133,10 +156,10 @@ namespace ArchSitePlan.RhinoInterface.Actions
                 RunCoreModelUndoOperations(_objectsForUndelete);
 
             // Clean queue
+            LayerManager.ToggleLayerStateBasedOnAppMode(RhinoDoc.ActiveDoc, HTMLViewModel.AppMode);
             ResetEventQueueAndObjects();
+            WS.SendMessage(new StudyAreaMetricsMessage());
         }
-
-      
 
         public static void ResetEventQueueAndObjects()
         {
@@ -390,6 +413,7 @@ namespace ArchSitePlan.RhinoInterface.Actions
                         ModelBuilderPipelines.RemoveRoadPipeline(transitData,doc, HTMLViewModel.AppMode);
                         break;
 
+                    case ModellingTool.AutoBuilding:
                     case ModellingTool.Building:
                         var buildingResult = new BuildingInputValidator(BuildingGeneratorStartPoint.Mass)
                             .ValidateInput(removedObjects);
