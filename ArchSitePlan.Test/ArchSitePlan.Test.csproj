@@ -11,6 +11,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="AIQ.Primitives\**" />
+    <EmbeddedResource Remove="AIQ.Primitives\**" />
+    <None Remove="AIQ.Primitives\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Content Remove="C:\Users\AshwinAbraham\.nuget\packages\hypar.elements\2.1.0\contentFiles\any\netstandard2.0\Fonts\Roboto-Medium.ttf" />
     <Content Remove="C:\Users\AshwinAbraham\.nuget\packages\hypar.elements\2.1.0\contentFiles\any\netstandard2.0\ProfileData\C.csv" />
     <Content Remove="C:\Users\AshwinAbraham\.nuget\packages\hypar.elements\2.1.0\contentFiles\any\netstandard2.0\ProfileData\HSS.csv" />
@@ -46,7 +52,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="AIQ.Primitives\" />
     <Folder Include="ArchSitePlan.RhinoInterface\" />
   </ItemGroup>
 

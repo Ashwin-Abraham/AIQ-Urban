@@ -11,7 +11,7 @@ namespace ArchSitePlan.Core.ModelEditActions
     {
         public void Run(
             EditType editType,
-            List<ICurve>? boundariesToAdd = null,
+            List<PlanarSurface>? parcelsToAdd = null,
             List<Guid>? clientIdsToModifyOrRemove = null,
             // use is only used during EditType.Edit
             Landuse? use= null,
@@ -33,9 +33,9 @@ namespace ArchSitePlan.Core.ModelEditActions
 
                 case EditType.Add:
                     if (clientIdsToModifyOrRemove != null 
-                        && boundariesToAdd != null)
+                        && parcelsToAdd != null)
                         RemoveFromCoreModel(clientIdsToModifyOrRemove);
-                        AddToCoreModel(boundariesToAdd!, existingUsesAndCenters);
+                        AddToCoreModel(parcelsToAdd!, existingUsesAndCenters);
                     break;
 
                 case EditType.Divide:
@@ -88,23 +88,21 @@ namespace ArchSitePlan.Core.ModelEditActions
         }
 
         private static void AddToCoreModel(
-            List<ICurve> boundaries,
+            List<PlanarSurface> parcelSurfaces,
             List<(Landuse Use,Point Center)> priorUsesAndCenters)
         {
-            var parcels = new List<Parcel>();
+            List<Parcel> parcels = new();
 
-            foreach(var boundary in boundaries)
+            foreach(var srf in parcelSurfaces)
             {
-                var srf = Create.PlanarSurface(boundary);
                 Landuse use = AppLanduses.Undefined;
 
                 if (priorUsesAndCenters.Count > 0)
                     use = priorUsesAndCenters
-                        .MinBy(x => x.Center.Distance(boundary.ControlPointCentroid()))
+                        .MinBy(x => x.Center.Distance(srf.ExternalBoundary.ControlPointCentroid()))
                         .Use;
 
-                if (srf != null)
-                    parcels.Add(new Parcel(srf, use));
+                parcels.Add(new Parcel(srf, use));
             }
 
             CoreModel.Parcels.AddRange(parcels);
