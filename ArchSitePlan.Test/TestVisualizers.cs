@@ -67,6 +67,14 @@ public static class TestVisualizers
         curves.Debug();
         DEBUGMODEL.OpenAsGlb();
     }
+
+    public static void Debug(this PlanarSurface srf, Material? material = null)
+    {
+#if DEBUG
+        DEBUGMODEL.Debug(srf.ToHyparMass(material: material));
+#endif
+
+    }
     public static void Debug(this IEnumerable<ICurve> curves)
         => curves.ToList().ForEach(x => x.Debug());
     

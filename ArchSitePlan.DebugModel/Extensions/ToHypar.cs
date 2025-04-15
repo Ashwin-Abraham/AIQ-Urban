@@ -1,11 +1,36 @@
 ﻿using BH.Engine.Geometry;
 using BH.oM.Geometry;
+using Elements;
 using BoundedCurve = Elements.Geometry.BoundedCurve;
 
 namespace ArchSitePlan.DebugModel.BHoMExtensions
 {
     public static class ToHyparInterop
     {
+        public static Mass ToHyparMass(this PlanarSurface srf, double massHeight = 0.1, Material? material = null)
+        {
+            return new Mass(srf.ToHyparProfile(), massHeight, material: material);
+        }
+
+        public static Elements.Geometry.Profile ToHyparProfile(this PlanarSurface srf)
+        {
+            var external = srf.ExternalBoundary.ToHyparPolygon();
+            var internals = srf.InternalBoundaries.Select(v => v.ToHyparPolygon())
+                .ToList();
+
+            return new Elements.Geometry.Profile(external, internals);
+        }
+
+        public static Elements.Geometry.Polygon ToHyparPolygon(this ICurve curve)
+        {
+            var verts = curve.IControlPoints()
+                .Select(pt => pt.ToHypar())
+                .SkipLast(1)
+                .ToList();
+
+            return new Elements.Geometry.Polygon(verts);
+        }
+
         public static Elements.Geometry.Polyline ToHyparPolyline(this ICurve curve)
         {
             var verts = curve.IControlPoints()
