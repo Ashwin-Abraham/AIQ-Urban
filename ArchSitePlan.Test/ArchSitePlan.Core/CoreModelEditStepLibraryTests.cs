@@ -196,4 +196,48 @@ public class CoreModelEditStepLibraryTests
         Assert.Equal(2, roadSrfs.Count);
         Assert.Equal(2, parcelSrfs.Count);
     }
+
+    [Fact]
+    public void CanBuildRoadsAndParcels_PolygonRoadWithin4LinearRoads()
+    {
+        // Arrange
+        var curve1 = Create.Line(Create.Point(0, 0), Create.Point(50, 0));
+        var curve2 = Create.Line(Create.Point(50, 0), Create.Point(50, 50));
+        var curve3 = Create.Line(Create.Point(50, 50), Create.Point(0, 50));
+        var curve4 = Create.Line(Create.Point(0, 50), Create.Point(0, 0));
+
+        var curve5 = new Polygon(
+             new List<Point>()
+             {
+                Create.Point(15, 15),
+                Create.Point(35, 15),
+                Create.Point(35, 35),
+                Create.Point(15, 35),
+             });
+
+        var curves = new List<ICurve>() { curve1, curve2, curve3, curve4, curve5};
+        var roads = GetRoads(curves);
+
+        // Act
+        CoreModelEditStepLibrary.CalculateParcelAndRoadBoundaries(
+            roads, out var roadSrfs, out var parcelSrfs);
+
+        // Visualize
+        curves.ForEach(x => x.Debug(zMovt: 0.1));
+        int parcelCount = parcelSrfs.Count;
+        roadSrfs
+            .Select((x, i) => x.Translate(Create.Vector(0, 0, (i + parcelCount) * 0.5)))
+            .ToList()
+            .ForEach(x => x.Debug(BuiltInMaterials.Concrete));
+
+        parcelSrfs
+            .Select((x, i) => x.Translate(Create.Vector(0, 0, i * 0.5)))
+            .ToList()
+            .ForEach(x => x.Debug(BuiltInMaterials.Topography));
+        DEBUGMODEL.OpenAsGlb();
+
+        // Assert
+        Assert.Equal(2, roadSrfs.Count);
+        Assert.Equal(2, parcelSrfs.Count);
+    }
 }

@@ -112,6 +112,17 @@ namespace ArchSitePlan.Core.Pipeline
             out List<PlanarSurface> roadSrfs,
             out List<PlanarSurface> parcelSrfs)
         {
+            var inputSrfs = roads.Select(x => x.RoW).ToList().BooleanUnion();
+
+            roadSrfs = new List<PlanarSurface>();
+            parcelSrfs = new List<PlanarSurface>();
+        }
+
+        public static void CalculateParcelAndRoadBoundaries2(
+            List<Road> roads,
+            out List<PlanarSurface> roadSrfs,
+            out List<PlanarSurface> parcelSrfs)
+        {
             var validRoads = roads.Where(r => r.IsValid()).ToList();
             var roadOuterBoundaries = validRoads.Select(r => r.RoW!.ExternalBoundary).ToList();
             var roadInnerBoundaries = validRoads

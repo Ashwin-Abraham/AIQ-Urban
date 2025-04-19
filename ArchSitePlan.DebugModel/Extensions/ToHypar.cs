@@ -9,6 +9,7 @@ namespace ArchSitePlan.DebugModel.BHoMExtensions
     {
         public static Mass ToHyparMass(this PlanarSurface srf, double massHeight = 0.1, Material? material = null)
         {
+            material ??= BuiltInMaterials.Default;
             return new Mass(srf.ToHyparProfile(), massHeight, material: material);
         }
 

@@ -7,6 +7,29 @@ namespace ArchSitePlan.BHoM.Geometry.Extensions;
 
 public static class ICurveExtensions
 {
+    public static List<ICurve> BooleanIntersection(this ICurve curve, List<PlanarSurface> surfaces, double tolerance = 1e-06)
+    {
+        if (!curve.IIsClosed()) return [];
+        var externals = surfaces.Select(x => x.ExternalBoundary);
+        var internals = surfaces.SelectMany(x => x.InternalBoundaries);
+
+        List<ICurve> overlap = externals
+            .SelectMany(x => curve.BooleanIntersection(x))
+            .BooleanUnion()
+            .SelectMany(x => x.BooleanDifference(internals).Cast<ICurve>())
+            .ToList();
+
+        return overlap;
+    }
+
+    public static List<ICurve> BooleanDifference(this ICurve curve, List<PlanarSurface> surfaces, double tolerance = 1e-06)
+    {
+        var overlap = curve.BooleanIntersection(surfaces);
+        var curves = curve.BooleanDifference(overlap).Cast<ICurve>().ToList();
+
+        return curves;
+    }
+
     public static ICurve IOffsetSafe(
         this ICurve curve,
         double offset,
