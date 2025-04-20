@@ -73,24 +73,38 @@ public static class PlanarSurfaceExtensions
         for(int i = 1; i < surfaces.Count; i++)
         {
             var testSurface = surfaces[i];
-            bool isPartOfGroup = false;
+            List<int> groupsItClashesWith = new();
 
-            for(int j = 0; j< surfaceGroups.Count; j++)
+            for(int groupNo = 0; groupNo< surfaceGroups.Count; groupNo++)
             {
-                isPartOfGroup = surfaceGroups[j].Any(x =>
+                bool isPartOfGroup = surfaceGroups[groupNo].Any(x =>
                 testSurface.ExternalBoundary.ICurveIntersections(x.ExternalBoundary).Count > 0
                 || testSurface.ExternalBoundary.ICurveIntersections(x.InternalBoundaries).Count > 0
                 || x.IsContainingAll(testSurface.ExternalBoundary.IControlPoints()));
 
                 if (!isPartOfGroup) continue;
-                
-                surfaceGroups[j].Add(testSurface);
-                break;
+
+                groupsItClashesWith.Add(groupNo);
             }
 
-            if (isPartOfGroup) continue;
-
-            surfaceGroups.Add(new() { testSurface });
+            if(groupsItClashesWith.Count == 0)
+            {
+                surfaceGroups.Add(new() { testSurface });
+            }
+            // If the new surface clashes with 1 group, add to just that group
+            else if (groupsItClashesWith.Count == 1)
+            {
+                surfaceGroups[groupsItClashesWith[0]].Add(testSurface);
+            }
+            // If the new surface clashes with multiple groups, merge the groups
+            else
+            {
+                var mergedGroup = new List<PlanarSurface>() { testSurface };
+                var nonClashingGroups = surfaceGroups.Where((x, i) => !groupsItClashesWith.Contains(i));
+                var clashingGroups = surfaceGroups.Where((x, i) => groupsItClashesWith.Contains(i)).ToList();
+                clashingGroups.ForEach(x => mergedGroup.AddRange(x));
+                surfaceGroups = nonClashingGroups.Append(mergedGroup).ToList();
+            }
         }
 
         return surfaceGroups;
@@ -116,7 +130,8 @@ public static class PlanarSurfaceExtensions
 
             if (!containedByAny) continue;
 
-            externalsUnioned.Remove(crv);
+            externalsUnioned.RemoveAt(i);
+            i--;
             holes.Add(crv);
         }
 

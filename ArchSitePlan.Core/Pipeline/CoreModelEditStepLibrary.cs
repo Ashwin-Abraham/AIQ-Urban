@@ -112,10 +112,33 @@ namespace ArchSitePlan.Core.Pipeline
             out List<PlanarSurface> roadSrfs,
             out List<PlanarSurface> parcelSrfs)
         {
-            var inputSrfs = roads.Select(x => x.RoW).ToList().BooleanUnion();
+            roadSrfs = roads
+                .Select(x => x.RoW)
+                .Where(x => x!=null)
+                .Cast<PlanarSurface>()
+                .ToList()
+                .BooleanUnion();
 
-            roadSrfs = new List<PlanarSurface>();
-            parcelSrfs = new List<PlanarSurface>();
+            var parcelCrvs = roadSrfs.SelectMany(x => x.InternalBoundaries).ToList();
+            
+            var roadExternals = roadSrfs.Select(x => x.ExternalBoundary).ToList();
+
+            parcelSrfs = new();
+
+            foreach(var parcelCrv in parcelCrvs)
+            {
+                var roadsWithin = roadExternals.Where(x => parcelCrv.IIsContaining(x)).ToList();
+
+                if(roadsWithin.Count == 0)
+                {
+                    parcelSrfs.Add(Create.PlanarSurface(parcelCrv));
+                }
+                else
+                {
+                    var remainingSrf = Create.PlanarSurface(parcelCrv).BooleanDifference(roadsWithin);
+                    parcelSrfs.AddRange(remainingSrf);
+                }
+            }
         }
 
         public static void CalculateParcelAndRoadBoundaries2(

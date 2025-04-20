@@ -26,6 +26,9 @@ public class PlanarSurfaceExtensionsTests
     [InlineData("SquareWithinHole")]
     [InlineData("SquareInsideHoledSquare")]
     [InlineData("HoledSquareInsideSquare")]
+    [InlineData("HoledSquareInsideHoledSquarePlusLineAcross")]
+    [InlineData("SquareWithMultipleIntersectionPolyline")]
+    [InlineData("ThreeNestedHoledSquaresPlusLineAcross")]
     public void CanRunBooleanUnion(string testCaseName)
     {
         // Arrange

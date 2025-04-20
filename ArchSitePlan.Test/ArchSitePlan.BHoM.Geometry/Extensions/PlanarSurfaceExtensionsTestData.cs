@@ -213,6 +213,30 @@ public class PlanarSurfaceExtensionTestData
             /* unionedCount */ 1, 
             /* unionedArea */ 100 )
         },
+
+        {
+        "HoledSquareInsideHoledSquarePlusLineAcross",
+            new SurfaceTestCase(
+            /* Surfaces */ HoledSquareInsideHoledSquarePlusLineAcross, 
+            /* unionedCount */ 1, 
+            /* unionedArea */ 280 )
+        },
+
+        {
+        "SquareWithMultipleIntersectionPolyline",
+            new SurfaceTestCase(
+            /* Surfaces */ SquareWithMultipleIntersectionPolyline, 
+            /* unionedCount */ 1, 
+            /* unionedArea */ 77.12672 )
+        },
+
+                {
+        "ThreeNestedHoledSquaresPlusLineAcross",
+            new SurfaceTestCase(
+            /* Surfaces */ ThreeNestedHoledSquaresPlusLineAcross, 
+            /* unionedCount */ 1, 
+            /* unionedArea */ 280 )
+        },
     };
 
     public Dictionary<string, SurfaceTestCase> IntersectionSurfaceTestCases = new()
@@ -455,4 +479,53 @@ public class PlanarSurfaceExtensionTestData
             Create.PlanarSurface(new Rectangle(Create.Point(2,2), Create.Point(8, 8)),
                 internalBoundaries: [new Rectangle(Create.Point(4,4), Create.Point(6,6))]),
     });
+
+    public static SurfaceSet HoledSquareInsideHoledSquarePlusLineAcross = new(
+    Set1: new List<PlanarSurface>()
+    {
+            Create.PlanarSurface(new Rectangle(Point.Origin, Create.Point(25, 25)),
+                internalBoundaries: [new Rectangle(Create.Point(2,2), Create.Point(23, 23))])
+    },
+
+    Set2: new List<PlanarSurface>()
+    {
+            Create.PlanarSurface(new Rectangle(Create.Point(8,8), Create.Point(18, 18)),
+                internalBoundaries: [new Rectangle(Create.Point(10,10), Create.Point(15,15))]),
+            Create.PlanarSurface(new Rectangle(Create.Point(-5,12), Create.Point(30,13)))
+    });
+
+    public static SurfaceSet ThreeNestedHoledSquaresPlusLineAcross = new(
+    Set1: new List<PlanarSurface>()
+    {
+            Create.PlanarSurface(new Rectangle(Point.Origin, Create.Point(25, 25)),
+                internalBoundaries: [new Rectangle(Create.Point(2,2), Create.Point(23, 23))])
+    },
+
+    Set2: new List<PlanarSurface>()
+    {
+            Create.PlanarSurface(new Rectangle(Create.Point(5,5), Create.Point(20, 20)),
+                internalBoundaries: [new Rectangle(Create.Point(6,6), Create.Point(19,19))]),
+            Create.PlanarSurface(new Rectangle(Create.Point(10,10), Create.Point(16, 16)),
+                internalBoundaries: [new Rectangle(Create.Point(11,11), Create.Point(15,15))]),
+            Create.PlanarSurface(new Rectangle(Create.Point(-5,13), Create.Point(30,14)))
+    });
+
+    public static SurfaceSet SquareWithMultipleIntersectionPolyline = new(
+       Set1: new List<PlanarSurface>()
+       {
+            Create.PlanarSurface(new Rectangle(Create.Point(), Create.Point(10,10)),
+                internalBoundaries: [new Rectangle(Create.Point(2,2), Create.Point(8,8))])
+       },
+
+       Set2: new List<PlanarSurface>()
+       {
+           Create.PlanarSurface(
+           Create.Polyline([
+               Create.Point(0,0),
+               Create.Point(-4, 3),
+               Create.Point(6,14),
+               Create.Point(10,10)
+               ]).Thicken(0.3, EndCapType.Butt, Vector.ZAxis))
+       });
+
 }

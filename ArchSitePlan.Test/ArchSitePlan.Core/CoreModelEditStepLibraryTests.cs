@@ -240,4 +240,85 @@ public class CoreModelEditStepLibraryTests
         Assert.Equal(2, roadSrfs.Count);
         Assert.Equal(2, parcelSrfs.Count);
     }
+
+    [Fact]
+    public void CanBuildRoadsAndParcels_3CurvesSpecialCase()
+    {
+        // Arrange
+        var curve1 = Create.Polyline(
+            new List<Point>()
+            {
+                Create.Point(0, 0),
+                Create.Point(25, 0),
+                Create.Point(25, 10),
+                Create.Point(0, 10),
+            });
+
+        var curve2 = Create.Line(Create.Point(2, -2), Create.Point(2, 12));
+        var curve3 = Create.Line(Create.Point(15, 0), Create.Point(15, 18));
+
+        var roads = GetRoads([curve1, curve2, curve3]);
+
+        // Act
+        CoreModelEditStepLibrary.CalculateParcelAndRoadBoundaries(
+            roads, out var roadSrfs, out var parcelSrfs);
+
+        // Visualize
+        roadSrfs.ForEach(x => x.Debug(BuiltInMaterials.Concrete));
+        parcelSrfs
+            .Select((x, i) => x.Translate(Create.Vector(0, 0, i * 0.5)))
+            .ToList()
+            .ForEach(x => x.Debug(BuiltInMaterials.Topography));
+        DEBUGMODEL.OpenAsGlb();
+
+        // Assert
+        Assert.Single(roadSrfs);
+        Assert.Equal(3, parcelSrfs.Count);
+    }
+
+    [Fact]
+    public void CanBuildRoadsAndParcels_SelfEnclosedCurvesSpecialCase()
+    {
+        // Arrange
+        var curve1 = Create.Polygon(
+            new List<Point>()
+            {
+                Create.Point(0, 0),
+                Create.Point(25, 0),
+                Create.Point(25, 25),
+                Create.Point(0, 25),
+            });
+
+        var curve2 = Create.Polygon(
+            new List<Point>()
+            {
+                        Create.Point(5, 5),
+                        Create.Point(15, 5),
+                        Create.Point(15, 15),
+                        Create.Point(5, 15),
+            });
+
+        var curve3 = Create.Line(Create.Point(12, -10), Create.Point(12, 30));
+
+        var roads = GetRoads([curve1, curve2, curve3]);
+
+        // Act
+        CoreModelEditStepLibrary.CalculateParcelAndRoadBoundaries(
+            roads, out var roadSrfs, out var parcelSrfs);
+
+        // Visualize
+        roadSrfs
+            .Select((x, i) => x.Translate(Create.Vector(0, 0, i * 0.5)))
+            .ToList()
+            .ForEach(x => x.Debug(BuiltInMaterials.Concrete));
+        parcelSrfs
+            .Select((x, i) => x.Translate(Create.Vector(0, 0, i * 0.5)))
+            .ToList()
+            .ForEach(x => x.Debug(BuiltInMaterials.Topography));
+        DEBUGMODEL.OpenAsGlb();
+
+        // Assert
+        Assert.Single(roadSrfs);
+        Assert.Equal(3, parcelSrfs.Count);
+    }
 }

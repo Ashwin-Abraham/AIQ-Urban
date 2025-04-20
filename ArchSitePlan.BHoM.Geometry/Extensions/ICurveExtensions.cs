@@ -15,7 +15,7 @@ public static class ICurveExtensions
 
         List<ICurve> overlap = externals
             .SelectMany(x => curve.BooleanIntersection(x))
-            .BooleanUnion()
+            //.BooleanUnion()rec 
             .SelectMany(x => x.BooleanDifference(internals).Cast<ICurve>())
             .ToList();
 
