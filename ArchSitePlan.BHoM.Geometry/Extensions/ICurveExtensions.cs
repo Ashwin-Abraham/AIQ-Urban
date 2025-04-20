@@ -10,16 +10,28 @@ public static class ICurveExtensions
     public static List<ICurve> BooleanIntersection(this ICurve curve, List<PlanarSurface> surfaces, double tolerance = 1e-06)
     {
         if (!curve.IIsClosed()) return [];
-        var externals = surfaces.Select(x => x.ExternalBoundary);
-        var internals = surfaces.SelectMany(x => x.InternalBoundaries);
+        //var externals = surfaces.Select(x => x.ExternalBoundary);
+        //var internals = surfaces.SelectMany(x => x.InternalBoundaries);
 
-        List<ICurve> overlap = externals
-            .SelectMany(x => curve.BooleanIntersection(x))
-            //.BooleanUnion()rec 
-            .SelectMany(x => x.BooleanDifference(internals).Cast<ICurve>())
-            .ToList();
+        List<ICurve> result = new();
+        foreach(var intersector in surfaces)
+        {
+            var externalOverlap = intersector.ExternalBoundary.BooleanIntersection(curve).ToList();
+            var overlap = externalOverlap
+                .SelectMany(x => x.BooleanDifference(intersector.InternalBoundaries))
+                .ToList();
+            
+            
+            result.AddRange(overlap);
+        }
 
-        return overlap;
+        //List<ICurve> result = externals
+        //    .SelectMany(x => curve.BooleanIntersection(x))
+        //    //.BooleanUnion()
+        //    .SelectMany(x => x.BooleanDifference(internals).Cast<ICurve>())
+        //    .ToList();
+
+        return result;
     }
 
     public static List<ICurve> BooleanDifference(this ICurve curve, List<PlanarSurface> surfaces, double tolerance = 1e-06)
