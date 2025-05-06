@@ -10,6 +10,7 @@ namespace ArchSitePlan.DebugModel
         private const string glbExtension = ".glb";
         private const double defaultTextSize = 0.5;
         private const string defaultPath = "%temp%";
+        private static bool _executingScript = false;
         private static Model _hyparModel = new Model();
         public static Model HyparModel
         {
@@ -24,13 +25,16 @@ namespace ArchSitePlan.DebugModel
 
         public static void OpenAsGlb(string path = defaultPath)
         {
+            if (_executingScript) return;
 #if DEBUG
+            _executingScript = true;
             path += glbExtension;
             Elements.Serialization.glTF.GltfExtensions.ToGlTF(_hyparModel, path);
             Process.Start(new ProcessStartInfo(path)
             {
                 UseShellExecute = true
             });
+            _executingScript = false;
 #endif
         }
 

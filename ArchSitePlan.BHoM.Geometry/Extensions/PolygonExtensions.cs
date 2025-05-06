@@ -12,4 +12,10 @@ public static class PolygonExtensions
 
         return Create.Polyline(vertices);
     }
+
+    public static Polygon Transform(this Polygon polygon, TransformMatrix transform)
+    {
+        var vertices = polygon.Vertices.Select(x => x.Transform(transform)).ToList();
+        return  new Polygon(vertices);
+    }
 }

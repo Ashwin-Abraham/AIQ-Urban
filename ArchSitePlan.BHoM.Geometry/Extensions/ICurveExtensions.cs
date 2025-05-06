@@ -144,11 +144,18 @@ public static class ICurveExtensions
     private static List<Point> GetDivisionPointsOnCurve(ICurve curve, List<double> divisionParams)
     {
         List<Point> divisionPoints = divisionParams
-            .Select(x => Math.Clamp(x, 0 + 1e-05, 1 - 1e-05))
+            .Select(x => Clamp(x, 0 + 1e-05, 1 - 1e-05))
             .Select(param => curve.IPointAtParameter(param))
             .ToList();
 
         return divisionPoints;
+    }
+
+    private static double Clamp(double value, double min, double max)
+    {
+        if (value < min) return min;
+        if (value > max) return max;
+        return value;
     }
 
     public static ICurve EnsureAntiClockwise(this ICurve curve, Vector? normal = null)

@@ -26,9 +26,9 @@ namespace ArchSitePlan.DebugModel.BHoMExtensions
         {
             var verts = curve.IControlPoints()
                 .Select(pt => pt.ToHypar())
-                .SkipLast(1)
                 .ToList();
 
+            verts.RemoveAt(verts.Count - 1);
             return new Elements.Geometry.Polygon(verts);
         }
 
@@ -160,8 +160,6 @@ namespace ArchSitePlan.DebugModel.BHoMExtensions
                 arc.StartAngle,
                 arc.EndAngle);
 
-            var test1 = arc.PointAtParameter(0.5);
-            var test2 = hyparArc.PointAtNormalized(0.5);
             return hyparArc;
         }
 

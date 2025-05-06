@@ -23,6 +23,11 @@ public class Rectangle:Polygon
             Create.Point(min.X, max.Y)) 
     { }
 
+    public Rectangle(double width, double height)
+        : this(Create.Point(-width / 2, -height / 2),
+              Create.Point(width / 2, height / 2)) 
+    { }
+
     public double AreaAbs()
     {
         return Math.Abs((Max.X - Min.X) * (Max.Y - Min.Y));
@@ -88,5 +93,15 @@ public class Rectangle:Polygon
             contours.Add(firstContour.Translate(moverAlongAxis * i));
 
         return contours;
+    }
+
+    public Rectangle Moved(double x = 0, double y = 0, double z = 0)
+    {
+        return Moved(Create.Vector(x, y, z));
+    }
+
+    public Rectangle Moved(Vector mover)
+    {
+        return new Rectangle(Min.Translate(mover), Max.Translate(mover));
     }
 }

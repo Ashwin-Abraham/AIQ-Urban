@@ -9,14 +9,14 @@ namespace ArchSitePlan.BHoM.Geometry.Extensions;
 public static class PolyCurveExtensions
 {
     private sealed record MinBox(double Area, double Rotation, BoundingBox Bounds);
- 
+
     //public static PolyCurve FlattenPolycurveSubParts(this PolyCurve curve)
     //{
     //    foreach(var subCurve in curve.SubParts())
     //    {
     //        List<ICurve> fragments;
     //        if(subCurve is PolyCurve nestedCurve)
-                
+
 
     //    }
     //}

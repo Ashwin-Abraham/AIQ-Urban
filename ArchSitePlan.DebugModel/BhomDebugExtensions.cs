@@ -15,6 +15,6 @@ public static class BhomDebugExtensions
     public static void Debug(this Point point, double radius = 0.15, Material? material = null, double zMovt = 0)
         => point.ToHypar().Debug(radius, material, zMovt);
 
-    public static void Debug(this IEnumerable<Point> points, Material? material = null, double zMovt = 0)
-        => points.Debug(material, zMovt);
+    public static void Debug(this IEnumerable<Point> points, double radius = 0.15, Material? material = null, double zMovt = 0)
+        => points.ToList().ForEach(x => x.Debug(radius, material, zMovt));
 }
