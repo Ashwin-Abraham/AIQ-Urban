@@ -7,6 +7,14 @@ namespace ArchSitePlan.BHoM.Geometry.Extensions;
 
 public static class ICurveExtensions
 {
+    public static Line ToLine(this ICurve curve)
+    {
+        if (curve is Line line)
+            return line;
+
+        return Create.Line(curve.IStartPoint(), curve.IEndPoint());
+    }
+
     public static List<ICurve> BooleanIntersection(this ICurve curve, List<PlanarSurface> surfaces, double tolerance = 1e-06)
     {
         if (!curve.IIsClosed()) return [];
@@ -642,5 +650,36 @@ public static class ICurveExtensions
         }
 
         return false;
+    }
+
+    public static List<ICurve> Trim(
+        this ICurve curve,
+        List<Polygon> splitters, 
+        bool removeOnEdge = true)
+    {
+        var intersections = curve.ICurveIntersections(splitters);
+        var fragments = curve.ISplitAtPoints(intersections);
+
+        var outsideFragments = new List<ICurve>();
+        foreach(var fragment in fragments)
+        {
+            bool valid = true;
+            foreach(var splitter in splitters)
+            {
+                var isWithin = splitter.IIsContaining([fragment.Mid()], acceptOnEdge: removeOnEdge);
+             
+                if(isWithin)
+                {
+                    valid = false;
+                    break;
+                }
+
+            }
+
+            if(valid)
+                outsideFragments.Add(fragment);
+        }
+
+        return outsideFragments;
     }
 }

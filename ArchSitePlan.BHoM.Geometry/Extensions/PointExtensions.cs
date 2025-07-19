@@ -6,6 +6,58 @@ namespace ArchSitePlan.BHoM.Geometry.Extensions;
 
 public static class PointExtensions
 {
+    //
+    // Summary:
+    //     Calculate a polygon from the 2d convex hull of a collection of points. Adapted
+    //     from https://rosettacode.org/wiki/Convex_hull#C.23 and the Hypar Elements library
+    //
+    // Parameters:
+    //   points:
+    //     A collection of points
+    //
+    // Returns:
+    //     A polygon representing the convex hull of the provided points.
+    public static Polygon? ConvexHullFromPoints(this IEnumerable<Point> points)
+    {
+        if (!points.Any())
+        {
+            return null;
+        }
+
+        Point[] array = (from p in points
+                           select Create.Point(p.X, p.Y) into p
+                           orderby p.X, p.Y
+                           select p).ToArray();
+
+        List<Point> list = new List<Point>();
+        Func<Point, Point, Point, bool> func = (Point a, Point b, Point c) => (b.X - a.X) * (c.Y - a.Y) > (b.Y - a.Y) * (c.X - a.X);
+        Point[] array2 = array;
+        foreach (Point vector in array2)
+        {
+            while (list.Count >= 2 && !func(list[list.Count - 2], list[list.Count - 1], vector))
+            {
+                list.RemoveAt(list.Count - 1);
+            }
+
+            list.Add(vector);
+        }
+
+        int num = list.Count + 1;
+        for (int num2 = array.Length - 1; num2 >= 0; num2--)
+        {
+            Point vector2 = array[num2];
+            while (list.Count >= num && !func(list[list.Count - 2], list[list.Count - 1], vector2))
+            {
+                list.RemoveAt(list.Count - 1);
+            }
+
+            list.Add(vector2);
+        }
+
+        list.RemoveAt(list.Count - 1);
+        return Create.Polygon(list);
+    }
+
     public static TransformMatrix ToTransform(this Point v)
     {
         double[,] matrix = new double[4, 4];

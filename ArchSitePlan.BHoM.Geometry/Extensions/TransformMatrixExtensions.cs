@@ -3,15 +3,22 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using BH.Engine.Geometry;
 using BH.oM.Geometry;
 
 namespace ArchSitePlan.BHoM.Geometry.Extensions;
 public static class TransformMatrixExtensions
 {
-    public static TransformMatrix GenerateRotationAboutZ(double rotationDegrees)
+    public static TransformMatrix Clone(this TransformMatrix transform)
     {
-        // Convert degrees to radians
-        double rotation = rotationDegrees * Math.PI / 180.0;
+        return TransformMatrix.Identity * transform;
+    }
+
+    public static TransformMatrix GenerateRotationAboutZ(double rotation, bool inDegrees = true)
+    {
+        // Convert to radians if needed
+        if(inDegrees) 
+            rotation = rotation * Math.PI / 180.0;
 
         double cos = Math.Cos(rotation);
         double sin = Math.Sin(rotation);

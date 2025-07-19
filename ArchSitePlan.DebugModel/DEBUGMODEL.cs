@@ -23,13 +23,20 @@ namespace ArchSitePlan.DebugModel
             _hyparModel = new Model();
         }
 
+        public static string SaveAsGlb(string path = defaultPath)
+        {
+            path += glbExtension;
+            Elements.Serialization.glTF.GltfExtensions.ToGlTF(_hyparModel, path);
+
+            return path;
+        }
+
         public static void OpenAsGlb(string path = defaultPath)
         {
             if (_executingScript) return;
-#if DEBUG
+#if DEBUG_VIZ || DEBUG
             _executingScript = true;
-            path += glbExtension;
-            Elements.Serialization.glTF.GltfExtensions.ToGlTF(_hyparModel, path);
+            path = SaveAsGlb(path);
             Process.Start(new ProcessStartInfo(path)
             {
                 UseShellExecute = true
@@ -65,19 +72,24 @@ namespace ArchSitePlan.DebugModel
         }
 
 
-        public static void Debug(this BoundedCurve crv,
+        public static Element Debug(this BoundedCurve crv,
                                 Material? material = null,
                                 double zMovt = 0)
         {
             crv = crv.Transformed(new Transform(new Vector3(0, 0, zMovt))) as BoundedCurve;
-            _hyparModel.AddElement(new ModelCurve(crv, material));
+            var element = new ModelCurve(crv, material);
+
+            _hyparModel.AddElement(element);
+            return element;
         }
 
-        public static void Debug(this IEnumerable<BoundedCurve> boundedCrvList,
+        public static List<Element> Debug(this IEnumerable<BoundedCurve> boundedCrvList,
                                 Material? material = null,
                                 double zMovt = 0)
         {
-            boundedCrvList.ToList().ForEach(crv => Debug(crv, material, zMovt));
+            return boundedCrvList
+                .Select(crv => Debug(crv, material, zMovt))
+                .ToList();
         }
 
         public static void DebugAsPolygons(this IEnumerable<Circle> circleList,
@@ -152,18 +164,18 @@ namespace ArchSitePlan.DebugModel
             _hyparModel.AddElements(new ModelPoints(points.ToList()));
         }
 
-        public static void Debug(this IEnumerable<Transform> planes, double length = 0.3, Material colour = null)
+        public static void Debug(this IEnumerable<Transform> planes, double length = 0.3, Material? colour = null)
         {
             planes.ToList().ForEach(t => Debug(t, length, colour));
         }
 
-        public static void Debug(this IEnumerable<Vector3> XYplaneOrigins, double length = 0.3, Material colour = null)
+        public static void Debug(this IEnumerable<Vector3> XYplaneOrigins, double length = 0.3, Material? colour = null)
         {
             IEnumerable<Transform> planes = XYplaneOrigins.Select(o => new Transform(o));
             planes.ToList().ForEach(t => Debug(t, length, colour));
         }
 
-        public static void Debug(this Transform plane, double length = 0.5, Material colour = null)
+        public static void Debug(this Transform plane, double length = 0.5, Material? colour = null)
         {
             Line xAxis = new Line(plane.Origin, plane.XAxis, length);
             Line yAxis = new Line(plane.Origin, plane.YAxis, length);
@@ -180,25 +192,6 @@ namespace ArchSitePlan.DebugModel
             material ??= DebugMaterials.Gray;
             _hyparModel.AddElement(new MeshElement(hyparMesh, material: material));
         }
-
-        //public static void Debug(this Mesh hyparMesh)
-        //{
-        //    List<Mass> masses = new List<Mass>();
-        //    int count = 0;
-        //    foreach (Triangle tri in hyparMesh.Triangles)
-        //    {
-        //        Mass m = new Mass(profile: new Profile(tri.ToPolygon()),
-        //                            material: new Material("x", tri.Vertices.First().Color),
-        //                            height: 0.1
-        //                        );
-
-        //        masses.Add(m);
-
-        //        count++;
-        //        if (count > 25) break;
-        //    }
-        //    _hyparModel.AddElements(masses);
-        //}
 
         public static void Debug(this IEnumerable<Mesh> meshes)
         {

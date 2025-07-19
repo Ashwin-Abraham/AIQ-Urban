@@ -27,22 +27,6 @@ public static class LineExtensions
         return overlap;
     }
 
-    public static List<PlaneXYZ> DivideIntoPlanesByDimension(
-        this Line line, 
-        double size, 
-        Vector? planeZ = null,
-        bool includeEnds = false)
-    {
-        planeZ ??= Vector.ZAxis;
-
-        var planeX = line.Direction();
-        var planeY = planeX.Rotate(Math.PI / 2, planeZ);
-
-        var originPoints = DivideByDimension(line, size, includeEnds);
-
-        return originPoints.Select(origin => new PlaneXYZ(origin, planeX, planeY)).ToList();
-    }
-
     public static List<Point> DivideByDimension(this Line line, double size, bool includeEnds = false)
     {
         var length = line.Length();
@@ -67,6 +51,7 @@ public static class LineExtensions
 
         return points;
     }
+
     public static Point Mid(this Line line)
     {
         return (line.Start + line.End)/ 2;

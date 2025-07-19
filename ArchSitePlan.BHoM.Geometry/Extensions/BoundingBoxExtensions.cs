@@ -38,16 +38,16 @@ public static class BoundingBoxExtensions
 
     public static Domain XDomain(this BoundingBox box)
     {
-        return new(box.Max.X, box.Min.X);
+        return new(box.Min.X, box.Max.X);
     }
 
     public static Domain YDomain(this BoundingBox box)
     {
-        return new(box.Max.Y, box.Min.Y);
+        return new(box.Min.Y, box.Max.Y);
     }
 
     public static Domain ZDomain(this BoundingBox box)
     {
-        return new(box.Max.Z, box.Min.Z);
+        return new(box.Min.Z, box.Max.Z);
     }
 }
