@@ -1,10 +1,57 @@
-﻿using BH.Engine.Geometry;
+﻿using AIQ.Primitives.Extensions;
+using ArchSitePlan.BHoM.Geometry.Models;
+using BH.Engine.Geometry;
 using BH.oM.Geometry;
 
 namespace ArchSitePlan.BHoM.Geometry.Extensions;
 
 public static class LineExtensions
 {
+    public static List<Line> Overlaps(this Line line, IEnumerable<Line> lines)
+    {
+        return lines.Select(x => line.Overlaps(x))
+            .Where(x => x != null)
+            .Cast<Line>()
+            .ToList();
+    }
+
+    public static Line? Overlaps(this Line line, Line otherLine)
+    {
+        var intersections = line.LineIntersections(otherLine);
+        
+        Line overlap = null;
+        if (intersections.Count == 2 && 
+            !intersections[0].Distance(intersections[1]).AlmostZero())
+            overlap = Create.Line(intersections[0], intersections[1]);
+
+        return overlap;
+    }
+
+    public static List<Point> DivideByDimension(this Line line, double size, bool includeEnds = false)
+    {
+        var length = line.Length();
+        var points = new List<Point>();
+
+        if(includeEnds)
+        {
+            points.Add(line.Start);
+            points.Add(line.End);
+        }
+
+        if (size.GreaterThanORAlmostEquals(length) || size.LessThanORAlmostEquals(0))
+            return points;
+
+        double position = size;
+
+        while (!position.GreaterThanORAlmostEquals(length))
+        {
+            points.Add(line.PointAtLength(position));
+            position += size;
+        }
+
+        return points;
+    }
+
     public static Point Mid(this Line line)
     {
         return (line.Start + line.End)/ 2;

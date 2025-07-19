@@ -7,14 +7,19 @@ namespace ArchSitePlan.BHoM.Geometry.Extensions;
 
 public static class PolylineExtensions
 {
-    private record FaceId(int a, int b, int c);
+    private sealed class FaceId(int a, int b, int c)
+    {
+        public readonly int a = a;
+        public readonly int b = b;
+        public readonly int c = c;
+    }
 
     public static ICurve ClosedPolylineToPolygon(this Polyline polyline)
     {
         var points = polyline.IControlPoints();
 
         if (points.Count > 2 && polyline.IsClosed())
-            return Create.Polygon(points.SkipLast(1).ToList());
+            return Create.Polygon(points.Take(points.Count -1).ToList());
 
         return polyline;
     }

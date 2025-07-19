@@ -7,6 +7,49 @@ namespace ArchSitePlan.BHoM.Geometry.Extensions;
 
 public static class ICurveExtensions
 {
+    public static Line ToLine(this ICurve curve)
+    {
+        if (curve is Line line)
+            return line;
+
+        return Create.Line(curve.IStartPoint(), curve.IEndPoint());
+    }
+
+    public static List<ICurve> BooleanIntersection(this ICurve curve, List<PlanarSurface> surfaces, double tolerance = 1e-06)
+    {
+        if (!curve.IIsClosed()) return [];
+        //var externals = surfaces.Select(x => x.ExternalBoundary);
+        //var internals = surfaces.SelectMany(x => x.InternalBoundaries);
+
+        List<ICurve> result = new();
+        foreach(var intersector in surfaces)
+        {
+            var externalOverlap = intersector.ExternalBoundary.BooleanIntersection(curve).ToList();
+            var overlap = externalOverlap
+                .SelectMany(x => x.BooleanDifference(intersector.InternalBoundaries))
+                .ToList();
+            
+            
+            result.AddRange(overlap);
+        }
+
+        //List<ICurve> result = externals
+        //    .SelectMany(x => curve.BooleanIntersection(x))
+        //    //.BooleanUnion()
+        //    .SelectMany(x => x.BooleanDifference(internals).Cast<ICurve>())
+        //    .ToList();
+
+        return result;
+    }
+
+    public static List<ICurve> BooleanDifference(this ICurve curve, List<PlanarSurface> surfaces, double tolerance = 1e-06)
+    {
+        var overlap = curve.BooleanIntersection(surfaces);
+        var curves = curve.BooleanDifference(overlap).Cast<ICurve>().ToList();
+
+        return curves;
+    }
+
     public static ICurve IOffsetSafe(
         this ICurve curve,
         double offset,
@@ -109,11 +152,18 @@ public static class ICurveExtensions
     private static List<Point> GetDivisionPointsOnCurve(ICurve curve, List<double> divisionParams)
     {
         List<Point> divisionPoints = divisionParams
-            .Select(x => Math.Clamp(x, 0 + 1e-05, 1 - 1e-05))
+            .Select(x => Clamp(x, 0 + 1e-05, 1 - 1e-05))
             .Select(param => curve.IPointAtParameter(param))
             .ToList();
 
         return divisionPoints;
+    }
+
+    private static double Clamp(double value, double min, double max)
+    {
+        if (value < min) return min;
+        if (value > max) return max;
+        return value;
     }
 
     public static ICurve EnsureAntiClockwise(this ICurve curve, Vector? normal = null)
@@ -600,5 +650,36 @@ public static class ICurveExtensions
         }
 
         return false;
+    }
+
+    public static List<ICurve> Trim(
+        this ICurve curve,
+        List<Polygon> splitters, 
+        bool removeOnEdge = true)
+    {
+        var intersections = curve.ICurveIntersections(splitters);
+        var fragments = curve.ISplitAtPoints(intersections);
+
+        var outsideFragments = new List<ICurve>();
+        foreach(var fragment in fragments)
+        {
+            bool valid = true;
+            foreach(var splitter in splitters)
+            {
+                var isWithin = splitter.IIsContaining([fragment.Mid()], acceptOnEdge: removeOnEdge);
+             
+                if(isWithin)
+                {
+                    valid = false;
+                    break;
+                }
+
+            }
+
+            if(valid)
+                outsideFragments.Add(fragment);
+        }
+
+        return outsideFragments;
     }
 }

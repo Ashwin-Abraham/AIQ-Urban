@@ -77,12 +77,28 @@ namespace ArchSitePlan.Core.Pipeline
             CoreModel.ROWs.Clear();
 
             CalculateParcelAndRoadBoundaries(
-                out List<PlanarSurface> roadSrfs,
-                out List<ICurve> parcelBoundaries);
+               CoreModel.Roads,
+               out List<PlanarSurface> roadSrfs,
+               out List<PlanarSurface> parcelSrfs);
+
+            var roadUnion = roadSrfs.Select(x => x.ExternalBoundary)
+                .BooleanUnion()
+                .ToList();
+
+            var studiesCombined = CoreModel.Studies
+                .Where(s => s.Boundary != null)
+                .Select(s => s.Boundary)
+                .BooleanUnion()
+                .ToList();
+
+            var unenclosedParcels = studiesCombined.
+                SelectMany(crv => crv.BooleanDifference(roadUnion))
+                .Select(x => new PlanarSurface(x, []))
+                .ToList();
 
             new ParcelAction().Run(
                 editType: EditType.Add,
-                boundariesToAdd: parcelBoundaries,
+                parcelsToAdd: parcelSrfs.Concat(unenclosedParcels).ToList(),
                 existingUsesAndCenters: priorUsesAndCenters);
 
             RoadAction.Run(roadSrfs);
@@ -91,12 +107,47 @@ namespace ArchSitePlan.Core.Pipeline
         private static List<(Landuse, Point)>? GetPriorUses(List<Parcel> parcels)
           => parcels.Select(p => (p.LandUse, p.Boundary.ControlPointCentroid())).ToList();
 
-        private static void CalculateParcelAndRoadBoundaries(
-            out List<PlanarSurface> roadRoWs,
-            out List<ICurve> parcelBoundaries)
+        public static void CalculateParcelAndRoadBoundaries(
+            List<Road> roads,
+            out List<PlanarSurface> roadSrfs,
+            out List<PlanarSurface> parcelSrfs)
         {
-            var validRoads = CoreModel.Roads.Where(r => r.IsValid()).ToList();
-            var roadOuterBoundaries = validRoads.Select(r => r.RoW!.ExternalBoundary);
+            roadSrfs = roads
+                .Select(x => x.RoW)
+                .Where(x => x!=null)
+                .Cast<PlanarSurface>()
+                .ToList()
+                .BooleanUnion();
+
+            var parcelCrvs = roadSrfs.SelectMany(x => x.InternalBoundaries).ToList();
+            
+            var roadExternals = roadSrfs.Select(x => x.ExternalBoundary).ToList();
+
+            parcelSrfs = new();
+
+            foreach(var parcelCrv in parcelCrvs)
+            {
+                var roadsWithin = roadExternals.Where(x => parcelCrv.IIsContaining(x)).ToList();
+
+                if(roadsWithin.Count == 0)
+                {
+                    parcelSrfs.Add(Create.PlanarSurface(parcelCrv));
+                }
+                else
+                {
+                    var remainingSrf = Create.PlanarSurface(parcelCrv).BooleanDifference(roadsWithin);
+                    parcelSrfs.AddRange(remainingSrf);
+                }
+            }
+        }
+
+        public static void CalculateParcelAndRoadBoundaries2(
+            List<Road> roads,
+            out List<PlanarSurface> roadSrfs,
+            out List<PlanarSurface> parcelSrfs)
+        {
+            var validRoads = roads.Where(r => r.IsValid()).ToList();
+            var roadOuterBoundaries = validRoads.Select(r => r.RoW!.ExternalBoundary).ToList();
             var roadInnerBoundaries = validRoads
                 .SelectMany(r => r.RoW!.InternalBoundaries)
                 .ToList();
@@ -104,29 +155,41 @@ namespace ArchSitePlan.Core.Pipeline
             List<ICurve> innerBoundaries = new();
             foreach (var innerBoundary in roadInnerBoundaries)
             {
-                var clash = roadOuterBoundaries
-                    .Where(b => b.ICurveIntersections(innerBoundary).Count > 0)
+                var clashingRoads = validRoads
+                    .Where(b => b.RoW!.ExternalBoundary.ICurveIntersections(innerBoundary).Count > 0)
                     .ToList();
 
-                if (clash.Count > 0)
+                if (clashingRoads.Count > 0)
                 {
-                    var newInnerBoundary = innerBoundary.BooleanDifference(clash).ToList();
-                    innerBoundaries.AddRange(newInnerBoundary);
+                    var clashingExternals = clashingRoads.Select(x => x.RoW.ExternalBoundary).ToList();
+                    var clashingInternals = clashingRoads.SelectMany(x => x.RoW.InternalBoundaries).ToList();
+
+                    var reducedInnerBoundary = innerBoundary.BooleanDifference(clashingExternals).ToList();
+                    var overlappingInners = clashingInternals.SelectMany(x=> x.BooleanIntersection(innerBoundary)).ToList();
+                    var newInnerBoundaries = reducedInnerBoundary.Concat(overlappingInners?? []).BooleanUnion();
+                    
+                    innerBoundaries.AddRange(newInnerBoundaries);
                 }
                 else
                     innerBoundaries.Add(innerBoundary);
             }
-            roadInnerBoundaries = innerBoundaries;
+
+            // This union gets rid of overlapping innerboundaries generated by 2 different roads
+            roadInnerBoundaries = innerBoundaries.BooleanUnion().Cast<ICurve>().ToList();
 
             var roadUnion = roadOuterBoundaries.BooleanUnion()
                 .ToList();
 
-            var roadPoints = CoreModel.Roads
-                .Select(r => r.Centerline.PointAtParameter(0.5))
-                .ToList();
-
+            // Find roads that do not touch the result, meaning that these were swallowed up by the union.
+            // Re-introduce them as roads.
             var roadCrvs = roadUnion
-                .Where(pCrv => roadPoints.Any(pt => pCrv.IsContaining(new List<Point>() { pt })))
+                .Select(x => (
+                    Boundary: x,
+                    ParentRoad: FindOneRoadThatCreatedThisBoundary(x, roads)))
+                .Where(x => 
+                    x.ParentRoad != null
+                    && x.Boundary.IIsContaining([x.ParentRoad.Centerline.Mid()]))
+                .Select(x => x.Boundary)
                 .ToList();
 
             var parcelCrvs = roadUnion
@@ -137,25 +200,62 @@ namespace ArchSitePlan.Core.Pipeline
 
             parcelCrvs.AddRange(roadInnerBoundaries);
 
-            var studyBoundaries = CoreModel.Studies
-                .Where(s => s.Boundary != null)
-                .Select(s => s.Boundary)
-                .ToList();
-
-            var studiesCombined = studyBoundaries.BooleanUnion();
-
-            var unenclosedParcels = studiesCombined.
-                SelectMany(crv => crv.BooleanDifference(roadUnion))
-                .ToList();
-
-            var roadSrfs = roadCrvs
+            roadSrfs = roadCrvs
                 .Select(r => Create.PlanarSurface(
                     r,
                     parcelCrvs))
                 .ToList();
 
-            parcelBoundaries = parcelCrvs.Concat(unenclosedParcels).ToList();
-            roadRoWs = roadSrfs;
+            
+            parcelSrfs = parcelCrvs
+                .Select(x => new PlanarSurface(x, CurvesContainedBy(x, roadOuterBoundaries)))
+                .ToList();
+
+            var remainingRoads = roads
+                .Where(x => IsWithinAnyCurve(x.RoW.ExternalBoundary, parcelCrvs))
+                .ToList();
+
+            if (remainingRoads.Count > 0)
+            {
+                CalculateParcelAndRoadBoundaries(remainingRoads, out var roadSrfsWithin, out var parcelSrfsWithin);
+                roadSrfs.AddRange(roadSrfsWithin);
+                parcelSrfs.AddRange(parcelSrfsWithin);
+            }
+        }
+
+        private static bool IsWithinAnyCurve(ICurve curve, List<ICurve> containmentCurves)
+        {
+            return containmentCurves.Exists(x => x.IIsContaining(curve));
+        }
+
+        private static List<ICurve> CurvesContainedBy(ICurve curve, List<ICurve> curvesToCheck)
+        {
+            List<ICurve> curvesWithin = new();
+
+            foreach(var curveBeingChecked in curvesToCheck)
+            {
+                if (curve.IIsContaining(curveBeingChecked))
+                    curvesWithin.Add(curveBeingChecked);
+            }
+
+            return curvesWithin;
+        }
+
+        /// <summary>
+        /// Find one road that the boundary (partially) came from
+        /// </summary>
+        private static Road? FindOneRoadThatCreatedThisBoundary(ICurve boundary, List<Road> roads)
+        {
+            foreach(var road in roads)
+            {
+                var testPoints = road.RoW.ExternalBoundary.ISubParts().Select(x => x.Mid()).ToList();
+                var pointOnBoundary = testPoints.Find(x => x.IDistance(boundary) < 1e-06);
+
+                if(pointOnBoundary != null)
+                    return road;
+            }
+
+            return null;
         }
 
         public static bool TryRemoveDivders(List<DividerData> dividerData)
