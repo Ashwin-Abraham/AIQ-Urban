@@ -1,6 +1,6 @@
 ﻿using ArchSitePlan.Core.Models;
 using ArchSitePlan.Core.Pipeline.CreationData;
-using ArchSitePlan.RhinoInterface.RhinoBHoMInterop;
+using ArchSitePlan.RhinoBhomInterop;
 using Rhino.DocObjects;
 using Rhino.Geometry;
 

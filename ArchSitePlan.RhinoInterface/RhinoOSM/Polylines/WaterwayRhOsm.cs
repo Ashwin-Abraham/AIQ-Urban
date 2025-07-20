@@ -1,6 +1,6 @@
 ﻿using ArchSitePlan.OSM.Models.OsmPolyline;
+using ArchSitePlan.RhinoBhomInterop;
 using ArchSitePlan.RhinoInterface.Constants;
-using ArchSitePlan.RhinoInterface.RhinoBHoMInterop;
 using Rhino;
 
 namespace ArchSitePlan.RhinoInterface.RhinoOSM.Polylines;

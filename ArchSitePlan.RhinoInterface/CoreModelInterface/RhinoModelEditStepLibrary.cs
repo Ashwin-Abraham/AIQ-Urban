@@ -1,11 +1,10 @@
 ﻿using ArchSitePlan.Core.Constants;
-using ArchSitePlan.Core.Extensions;
 using ArchSitePlan.Core.Models;
 using ArchSitePlan.Core.Pipeline.CreationData;
+using ArchSitePlan.RhinoBhomInterop;
 using ArchSitePlan.RhinoInterface.Actions;
 using ArchSitePlan.RhinoInterface.Constants;
 using ArchSitePlan.RhinoInterface.Helpers;
-using ArchSitePlan.RhinoInterface.RhinoBHoMInterop;
 using BH.Engine.Data;
 using BH.Engine.Geometry;
 using BH.oM.Geometry;

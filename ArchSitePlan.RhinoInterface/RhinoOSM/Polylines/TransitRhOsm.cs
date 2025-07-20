@@ -1,7 +1,7 @@
 ﻿using ArchSitePlan.OSM.Models.OsmPolyline;
+using ArchSitePlan.RhinoBhomInterop;
 using ArchSitePlan.RhinoInterface.Constants;
 using ArchSitePlan.RhinoInterface.Helpers;
-using ArchSitePlan.RhinoInterface.RhinoBHoMInterop;
 using Rhino;
 using Rhino.DocObjects;
 

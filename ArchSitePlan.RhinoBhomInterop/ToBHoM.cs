@@ -2,9 +2,33 @@
 using Rhino.Geometry;
 using bhom = BH.oM.Geometry;
 
-namespace ArchSitePlan.RhinoInterface.RhinoBHoMInterop;
+namespace ArchSitePlan.RhinoBhomInterop;
 public static class ToBHoMExtensions
 {
+    public static bhom.TransformMatrix ToBHoM(this Transform rhinoTransform)
+    {
+        var transform = new bhom.TransformMatrix();
+        transform.Matrix = new double[4, 4];
+
+        transform.Matrix[0, 0] = rhinoTransform.M00;
+        transform.Matrix[0, 1] = rhinoTransform.M01;
+        transform.Matrix[0, 2] = rhinoTransform.M02;
+        transform.Matrix[0, 3] = rhinoTransform.M03;
+        transform.Matrix[1, 0] = rhinoTransform.M10;
+        transform.Matrix[1, 1] = rhinoTransform.M11;
+        transform.Matrix[1, 2] = rhinoTransform.M12;
+        transform.Matrix[1, 3] = rhinoTransform.M13;
+        transform.Matrix[2, 0] = rhinoTransform.M20;
+        transform.Matrix[2, 1] = rhinoTransform.M21;
+        transform.Matrix[2, 2] = rhinoTransform.M22;
+        transform.Matrix[2, 3] = rhinoTransform.M23;
+        transform.Matrix[3, 0] = rhinoTransform.M30;
+        transform.Matrix[3, 1] = rhinoTransform.M31;
+        transform.Matrix[3, 2] = rhinoTransform.M32;
+        transform.Matrix[3, 3] = rhinoTransform.M33;
+        return transform;
+    }
+
     public static bhom.ICurve? ToBHoMXYOutline(this Brep rhinoSrf)
     {
         var boundaryCurves = rhinoSrf.Loops
@@ -106,7 +130,7 @@ public static class ToBHoMExtensions
     public static bhom.ICurve? ToBHoM(this Rhino.Geometry.Curve rhinoCrv)
     {
         if (rhinoCrv.TryGetPolyline(out Polyline pline))
-            return pline.ToBHoMPolyline();
+            return rhinoCrv.IsClosed? pline.ToBHoMPolygon(): pline.ToBHoMPolyline();
         else if (rhinoCrv is PolyCurve pCrv)
             return pCrv.ToBHoM();
         else if (rhinoCrv.TryGetArc(out Arc arc))

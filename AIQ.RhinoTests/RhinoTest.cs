@@ -1,14 +1,9 @@
-﻿using System;
+﻿using ArchSitePlan.RhinoBhomInterop;
+using NUnit.Framework;
+using Rhino.Geometry;
+using Rhino.Testing.Fixtures;
 using System.Collections;
 using System.Collections.Generic;
-using ArchSitePlan.RhinoInterface.RhinoBHoMInterop;
-using NUnit.Framework;
-
-using Rhino;
-using Rhino.Geometry;
-
-using Rhino.Testing;
-using Rhino.Testing.Fixtures;
 
 namespace AIQ.RhinoTests;
 

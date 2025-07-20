@@ -1,9 +1,7 @@
 ﻿using AIQ.Primitives.Extensions;
-using ArchSitePlan.BHoM.Geometry.Extensions;
-using ArchSitePlan.Core.Extensions;
 using ArchSitePlan.Core.Models;
 using ArchSitePlan.Core.Pipeline.CreationData;
-using ArchSitePlan.RhinoInterface.RhinoBHoMInterop;
+using ArchSitePlan.RhinoBhomInterop;
 using Rhino.DocObjects;
 using Rhino.Geometry;
 using Rhino.Geometry.Intersect;

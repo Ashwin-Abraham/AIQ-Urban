@@ -3,7 +3,7 @@ using ArchSitePlan.OSM;
 
 namespace ArchSitePlan.Test.OSMTests;
 
-public class OSMtoBHOMTests
+public class OSMMTests
 {
     [Fact]
     public static void ReadOSM()

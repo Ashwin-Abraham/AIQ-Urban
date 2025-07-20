@@ -1,13 +1,8 @@
 ﻿using ArchSitePlan.Core.Models;
 using ArchSitePlan.Core.Pipeline.CreationData;
-using ArchSitePlan.RhinoInterface.RhinoBHoMInterop;
+using ArchSitePlan.RhinoBhomInterop;
 using Rhino.DocObjects;
 using Rhino.Geometry;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ArchSitePlan.RhinoInterface.Models
 {
