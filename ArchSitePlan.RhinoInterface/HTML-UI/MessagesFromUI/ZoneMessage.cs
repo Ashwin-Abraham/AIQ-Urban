@@ -4,7 +4,7 @@ using ArchSitePlan.RhinoInterface.Actions;
 using ArchSitePlan.RhinoInterface.Constants;
 using ArchSitePlan.RhinoInterface.CoreModelInterface;
 using ArchSitePlan.RhinoInterface.HTML_UI.MessageToUI;
-using ArchSitePlan.RhinoInterface.RhinoBHoMInterop;
+using ArchSitePlan.RhinoBhomInterop;
 using Rhino;
 using Rhino.DocObjects;
 using Rhino.Geometry;

@@ -1,10 +1,7 @@
 ﻿using ArchSitePlan.OSM.Models.OsmPolygon;
+using ArchSitePlan.RhinoBhomInterop;
 using ArchSitePlan.RhinoInterface.Constants;
-using ArchSitePlan.RhinoInterface.Helpers;
-using ArchSitePlan.RhinoInterface.RhinoBHoMInterop;
 using Rhino;
-using Rhino.DocObjects;
-using Rhino.Geometry;
 
 namespace ArchSitePlan.RhinoInterface.RhinoOSM.Areas;
 

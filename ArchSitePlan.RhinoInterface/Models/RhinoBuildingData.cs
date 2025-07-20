@@ -2,7 +2,7 @@
 using ArchSitePlan.Core.Pipeline.CreationData;
 using ArchSitePlan.RhinoInterface.Constants;
 using ArchSitePlan.RhinoInterface.Helpers;
-using ArchSitePlan.RhinoInterface.RhinoBHoMInterop;
+using ArchSitePlan.RhinoBhomInterop;
 using BH.oM.Geometry;
 using Rhino.DocObjects;
 using Rhino.Geometry;

@@ -45,18 +45,43 @@ namespace ArchSitePlan.DebugModel
 #endif
         }
 
-        public static void Debug(this Mass testMass)
+        public static List<Element> Debug(this IEnumerable<Extrude> extrudes, Material? material = null, double zMovt = 0)
         {
-            _hyparModel.AddElement(testMass);
+            return extrudes.Select(x => x.Debug(material, zMovt)).ToList();
         }
 
-        public static void Debug(this IEnumerable<Mass> masses, Material? material = null)
+        public static Element Debug(this Extrude extrude, Material? material = null, double zMovt = 0)
         {
-            if (material != null)
-                masses.ToList().ForEach(mass => mass.Material = material);
+            var transform = extrude.LocalTransform;
 
-            IEnumerable<Element> massElements = masses.Select(m => m as Element);
-            _hyparModel.AddElements(massElements);
+            if(!zMovt.ApproximatelyEquals(0))
+                transform = transform.Concatenated(new Transform(new Vector3(0, 0, zMovt)));
+
+            var mass = new Mass(extrude.Profile, extrude.Height, transform: transform);
+            return mass.Debug(material);
+        }
+
+        public static Element Debug(this Mass mass, Material? material = null)
+        {
+            var massElement = new Mass(
+                mass.Profile, 
+                mass.Height, 
+                mass.Material, 
+                mass.Transform, 
+                mass.Representation,
+                mass.IsElementDefinition,
+                mass.Id, 
+                mass.Name);
+
+            if (material != null)
+                massElement.Material = material;
+
+            return massElement;
+        }
+
+        public static List<Element> Debug(this IEnumerable<Mass> masses, Material? material = null, double zMovt = 0)
+        {
+            return masses.Debug(material, zMovt).ToList();
         }
 
         public static void Debug(this Polygon p,
