@@ -51,18 +51,32 @@ public static class ToBHoMExtensions
     {
         if (rhinoCrv.TryGetPolyline(out Polyline pline))
         {
+            if (pline.Count == 2)
+                return pline.ToBHoMLine();
             if (pline.IsClosed)
                 return pline.ToBHoMPolygon();
             else
                 return pline.ToBHoMPolyline();
         }
+
+        else if (rhinoCrv.TryGetCircle(out Circle circle))
+            return circle.ToBHoM();
+
         else if (rhinoCrv.TryGetArc(out Arc arc))
             return arc.ToBHoM();
+
         else if (rhinoCrv is PolyCurve polyCurve)
             return polyCurve.ToBHoM();
         else
             return null;
     }
+    public static bhom.Circle ToBHoM(this Circle rhinoCircle)
+    {
+        var bhomCircle = Create.Circle(centre: rhinoCircle.Center.ToBHoM(), radius: rhinoCircle.Radius);
+
+        return bhomCircle;
+    }
+
     public static bhom.Arc ToBHoM(this Arc rhinoArc)
     {
            var bhomArc = Create.Arc(start: rhinoArc.StartPoint.ToBHoM(),
@@ -101,6 +115,15 @@ public static class ToBHoMExtensions
         List<bhom.Point> bhomPts = pointList.ToBHoM().ToList();
         return Create.Polyline(bhomPts);
     }
+
+    public static bhom.Line? ToBHoMLine(this Polyline rhinoPline)
+    {
+        if (!rhinoPline.IsValid)
+            return null;
+
+        return Create.Line(rhinoPline[0].ToBHoM(), rhinoPline[1].ToBHoM());
+    }
+
     public static bhom.Polygon ToBHoMPolygon(this Polyline rhinoPline)
     {
         List<Point3d> pointList = rhinoPline.ToList();
