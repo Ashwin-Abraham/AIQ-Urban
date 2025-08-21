@@ -92,4 +92,31 @@ public static class PointExtensions
             return line.ParameterAtPoint(projectedPoint);
         });
     }
+
+    public static Vector ToVector(this Point point)
+    {
+        return Create.Vector(point.X, point.Y, point.Z);
+    }
+
+    public static bool AreColinear2D(this IEnumerable<Point> points)
+    {
+        var pointList = points.ToList();
+        if (pointList.Count < 3)
+            return true; 
+        
+        for (int i = 0; i< pointList.Count - 2; i++)
+        {
+            var point1 = pointList[i];
+            var point2 = pointList[i+1];
+            var point3 = pointList[i+2];
+
+            bool colinear = ((point2.X - point1.X)* (point3.Y - point1.Y))
+                .AlmostEquals((point2.Y - point1.Y) * (point3.X - point1.X));
+
+            if(!colinear)
+                return false;
+        }
+
+        return true;
+    }
 }

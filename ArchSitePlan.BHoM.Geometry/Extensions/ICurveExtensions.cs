@@ -7,6 +7,54 @@ namespace ArchSitePlan.BHoM.Geometry.Extensions;
 
 public static class ICurveExtensions
 {
+    public static Polygon? IToPolygon(this ICurve curve)
+    {
+        if (curve is Polygon polygon)
+            return polygon;
+
+        if(curve is Polyline pline && pline.IsClosed())
+            return Create.Polygon(pline.Vertices());
+
+        if (curve is PolyCurve pCrv)
+            return pCrv.ToPolygon();
+
+        return null;
+    }
+
+    public static List<Point> IDivideByLength(this ICurve curve, double divisionSize)
+    {
+        var startPoint = curve.IStartPoint();
+        var endPoint = curve.IEndPoint();
+
+        if (divisionSize.LessThanORAlmostEquals(0)) 
+            return [startPoint, endPoint];
+
+        var length = curve.ILength();
+        if(divisionSize.GreaterThanORAlmostEquals(length))
+            return [startPoint, endPoint];
+
+        // Calculate param positions
+        var divisionParamSize = divisionSize / length;
+
+        var paramList = new List<double>();
+        for(double pos = 0;; pos += divisionParamSize)
+        {
+            if (pos > 1.0) 
+                break;
+
+            paramList.Add(pos);
+        }
+
+        paramList.Add(1.0);
+
+        // Get points at those params
+        var points = paramList
+            .Select(param => curve.IPointAtParameter(param))
+            .ToList();
+
+        return points;
+    }
+
     public static Line ToLine(this ICurve curve)
     {
         if (curve is Line line)

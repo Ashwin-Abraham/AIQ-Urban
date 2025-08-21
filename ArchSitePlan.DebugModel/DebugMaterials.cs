@@ -27,7 +27,7 @@ namespace ArchSitePlan.DebugModel
                                             new Color("Yellow"));
 
 
-        public static Material Purple = new Material("Purple",
-                                            new Color("Purple"));
+        public static Material PurpleTransparent = new Material("Purple",
+                                            new Color(0.3,0,0.7,0.95));
     }
 }

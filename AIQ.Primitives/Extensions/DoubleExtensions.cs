@@ -11,6 +11,15 @@ public static class DoubleExtensions
         if (number > other) return true;
         return number.AlmostEquals(other, tolerance);
     }
+
+    public static bool GreaterThan(this double number, double other, double tolerance = 1E-05)
+    {
+        if(number.AlmostEquals(other, tolerance))
+            return false;
+
+        return number > other;
+    }
+
     public static bool LessThanORAlmostEquals(this double number, double other, double tolerance = 1E-05)
     {
         if (number < other) return true;
@@ -20,6 +29,6 @@ public static class DoubleExtensions
     public static bool AlmostEquals(this double number, double other, double tolerance = 1E-05)
         => Math.Abs(number - other) < tolerance;
 
-    public static double ToRadians(this double degree)
+    public static double DegreesToRadians(this double degree)
         => degree * Math.PI / 180;
 }

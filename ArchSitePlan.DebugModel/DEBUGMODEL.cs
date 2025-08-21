@@ -31,6 +31,13 @@ namespace ArchSitePlan.DebugModel
             return path;
         }
 
+        public static void OpenAsGlb(this IEnumerable<Element> elements)
+        {
+            _hyparModel = new();
+            _hyparModel.AddElements(elements);
+            OpenAsGlb();
+        }
+
         public static void OpenAsGlb(string path = defaultPath)
         {
             if (_executingScript) return;
@@ -52,7 +59,7 @@ namespace ArchSitePlan.DebugModel
 
         public static Element Debug(this Extrude extrude, Material? material = null, double zMovt = 0)
         {
-            var transform = extrude.LocalTransform;
+            var transform = extrude.LocalTransform?? new();
 
             if(!zMovt.ApproximatelyEquals(0))
                 transform = transform.Concatenated(new Transform(new Vector3(0, 0, zMovt)));
@@ -117,6 +124,41 @@ namespace ArchSitePlan.DebugModel
                 .ToList();
         }
 
+        public static List<Element> Debug(this IEnumerable<string> text,
+            Vector3 location,
+            Vector3? facingDirection = null,
+            Vector3? lineDirection = null,
+            FontSize fontSize = FontSize.PT60,
+            Color? color = null)
+        {
+            facingDirection ??= Vector3.ZAxis;
+            lineDirection ??= Vector3.XAxis;
+
+            return text
+                .Select(x => x.Debug(location, facingDirection, lineDirection, fontSize, color))
+                .ToList();
+        }
+
+        public static Element Debug(this string text,
+            Vector3 location,
+            Vector3? facingDirection = null,
+            Vector3? lineDirection = null,
+            FontSize fontSize = FontSize.PT60,
+            Color? color = null)
+        {
+            facingDirection??= Vector3.ZAxis;
+            lineDirection ??= Vector3.XAxis;
+
+            var modelText = new ModelText(
+                texts: new List<(Vector3, Vector3, Vector3, string, Color?)>
+                {
+                    (location, facingDirection.Value, lineDirection.Value, text, color)
+                },
+                fontSize: fontSize);
+
+            return modelText;
+        }
+
         public static void DebugAsPolygons(this IEnumerable<Circle> circleList,
                                 Material? material = null,
                                 double zMovt = 0)
@@ -126,9 +168,9 @@ namespace ArchSitePlan.DebugModel
                 .ForEach(circ => DebugAsPolygons(circ, material, zMovt));
         }
 
-        public static void DebugAsPolygons(this Circle circle, Material? material = null, double zMovt = 0)
+        public static Element DebugAsPolygons(this Circle circle, Material? material = null, double zMovt = 0)
         {
-            Debug((BoundedCurve)circle.ToPolygonalCircle(), material, zMovt);
+            return Debug((BoundedCurve)circle.ToPolygonalCircle(), material, zMovt);
         }
 
         public static void Debug(this double distance)
@@ -146,12 +188,12 @@ namespace ArchSitePlan.DebugModel
             points.ForEach(pt => Debug(pt, radius, material));
         }
 
-        public static void Debug(this Vector3 point, 
+        public static Element Debug(this Vector3 point, 
             double radius = 0.15, 
             Material? material = null,
             double zMovt = 0)
         {
-            DebugAsPolygons(new Circle(point, radius), material, zMovt);
+            return DebugAsPolygons(new Circle(point, radius), material, zMovt);
         }
 
         public static void Debug(this List<Vector3> placementPoints,

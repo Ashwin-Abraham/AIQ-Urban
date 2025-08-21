@@ -17,9 +17,9 @@ public class Rectangle:Polygon
 
     public Rectangle(Point min, Point max)
         :this(
-            min, 
-            Create.Point(max.X, min.Y), 
-            max, 
+            Create.Point(min.X, min.Y), 
+            Create.Point(max.X, min.Y),
+            Create.Point(max.X, max.Y),
             Create.Point(min.X, max.Y)) 
     { }
 

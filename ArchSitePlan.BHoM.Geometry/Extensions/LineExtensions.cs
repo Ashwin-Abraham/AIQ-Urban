@@ -7,6 +7,18 @@ namespace ArchSitePlan.BHoM.Geometry.Extensions;
 
 public static class LineExtensions
 {
+    public static bool OverlapsOfMinimumSize(this Line line, IEnumerable<Line> lines, double minimumOverlap)
+    {
+        foreach (var x in lines)
+        {
+            var overlap = line.Overlaps(x);
+            if (overlap != null && overlap.Length().GreaterThanORAlmostEquals(minimumOverlap))
+                return true;
+        }
+
+        return false;
+    }
+
     public static List<Line> Overlaps(this Line line, IEnumerable<Line> lines)
     {
         return lines.Select(x => line.Overlaps(x))

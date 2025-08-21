@@ -56,7 +56,7 @@ public class RectangleTests
     {
         // Arrange
         Rectangle rect = new Rectangle(Point.Origin, Create.Point(2, y))
-            .Rotate(Point.Origin, Vector.ZAxis, rotation.ToRadians());
+            .Rotate(Point.Origin, Vector.ZAxis, rotation.DegreesToRadians());
 
         var expectedMidOfSecond = expectedMidOfSecondX.HasValue ?
             Create.Point(expectedMidOfSecondX.Value, expectedMidOfSecondY.Value)

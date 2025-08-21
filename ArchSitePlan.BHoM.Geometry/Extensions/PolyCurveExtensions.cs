@@ -50,6 +50,20 @@ public static class PolyCurveExtensions
     //        tangentExtensions, 
     //        tolerance) as PolyCurve;
     //}
+
+    public static Polygon? ToPolygon(this PolyCurve polycurve)
+    {
+        var curves = polycurve.Curves();
+
+        if(curves.Count == 1 && curves[0] is Polygon polygon)
+            return polygon;
+
+        if (!curves.All(x => x is Line))
+            return null;
+
+        return Create.Polygon(polycurve.ControlPoints());
+    }
+
     public static PolyCurve ToPolyCurve(this ICurve curve)
     => Create.PolyCurve([curve]);
     
@@ -62,7 +76,7 @@ public static class PolyCurveExtensions
             var rotated = curve.IRotate(
                 Point.Origin, 
                 Vector.ZAxis, 
-                rotation.ToRadians());
+                rotation.DegreesToRadians());
 
             var bounds = rotated.IBounds();
             var area = (bounds.Max.X - bounds.Min.X) * (bounds.Max.Y - bounds.Min.Y);
@@ -74,7 +88,7 @@ public static class PolyCurveExtensions
         var minRectangle = new Rectangle(minBox.Bounds.Min, minBox.Bounds.Max);
         var revertedMinBox =  minRectangle.Rotate(Point.Origin,
             Vector.ZAxis, 
-            -minBox.Rotation.ToRadians());
+            -minBox.Rotation.DegreesToRadians());
 
         return revertedMinBox!;
     }

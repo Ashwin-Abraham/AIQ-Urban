@@ -10,7 +10,7 @@
   <ItemGroup>
     <PackageReference Include="BHoM" Version="8.1.0-alpha.4.0" />
     <PackageReference Include="BHoM.Engine" Version="8.1.0-alpha.4.0" />
-    <PackageReference Include="Hypar.Elements" Version="2.1.0" />
+    <PackageReference Include="Hypar.Elements" Version="2.4.0-alpha.9" />
   </ItemGroup>
 
 </Project>
