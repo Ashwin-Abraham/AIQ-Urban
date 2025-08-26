@@ -31,10 +31,10 @@ namespace ArchSitePlan.DebugModel
             return path;
         }
 
-        public static void OpenAsGlb(this IEnumerable<Element> elements)
+        public static void OpenAsGlb(this IEnumerable<Element?> elements)
         {
             _hyparModel = new();
-            _hyparModel.AddElements(elements);
+            _hyparModel.AddElements(elements.Where(x => x != null));
             OpenAsGlb();
         }
 
@@ -242,16 +242,16 @@ namespace ArchSitePlan.DebugModel
             planes.ToList().ForEach(t => Debug(t, length, colour));
         }
 
-        public static void Debug(this Transform plane, double length = 0.5, Material? colour = null)
+        public static IEnumerable<Element> Debug(this Transform plane, double length = 0.5, Material? colour = null)
         {
             Line xAxis = new Line(plane.Origin, plane.XAxis, length);
             Line yAxis = new Line(plane.Origin, plane.YAxis, length);
             Line zAxis = new Line(plane.Origin, plane.ZAxis, length);
 
-            Debug((BoundedCurve)HyparExtensions.CreateRectangle(plane, length / 3, length / 3), colour);
-            Debug(xAxis, DebugMaterials.Red);
-            Debug(yAxis, DebugMaterials.Green);
-            Debug(zAxis, DebugMaterials.Blue);
+            yield return Debug((BoundedCurve)HyparExtensions.CreateRectangle(plane, length / 3, length / 3), colour);
+            yield return Debug(xAxis, DebugMaterials.Red);
+            yield return Debug(yAxis, DebugMaterials.Green);
+            yield return Debug(zAxis, DebugMaterials.Blue);
         }
 
         public static void Debug(this Mesh hyparMesh, Material? material = null)
