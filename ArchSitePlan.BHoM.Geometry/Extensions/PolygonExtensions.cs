@@ -97,6 +97,17 @@ public static class PolygonExtensions
         return closestIndex;
     }
 
+    public static Vector GetOutwardPerpendicularAtSegment(this Polygon polygon, int segmentIndex)
+    {
+        var segment = polygon.SubParts().ElementAtOrDefault(segmentIndex);
+        var normal = polygon.Normal();
+
+        if (segment == null)
+            return null;
+
+        return segment.Direction().CrossProduct(normal).Unitized();
+    }
+
     public static bool TryOffsetSegment(this Polygon polygon, double amount, int index, out Polygon? result)
     {
         result = polygon;
@@ -111,12 +122,7 @@ public static class PolygonExtensions
         var secondPoint = oldVertices[(index + 1)% polygon.Vertices.Count];
         var thirdPoint = oldVertices[(index + 2) % polygon.Vertices.Count];
 
-        var outDirection = (secondPoint.ToVector() - firstPoint.ToVector())
-            .Unitized()
-            .Rotate(90.0.DegreesToRadians(), Vector.ZAxis);
-
-        if (polygon.IsClockwise(Vector.ZAxis))
-            outDirection = -outDirection;
+        var outDirection = polygon.GetOutwardPerpendicularAtSegment(index);
 
         var offsetFirst = firstPoint + outDirection * amount;
         var offsetSecond = secondPoint + outDirection * amount;
