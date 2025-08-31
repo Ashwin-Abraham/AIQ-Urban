@@ -1,13 +1,10 @@
-﻿using System.IO;
-using System.Net;
-using System.Text;
-using System.Windows;
-using ArchSitePlan.RhinoInterface.Actions;
+﻿using ArchSitePlan.RhinoInterface.Constants;
 using ArchSitePlan.RhinoInterface.HTML_UI.HtmlCommsClasses;
 using ArchSitePlan.RhinoInterface.HTML_UI.MessageToUI;
-using Eto.Forms;
 using Newtonsoft.Json;
 using Rhino;
+using System.Net;
+using System.Text;
 using MessageBox = Eto.Forms.MessageBox;
 
 namespace ArchSitePlan.RhinoInterface.HTML_UI;
@@ -31,61 +28,8 @@ public class ServerComms
         _httpListener = new HttpListener();
         _httpListener.Prefixes.Add("http://localhost:6300/");
         _httpListener.Start();
-        //SetupVueIndexPage();
 
         Task.Run(() => HandleRequestsAsync());
-
-
-        // Create a new form (window)
-        //var htmlWindow = new HtmlForm();
-        //try
-        //{
-        //    RhinoApp.InvokeOnUiThread(() =>
-        //    {
-        //        htmlWindow.Show();
-        //    });
-
-        //}
-        //catch (Exception ex)
-        //{
-        //    MessageBox.Show(ex.Message);
-        //}
-
-
-    }
-
-    private static void SetupVueIndexPage()
-    {
-        try
-        {
-            HttpListenerContext context = _httpListener.GetContext();
-            HttpListenerResponse response = context.Response;
-
-            string distPath = @"C:\Users\AshwinAbraham\source\repos\HelloVueJS\HelloVue\dist";
-            // Get the requested file path, defaulting to index.html if it's the root
-            string relativePath = context.Request.Url.LocalPath == "/" ? "index.html" : context.Request.Url.LocalPath.TrimStart('/');
-            string filePath = Path.Combine(distPath, relativePath);
-
-            if (File.Exists(filePath))
-            {
-                var fileBytes = File.ReadAllBytes(filePath);
-                response.ContentType = GetContentType(filePath);
-                response.ContentLength64 = fileBytes.Length;
-                response.OutputStream.Write(fileBytes, 0, fileBytes.Length);
-            }
-            else
-            {
-                response.StatusCode = 404;
-                byte[] errorBytes = Encoding.UTF8.GetBytes("404 Not Found");
-                response.ContentLength64 = errorBytes.Length;
-                response.OutputStream.Write(errorBytes, 0, errorBytes.Length);
-            }
-        }
-        catch(Exception ex)
-        {
-            MessageBox.Show(ex.Message);
-        }
-       
     }
 
     private static async Task HandleRequestsAsync()
@@ -104,7 +48,7 @@ public class ServerComms
 
             try
             {
-                string distPath = @"C:\Users\AshwinAbraham\source\repos\aiqurban-ui\dist";
+                string distPath = FilePathConstants.VueHtmlPath;
                 // Get the requested file path, defaulting to index.html if it's the root
                 string relativePath = context.Request.Url.LocalPath == "/" ? "index.html" : context.Request.Url.LocalPath.TrimStart('/');
                 string filePath = Path.Combine(distPath, relativePath);

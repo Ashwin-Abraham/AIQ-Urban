@@ -96,11 +96,14 @@ public static class ToRhinoInterop
 
     public static Rhino.Geometry.Curve ToRhino(this ICurve curve)
     {
-        var arcCrv = curve as Arc;
-        if(arcCrv is not null)
+        if(curve is Arc arcCrv)
         {
             Rhino.Geometry.Arc rhinoArc = arcCrv.ToRhinoArc();
             return rhinoArc.ToNurbsCurve();
+        }
+        else if(curve is Circle circle)
+        {
+            return circle.ToRhino();
         }
         else if (curve is PolyCurve pCrv)
         {
@@ -123,6 +126,18 @@ public static class ToRhinoInterop
     {
         var result = curve.Select(c => c.ToRhino());
         return result;
+    }
+
+    public static Rhino.Geometry.Curve ToRhino(this Circle circle)
+    {
+        var plane = new Rhino.Geometry.Plane(circle.Centre.ToRhino(), circle.Normal.ToRhino());
+        
+        return new Rhino.Geometry.Circle(plane, circle.Radius).ToNurbsCurve();
+    }
+
+    public static Rhino.Geometry.Vector3d ToRhino(this Vector vector)
+    {
+        return new Rhino.Geometry.Vector3d(vector.X, vector.Y, vector.Z);
     }
 
     public static Rhino.Geometry.Mesh ToRhino(this Mesh mesh)

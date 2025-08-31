@@ -59,7 +59,7 @@ public class RectangleBuildingFactory:BuildingLayoutFactoryBase
             var pointA = primaryAxis.PointAtParameter(i);
             var pointB = primaryAxis.PointAtParameter(i + widthParamSize);
             var moveBtoA = Create.Vector(pointA) - Create.Vector(pointB);
-            var perp = moveBtoA.Rotate(90d.ToRadians(), Vector.ZAxis).Unitized();
+            var perp = moveBtoA.Rotate(90d.DegreesToRadians(), Vector.ZAxis).Unitized();
 
             // Check if point A is valid
             var pointAPlus = pointA.Translate(perp * _config.MaxLength);
