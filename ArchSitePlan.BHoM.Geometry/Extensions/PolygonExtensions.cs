@@ -147,7 +147,7 @@ public static class PolygonExtensions
 
         result = newPolygon.RemovedColinear();
 
-        return !result?.IsSelfIntersecting()?? false;
+        return result?.IsSelfIntersecting()?? false;
     }
 
     public static Polygon RemovedColinear(this Polygon polygon)

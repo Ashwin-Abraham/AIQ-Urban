@@ -22,6 +22,24 @@ public static class IEnumerableExtensions
         return randomSelection;
     }
 
+    public static IEnumerable<string> ContainsAny(
+        this IEnumerable<string> items,
+        IEnumerable<string> shouldContain,
+        StringComparison comparison = StringComparison.OrdinalIgnoreCase)
+    {
+        foreach (var item1 in items)
+        {
+            foreach (var item2 in shouldContain)
+            {
+                if (item1.Contains(item2, comparison))
+                {
+                    yield return item1;
+                    break;
+                }
+            }
+        }
+    }
+
     public static IEnumerable<T> Shuffle<T>(this IEnumerable<T> items, Random? random = null)
     {
         var itemList = items.ToList();
