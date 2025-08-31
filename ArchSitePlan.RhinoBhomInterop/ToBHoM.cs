@@ -49,6 +49,9 @@ public static class ToBHoMExtensions
     }
     public static bhom.ICurve? ToBHoM2DegreeCrv(this Curve rhinoCrv)
     {
+        if (rhinoCrv.TryGetCircle(out Circle circle))
+            return circle.ToBHoM();
+
         if (rhinoCrv.TryGetPolyline(out Polyline pline))
         {
             if (pline.Count == 2)
@@ -58,9 +61,6 @@ public static class ToBHoMExtensions
             else
                 return pline.ToBHoMPolyline();
         }
-
-        else if (rhinoCrv.TryGetCircle(out Circle circle))
-            return circle.ToBHoM();
 
         else if (rhinoCrv.TryGetArc(out Arc arc))
             return arc.ToBHoM();

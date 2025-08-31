@@ -55,7 +55,6 @@ public class TransitMessage : IMessageFromUI<StudyAreaMetricsMessage>
             LayerHelpers.ChangeLayer(rhinoObj, roadLayerIndex);
         }
 
-        var vm = RhinoEventHandler.HTMLViewModel;
         if (!transitData.Any()) return new();
 
         ModelBuilderPipelines.AddOrUpdateRoadPipeline(doc, transitData, ModellingTool.Transit);
