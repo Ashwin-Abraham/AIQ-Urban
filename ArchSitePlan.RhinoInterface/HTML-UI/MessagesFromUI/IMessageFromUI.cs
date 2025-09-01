@@ -13,7 +13,9 @@ public enum TypeOfMessage
     ReadOsm,
     PickFile,
     AutoBuilding,
-    WebSocketConnected
+    WebSocketConnected,
+    ExportExcel,
+    ExportExcelPathSelection
 }
 
 // out T is the resulting output message created after handling the input

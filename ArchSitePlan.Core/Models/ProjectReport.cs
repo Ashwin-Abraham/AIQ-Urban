@@ -47,7 +47,7 @@ namespace ArchSitePlan.Core.Models
         private List<TransitSummaryDataRow> _transitSummary { get; set; }
         private List<StudySummaryDataRow> _studyAreasSummary { get; set; }
         
-        // etc
+        
         public ProjectReport(
             string excelFilePath, 
             StudyAreaMetrics projectWideStudy,
