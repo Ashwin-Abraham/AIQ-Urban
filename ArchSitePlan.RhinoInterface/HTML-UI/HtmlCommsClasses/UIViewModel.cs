@@ -14,6 +14,8 @@ namespace ArchSitePlan.RhinoInterface.HTML_UI.HtmlCommsClasses;
 public class UIViewModel
 {
     public ModellingTool AppMode { get;set; }
+    public string? ExcelDirectory { get; set; } = null;
+
     public UIViewModel()
     {
         string activeZoneName = CoreGeneralConstants.FullProjectStudyName;

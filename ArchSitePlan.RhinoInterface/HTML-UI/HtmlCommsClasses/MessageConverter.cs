@@ -51,6 +51,12 @@ public static class MessageConverter
             case "AutoBuilding":
                 return JsonConvert.DeserializeObject<AutoBuildingMessage>(json);
 
+            case "ExportExcelPathSelection":
+                return JsonConvert.DeserializeObject<ExportExcelPathSelection>(json);
+
+            case "ExportExcel":
+                return JsonConvert.DeserializeObject<ExportExcel>(json);
+
             default:
                 throw new Exception($"Unsupported message type: {messageType}");
         }
