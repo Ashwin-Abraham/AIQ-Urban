@@ -1,5 +1,6 @@
 ﻿using ArchSitePlan.RhinoInterface.Constants;
 using ArchSitePlan.RhinoInterface.HTML_UI.HtmlCommsClasses;
+using ArchSitePlan.RhinoInterface.HTML_UI.MessagesFromUI;
 using ArchSitePlan.RhinoInterface.HTML_UI.MessageToUI;
 using Newtonsoft.Json;
 using Rhino;
@@ -14,7 +15,8 @@ public class ServerComms
 
     private static HttpListener _httpListener;
     private static bool _serverRunning = false;
-    private static bool _htmlServed = false;
+    private static UsageStatsMessage _usageStatsMessage;
+
     public static void StartServer()
     {
         StartHttpServer();
@@ -72,16 +74,15 @@ public class ServerComms
                         string requestBody = await reader.ReadToEndAsync();
                         RhinoApp.WriteLine("Received data from Vue.js: " + requestBody);
 
-                        // Process requestBody and use RhinoCommon to perform operations in Rhino
+                        // Process requestBody and perform operations in Rhino
                         var messageObj = MessageConverter.ConvertMessageToJson(requestBody);
+                        _usageStatsMessage.Increment(messageObj.MessageType);
 
-                        IMessageToUI responseMessage = null;
-                        responseMessage = messageObj.HandleMessage();
+                        var responseMessage = messageObj.HandleMessage();
 
                         response = AddCORSHeaders(response);
 
                         // Send response back to Vue.js
-                        //byte[] buffer = Encoding.UTF8.GetBytes("{ \"status\": \"success\" }");
                         string json = JsonConvert.SerializeObject(responseMessage);
                         byte[] buffer = Encoding.UTF8.GetBytes(json);
                         response.ContentLength64 = buffer.Length;
@@ -92,7 +93,6 @@ public class ServerComms
                             await output.WriteAsync(buffer, 0, buffer.Length);
                         }
 
-                        //MessageBox.Show(buffer.Select(x => x.ToString()).ToList().ToString());
                         response.Close();
                     }
                 }
