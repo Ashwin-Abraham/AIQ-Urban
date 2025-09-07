@@ -21,10 +21,7 @@ namespace ArchSitePlan.RhinoInterface.HTML_UI.MessagesFromUI
                 throw new Exception("Invalid land use received from UI");
 
             RhinoDoc doc = RhinoDoc.ActiveDoc;
-            int parcelLayerIndex = LayerHelpers.CreateOrGetLayerIndex(
-                doc,
-                LayerConstants.ParcelsLayer);
-
+            
             // Try to select a surface
             var srfObjs = RhinoDoc.ActiveDoc.Objects.GetSelectedObjects(false, false)
                 .Where(obj => obj.ObjectType == ObjectType.Brep
