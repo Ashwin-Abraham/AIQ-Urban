@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace ArchSitePlan.Core.Constants
+﻿namespace ArchSitePlan.Core.Constants
 {
     public static class CoreGeneralConstants
     {

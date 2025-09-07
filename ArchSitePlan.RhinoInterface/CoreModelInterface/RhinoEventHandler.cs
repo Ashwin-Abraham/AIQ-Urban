@@ -296,6 +296,7 @@ namespace ArchSitePlan.RhinoInterface.Actions
                     ModelBuilderPipelines.UpdateStudyAreas(RhinoDoc.ActiveDoc, coreStudyData, HTMLViewModel.AppMode);
                 }
 
+                ModelBuilderPipelines.StoreAppState();
                 EventLock = false;
             }
             catch (Exception ex)
