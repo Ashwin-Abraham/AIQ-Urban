@@ -2,6 +2,7 @@
 using ArchSitePlan.Core.Models;
 using ArchSitePlan.Core.Pipeline.CreationData;
 using ArchSitePlan.RhinoBhomInterop;
+using ArchSitePlan.RhinoInterface.Helpers;
 using Rhino.DocObjects;
 using Rhino.Geometry;
 using Rhino.Geometry.Intersect;
@@ -46,9 +47,13 @@ namespace ArchSitePlan.RhinoInterface.Models
 
             var road = CoreModel.Roads.Find(b => b.CenterLineId == obj.Id);
 
-            if (road is null) return null;
+            if (road is not null) 
+                return new RhinoRoadData(rhinoCrv, obj.Id, road.Width);
 
-            return new RhinoRoadData(rhinoCrv, obj.Id, road.Width);
+            if(LayerHelpers.TryGetRoadDetailsFromObjectLayer(obj, out var width))
+                return new RhinoRoadData(rhinoCrv, obj.Id, width!.Value);
+
+            return null;
         }
 
         public static IEnumerable<TransitData> ToCoreModelCreationData(IEnumerable<RhinoRoadData> rhinoData)

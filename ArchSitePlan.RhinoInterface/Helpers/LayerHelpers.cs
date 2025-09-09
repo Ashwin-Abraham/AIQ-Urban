@@ -105,6 +105,25 @@ namespace ArchSitePlan.RhinoInterface.Helpers
                 doc.Objects.Delete(obj, true, true);
             }
         }
+
+        public static bool TryGetRoadDetailsFromObjectLayer(RhinoObject obj, out double? width)
+        {
+            width = null;
+
+            var layerName = RhinoDoc.ActiveDoc.Layers[obj.Attributes.LayerIndex].FullPath;
+            var roadLayerStart = LayerConstants.RoadCLLayer + LayerConstants._Sep_;
+
+            if (layerName == null || layerName.Length <= roadLayerStart.Length)
+                return false;
+
+            var widthPart = layerName.Substring(roadLayerStart.Length);
+
+            if(!Double.TryParse(widthPart, out var roadWidth))
+                return false;
+
+            width = roadWidth;
+            return true;
+        }
     }
 
 }

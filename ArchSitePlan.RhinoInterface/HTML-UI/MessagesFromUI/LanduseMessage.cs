@@ -29,11 +29,11 @@ namespace ArchSitePlan.RhinoInterface.HTML_UI.MessagesFromUI
             if (srfObjs.Count == 0)
                 throw new Exception(UIMessages.ChangeLandUseInstruction);
 
-            ModelBuilderPipelines.ChangeParcelUsePipeline(doc,
+            ModelBuilderPipelines.ChangeParcelUsePipeline(
                 srfObjs.Select(s => s.Id).ToList(),
-                use,
-                RhinoEventHandler.HTMLViewModel.AppMode);
-                
+                use);
+
+            ModelBuilderPipelines.RhinoOutputPipeline(doc, RhinoEventHandler.HTMLViewModel.AppMode);
             return new();
         }
     }

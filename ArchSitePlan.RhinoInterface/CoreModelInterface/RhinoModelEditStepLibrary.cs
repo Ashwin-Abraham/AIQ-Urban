@@ -192,7 +192,6 @@ namespace ArchSitePlan.RhinoInterface.CoreModelInterface
             RemoveEmptyAppLayers(doc);
             doc.Views.Redraw();
             RhinoEventHandler.EventLock = initialState;
-            RhinoEventHandler.ResetEventQueueAndObjects();
         }
 
         private static void RemoveEmptyAppLayers(RhinoDoc doc)
