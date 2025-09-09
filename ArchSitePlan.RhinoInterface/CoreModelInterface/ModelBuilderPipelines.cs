@@ -2,7 +2,6 @@
 using ArchSitePlan.Core.Models;
 using ArchSitePlan.Core.Pipeline;
 using ArchSitePlan.Core.Pipeline.CreationData;
-using ArchSitePlan.RhinoInterface.Actions;
 using Eto.Forms;
 using Rhino;
 using static ArchSitePlan.RhinoInterface.Constants.Enums;
@@ -48,8 +47,6 @@ namespace ArchSitePlan.RhinoInterface.CoreModelInterface
             CoreModelEditStepLibrary.RefreshStudyAreaMetrics();
             RhinoModelEditStepLibrary.ReplaceRhinoModel(doc);
             //LayerManager.ToggleLayerStateBasedOnAppMode(doc, currentAppMode);
-
-            RhinoEventHandler.AppUsageLog.ModelLog.Landuse++;
         }
 
         public static void RefreshStudyAreaMetricsPipeline()
@@ -76,8 +73,6 @@ namespace ArchSitePlan.RhinoInterface.CoreModelInterface
             CoreModelEditStepLibrary.RefreshStudyAreaMetrics();
             RhinoModelEditStepLibrary.ReplaceRhinoModel(doc);
             //LayerManager.ToggleLayerStateBasedOnAppMode(doc, currentAppMode);
-
-            RhinoEventHandler.AppUsageLog.ModelLog.Divider++;
         }
         public static void DeleteParcelDividers(RhinoDoc doc, 
             List<DividerData> dividerData,
@@ -107,8 +102,6 @@ namespace ArchSitePlan.RhinoInterface.CoreModelInterface
             CoreModelEditStepLibrary.RefreshStudyAreaMetrics();
             RhinoModelEditStepLibrary.ReplaceRhinoModel(doc, true);
             LayerManager.ToggleLayerStateBasedOnAppMode(doc, currentAppMode);
-
-            RhinoEventHandler.AppUsageLog.ModelLog.Building++;
         }
 
         internal static void AutoGenerateBuildingsOnParcel(
@@ -134,8 +127,6 @@ namespace ArchSitePlan.RhinoInterface.CoreModelInterface
             CoreModelEditStepLibrary.RefreshStudyAreaMetrics();
             RhinoModelEditStepLibrary.ReplaceRhinoModel(doc, true);
             //LayerManager.ToggleLayerStateBasedOnAppMode(doc, currentAppMode);
-
-            RhinoEventHandler.AppUsageLog.ModelLog.Building++;
         }
 
         internal static void DeleteBuildingPipeline(
@@ -166,8 +157,6 @@ namespace ArchSitePlan.RhinoInterface.CoreModelInterface
             CoreModelEditStepLibrary.RefreshStudyAreaMetrics();
             RhinoModelEditStepLibrary.ReplaceRhinoModel(doc, true);
             //LayerManager.ToggleLayerStateBasedOnAppMode(doc, currentAppMode);
-
-            RhinoEventHandler.AppUsageLog.ModelLog.Zoning++;
         }
 
         internal static void DeleteStudyAreaPipeline(RhinoDoc doc, 
@@ -194,8 +183,6 @@ namespace ArchSitePlan.RhinoInterface.CoreModelInterface
                 return;
 
             AddStudyAreaPipeline(doc, studyData, currentAppMode);
-
-            RhinoEventHandler.AppUsageLog.ModelLog.Zoning++;
         }
 
         public static void ReloadAppPipeline(RhinoDoc doc, ModellingTool currentAppMode)

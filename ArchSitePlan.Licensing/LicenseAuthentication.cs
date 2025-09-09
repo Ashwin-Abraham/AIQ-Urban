@@ -1,10 +1,8 @@
-﻿using System.Text.Json;
-using System.Text.Json.Nodes;
-using ArchSitePlan.RhinoInterface.UsageLogs;
-using SKM.V3;
+﻿using SKM.V3;
 using SKM.V3.Methods;
 using SKM.V3.Models;
 using Stripe;
+using System.Text.Json;
 using Subscription = Stripe.Subscription;
 
 namespace ArchSitePlan.Licensing;
@@ -13,7 +11,7 @@ public static class LicenseAuthentication
 {
     public record LicenseResult(bool Success, string Message);
 
-    public static LicenseResult PeriodicValidation(ref UsageLog useLog)
+    public static LicenseResult PeriodicValidation()
     {
         License? license = License.FromFile(Constants.LicensePath);
 
@@ -33,8 +31,7 @@ public static class LicenseAuthentication
         if (!previousCheckValid)
             return ValidateAndUpdateStripeSubscription(
                 license.CustomerID, 
-                license.SubscriptionID,
-                ref useLog);
+                license.SubscriptionID);
         else
            return new LicenseResult(
                 true, 
@@ -43,8 +40,7 @@ public static class LicenseAuthentication
 
     public static LicenseResult ValidateAndUpdateStripeSubscription(
         string customerId, 
-        string subscriptionID,
-        ref UsageLog useLog)
+        string subscriptionID)
     {
         var mCode = MachineCodeHelpers.GetMacAddress();
 
@@ -98,17 +94,6 @@ public static class LicenseAuthentication
                     "(in 2 hours)");
         }
 
-        //////// All checks passed successfully /////////
-        // Update use logs
-        if(subscription.Metadata.TryGetValue(Constants.UsageLog, out string? storedLog))
-        {
-            UsageLog stored = JsonSerializer.Deserialize<UsageLog>(storedLog)?? new();
-            stored.Add(useLog);
-        }
-
-        string useLogJson = JsonSerializer.Serialize(useLog, new JsonSerializerOptions { WriteIndented = true });
-        useLog = new();
-
         // Construct new metadata
         var updateOptions = new SubscriptionUpdateOptions()
         {
@@ -117,7 +102,6 @@ public static class LicenseAuthentication
 
         updateOptions.AddOrEditSubscriptionMetadata(Constants.LastActivatedMetadata, timeNow.ToString());
         updateOptions.AddOrEditSubscriptionMetadata(Constants.MachineCode, machineCode);
-        updateOptions.AddOrEditSubscriptionMetadata(Constants.UsageLog, useLogJson);
 
         // Update Subscription
         subscriptionService.Update(subscriptionID, updateOptions);
