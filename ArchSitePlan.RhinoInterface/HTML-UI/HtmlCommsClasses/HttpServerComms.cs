@@ -1,7 +1,6 @@
 ﻿using ArchSitePlan.RhinoInterface.Constants;
+using ArchSitePlan.RhinoInterface.CoreModelInterface;
 using ArchSitePlan.RhinoInterface.HTML_UI.HtmlCommsClasses;
-using ArchSitePlan.RhinoInterface.HTML_UI.MessagesFromUI;
-using ArchSitePlan.RhinoInterface.HTML_UI.MessageToUI;
 using Newtonsoft.Json;
 using Rhino;
 using System.Net;
@@ -10,25 +9,18 @@ using MessageBox = Eto.Forms.MessageBox;
 
 namespace ArchSitePlan.RhinoInterface.HTML_UI;
 
-public class ServerComms
+public class HttpServerComms
 {
 
-    private static HttpListener _httpListener;
+    private static HttpListener _httpListener = new();
     private static bool _serverRunning = false;
-    private static UsageStatsMessage _usageStatsMessage;
 
-    public static void StartServer()
-    {
-        StartHttpServer();
-        RhinoApp.WriteLine("HTTP Server is running and listening for requests...");
-    }
-
-    private static void StartHttpServer()
+    public static void StartServer(int port)
     {
         if (_serverRunning) return;
         _serverRunning = true;
         _httpListener = new HttpListener();
-        _httpListener.Prefixes.Add("http://localhost:6300/");
+        _httpListener.Prefixes.Add($"http://localhost:{port}/");
         _httpListener.Start();
 
         Task.Run(() => HandleRequestsAsync());
@@ -76,7 +68,7 @@ public class ServerComms
 
                         // Process requestBody and perform operations in Rhino
                         var messageObj = MessageConverter.ConvertMessageToJson(requestBody);
-                        _usageStatsMessage.Increment(messageObj.MessageType);
+                        RhinoEventHandler.UseStatsMessage.Increment(messageObj.MessageType);
 
                         var responseMessage = messageObj.HandleMessage();
 

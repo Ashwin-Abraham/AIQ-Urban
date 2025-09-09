@@ -1,13 +1,4 @@
-﻿using ArchSitePlan.RhinoInterface;
-using ArchSitePlan.RhinoInterface.Actions;
-using Eto.Forms;
-using Rhino;
-using System;
-using System.Drawing;
-using System.IO;
-using System.Runtime.InteropServices;
-
-namespace ArchSitePlan.RhinoAddin;
+﻿namespace ArchSitePlan.RhinoAddin;
 
 ///<summary>
 /// <para>Every RhinoCommon .rhp assembly must have one and only one PlugIn-derived

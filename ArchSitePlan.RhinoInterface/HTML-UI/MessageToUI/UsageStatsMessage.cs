@@ -1,9 +1,12 @@
-﻿using ArchSitePlan.RhinoInterface.HTML_UI.MessagesFromUI;
+﻿using ArchSitePlan.Licensing;
+using ArchSitePlan.RhinoInterface.HTML_UI.MessagesFromUI;
 
 namespace ArchSitePlan.RhinoInterface.HTML_UI.MessageToUI;
 public class UsageStatsMessage : IMessageToUI
 {
     public string Type => nameof(UsageStatsMessage);
+    public string UserId => MachineCodeHelpers.GetMacAddress();
+    public string LastUsed => DateTime.UtcNow.ToString();
     public List<ToolUseData> ToolUseStats { get; set; } = [];
 
     public void Increment(TypeOfMessage messageType)
@@ -22,5 +25,10 @@ public class UsageStatsMessage : IMessageToUI
         {
             toolStat.UseCount++;
         }
+    }
+
+    internal void Combine(UsageStatsMessage? previousStats)
+    {
+        throw new NotImplementedException();
     }
 }

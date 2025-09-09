@@ -12,7 +12,7 @@ public class WebSocketComms
     /// <summary>
     /// Starts the WebSocket server on the specified port.
     /// </summary>
-    public static void StartServer(int port = 6400)
+    public static void StartServer(int port)
     {
         if (_wss?.IsListening?? false) return;
 
