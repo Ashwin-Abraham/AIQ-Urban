@@ -77,8 +77,8 @@ class AutoBuildingMessage : IMessageFromUI<StudyAreaMetricsMessage>
 
         }
 
-        ModelBuilderPipelines.AutoGenerateBuildingsOnParcel( doc, layouts);
-
+        ModelBuilderPipelines.AutoGenerateBuildingsOnParcel(layouts);
+        ModelBuilderPipelines.RhinoOutputPipeline(doc, ModellingTool.AutoBuilding);
         return new();
     }
 

@@ -107,21 +107,25 @@ public static class RhinoEventHandler
 
     private static void QueueObjectForUndelete(RhinoObjectEventArgs args)
     {
+        if (EventLock) return;
         _objectsForUndelete.Add(args.TheObject);
     }
 
     private static void QueueObjectForRemoval(RhinoObjectEventArgs args)
     {
+        if (EventLock) return;
         _objectsForRemoval.Add(args.TheObject);
     }
 
     private static void QueueObjectForAddition(RhinoObjectEventArgs args)
     {
+        if (EventLock) return;
         _objectsForAddition.Add(args.TheObject);
     }
 
     private static void QueueObjectForReplacement(RhinoReplaceObjectEventArgs args)
     {
+        if (EventLock) return;
         _objectsForReplace.Add(args.NewRhinoObject);
     }
 
@@ -142,21 +146,29 @@ public static class RhinoEventHandler
 
         if (!runEvents) return;
 
+        // Rhino events are a little peculiar in that a replacement event also
+        // triggers an add+remove event. 
+        // However SOME replacement events like Curve Join are merely remove + add events
         if (_objectsForReplace.Count > 0) 
             RunReplacementOperations(_objectsForReplace);
-        
-        if(_objectsForRemoval.Count > 0)
-             RunObjectRemovalOperations(_objectsForRemoval);
-        
-        if(_objectsForAddition.Count > 0)
-            RunObjectAddOperations(_objectsForAddition);
+
+        else
+        {
+            if (_objectsForAddition.Count > 0)
+                RunObjectAddOperations(_objectsForAddition);
+
+            if (_objectsForRemoval.Count > 0)
+                RunObjectRemovalOperations(_objectsForRemoval);
+        }
 
         if (_objectsForUndelete.Count > 0)
             RunCoreModelUndoOperations(_objectsForUndelete);
 
         // Clean queue
-        LayerManager.ToggleLayerStateBasedOnAppMode(RhinoDoc.ActiveDoc, HTMLViewModel.AppMode);
         ResetEventQueueAndObjects();
+
+        // Output Model
+        ModelBuilderPipelines.RhinoOutputPipeline(RhinoDoc.ActiveDoc, HTMLViewModel.AppMode);
         WS.SendMessage(new StudyAreaMetricsMessage());
     }
 
@@ -222,24 +234,17 @@ public static class RhinoEventHandler
         {
             if (EventLock) return;
 
-            EventLock = true;
             RhinoDoc doc = RhinoDoc.ActiveDoc;
 
             if (replacedObjects.Count == 0 || HTMLViewModel.AppMode == ModellingTool.None)
-            {
-                EventLock = false;
                 return;
-            }
 
             if (HTMLViewModel.AppMode == ModellingTool.Building)
             {
                 List<RhinoBuildingData> buildingData = RhinoBuildingData.FromExisting(replacedObjects).ToList();
 
                 if (buildingData.Count == 0)
-                {
-                    EventLock = false;
                     return;
-                }
 
                 UpdateSelectedBuildingsPosition(buildingData);
             }
@@ -249,15 +254,9 @@ public static class RhinoEventHandler
                 var coreRoadData = RhinoRoadData.ToCoreModelCreationData(roadData).ToList();
 
                 if (coreRoadData.Count == 0)
-                {
-                    EventLock = false;
                     return;
-                }
 
-                ModelBuilderPipelines.AddOrUpdateRoadPipeline(
-                    doc,
-                    coreRoadData,
-                    HTMLViewModel.AppMode);
+                ModelBuilderPipelines.AddOrUpdateRoadPipeline(coreRoadData);
             }
 
             // This is actually for dividers
@@ -269,15 +268,9 @@ public static class RhinoEventHandler
                 var coreDividerData = RhinoDividerData.ToCoreModelData(rhinoDividerData).ToList();
 
                 if (coreDividerData.Count == 0)
-                {
-                    EventLock = false;
                     return;
-                }
 
-                ModelBuilderPipelines.AddOrUpdateParcelDividerPipeline(
-                    RhinoDoc.ActiveDoc,
-                    coreDividerData,
-                    HTMLViewModel.AppMode);
+                ModelBuilderPipelines.AddOrUpdateParcelDividerPipeline(coreDividerData);
 
             }
             else if (HTMLViewModel.AppMode == ModellingTool.Zones)
@@ -286,49 +279,33 @@ public static class RhinoEventHandler
                 var coreStudyData = RhinoStudyData.ToCoreModelData(rhinoStudyData).ToList();
 
                 if (coreStudyData.Count == 0)
-                {
-                    EventLock = false;
                     return;
-                }
 
                 ModelBuilderPipelines.UpdateStudyAreas(RhinoDoc.ActiveDoc, coreStudyData, HTMLViewModel.AppMode);
             }
-
-            EventLock = false;
         }
         catch (Exception ex)
         {
-            EventLock = false;
             MessageBox.Show(ex.Message);
         }
     }
 
     public static void UpdateSelectedBuildingsPosition(List<RhinoBuildingData> rhinoCreationData)
     {
-        var buildingData = rhinoCreationData.Select(x => x.ToCoreModelData()).ToList();
+        var buildingData = rhinoCreationData.Select(x => x.ToCoreModelData()).OfType<BuildingData>().ToList();
         List<Guid> ids = rhinoCreationData.Select(x => x.ID).ToList();
 
-        EventLock = true;
         RhinoDoc doc = RhinoDoc.ActiveDoc;
         ModelBuilderPipelines.DeleteBuildingPipeline(doc, buildingData, HTMLViewModel.AppMode);
-        ModelBuilderPipelines.AddOrUpdateBuldingPipeline(doc, buildingData, HTMLViewModel.AppMode);
-        EventLock = false;
+        ModelBuilderPipelines.AddOrUpdateBuldingPipeline(buildingData);
     }
 
     private static void RunObjectAddOperations(List<RhinoObject> newObjects)
     {
         try
          {
-            if (EventLock) return;
-
-            EventLock = true;
-             RhinoDoc doc = RhinoDoc.ActiveDoc;
-
-            if (newObjects.Count == 0)
-            {
-                EventLock = false;
+             if (EventLock || newObjects.Count == 0)
                 return;
-            }
 
             // Road needs the add event because the join command
             // on curves in rhino will not trigger a replace event
@@ -336,21 +313,15 @@ public static class RhinoEventHandler
             {
                 var result = new TransitInputValidator().ValidateInput(newObjects);
                 if (result.ValidObjects.Count == 0)
-                {
-                    EventLock = false;
                     return;
-                }
 
                 var roadData = RhinoRoadData.FromExisting(result.ValidObjects).ToList();
                 var coreRoadData = RhinoRoadData.ToCoreModelCreationData(roadData).ToList();
 
                 if (coreRoadData.Count == 0)
-                {
-                    EventLock = false;
                     return;
-                }
 
-                ModelBuilderPipelines.AddOrUpdateRoadPipeline(doc, coreRoadData, HTMLViewModel.AppMode);
+                ModelBuilderPipelines.AddOrUpdateRoadPipeline(coreRoadData);
             }
             // Landuse (ie Dividers) needs the add event because the join command
             // on curves in rhino will not trigger a replace event
@@ -358,27 +329,16 @@ public static class RhinoEventHandler
             {
                 var result = new DividerInputValidator(true).ValidateInput(newObjects);
                 if(result.ValidObjects.Count == 0)
-                {
-                    EventLock = false;
                     return;
-                }
 
                 var rhinoDividerData = RhinoDividerData.Create(result.ValidObjects);
                 var coreDividerData = RhinoDividerData.ToCoreModelData(rhinoDividerData).ToList();
 
                 if (coreDividerData.Count == 0)
-                {
-                    EventLock = false;
                     return;
-                }
 
-                ModelBuilderPipelines.AddOrUpdateParcelDividerPipeline(
-                    RhinoDoc.ActiveDoc, 
-                    coreDividerData,
-                    HTMLViewModel.AppMode);
+                ModelBuilderPipelines.AddOrUpdateParcelDividerPipeline(coreDividerData);
             }
-
-            EventLock = false;
         }
         catch(Exception ex)
         {
@@ -395,7 +355,6 @@ public static class RhinoEventHandler
             if (EventLock || removedObjects.Count == 0) return;
             RhinoDoc doc = RhinoDoc.ActiveDoc;
 
-            EventLock = true;
             switch (HTMLViewModel.AppMode)
             {
                 case ModellingTool.Transit:
@@ -453,8 +412,6 @@ public static class RhinoEventHandler
                     ModelBuilderPipelines.DeleteParcelDividers(doc, divData, HTMLViewModel.AppMode);
                     break;
             }
-
-            EventLock = false;
         }
         catch (Exception ex)
         {
@@ -472,7 +429,7 @@ public static class RhinoEventHandler
                 .GetSelectedObjects(false, false)
                 .Select(obj => obj.Id).ToList();
 
-            if (/*!WPFViewModel.AppEnabled || */selectedIDs.Count == 0) return;
+            if (selectedIDs.Count == 0) return;
 
             RhinoApp.InvokeOnUiThread(() =>
             {
