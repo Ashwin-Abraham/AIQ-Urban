@@ -149,7 +149,7 @@ public static class RhinoEventHandler
         // Rhino events are a little peculiar in that a replacement event also
         // triggers an add+remove event. 
         // However SOME replacement events like Curve Join are merely remove + add events
-        if (_objectsForReplace.Count > 0) 
+         if (_objectsForReplace.Count > 0) 
             RunReplacementOperations(_objectsForReplace);
 
         else
@@ -342,7 +342,6 @@ public static class RhinoEventHandler
         }
         catch(Exception ex)
         {
-            EventLock = false;
             MessageBox.Show(ex.Message);
         }
     }
@@ -392,10 +391,8 @@ public static class RhinoEventHandler
                 case ModellingTool.Zones:
                     var result = new StudyInputValidator().ValidateInput(removedObjects);
                     if (result.ValidObjects.Count == 0)
-                    {
-                        EventLock = false;
                         return;
-                    }
+                    
                     ModelBuilderPipelines.DeleteStudyAreaPipeline(doc, removedIDs, HTMLViewModel.AppMode);
                     break;
 
@@ -416,7 +413,6 @@ public static class RhinoEventHandler
         catch (Exception ex)
         {
             MessageBox.Show(ex.Message);
-            EventLock = false;
         }
     }
 

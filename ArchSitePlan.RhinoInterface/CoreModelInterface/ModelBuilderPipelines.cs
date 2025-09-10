@@ -104,10 +104,8 @@ namespace ArchSitePlan.RhinoInterface.CoreModelInterface
 
             if (buildingData.Count == 0) return;
             CoreModelEditStepLibrary.TryDeleteBuildings(buildingData);
-            CoreModelEditStepLibrary.RefreshStudyAreaMetrics();
-            RhinoModelEditStepLibrary.ReplaceRhinoModel(doc, true);
-            //LayerManager.ToggleLayerStateBasedOnAppMode(doc, currentAppMode);
         }
+
         internal static void AddStudyAreaPipeline(RhinoDoc doc, 
             List<StudyData> studyData,
             ModellingTool currentAppMode)
