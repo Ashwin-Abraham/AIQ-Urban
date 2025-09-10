@@ -43,8 +43,9 @@ namespace ArchSitePlan.Core.ModelEditActions
 
             foreach ( var building in buildings)
             {
-                var parcel = CoreModel.Parcels.Find(p => 
-                    p.Boundary.ExternalBoundary.IIsContaining([building.Origin]));
+                var parcel = CoreModel.Parcels
+                    .Where(p => p.Boundary.ExternalBoundary.IIsContaining([building.Origin]))
+                    .MinBy(x => x.Area());
 
                 if (parcel != null)
                 {

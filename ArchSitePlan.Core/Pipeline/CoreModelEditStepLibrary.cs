@@ -350,7 +350,7 @@ namespace ArchSitePlan.Core.Pipeline
             {
                 foreach(var layoutParcelPoints in pointsOnParcel)
                 {
-                    bool foundParcel = parcel.Boundary.ExternalBoundary.IIsContaining(layoutParcelPoints);
+                    bool foundParcel = parcel.Boundary.IsContainingAll(layoutParcelPoints);
                     if (!foundParcel) continue;
                     
                     hostParcelIds.Add(parcel.CoreModelId);
