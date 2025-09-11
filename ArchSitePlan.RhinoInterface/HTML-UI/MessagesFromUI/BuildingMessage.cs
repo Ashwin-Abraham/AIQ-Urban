@@ -36,9 +36,9 @@ public class BuildingMessage:IMessageFromUI<StudyAreaMetricsMessage>
         RhinoDoc doc = RhinoDoc.ActiveDoc;
 
         var allowedTypes = new List<ObjectType>
-            {
-                ObjectType.Curve, ObjectType.Brep, ObjectType.Mesh, ObjectType.Extrusion
-            };
+        {
+            ObjectType.Curve, ObjectType.Brep, ObjectType.Mesh, ObjectType.Extrusion
+        };
 
         var rhinoObjs = doc.Objects.GetSelectedObjects(false, false)
             .Where(obj => allowedTypes.Contains(obj.ObjectType))

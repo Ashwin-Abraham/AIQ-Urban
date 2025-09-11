@@ -340,22 +340,8 @@ namespace ArchSitePlan.Core.Pipeline
 
         public static void RemoveBuildingsOnParcels(List<BuildingLayout> layoutsToAdd)
         {
-            var pointsOnParcel = layoutsToAdd
-                .Select(x => x.SiteBoundary.IControlPoints())
-                .ToList();
+            var hostParcelIds = layoutsToAdd.Select(x => x.HostParcelCoreModelId);
 
-            var hostParcelIds = new List<Guid>();
-
-            foreach (var parcel in CoreModel.Parcels)
-            {
-                foreach(var layoutParcelPoints in pointsOnParcel)
-                {
-                    bool foundParcel = parcel.Boundary.IsContainingAll(layoutParcelPoints);
-                    if (!foundParcel) continue;
-                    
-                    hostParcelIds.Add(parcel.CoreModelId);
-                }
-            }
             var buildingsToDelete = CoreModel.Buildings
                 .Where(x => hostParcelIds.Contains(x.HostParcelCoreModelId))
                 .ToList();

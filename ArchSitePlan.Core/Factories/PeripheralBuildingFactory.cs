@@ -2,8 +2,6 @@
 using ArchSitePlan.Core.Factories.Models;
 using ArchSitePlan.Core.Models;
 using ArchSitePlan.Core.Pipeline.CreationData;
-using ArchSitePlan.DebugModel;
-using ArchSitePlan.DebugModel.BHoMExtensions;
 using BH.Engine.Geometry;
 using BH.oM.Geometry;
 
@@ -17,7 +15,7 @@ public class PeripheralBuildingFactory:BuildingLayoutFactoryBase
         _config = config;
     }
 
-    public BuildingLayout? Generate(ICurve site)
+    public BuildingLayout? Generate(ICurve site, Guid? siteId)
     {
         var setBackLine = site.OffsetAndMaintainClosure(-(_config.Setback));
 
@@ -55,7 +53,7 @@ public class PeripheralBuildingFactory:BuildingLayoutFactoryBase
             .Cast<Building>()
             .ToList();
 
-        var buildingLayout = new BuildingLayout(site, setBackLine, buildings);
+        var buildingLayout = new BuildingLayout(site, setBackLine, buildings, siteId);
 
         return buildingLayout;
     }
