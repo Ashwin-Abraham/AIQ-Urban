@@ -17,7 +17,7 @@ public class RectangleBuildingFactory:BuildingLayoutFactoryBase
         _config = config;
     }
 
-    public BuildingLayout? Generate(ICurve site)
+    public BuildingLayout? Generate(ICurve site, Guid? siteId)
     {
         var buildableZone = site.OffsetAndMaintainClosure(-_config.Setback);
         
@@ -42,7 +42,7 @@ public class RectangleBuildingFactory:BuildingLayoutFactoryBase
             .Select(x => CreateBuilding(x, _config.FloorHeight))
             .ToList();
 
-        var buildingLayout = new BuildingLayout(site, buildableZone, buildings);
+        var buildingLayout = new BuildingLayout(site, buildableZone, buildings, siteId);
         return buildingLayout;
     }
 

@@ -15,7 +15,7 @@ public class BuildingsAlongRoadFactory
         _config = config;
     }
 
-    public BuildingLayout Generate(PolyCurve site, PolyCurve generatorEdge)
+    public BuildingLayout Generate(PolyCurve site, PolyCurve generatorEdge, Guid? siteId = null)
     {
         var targetGFA = GetRequiredGFA(
             _config.TargetMode,
@@ -106,7 +106,11 @@ public class BuildingsAlongRoadFactory
             achievedGFA += placedBuildingGFA;
         }
 
-        return new BuildingLayout(site, site, instances.Select(x => x.GetBuilding()).ToList());
+        return new BuildingLayout(
+            site, 
+            site, 
+            instances.Select(x => x.GetBuilding()).ToList(),
+            siteId?? Guid.NewGuid());
     }
 
     private BuildingDefinition GetNextNextDefinition(int currentIndex)

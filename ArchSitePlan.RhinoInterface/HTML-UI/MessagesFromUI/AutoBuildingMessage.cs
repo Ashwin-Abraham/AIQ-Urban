@@ -1,5 +1,6 @@
 ﻿using ArchSitePlan.Core.Factories;
 using ArchSitePlan.Core.Factories.Models;
+using ArchSitePlan.Core.Models;
 using ArchSitePlan.Core.Pipeline.CreationData;
 using ArchSitePlan.RhinoBhomInterop;
 using ArchSitePlan.RhinoInterface.CoreModelInterface;
@@ -58,8 +59,8 @@ class AutoBuildingMessage : IMessageFromUI<StudyAreaMetricsMessage>
             throw new Exception(validation.Message);
 
         var siteBoundaries = validation.ValidObjects
-            .Select(x => x.Geometry as Rhino.Geometry.Brep)
-            .Select(x => x.ToBHoMXYOutline())
+            .Select(x => (x.Geometry as Rhino.Geometry.Brep, x.Id))
+            .Select(x => (x.Item1.ToBHoMXYOutline(), CoreModel.Parcels.Find(p => p.ClientModelId == x.Id)?.CoreModelId))
             .ToList();
 
         var layouts = new List<BuildingLayout>();
@@ -74,7 +75,6 @@ class AutoBuildingMessage : IMessageFromUI<StudyAreaMetricsMessage>
             default: 
                 layouts = ComputeAutoPeripheralLayouts(siteBoundaries);
                 break;
-
         }
 
         ModelBuilderPipelines.AutoGenerateBuildingsOnParcel(layouts);
@@ -82,7 +82,7 @@ class AutoBuildingMessage : IMessageFromUI<StudyAreaMetricsMessage>
         return new();
     }
 
-    private List<BuildingLayout> ComputeAutoRectangleLayouts(List<ICurve> sites)
+    private List<BuildingLayout> ComputeAutoRectangleLayouts(List<(ICurve, Guid?)> sites)
     {
         var rowConfig = new AutoRectangleBuildingData(
                     BuildingWidth: FloorDepth,
@@ -99,7 +99,7 @@ class AutoBuildingMessage : IMessageFromUI<StudyAreaMetricsMessage>
 
         foreach (var site in sites)
         {
-            var layout = new RectangleBuildingFactory(rowConfig).Generate(site);
+            var layout = new RectangleBuildingFactory(rowConfig).Generate(site.Item1, site.Item2);
             if (layout != null)
                 layouts.Add(layout);
         }
@@ -107,7 +107,7 @@ class AutoBuildingMessage : IMessageFromUI<StudyAreaMetricsMessage>
         return layouts;
     }
 
-    private List<BuildingLayout> ComputeAutoPeripheralLayouts(List<ICurve> sites)
+    private List<BuildingLayout> ComputeAutoPeripheralLayouts(List<(ICurve Parcel, Guid? ParcelId)> sites)
     {
         var peripheralConfig = new AutoPeripheralBuildingData(
                    BuildingWidth: FloorDepth,
@@ -125,7 +125,7 @@ class AutoBuildingMessage : IMessageFromUI<StudyAreaMetricsMessage>
 
         foreach (var site in sites)
         {
-            var layout = new PeripheralBuildingFactory(peripheralConfig).Generate(site);
+            var layout = new PeripheralBuildingFactory(peripheralConfig).Generate(site.Parcel, site.ParcelId);
             if (layout != null)
                 layouts.Add(layout);
         }

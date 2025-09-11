@@ -1,4 +1,5 @@
 ﻿using AIQ.Primitives.Extensions;
+using ArchSitePlan.Core.Models;
 using ArchSitePlan.RhinoInterface.Constants;
 using ArchSitePlan.RhinoInterface.InputValidation.Results;
 using Rhino.DocObjects;
@@ -18,8 +19,7 @@ namespace ArchSitePlan.RhinoInterface.InputValidation.Validators
             _inputType = inputType;
         }
 
-        public BuildingInputValidationResult ValidateInput(
-            List<RhinoObject> rhinoObjs)
+        public BuildingInputValidationResult ValidateInput(List<RhinoObject> rhinoObjs)
         {
             BuildingInputValidationResult result;
             string message = string.Empty;
@@ -65,7 +65,8 @@ namespace ArchSitePlan.RhinoInterface.InputValidation.Validators
                 case BuildingGeneratorStartPoint.WithinParcel:
                     var validObjects = rhinoObjs
                         .Where(x => x.ObjectType == ObjectType.Brep 
-                        && ((x.Geometry as Brep)?.Surfaces[0].IsPlanar()?? false))
+                        && ((x.Geometry as Brep)?.Surfaces[0].IsPlanar()?? false)
+                        && CoreModel.Parcels.Any(parcel => parcel.ClientModelId == x.Id))
                         .ToList();
 
                     removed = validObjects.Count - rhinoObjs.Count;

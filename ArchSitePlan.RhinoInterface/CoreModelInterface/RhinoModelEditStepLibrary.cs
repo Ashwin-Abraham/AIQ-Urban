@@ -361,9 +361,12 @@ namespace ArchSitePlan.RhinoInterface.CoreModelInterface
             foreach (var parcel in CoreModel.Parcels)
             {
                 var rhinoSrf = parcel.Boundary.ToRhino();
-                if (rhinoSrf != null)
-                    parcel.ClientModelId
+                if (rhinoSrf == null)
+                    continue;
+
+                parcel.ClientModelId
                         = doc.Objects.AddBrep(rhinoSrf, parcelGeometryAttributes[parcel.LandUse]);
+
             }
         }
         private static Dictionary<Landuse, ObjectAttributes> GetParcelAttributesForAllUses(RhinoDoc doc)
