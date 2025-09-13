@@ -1,13 +1,5 @@
-﻿using ArchSitePlan.Core.Constants;
-using ArchSitePlan.Core.Extensions;
-using ArchSitePlan.Core.Models;
-using BH.Engine.Diffing;
+﻿using ArchSitePlan.Core.Models;
 using BH.Engine.Geometry;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using static ArchSitePlan.Core.Constants.Enums;
 
 namespace ArchSitePlan.Core.Metrics

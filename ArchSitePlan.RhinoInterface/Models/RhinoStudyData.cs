@@ -50,11 +50,11 @@ namespace ArchSitePlan.RhinoInterface.Models
         internal static List<RhinoStudyData> FromExisting(List<RhinoObject> rhinoObjects)
         {
             List<RhinoStudyData> dataObjects = new();
-            var studyIDs = CoreModel.Studies.Select(s => s.Id).ToList();
+            var studyIDs = CoreModelSingelton.Instance.Studies.Select(s => s.Id).ToList();
 
             foreach (RhinoObject obj in rhinoObjects)
             {
-                StudyArea? study = CoreModel.Studies.Find(s => s.Id == obj.Id);
+                StudyArea? study = CoreModelSingelton.Instance.Studies.Find(s => s.Id == obj.Id);
                 RhinoStudyData? data = null;
                 
                 if (study != null && ValidateInput(obj))

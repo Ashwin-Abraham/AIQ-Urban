@@ -21,7 +21,7 @@ public class StudyAreaMetricsMessage :IMessageToUI
     public List<StudyAreasDataForUI> StudyAreaDataForUI { get; private set; }
     public StudyAreaMetricsMessage()
     {
-        StudyAreaDataForUI = CoreModel.Studies
+        StudyAreaDataForUI = CoreModelSingelton.Instance.Studies
             .Select(x => RefreshActiveStudyAndMetrics(x))
             .ToList();
     }

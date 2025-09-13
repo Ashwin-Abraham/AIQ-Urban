@@ -1,5 +1,4 @@
 ﻿using AIQ.Primitives.Extensions;
-using ArchSitePlan.BHoM.Geometry.Extensions;
 using ArchSitePlan.Core.Constants;
 using ArchSitePlan.Core.Extensions;
 using ArchSitePlan.Core.Metrics;

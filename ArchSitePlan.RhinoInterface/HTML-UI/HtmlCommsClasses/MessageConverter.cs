@@ -16,46 +16,52 @@ public static class MessageConverter
         if (tempObj == null || !tempObj.ContainsKey(_messageTypeKey))
             throw new Exception($"Invalid JSON: No '{_messageTypeKey}' found.");
 
-        var messageType = tempObj[_messageTypeKey].ToString();
+        var messageType = tempObj[_messageTypeKey].ToString().ToLower();
 
         // Deserialize into the appropriate IMessage type based on the messageType field
         switch (messageType)
         {
-            case "Transit":
+            case "transit":
                 return JsonConvert.DeserializeObject<TransitMessage>(json);
 
-            case "Landuse":
+            case "landuse":
                 return JsonConvert.DeserializeObject<LanduseMessage>(json);
 
-            case "Building":
+            case "building":
                 return JsonConvert.DeserializeObject<BuildingMessage>(json);
 
-            case "Divider":
+            case "divider":
                 return JsonConvert.DeserializeObject<DividerMessage>(json);
 
-            case "Zone":
+            case "zone":
                 return JsonConvert.DeserializeObject<ZoneMessage>(json);
 
-            case "ToolSelection":
+            case "toolselection":
                 return JsonConvert.DeserializeObject<ToolSelectionMessage>(json);
 
-            case "LanduseListEdit":
+            case "landuselistedit":
                 return JsonConvert.DeserializeObject<LanduseListEditMessage>(json);
 
-            case "PickFile":
+            case "pickfile":
                 return JsonConvert.DeserializeObject<PickFileMessage>(json);
 
-            case "ReadOsm":
+            case "readosm":
                 return JsonConvert.DeserializeObject<ReadOsmMessage>(json);
 
-            case "AutoBuilding":
+            case "autobuilding":
                 return JsonConvert.DeserializeObject<AutoBuildingMessage>(json);
 
-            case "ExportExcelPathSelection":
+            case "exportexcelpathselection":
                 return JsonConvert.DeserializeObject<ExportExcelPathSelection>(json);
 
-            case "ExportExcel":
+            case "exportexcel":
                 return JsonConvert.DeserializeObject<ExportExcel>(json);
+
+            case "undo":
+                return JsonConvert.DeserializeObject<UndoMessage>(json);
+
+            case "redo":
+                return JsonConvert.DeserializeObject<RedoMessage>(json);
 
             default:
                 throw new Exception($"Unsupported message type: {messageType}");

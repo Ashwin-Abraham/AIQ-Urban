@@ -1,10 +1,8 @@
 ﻿using ArchSitePlan.BHoM.Geometry.Extensions;
-using ArchSitePlan.Core.Extensions;
 using ArchSitePlan.Core.Pipeline.CreationData;
-using ArchSitePlan.DebugModel;
-using ArchSitePlan.DebugModel.BHoMExtensions;
 using BH.Engine.Geometry;
 using BH.oM.Geometry;
+using Newtonsoft.Json;
 
 namespace ArchSitePlan.Core.Models
 {
@@ -25,7 +23,8 @@ namespace ArchSitePlan.Core.Models
         /// </summary>
         /// <param name="centerline"></param>
         /// <param name="width"></param>
-        Road(PolyCurve centerline, Guid centerLineId, double width)
+        [JsonConstructor]
+        public Road(PolyCurve centerline, Guid centerLineId, double width)
         {
             Centerline = centerline;
             CenterLineId = centerLineId;

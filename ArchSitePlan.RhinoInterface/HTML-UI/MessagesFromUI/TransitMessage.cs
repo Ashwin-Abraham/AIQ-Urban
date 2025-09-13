@@ -57,7 +57,6 @@ public class TransitMessage : IMessageFromUI<StudyAreaMetricsMessage>
         if (!transitData.Any()) return new();
 
         ModelBuilderPipelines.AddOrUpdateRoadPipeline(transitData);
-        ModelBuilderPipelines.RhinoOutputPipeline(doc, ModellingTool.Transit);
         return new();
     }
 }

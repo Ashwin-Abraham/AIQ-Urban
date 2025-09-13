@@ -18,16 +18,16 @@ namespace ArchSitePlan.Core.Pipeline
         {
             if (landuseData.Count == 0) return;
 
-            foreach (var p in CoreModel.Parcels)
+            foreach (var p in CoreModelSingelton.Instance.Parcels)
             {
                 var closestRhinoData = landuseData.MinBy(data => data.point.Distance(p.Boundary.ControlPointCentroid()));
                 p.LandUse = closestRhinoData.use;
             }
         }
-        public static void ClearCoreModel() => CoreModel.ClearModel();
+        public static void ClearCoreModel() => CoreModelSingelton.Instance.ClearModel();
         public static void RefreshStudyAreaMetrics()
         {
-            CoreModel.RefreshStudyAreaMetrics();
+            CoreModelSingelton.Instance.RefreshStudyAreaMetrics();
         }
         /// <summary>
         /// Updates the parcel use if it exists
@@ -42,16 +42,16 @@ namespace ArchSitePlan.Core.Pipeline
 
         public static bool TryRemoveRoad(IEnumerable<TransitData> transitData)
         {
-            int initialRoadCount = CoreModel.Roads.Count;
+            int initialRoadCount = CoreModelSingelton.Instance.Roads.Count;
             RoadAction.Run(transitData.ToList(), EditType.Remove);
-            return initialRoadCount > CoreModel.Roads.Count;
+            return initialRoadCount > CoreModelSingelton.Instance.Roads.Count;
         }
 
         public static void DivideParcelsAndTransit()
         {
-            var dividers = CoreModel.Dividers
+            var dividers = CoreModelSingelton.Instance.Dividers
                 .Select(d => d.Curve)
-                .Concat(CoreModel.Studies.Select(s => s.Boundary))
+                .Concat(CoreModelSingelton.Instance.Studies.Select(s => s.Boundary))
                 .Where(x => x != null)
                 .Cast<ICurve>()
                 .ToList();
@@ -59,7 +59,7 @@ namespace ArchSitePlan.Core.Pipeline
             if (dividers.Count == 0) return;
 
             new ParcelAction().Run(
-                clientIdsToModifyOrRemove: CoreModel.Parcels.Select(p => p.ClientModelId).ToList(),
+                clientIdsToModifyOrRemove: CoreModelSingelton.Instance.Parcels.Select(p => p.ClientModelId).ToList(),
                 editType: EditType.Divide,
                 dividers: dividers);
         }
@@ -70,14 +70,14 @@ namespace ArchSitePlan.Core.Pipeline
         }
         public static void RecalculateParcelsAndRoadRoWs()
         {
-            var priorUsesAndCenters = GetPriorUses(CoreModel.Parcels);
+            var priorUsesAndCenters = GetPriorUses(CoreModelSingelton.Instance.Parcels);
 
             // Recalculate Parcels
-            CoreModel.Parcels.Clear();
-            CoreModel.ROWs.Clear();
+            CoreModelSingelton.Instance.Parcels.Clear();
+            CoreModelSingelton.Instance.ROWs.Clear();
 
             CalculateParcelAndRoadBoundaries(
-               CoreModel.Roads,
+               CoreModelSingelton.Instance.Roads,
                out List<PlanarSurface> roadSrfs,
                out List<PlanarSurface> parcelSrfs);
 
@@ -85,7 +85,7 @@ namespace ArchSitePlan.Core.Pipeline
                 .BooleanUnion()
                 .ToList();
 
-            var studiesCombined = CoreModel.Studies
+            var studiesCombined = CoreModelSingelton.Instance.Studies
                 .Where(s => s.Boundary != null)
                 .Select(s => s.Boundary)
                 .BooleanUnion()
@@ -260,10 +260,10 @@ namespace ArchSitePlan.Core.Pipeline
 
         public static bool TryRemoveDivders(List<DividerData> dividerData)
         {
-            int initialCount = CoreModel.Dividers.Count;
+            int initialCount = CoreModelSingelton.Instance.Dividers.Count;
             new DividerAction().Run(dividerData, EditType.Remove);
 
-            return CoreModel.Dividers.Count < initialCount;
+            return CoreModelSingelton.Instance.Dividers.Count < initialCount;
         }
 
         public static void AddDivders(List<DividerData> dividerData) =>
@@ -271,7 +271,7 @@ namespace ArchSitePlan.Core.Pipeline
 
         public static void AddOrUpdateBulding(List<Building> buildings)
         {
-            CoreModel.Buildings.AddRange(buildings);
+            CoreModelSingelton.Instance.Buildings.AddRange(buildings);
         }
         public static void AddOrUpdateBulding(List<BuildingData> buildingData)
         {
@@ -296,7 +296,7 @@ namespace ArchSitePlan.Core.Pipeline
         public static int TryDeleteBuildings(List<BuildingData> buildingData)
         {
             var ids = buildingData.Select(x => x.EnvelopeId).ToList();
-            return CoreModel.Buildings.RemoveAll(bld => ids.Contains(bld.EnvelopeId));
+            return CoreModelSingelton.Instance.Buildings.RemoveAll(bld => ids.Contains(bld.EnvelopeId));
         }
 
         public static void AddOrUpdateStudyArea(List<StudyData> studyData) =>
@@ -315,7 +315,7 @@ namespace ArchSitePlan.Core.Pipeline
 
         public static void RefreshBuildingUse()
         {
-            var buildingConfigs = CoreModel.Buildings
+            var buildingConfigs = CoreModelSingelton.Instance.Buildings
                 .Select(b => new BuildingActionConfig(b))
                 .ToList();
 
@@ -324,7 +324,7 @@ namespace ArchSitePlan.Core.Pipeline
 
         public static void ReplaceParcelUse(Landuse oldUse, Landuse newUse)
         {
-            CoreModel.Parcels
+            CoreModelSingelton.Instance.Parcels
                 .Where(x => x.LandUse == oldUse)
                 .ToList()
                 .ForEach(x => x.LandUse = newUse);
@@ -332,7 +332,7 @@ namespace ArchSitePlan.Core.Pipeline
 
         public static void ReplaceBuildingUse(Landuse oldUse, Landuse newUse)
         {
-            CoreModel.Buildings
+            CoreModelSingelton.Instance.Buildings
                 .Where(x => x.Use == oldUse)
                 .ToList()
                 .ForEach(x => x.Use = newUse);
@@ -342,11 +342,16 @@ namespace ArchSitePlan.Core.Pipeline
         {
             var hostParcelIds = layoutsToAdd.Select(x => x.HostParcelCoreModelId);
 
-            var buildingsToDelete = CoreModel.Buildings
+            var buildingsToDelete = CoreModelSingelton.Instance.Buildings
                 .Where(x => hostParcelIds.Contains(x.HostParcelCoreModelId))
                 .ToList();
 
-            buildingsToDelete.ForEach(x => CoreModel.Buildings.Remove(x));
+            buildingsToDelete.ForEach(x => CoreModelSingelton.Instance.Buildings.Remove(x));
+        }
+
+        public static void StoreHistory()
+        {
+            HistoryAction.StoreState();
         }
     }
 }

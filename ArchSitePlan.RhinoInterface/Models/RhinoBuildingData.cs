@@ -42,7 +42,7 @@ public class RhinoBuildingData
     {
         if (obj.Geometry is not Mesh rhinoMesh) return null;
 
-        var building = CoreModel.Buildings.Find(b => b.EnvelopeId == obj.Id);
+        var building = CoreModelSingelton.Instance.Buildings.Find(b => b.EnvelopeId == obj.Id);
 
         if (building is null) return null;
 

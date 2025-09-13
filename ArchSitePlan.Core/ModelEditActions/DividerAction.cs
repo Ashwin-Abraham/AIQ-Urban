@@ -1,6 +1,5 @@
 ﻿using ArchSitePlan.Core.Models;
 using ArchSitePlan.Core.Pipeline.CreationData;
-using BH.oM.Geometry;
 using static ArchSitePlan.Core.Constants.Enums;
 
 namespace ArchSitePlan.Core.ModelEditActions
@@ -33,13 +32,13 @@ namespace ArchSitePlan.Core.ModelEditActions
                 .Select(x => new ParcelDivider(x.Curve!, x.ID))
                 .ToList();
 
-            CoreModel.Dividers.AddRange(dividers);
+            CoreModelSingelton.Instance.Dividers.AddRange(dividers);
         }
 
         private static void TryRemoveFromCoreModel(List<DividerData> dividers)
         {
             var ids = dividers.Select(x => x.ID).ToList();
-            int count = CoreModel.Dividers.RemoveAll(d => ids.Contains(d.Id));
+            int count = CoreModelSingelton.Instance.Dividers.RemoveAll(d => ids.Contains(d.Id));
         }
     }
 }

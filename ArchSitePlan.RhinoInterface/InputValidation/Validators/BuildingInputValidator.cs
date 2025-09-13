@@ -66,7 +66,7 @@ namespace ArchSitePlan.RhinoInterface.InputValidation.Validators
                     var validObjects = rhinoObjs
                         .Where(x => x.ObjectType == ObjectType.Brep 
                         && ((x.Geometry as Brep)?.Surfaces[0].IsPlanar()?? false)
-                        && CoreModel.Parcels.Any(parcel => parcel.ClientModelId == x.Id))
+                        && CoreModelSingelton.Instance.Parcels.Any(parcel => parcel.ClientModelId == x.Id))
                         .ToList();
 
                     removed = validObjects.Count - rhinoObjs.Count;

@@ -24,7 +24,7 @@ namespace ArchSitePlan.RhinoInterface.HTML_UI.MessagesFromUI
             var path = Path.Combine(directory!, $"{rhinoFileName}_Excel Export.xlsx");
 
 
-            var pr = new ProjectReport(path, CoreModel.ProjectWideStudy().Metrics, CoreModel.Studies);
+            var pr = new ProjectReport(path, CoreModelSingelton.Instance.ProjectWideStudy().Metrics, CoreModelSingelton.Instance.Studies);
             pr.WriteExcelFile();
 
             RhinoApp.InvokeOnUiThread(() =>

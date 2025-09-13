@@ -68,7 +68,7 @@ public class HttpServerComms
 
                         // Process requestBody and perform operations in Rhino
                         var messageObj = MessageConverter.ConvertMessageToJson(requestBody);
-                        RhinoEventHandler.UseStatsMessage.Increment(messageObj.MessageType);
+                        RhinoEventHandler.UseStatsMessage.Increment(messageObj.MessageType.ToString());
 
                         var responseMessage = messageObj.HandleMessage();
 

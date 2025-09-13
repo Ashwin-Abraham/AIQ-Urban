@@ -57,7 +57,7 @@ namespace ArchSitePlan.Core.ModelEditActions
 
         private static void ModifyLanduse(List<Guid> clientModelIDs, Landuse use)
         {
-            CoreModel.Parcels.Where(p => clientModelIDs.Contains(p.ClientModelId))
+            CoreModelSingelton.Instance.Parcels.Where(p => clientModelIDs.Contains(p.ClientModelId))
                 .ToList()
                 .ForEach(p => p.LandUse = use);
         }
@@ -66,7 +66,7 @@ namespace ArchSitePlan.Core.ModelEditActions
             List<Guid> clientIds,
             List<ICurve> dividers)
         {
-            var parcels = CoreModel.Parcels.Where(x => clientIds.Contains(x.ClientModelId)).ToList();
+            var parcels = CoreModelSingelton.Instance.Parcels.Where(x => clientIds.Contains(x.ClientModelId)).ToList();
 
             List<ICurve> cleanedDividers = dividers.ToList();
 
@@ -84,7 +84,7 @@ namespace ArchSitePlan.Core.ModelEditActions
                 newParcels.AddRange(fragments);
             }
 
-            CoreModel.Parcels = newParcels;
+            CoreModelSingelton.Instance.Parcels = newParcels;
         }
 
         private static void AddToCoreModel(
@@ -105,12 +105,12 @@ namespace ArchSitePlan.Core.ModelEditActions
                 parcels.Add(new Parcel(srf, use));
             }
 
-            CoreModel.Parcels.AddRange(parcels);
+            CoreModelSingelton.Instance.Parcels.AddRange(parcels);
         }
 
         private static void RemoveFromCoreModel(List<Guid> ids)
         {
-            CoreModel.Parcels.RemoveAll(p => ids.Contains(p.CoreModelId));
+            CoreModelSingelton.Instance.Parcels.RemoveAll(p => ids.Contains(p.CoreModelId));
         }
     }
 }

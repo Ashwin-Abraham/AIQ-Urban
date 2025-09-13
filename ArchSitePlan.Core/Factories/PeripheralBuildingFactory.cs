@@ -15,7 +15,7 @@ public class PeripheralBuildingFactory:BuildingLayoutFactoryBase
         _config = config;
     }
 
-    public BuildingLayout? Generate(ICurve site, Guid? siteId)
+    public BuildingLayout? Generate(ICurve site, Guid? siteId = null)
     {
         var setBackLine = site.OffsetAndMaintainClosure(-(_config.Setback));
 

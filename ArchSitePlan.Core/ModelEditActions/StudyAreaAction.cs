@@ -35,15 +35,15 @@ namespace ArchSitePlan.Core.ModelEditActions
 
             foreach(var data  in studyData)
             {
-                var parcelsWithin = CoreModel.Parcels
+                var parcelsWithin = CoreModelSingelton.Instance.Parcels
                     .Where(p => data.Boundary.IIsContaining([p.Boundary.ControlPointCentroid()]))
                     .ToList();
 
-                var buildingsWithin = CoreModel.Buildings
+                var buildingsWithin = CoreModelSingelton.Instance.Buildings
                     .Where(bldg => data.Boundary.IIsContaining([bldg.Origin]))
                     .ToList();
 
-                var roadsWithin = CoreModel.Roads
+                var roadsWithin = CoreModelSingelton.Instance.Roads
                     .Where(r => data.Boundary.IIsContaining([r.Centerline.PointAtParameter(0.5)]))
                     .ToList();
 
@@ -57,12 +57,12 @@ namespace ArchSitePlan.Core.ModelEditActions
                 newStudies.Add(study);
             }
 
-            CoreModel.Studies.AddRange(newStudies);
+            CoreModelSingelton.Instance.Studies.AddRange(newStudies);
         }
 
         private static void RemoveFromCoreModel(List<Guid> ids)
         {
-            int removed = CoreModel.Studies.RemoveAll(study => ids.Contains(study.Id));
+            int removed = CoreModelSingelton.Instance.Studies.RemoveAll(study => ids.Contains(study.Id));
         }
     }
 }

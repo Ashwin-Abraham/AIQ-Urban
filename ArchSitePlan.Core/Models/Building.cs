@@ -1,6 +1,7 @@
 ﻿using ArchSitePlan.BHoM.Geometry.Extensions;
 using BH.Engine.Geometry;
 using BH.oM.Geometry;
+using System.Text.Json.Serialization;
 
 namespace ArchSitePlan.Core.Models
 {
@@ -43,6 +44,7 @@ namespace ArchSitePlan.Core.Models
                 footprintId)
         { }
 
+        [JsonConstructor]
         public Building(
             Mesh envelope,
             List<(PlanarSurface, Guid)> floorPlates,
@@ -98,7 +100,7 @@ namespace ArchSitePlan.Core.Models
 
         public Landuse FindHostParcelUse()
         {
-            var host = CoreModel.Parcels.Find(p => p.Boundary.ExternalBoundary.IIsContaining([Origin]));
+            var host = CoreModelSingelton.Instance.Parcels.Find(p => p.Boundary.ExternalBoundary.IIsContaining([Origin]));
             return host?.LandUse?? AppLanduses.Undefined;
         }
 

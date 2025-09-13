@@ -1,5 +1,4 @@
-﻿using ArchSitePlan.Core.Extensions;
-using ArchSitePlan.Core.ModelEditActions.Configs;
+﻿using ArchSitePlan.Core.ModelEditActions.Configs;
 using ArchSitePlan.Core.Models;
 using BH.Engine.Geometry;
 using static ArchSitePlan.Core.Constants.Enums;
@@ -26,7 +25,7 @@ namespace ArchSitePlan.Core.ModelEditActions
                     break;
 
                 //case EditType.Edit:
-                //    var building = CoreModel.Buildings.Find(b => b.EnvelopeId == envelopeId);
+                //    var building = CoreModelSingelton.InstanceBuildings.Find(b => b.EnvelopeId == envelopeId);
                 //    if(building is not null)
                 //        TryEditInCoreModel(building);
                 //    break;
@@ -39,11 +38,11 @@ namespace ArchSitePlan.Core.ModelEditActions
         private static void EditUse(List<BuildingActionConfig> configs)
         {
             var ids = configs.Select(c => c.EnvelopeId).ToList();
-            var buildings = CoreModel.Buildings.Where(b => ids.Contains(b.EnvelopeId)).ToList();
+            var buildings = CoreModelSingelton.Instance.Buildings.Where(b => ids.Contains(b.EnvelopeId)).ToList();
 
             foreach ( var building in buildings)
             {
-                var parcel = CoreModel.Parcels
+                var parcel = CoreModelSingelton.Instance.Parcels
                     .Where(p => p.Boundary.ExternalBoundary.IIsContaining([building.Origin]))
                     .MinBy(x => x.Area());
 
@@ -62,7 +61,7 @@ namespace ArchSitePlan.Core.ModelEditActions
             foreach (var config in configs)
             {
                 var origin = config.EnvelopeMesh.Bounds().Centre().ProjectToXY();
-                var nearest = CoreModel.Parcels
+                var nearest = CoreModelSingelton.Instance.Parcels
                     .FirstOrDefault(p => p.Boundary.ExternalBoundary.IIsContaining([origin]));
 
                 var use = nearest is not null ? nearest.LandUse : AppLanduses.Undefined;
@@ -75,7 +74,7 @@ namespace ArchSitePlan.Core.ModelEditActions
                         use,
                         config.FootprintId);
 
-                CoreModel.Buildings.Add(newBldg);
+                CoreModelSingelton.Instance.Buildings.Add(newBldg);
             }
 
         }
@@ -85,7 +84,7 @@ namespace ArchSitePlan.Core.ModelEditActions
         /// </summary>
         private static bool TryEditInCoreModel(Building building)
         {
-            var parcel = CoreModel.Parcels
+            var parcel = CoreModelSingelton.Instance.Parcels
                 .FirstOrDefault(p => p.Boundary.ExternalBoundary.IIsContaining([building.Origin]));
             building.HostParcelCoreModelId = parcel?.CoreModelId ?? Guid.Empty;
 
@@ -95,7 +94,7 @@ namespace ArchSitePlan.Core.ModelEditActions
         private static bool TryRemoveFromCoreModel(List<BuildingActionConfig> configs)
         {
             var guids = configs.Select(c => c.EnvelopeId).ToList();
-            int count = CoreModel.Buildings.RemoveAll(bldg => guids.Contains(bldg.EnvelopeId));
+            int count = CoreModelSingelton.Instance.Buildings.RemoveAll(bldg => guids.Contains(bldg.EnvelopeId));
             return count > 0;
         }
     }

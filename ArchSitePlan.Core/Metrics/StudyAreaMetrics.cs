@@ -4,6 +4,7 @@ using ArchSitePlan.Core.Models;
 using BH.Engine.Data;
 using BH.Engine.Geometry;
 using BH.oM.Geometry;
+using System.Runtime.Serialization;
 
 namespace ArchSitePlan.Core.Metrics
 {
@@ -21,6 +22,7 @@ namespace ArchSitePlan.Core.Metrics
         public double CoverageRatio { get; private set; } = 0;
         public List<ParcelMetrics> ParcelMetrics = new();
         public List<TransitMetrics> TransitMetrics = new();
+
         private void UpdateParcelMetrics(
             ICurve? boundary, 
             List<Parcel> parcels, 
@@ -49,6 +51,8 @@ namespace ArchSitePlan.Core.Metrics
         private void CalculateParcelMetrics(List<Parcel> parcels, List<Building> buildings)
         {
             ParcelMetrics = new();
+            if (parcels.Count == 0)
+                return;
 
             foreach (Parcel p in parcels)
             {
@@ -62,6 +66,9 @@ namespace ArchSitePlan.Core.Metrics
 
         private void CalculateTransitMetrics(List<Road> transitRoutes)
         {
+            if (transitRoutes.Count == 0)
+                return;
+
             var groupedByWidth = transitRoutes.GroupBy(b =>  Math.Round(b.Width, CoreGeneralConstants.TransitRouteWidthPrecision));
             TransitMetrics.Clear();
 
