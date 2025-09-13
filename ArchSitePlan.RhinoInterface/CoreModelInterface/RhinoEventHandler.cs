@@ -239,7 +239,7 @@ public static class RhinoEventHandler
             if (replacedObjects.Count == 0 || HTMLViewModel.AppMode == ModellingTool.None)
                 return;
 
-            if (HTMLViewModel.AppMode == ModellingTool.Building)
+            if (HTMLViewModel.AppMode == ModellingTool.Building || HTMLViewModel.AppMode == ModellingTool.AutoBuilding)
             {
                 List<RhinoBuildingData> buildingData = RhinoBuildingData.FromExisting(replacedObjects).ToList();
 
@@ -297,7 +297,7 @@ public static class RhinoEventHandler
 
         RhinoDoc doc = RhinoDoc.ActiveDoc;
         ModelBuilderPipelines.DeleteBuildingPipeline(doc, buildingData, HTMLViewModel.AppMode);
-        ModelBuilderPipelines.AddOrUpdateBuldingPipeline(buildingData);
+        ModelBuilderPipelines.AddOrUpdateBuldingPipeline(buildingData, HTMLViewModel.AppMode);
     }
 
     private static void RunObjectAddOperations(List<RhinoObject> newObjects)

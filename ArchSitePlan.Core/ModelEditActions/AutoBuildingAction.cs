@@ -7,18 +7,7 @@ namespace ArchSitePlan.Core.ModelEditActions
 {
     public class AutoBuildingAction : IModelEditAction
     {
-        public static void Run(List<AutoBuildingData> configs)
-        {
-            foreach(var config in configs)
-            {
-                if (config is AutoRectangleBuildingData rectConfig)
-                {
-                   // var building = RectangleBuilding.Generate(rectConfig);
-                    //CoreModelSingelton.InstanceBuildings.Add(building);
-                }
-            }
 
-        }
 
         private static void EditUse(List<BuildingActionConfig> configs)
         {
