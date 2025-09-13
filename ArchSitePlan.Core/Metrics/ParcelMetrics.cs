@@ -16,6 +16,7 @@ public class ParcelMetrics
     public ParcelMetrics(Parcel parcel, List<Building> buildingsOnParcel) 
     {
         CalculateParcelMetrics(parcel, buildingsOnParcel);
+        Use = new("","");
     }
 
     private void CalculateParcelMetrics(Parcel parcel, List<Building> buildingsOnParcel)

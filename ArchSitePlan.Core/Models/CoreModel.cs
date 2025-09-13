@@ -1,27 +1,41 @@
-﻿using System.Drawing;
-using ArchSitePlan.BHoM.Geometry.Extensions;
+﻿using ArchSitePlan.BHoM.Geometry.Extensions;
 using ArchSitePlan.Core.Comparer;
 using ArchSitePlan.Core.Constants;
 using BH.Engine.Geometry;
 using BH.oM.Geometry;
+using Newtonsoft.Json;
+using System.Drawing;
 
 namespace ArchSitePlan.Core.Models
 {
-    public static class CoreModel
+    public class CoreModel
     {
-        private static StudyArea _allStudy = new(null, Guid.NewGuid(), CoreGeneralConstants.FullProjectStudyName, new(), new(), new()); 
-        public static List<Road> Roads = new List<Road>();
-        public static List<PlanarSurface> ROWs = new List<PlanarSurface>();
-        public static List<Parcel> Parcels = new List<Parcel>();
-        public static List<Building> Buildings = new List<Building>();
-        public static List<StudyArea> Studies = new([_allStudy]);
-        public static List<ParcelDivider> Dividers = new ();
-        static CoreModel() { }
+        private StudyArea _allStudy;
+        public List<Road> Roads;
+        public List<PlanarSurface> ROWs { get; set; }
+        public List<Parcel> Parcels { get; set; } 
+        public List<Building> Buildings { get; set; } = new List<Building>();
 
-        public static void AddStudyArea(StudyArea studyArea) => Studies.Add(studyArea);
-        public static void RemoveStudyArea(StudyArea studyArea) => Studies.Remove(studyArea);
+        [JsonIgnore]
+        public List<StudyArea> Studies { get; set; }
 
-        public static void RecalculateBuildingHostParcelIDs()
+        public List<ParcelDivider> Dividers { get; set; } = new ();
+        public CoreModel() 
+        {
+            Roads = [];
+            ROWs = [];
+            Parcels = [];
+            Buildings = [];
+            Dividers = [];
+
+            _allStudy = new(null, Guid.NewGuid(), CoreGeneralConstants.FullProjectStudyName, new(), new(), new());
+            Studies = new List<StudyArea>() { _allStudy };
+        }
+
+        public void AddStudyArea(StudyArea studyArea) => Studies.Add(studyArea);
+        public void RemoveStudyArea(StudyArea studyArea) => Studies.Remove(studyArea);
+
+        public void RecalculateBuildingHostParcelIDs()
         {
             foreach(var building in Buildings)
             {
@@ -29,7 +43,7 @@ namespace ArchSitePlan.Core.Models
                 building.HostParcelCoreModelId = parcel?.CoreModelId?? Guid.Empty;
             }
         }
-        internal static void RefreshStudyAreaMetrics()
+        internal void RefreshStudyAreaMetrics()
         {
             for (int i = 0; i < Studies.Count; i++) 
             {
@@ -63,7 +77,7 @@ namespace ArchSitePlan.Core.Models
             }
         }
 
-        public static bool TryAddBuilding(Mesh envelope,
+        public bool TryAddBuilding(Mesh envelope,
             List<PlanarSurface> floorPlates,
             Guid envelopeID,
             Guid footPrintId,
@@ -92,19 +106,19 @@ namespace ArchSitePlan.Core.Models
             return false;
         }
 
-        public static bool TryGetStudyArea(Guid id, out StudyArea study)
+        public bool TryGetStudyArea(Guid id, out StudyArea study)
         {
             study = Studies.Find(s => s.Id == id);
             return study != null;
         }
 
-        public static bool TryGetStudyArea(string name, out StudyArea? study)
+        public bool TryGetStudyArea(string name, out StudyArea? study)
         {
             study = Studies.Find(s => s.Name == name);
             return study != null;
         }
 
-        public static bool TryAddOrUpdateStudyArea(Polyline boundary, Guid id, string name)
+        public bool TryAddOrUpdateStudyArea(Polyline boundary, Guid id, string name)
         {
             if (Studies.Any(s => s.Id == id))
             {
@@ -116,20 +130,20 @@ namespace ArchSitePlan.Core.Models
             return true;
         }
 
-        public static bool TryFindRoad(Guid id, out Road road)
+        public bool TryFindRoad(Guid id, out Road road)
         {
             road = Roads.FirstOrDefault(r => r.CenterLineId == id);
             return road != null;
         }
 
-        public static bool TryRemoveBuilding(Guid id)
+        public bool TryRemoveBuilding(Guid id)
         {
             int count = Buildings.RemoveAll(b => b.FootprintId == id || b.EnvelopeId == id);
             
             return count > 0;
         }
 
-        public static bool TryGetBuilding(Guid footPrintId, Guid massId, out Building? building)
+        public bool TryGetBuilding(Guid footPrintId, Guid massId, out Building? building)
         {
             building = Buildings.FirstOrDefault(b =>
             (footPrintId != Guid.Empty && b.FootprintId == footPrintId)
@@ -137,7 +151,7 @@ namespace ArchSitePlan.Core.Models
             return building != null;
         }
 
-        public static List<Building> FindBuildingsInParcels(List<Parcel> parcels)
+        public List<Building> FindBuildingsInParcels(List<Parcel> parcels)
         {
             var parcelGuids = parcels.Select(p => p.CoreModelId).ToList();
             var buildings = Buildings.Where(b => parcelGuids.Contains(b.HostParcelCoreModelId)).ToList();
@@ -145,7 +159,7 @@ namespace ArchSitePlan.Core.Models
             return buildings;
         }
 
-        public static void ClearModel()
+        public void ClearModel()
         {
             Roads = new();
             ROWs = new();
@@ -155,7 +169,7 @@ namespace ArchSitePlan.Core.Models
             ResetStudyAreas();
         }
 
-        public static void ResetStudyAreas()
+        public void ResetStudyAreas()
         {
             Studies = new();
             AddStudyArea(new StudyArea(
@@ -169,16 +183,16 @@ namespace ArchSitePlan.Core.Models
 
         
 
-        public static StudyArea ProjectWideStudy()
+        public StudyArea ProjectWideStudy()
             => Studies.FirstOrDefault(s => s.Name == CoreGeneralConstants.FullProjectStudyName);
 
-        public static bool TryGetParcelDivider(Guid objectId, out ParcelDivider divider)
+        public bool TryGetParcelDivider(Guid objectId, out ParcelDivider divider)
         {
             divider = Dividers.FirstOrDefault(div => div.Id == objectId);
             return divider != null;
         }
 
-        public static Dictionary<double, Color> SetRoadColorsByWidth()
+        public Dictionary<double, Color> SetRoadColorsByWidth()
         {
             var widths = Roads
                 .GroupBy(r => r.Width, new DoubleAsDecimalComparer())

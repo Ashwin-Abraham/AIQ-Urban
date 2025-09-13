@@ -35,7 +35,7 @@ namespace ArchSitePlan.RhinoInterface.Models
         {
             if (obj.Geometry is not Curve rhinoCurve) return null;
 
-            var divider = CoreModel.Dividers.Find(d => d.Id == obj.Id);
+            var divider = CoreModelSingelton.Instance.Dividers.Find(d => d.Id == obj.Id);
             if (divider == null) return null;
 
             return new RhinoDividerData(rhinoCurve, obj.Id);

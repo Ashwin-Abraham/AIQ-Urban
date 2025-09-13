@@ -17,7 +17,7 @@ public class RectangleBuildingFactory:BuildingLayoutFactoryBase
         _config = config;
     }
 
-    public BuildingLayout? Generate(ICurve site, Guid? siteId)
+    public BuildingLayout? Generate(ICurve site, Guid? siteId = null)
     {
         var buildableZone = site.OffsetAndMaintainClosure(-_config.Setback);
         

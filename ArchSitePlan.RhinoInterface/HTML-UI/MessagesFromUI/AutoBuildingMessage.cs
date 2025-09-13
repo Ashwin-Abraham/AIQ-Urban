@@ -60,7 +60,7 @@ class AutoBuildingMessage : IMessageFromUI<StudyAreaMetricsMessage>
 
         var siteBoundaries = validation.ValidObjects
             .Select(x => (x.Geometry as Rhino.Geometry.Brep, x.Id))
-            .Select(x => (x.Item1.ToBHoMXYOutline(), CoreModel.Parcels.Find(p => p.ClientModelId == x.Id)?.CoreModelId))
+            .Select(x => (x.Item1.ToBHoMXYOutline(), CoreModelSingelton.Instance.Parcels.Find(p => p.ClientModelId == x.Id)?.CoreModelId))
             .ToList();
 
         var layouts = new List<BuildingLayout>();
@@ -78,7 +78,6 @@ class AutoBuildingMessage : IMessageFromUI<StudyAreaMetricsMessage>
         }
 
         ModelBuilderPipelines.AutoGenerateBuildingsOnParcel(layouts);
-        ModelBuilderPipelines.RhinoOutputPipeline(doc, ModellingTool.AutoBuilding);
         return new();
     }
 

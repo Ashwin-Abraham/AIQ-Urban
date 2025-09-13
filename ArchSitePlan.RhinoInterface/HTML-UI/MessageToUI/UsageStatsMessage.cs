@@ -9,9 +9,9 @@ public class UsageStatsMessage : IMessageToUI
     public string LastUsed => DateTime.UtcNow.ToString();
     public List<ToolUseData> ToolUseStats { get; set; } = [];
 
-    public void Increment(TypeOfMessage messageType)
+    public void Increment(string messageType)
     {
-        var toolStat = ToolUseStats.Find(x => x.ToolName == messageType.ToString());
+        var toolStat = ToolUseStats.Find(x => x.ToolName == messageType);
 
         if(toolStat == null)
         {

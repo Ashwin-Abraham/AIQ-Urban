@@ -15,7 +15,9 @@ public enum TypeOfMessage
     AutoBuilding,
     WebSocketConnected,
     ExportExcel,
-    ExportExcelPathSelection
+    ExportExcelPathSelection,
+    Undo,
+    Redo
 }
 
 // out T is the resulting output message created after handling the input

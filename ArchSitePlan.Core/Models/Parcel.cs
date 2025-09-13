@@ -1,5 +1,6 @@
 ﻿using BH.Engine.Geometry;
 using BH.oM.Geometry;
+using Newtonsoft.Json;
 
 namespace ArchSitePlan.Core.Models
 {
@@ -9,12 +10,14 @@ namespace ArchSitePlan.Core.Models
         public Landuse LandUse { get; set; }
         public Guid CoreModelId { get; set; }
         public Guid ClientModelId { get; set; }
-        internal Parcel(PlanarSurface boundary, Landuse use, Guid? coreId = null, Guid? clientId = null)
+
+        [JsonConstructor]
+        public Parcel(PlanarSurface boundary, Landuse landUse, Guid? coreModelId = null, Guid? clientModelId = null)
         {
             Boundary = boundary;
-            LandUse = use;
-            CoreModelId = coreId ?? Guid.NewGuid();
-            ClientModelId = clientId ?? Guid.NewGuid();
+            LandUse = landUse;
+            CoreModelId = coreModelId ?? Guid.NewGuid();
+            ClientModelId = clientModelId ?? Guid.NewGuid();
         }
 
         public double Area()
@@ -33,7 +36,7 @@ namespace ArchSitePlan.Core.Models
 
         private List<Building> GetParcelsBuildings()
         {
-            var buildings = CoreModel.Buildings
+            var buildings = CoreModelSingelton.Instance.Buildings
                 .Where(b => Boundary.ExternalBoundary.IIsContaining([b.Origin]))
                 .ToList();
 

@@ -1,6 +1,8 @@
 ﻿using ArchSitePlan.Core.Metrics;
 using BH.Engine.Geometry;
 using BH.oM.Geometry;
+using Newtonsoft.Json;
+using System.Runtime.Serialization;
 
 namespace ArchSitePlan.Core.Models
 {
@@ -12,6 +14,8 @@ namespace ArchSitePlan.Core.Models
         public double Area { get; private set; }
 
         public StudyAreaMetrics Metrics { get; private set; }
+
+        [JsonConstructor]
         public StudyArea(
             ICurve? boundary, 
             Guid id, 

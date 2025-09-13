@@ -102,7 +102,7 @@ namespace ArchSitePlan.RhinoInterface.Helpers
 
             foreach (var obj in objectsToDelete)
             {
-                doc.Objects.Delete(obj, true, true);
+                bool result = doc.Objects.Delete(obj, true, true);
             }
         }
 

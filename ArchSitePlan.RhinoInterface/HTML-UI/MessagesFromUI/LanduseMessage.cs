@@ -33,7 +33,7 @@ namespace ArchSitePlan.RhinoInterface.HTML_UI.MessagesFromUI
                 srfObjs.Select(s => s.Id).ToList(),
                 use);
 
-            ModelBuilderPipelines.RhinoOutputPipeline(doc, RhinoEventHandler.HTMLViewModel.AppMode);
+            ModelBuilderPipelines.RhinoOutputPipeline(doc, RhinoEventHandler.HTMLViewModel.AppMode, true);
             return new();
         }
     }

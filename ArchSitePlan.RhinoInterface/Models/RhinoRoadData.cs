@@ -45,7 +45,7 @@ namespace ArchSitePlan.RhinoInterface.Models
                 && Intersection.CurveSelf(rhinoCrv, 1E-06).Count == 0) 
                 return null;
 
-            var road = CoreModel.Roads.Find(b => b.CenterLineId == obj.Id);
+            var road = CoreModelSingelton.Instance.Roads.Find(b => b.CenterLineId == obj.Id);
 
             if (road is not null) 
                 return new RhinoRoadData(rhinoCrv, obj.Id, road.Width);

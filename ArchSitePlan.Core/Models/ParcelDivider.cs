@@ -1,5 +1,6 @@
 ﻿using ArchSitePlan.Core.Pipeline.CreationData;
 using BH.oM.Geometry;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,6 +14,7 @@ namespace ArchSitePlan.Core.Models
         public ICurve Curve;
         public Guid Id;
 
+        [JsonConstructor]
         public ParcelDivider(ICurve curve, Guid id)
         {
             Curve = curve;

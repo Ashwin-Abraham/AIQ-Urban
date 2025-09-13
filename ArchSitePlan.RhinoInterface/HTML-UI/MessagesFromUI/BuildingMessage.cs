@@ -59,7 +59,7 @@ public class BuildingMessage:IMessageFromUI<StudyAreaMetricsMessage>
 
         DocObjectHelpers.DeleteRhinoObjectsIfPresent(doc, rhinoObjs.Select(r => r.Id));
         RhinoEventHandler.UpdateSelectedBuildingsPosition(rhinoBuildingData);
-        ModelBuilderPipelines.RhinoOutputPipeline(doc, ModellingTool.Building);
+        ModelBuilderPipelines.RhinoOutputPipeline(doc, ModellingTool.Building, true);
         return new();
     }
 }

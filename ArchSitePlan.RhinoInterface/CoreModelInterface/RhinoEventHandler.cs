@@ -59,6 +59,7 @@ public static class RhinoEventHandler
         RhinoDoc.SelectObjects -= _selectObjectHandler;
         RhinoDoc.DeselectObjects -= _deselectObjectHandler;
         RhinoDoc.DeselectAllObjects -= _deselectAllObjectsHandler;
+
     }
 
     public static void SubscribeModelEvents()
@@ -167,8 +168,7 @@ public static class RhinoEventHandler
         // Clean queue
         ResetEventQueueAndObjects();
 
-        // Output Model
-        ModelBuilderPipelines.RhinoOutputPipeline(RhinoDoc.ActiveDoc, HTMLViewModel.AppMode);
+        // Output metrics
         WS.SendMessage(new StudyAreaMetricsMessage());
     }
 
@@ -385,7 +385,7 @@ public static class RhinoEventHandler
                         .Cast<BuildingData>()
                         .ToList();
 
-                    ModelBuilderPipelines.DeleteBuildingPipeline(doc, buildingData, HTMLViewModel.AppMode);
+                    ModelBuilderPipelines.DeleteBuildingPipeline(doc, buildingData, HTMLViewModel.AppMode, true);
                     break;
 
                 case ModellingTool.Zones:
@@ -434,14 +434,14 @@ public static class RhinoEventHandler
                 switch (HTMLViewModel.AppMode)
                 {
                     case ModellingTool.Transit:
-                        var roads = CoreModel.Roads.Where(rd => selectedIDs.Contains(rd.CenterLineId)).ToList();
+                        var roads = CoreModelSingelton.Instance.Roads.Where(rd => selectedIDs.Contains(rd.CenterLineId)).ToList();
                         
                         if (roads.Count > 0)
                             message = SelectedObjectMetricsMessage.FromRoads(roads);
                         break;
 
                     case ModellingTool.LandUse:
-                        var parcels = CoreModel.Parcels.Where(p => selectedIDs.Contains(p.ClientModelId)).ToList();
+                        var parcels = CoreModelSingelton.Instance.Parcels.Where(p => selectedIDs.Contains(p.ClientModelId)).ToList();
 
                         if (parcels.Count > 0)
                             message = SelectedObjectMetricsMessage.FromParcels(parcels);
@@ -449,14 +449,14 @@ public static class RhinoEventHandler
 
                     case ModellingTool.AutoBuilding:
                     case ModellingTool.Building:
-                        var buildings = CoreModel.Buildings.Where(bldg => selectedIDs.Contains(bldg.EnvelopeId)).ToList();
+                        var buildings = CoreModelSingelton.Instance.Buildings.Where(bldg => selectedIDs.Contains(bldg.EnvelopeId)).ToList();
 
                         if (buildings.Count > 0) 
                             message = SelectedObjectMetricsMessage.FromBuildings(buildings);
                         break;
 
                     case ModellingTool.Dividers:
-                        var dividers = CoreModel.Dividers.Where(bldg => selectedIDs.Contains(bldg.Id)).ToList();
+                        var dividers = CoreModelSingelton.Instance.Dividers.Where(bldg => selectedIDs.Contains(bldg.Id)).ToList();
 
                         if (dividers.Count > 0)
                             message = SelectedObjectMetricsMessage.FromDividers(dividers);

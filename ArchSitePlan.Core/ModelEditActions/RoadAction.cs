@@ -35,8 +35,8 @@ namespace ArchSitePlan.Core.ModelEditActions
         }
         private static List<ICurve> GetCoreModelSplitters()
         {
-            var dividers = CoreModel.Dividers.Select(d => d.Curve as ICurve).ToList();
-            var studyDividers = CoreModel
+            var dividers = CoreModelSingelton.Instance.Dividers.Select(d => d.Curve as ICurve).ToList();
+            var studyDividers = CoreModelSingelton.Instance
                 .Studies
                 .Where(s => s.Boundary != null)
                 .Select(x => (x.Boundary as ICurve)!)
@@ -50,7 +50,7 @@ namespace ArchSitePlan.Core.ModelEditActions
             List<ICurve> splitters)
         {
             var ids = roadData.Select(x => x.ID).ToList();
-            var roadsToDiv = CoreModel.Roads.Where(rd => ids.Contains(rd.CenterLineId)).ToList();
+            var roadsToDiv = CoreModelSingelton.Instance.Roads.Where(rd => ids.Contains(rd.CenterLineId)).ToList();
 
             List<Road> newRoads = new List<Road>();
 
@@ -65,11 +65,11 @@ namespace ArchSitePlan.Core.ModelEditActions
                 newRoads.AddRange(splitRoads);
             }
 
-            var undividedRoads = CoreModel.Roads
+            var undividedRoads = CoreModelSingelton.Instance.Roads
                 .Where(rd => !roadsToDiv.Contains(rd))
                 .ToList();
 
-            CoreModel.Roads = undividedRoads.Concat(newRoads).ToList();
+            CoreModelSingelton.Instance.Roads = undividedRoads.Concat(newRoads).ToList();
         }
 
         internal static void Run(List<PlanarSurface> RoWs, 
@@ -79,16 +79,16 @@ namespace ArchSitePlan.Core.ModelEditActions
             {
                 case EditType.Add:
                     if (RoWs == null || RoWs.Count == 0) return;
-                    CoreModel.ROWs = RoWs;
+                    CoreModelSingelton.Instance.ROWs = RoWs;
                     return;
 
                 case EditType.ClearAll:
-                    CoreModel.ROWs.Clear();
+                    CoreModelSingelton.Instance.ROWs.Clear();
                     return;
 
                 case EditType.Divide:
                     var dividers = GetCoreModelSplitters();
-                    CoreModel.ROWs =  RoWs
+                    CoreModelSingelton.Instance.ROWs =  RoWs
                         .SelectMany(r => r.Split(dividers))
                         .ToList();
                     return;
@@ -104,7 +104,7 @@ namespace ArchSitePlan.Core.ModelEditActions
             {
                 var pCurve = Create.PolyCurve([data.Centerline]);
                 if (Road.TryCreateRoad(pCurve, data.ID, data.RoadWidth, out Road? road))
-                    CoreModel.Roads.Add(road!);
+                    CoreModelSingelton.Instance.Roads.Add(road!);
             }
         }
 
@@ -112,7 +112,7 @@ namespace ArchSitePlan.Core.ModelEditActions
             List<TransitData> roadData)
         {
             var ids = roadData.Select(x => x.ID).ToList();
-            CoreModel.Roads.RemoveAll(r => ids.Contains(r.CenterLineId));
+            CoreModelSingelton.Instance.Roads.RemoveAll(r => ids.Contains(r.CenterLineId));
         }
     }
 }

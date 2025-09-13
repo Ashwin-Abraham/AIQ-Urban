@@ -50,7 +50,7 @@ namespace ArchSitePlan.RhinoInterface.CoreModelInterface
         public static List<BuildingData> ExtractBuildingCreationDataFromRhino(RhinoDoc doc)
         {
             List<BuildingData> buildingData = new();
-            CoreModel.Buildings = new();
+            CoreModelSingelton.Instance.Buildings = new();
 
             // Read mesh envelope objects
             int envelopeLayer = doc.Layers.FindByFullPath(LayerConstants.BuildingMassLayer, true);
@@ -102,7 +102,7 @@ namespace ArchSitePlan.RhinoInterface.CoreModelInterface
         }
         public static List<StudyData> ExtractStudyAreasFromRhino(RhinoDoc doc)
         {
-            CoreModel.ResetStudyAreas();
+            CoreModelSingelton.Instance.ResetStudyAreas();
             List<StudyData> studyData = new();
 
             // STUDY AREAS
@@ -247,7 +247,7 @@ namespace ArchSitePlan.RhinoInterface.CoreModelInterface
                 ColorSource = ObjectColorSource.ColorFromObject
             };
 
-            foreach (var building in CoreModel.Buildings)
+            foreach (var building in CoreModelSingelton.Instance.Buildings)
             {
                 var rhinoMesh = building.Envelope.ToRhino();
                 massAttrib.ObjectColor = building.Use.GetBuildingColor();
@@ -281,7 +281,7 @@ namespace ArchSitePlan.RhinoInterface.CoreModelInterface
             };
 
             // Bake model to rhino
-            var rhinoSurfaces = CoreModel.ROWs
+            var rhinoSurfaces = CoreModelSingelton.Instance.ROWs
                 .Select(row => row.ToRhino())
                 .ToList();
 
@@ -291,7 +291,7 @@ namespace ArchSitePlan.RhinoInterface.CoreModelInterface
 
             // ROAD CENTERLINES
             // Output road cls
-            foreach (var road in CoreModel.Roads)
+            foreach (var road in CoreModelSingelton.Instance.Roads)
             {
                 double width = road.Width
                     .Round(CoreGeneralConstants.TransitRouteWidthPrecision);
@@ -309,7 +309,7 @@ namespace ArchSitePlan.RhinoInterface.CoreModelInterface
 
         private static void OutputStudyAreasToRhino(RhinoDoc doc)
         {
-            var studies = CoreModel.Studies;
+            var studies = CoreModelSingelton.Instance.Studies;
             List<(Curve, ObjectAttributes)> studyBoundaries = new();
             foreach (var study in studies)
             {
@@ -358,14 +358,21 @@ namespace ArchSitePlan.RhinoInterface.CoreModelInterface
             parcelObjs.ForEach(obj => doc.Objects.Delete(obj, true, true));
 
             // Bake model to rhino
-            foreach (var parcel in CoreModel.Parcels)
+            foreach (var parcel in CoreModelSingelton.Instance.Parcels)
             {
                 var rhinoSrf = parcel.Boundary.ToRhino();
                 if (rhinoSrf == null)
                     continue;
 
+                var success = parcelGeometryAttributes.TryGetValue(parcel.LandUse, out var attributes);
+
+                if (!success && parcelGeometryAttributes.Count > 0)
+                    attributes = parcelGeometryAttributes.First().Value;
+                else if(!success)
+                    continue;
+
                 parcel.ClientModelId
-                        = doc.Objects.AddBrep(rhinoSrf, parcelGeometryAttributes[parcel.LandUse]);
+                                = doc.Objects.AddBrep(rhinoSrf, attributes);
 
             }
         }
