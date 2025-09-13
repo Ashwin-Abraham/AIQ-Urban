@@ -191,9 +191,11 @@ public static class ModelBuilderPipelines
         LayerManager.ToggleLayerStateBasedOnAppMode(doc, currentAppMode);
         CoreModelEditStepLibrary.RefreshStudyAreaMetrics();
 
+        return;
+
         // Store history, unless this was called as part of an undo/redo action
         // In that case the state being generated is already in history
-        if (withHistoryUpdate && false)
+        if (withHistoryUpdate)
             CoreModelEditStepLibrary.StoreHistory();
     }
 
