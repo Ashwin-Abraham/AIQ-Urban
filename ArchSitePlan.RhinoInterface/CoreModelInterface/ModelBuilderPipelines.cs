@@ -73,7 +73,7 @@ public static class ModelBuilderPipelines
         RhinoOutputPipeline(doc, currentAppMode, true);
     }
 
-    internal static void AddOrUpdateBuldingPipeline(List<BuildingData> buildingData)
+    internal static void AddOrUpdateBuldingPipeline(List<BuildingData> buildingData, ModellingTool appMode)
     {
         if (!RhinoEventHandler.ValidLicense)
             return;
@@ -81,7 +81,7 @@ public static class ModelBuilderPipelines
         CoreModelEditStepLibrary.AddOrUpdateBulding(buildingData);
         CoreModelEditStepLibrary.RefreshBuildingUse();
         CoreModelEditStepLibrary.RefreshStudyAreaMetrics();
-        RhinoOutputPipeline(RhinoDoc.ActiveDoc, ModellingTool.Building, true);
+        RhinoOutputPipeline(RhinoDoc.ActiveDoc, appMode, true);
     }
 
     internal static void AutoGenerateBuildingsOnParcel( List<BuildingLayout> layoutsToAdd)
