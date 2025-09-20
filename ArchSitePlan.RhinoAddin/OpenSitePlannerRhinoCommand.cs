@@ -4,6 +4,7 @@ using ArchSitePlan.RhinoInterface.HTML_UI.Websockets;
 using Eto.Forms;
 using Rhino;
 using Rhino.Commands;
+using Rhino.Display;
 using System;
 using static ArchSitePlan.RhinoInterface.Constants.Enums;
 using Command = Rhino.Commands.Command;
@@ -12,6 +13,7 @@ namespace ArchSitePlan.RhinoAddin;
 
 public class OpenSitePlannerRhinoCommand : Command
 {
+    private static DisplayModeDescription _shadedMode = DisplayModeDescription.GetDisplayMode(DisplayModeDescription.ShadedId);
     public OpenSitePlannerRhinoCommand()
     {
         // Rhino only creates one instance of each command class defined in a
@@ -36,6 +38,7 @@ public class OpenSitePlannerRhinoCommand : Command
             var window = VueUI.OpenWindow();
             window.Closed += (sender, args) => HandleClosure(sender, args);
             UsageLogEmitter.RunPeriodicUsageLogEmitter();
+            SetViewStyle();
 
             return Result.Success;
         }
@@ -45,6 +48,12 @@ public class OpenSitePlannerRhinoCommand : Command
             return Result.Failure;
         }
         
+    }
+
+    private static void SetViewStyle()
+    {
+        var doc = RhinoDoc.ActiveDoc;
+        doc.Views.ActiveView.ActiveViewport.DisplayMode = _shadedMode;
     }
 
     private void HandleClosure(object sender, EventArgs e)
