@@ -16,7 +16,7 @@ using static ArchSitePlan.RhinoInterface.Constants.Enums;
 namespace ArchSitePlan.RhinoInterface.HTML_UI.MessagesFromUI;
 
 public enum AutoGenerationType { Row, Peripheral}
-class AutoBuildingMessage : IMessageFromUI<StudyAreaMetricsMessage>
+class AutoBuildingMessage : IMessageFromUI<ModelStateMessage>
 {
     public TypeOfMessage MessageType { get; init; }
 
@@ -47,7 +47,7 @@ class AutoBuildingMessage : IMessageFromUI<StudyAreaMetricsMessage>
     [JsonProperty("modeIsGFA")]
     public bool ModeIsGFA { get; init; }
 
-    public StudyAreaMetricsMessage HandleMessage()
+    public ModelStateMessage HandleMessage()
     {
         RhinoDoc doc = RhinoDoc.ActiveDoc;
         var rhinoObjs = doc.Objects.GetSelectedObjects(false, false).ToList();

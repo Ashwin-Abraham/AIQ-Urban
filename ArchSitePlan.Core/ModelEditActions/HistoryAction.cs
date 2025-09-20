@@ -10,6 +10,10 @@ public class HistoryAction:IModelEditAction
     private const int _maxHistory = 10;
     private static JsonSerializerSettings _jsonSettings = new JsonSerializerSettings
     {
+        // This is to prevent duplication of an object that appears twice in the model. Like 2 parcels bearing the same landuse object
+        PreserveReferencesHandling = PreserveReferencesHandling.Objects,
+
+        // Explicit typing for interfaces like ICurve
         TypeNameHandling = TypeNameHandling.All,
         Formatting = Formatting.Indented
     };

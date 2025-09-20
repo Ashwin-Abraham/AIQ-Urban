@@ -17,7 +17,8 @@ public enum TypeOfMessage
     ExportExcel,
     ExportExcelPathSelection,
     Undo,
-    Redo
+    Redo,
+    ModelState
 }
 
 // out T is the resulting output message created after handling the input

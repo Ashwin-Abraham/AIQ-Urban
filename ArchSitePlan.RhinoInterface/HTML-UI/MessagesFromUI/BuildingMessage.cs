@@ -11,7 +11,7 @@ using static ArchSitePlan.RhinoInterface.Constants.Enums;
 
 namespace ArchSitePlan.RhinoInterface.HTML_UI.MessagesFromUI;
 
-public class BuildingMessage:IMessageFromUI<StudyAreaMetricsMessage>
+public class BuildingMessage:IMessageFromUI<ModelStateMessage>
 {
 
     public TypeOfMessage MessageType { get; init; } = TypeOfMessage.Building;
@@ -25,7 +25,7 @@ public class BuildingMessage:IMessageFromUI<StudyAreaMetricsMessage>
     [JsonProperty("manual_generationType")]
     public string GenerationType;
 
-    public StudyAreaMetricsMessage HandleMessage()
+    public ModelStateMessage HandleMessage()
     {
         RhinoEventHandler.HTMLViewModel.AppMode = ModellingTool.Building;
         bool validMode = Enum.TryParse<BuildingGeneratorStartPoint>(GenerationType, out var buildingMode);

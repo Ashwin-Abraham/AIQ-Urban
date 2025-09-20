@@ -1,4 +1,5 @@
 ﻿using ArchSitePlan.Core.Constants;
+using ArchSitePlan.Core.ModelEditActions;
 using ArchSitePlan.Core.Models;
 using ArchSitePlan.Core.Pipeline.CreationData;
 using ArchSitePlan.RhinoBhomInterop;
@@ -10,6 +11,7 @@ using BH.oM.Geometry;
 using Rhino;
 using Rhino.DocObjects;
 using Rhino.Geometry;
+using System.Drawing;
 
 namespace ArchSitePlan.RhinoInterface.CoreModelInterface
 {
@@ -345,15 +347,13 @@ namespace ArchSitePlan.RhinoInterface.CoreModelInterface
         private static void OutputParcelsToRhino(RhinoDoc doc)
         {
             // Get Attributes
-            var parcelGeometryAttributes = GetParcelAttributesForAllUses(doc);
-            var parcelLayerNames = LayerHelpers.GetParcelRhinoLayerNames();
+            Dictionary<Landuse, ObjectAttributes> parcelGeometryAttributes = 
+                CoreModelSingelton.Instance.Landuses
+                .ToDictionary(x => x, x => GetParcelAttributesByUse(doc, x));
 
-            var layerNames = doc.Layers.Select(l => l.Name).ToList();
+            var parcelLayerIndices = LayerHelpers.GetParcelRhinoLayers(doc).Select(x => x.Index).ToList();
 
-            var parcelObjs = doc.Layers
-                .Where(layer => parcelLayerNames.Contains(layer.FullPath))
-                .SelectMany(lay => doc.Objects.FindByLayer(lay))
-                .ToList();
+            var parcelObjs = doc.Objects.Where(x => parcelLayerIndices.Contains(x.Attributes.LayerIndex)).ToList();
 
             parcelObjs.ForEach(obj => doc.Objects.Delete(obj, true, true));
 
@@ -376,23 +376,10 @@ namespace ArchSitePlan.RhinoInterface.CoreModelInterface
 
             }
         }
-        private static Dictionary<Landuse, ObjectAttributes> GetParcelAttributesForAllUses(RhinoDoc doc)
-        {
-            var uses = AppLanduses.Uses;
-            var dictionary = new Dictionary<Landuse, ObjectAttributes>();
-
-            foreach (var use in uses)
-            {
-                var attributes = GetParcelAttributesByUse(doc, use);
-                dictionary.Add(use, attributes);
-            }
-
-            return dictionary;
-        }
 
         private static ObjectAttributes GetParcelAttributesByUse(RhinoDoc doc, Landuse use)
         {
-            string layerName = LayerHelpers.GetParcelRhinoLayerName(use);
+            string layerName = LayerHelpers.ConstructParcelRhinoLayerName(use);
             int layerIndex = LayerHelpers.CreateOrGetLayerIndex(
                 doc,
                 layerName,
@@ -408,11 +395,13 @@ namespace ArchSitePlan.RhinoInterface.CoreModelInterface
             return parcelGeometryAttributes;
         }
 
-        internal static List<(BH.oM.Geometry.Point point, Landuse use)> ExtractRhinoLanduseData(RhinoDoc doc)
+        internal static List<LanduseData> ExtractRhinoLanduseData(
+            RhinoDoc doc,
+            out List<(BH.oM.Geometry.Point point, LanduseData use)> useAtPoints)
         {
             var parcelLayIndices = LayerHelpers
-                .GetParcelRhinoLayerNames()
-                .Select(name => doc.Layers.FindByFullPath(name, -1))
+                .GetParcelRhinoLayers(doc)
+                .Select(x => x.Index)
                 .ToList();
 
             var rhinoParcelObjs = doc.Objects
@@ -420,19 +409,44 @@ namespace ArchSitePlan.RhinoInterface.CoreModelInterface
                     && obj.ObjectType == ObjectType.Brep)
                 .ToList();
 
-            var outputs = new List<(BH.oM.Geometry.Point point, Landuse use)>();
+            List<LanduseData> initialUses = AppLanduses.InitialUses
+                .Select(x => new LanduseData(x.Name, x.Color.ToArgb(), x.Id))
+                .ToList();
+
+            // Update use list
+            foreach(var parcelLayerIndex in parcelLayIndices)
+            {
+                var layer = doc.Layers[parcelLayerIndex];
+
+                var useData = new LanduseData(
+                    layer.Name,
+                    layer.Color.ToArgb(),
+                    Guid.NewGuid());
+
+                // Update or add to initial use data
+                var initialListIndex = initialUses.FindIndex(u => u.Name == useData.Name);
+                if (initialListIndex != -1)
+                    initialUses[initialListIndex] = useData;
+                else
+                    initialUses.Add(useData);
+            }
+
+            useAtPoints = [];
+            var undefinedUseData = initialUses.Find(u => u.Name == AppLanduses.Undefined.Name);
+
             foreach (var obj in rhinoParcelObjs)
             {
                 var center = AreaMassProperties.Compute(obj.Geometry as Brep).Centroid;
                 string layerName = doc.Layers[obj.Attributes.LayerIndex].Name;
+                var useData = initialUses.Find(u => layerName.Equals(u.Name));
 
-                if (AppLanduses.TryGetUse(layerName, out var landuse))
-                    landuse = AppLanduses.Undefined;
+                if (useData == null)
+                    useData = undefinedUseData;
 
-                outputs.Add((center.ToBHoM(), landuse));
+                useAtPoints.Add((center.ToBHoM(), useData!));
             }
 
-            return outputs;
+            return initialUses;
         }
     }
 }

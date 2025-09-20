@@ -14,13 +14,14 @@ namespace ArchSitePlan.Core.ModelEditActions
             List<PlanarSurface>? parcelsToAdd = null,
             List<Guid>? clientIdsToModifyOrRemove = null,
             // use is only used during EditType.Edit
-            Landuse? use= null,
+            string? useName = null,
             // dividers only used during EditType.Divide
             List<ICurve>? dividers = null,
             // existingUsesAndCenters only used during EditType.Add
             List<(Landuse, Point)>? existingUsesAndCenters = null)
         {
-            use ??= AppLanduses.Undefined;
+            var use = FindCoreModelUse(useName);
+
             dividers ??= new();
             existingUsesAndCenters ??= new();
 
@@ -54,6 +55,14 @@ namespace ArchSitePlan.Core.ModelEditActions
             }
         }
 
+        private Landuse FindCoreModelUse(string? useName)
+        {
+            if (useName == null)
+                return CoreModelSingelton.Instance.GetUndefinedUse();
+
+            var use = CoreModelSingelton.Instance.Landuses.Find(x =>  x.Name == useName);
+            return use == null? CoreModelSingelton.Instance.GetUndefinedUse() : use;
+        }
 
         private static void ModifyLanduse(List<Guid> clientModelIDs, Landuse use)
         {

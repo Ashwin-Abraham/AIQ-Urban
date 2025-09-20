@@ -31,18 +31,29 @@ namespace ArchSitePlan.RhinoInterface.Helpers
             if (index != LayerConstants.DefaultLayerIndex)
                 doc.Layers[index].IsLocked = lockLayer;
         }
-        public static string GetParcelRhinoLayerName(Landuse use)
+        public static string ConstructParcelRhinoLayerName(Landuse use)
         {
             return LayerConstants.ParcelsLayer + "::" + use.Name;
         }
 
-        public static List<string> GetParcelRhinoLayerNames()
+        public static List<Landuse> GetLandusesInDocument(RhinoDoc doc)
         {
-            var parcelLayerNames = AppLanduses.Uses
-                .Select(use => LayerHelpers.GetParcelRhinoLayerName(use))
-                .ToList();
+            var parcelLayers = GetParcelRhinoLayers(doc);
+            var usesInModel = parcelLayers.Select(x => new Landuse(x.Name, x.Color, Guid.NewGuid())).ToList();
 
-            return parcelLayerNames;
+            return usesInModel;
+        }
+
+        public static List<Layer> GetParcelRhinoLayers(RhinoDoc doc)
+        {
+            var parcelLayerIndex = doc.Layers.FindByFullPath(LayerConstants.ParcelsLayer, LayerConstants.DefaultLayerIndex);
+            if (parcelLayerIndex == LayerConstants.DefaultLayerIndex)
+                return [];
+
+            var parcelLayer = doc.Layers[parcelLayerIndex];
+            var children = parcelLayer.GetChildren().ToList();
+
+            return children;
         }
 
         internal static void SetLayerColour(RhinoDoc doc, int layerIndex, Color color)

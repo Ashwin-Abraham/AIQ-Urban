@@ -13,11 +13,11 @@ using static ArchSitePlan.RhinoInterface.Constants.Enums;
 
 namespace ArchSitePlan.RhinoInterface.HTML_UI.MessagesFromUI
 {
-    public class DividerMessage:IMessageFromUI<StudyAreaMetricsMessage>
+    public class DividerMessage:IMessageFromUI<ModelStateMessage>
     {
         public TypeOfMessage MessageType { get; init; } = TypeOfMessage.Divider;
 
-        public StudyAreaMetricsMessage HandleMessage()
+        public ModelStateMessage HandleMessage()
         {
             RhinoEventHandler.HTMLViewModel.AppMode = ModellingTool.Dividers;
 
