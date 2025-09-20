@@ -42,13 +42,11 @@ public class BuildingLayoutFactoryBase
         int maxFloorCount = (int)Math.Floor(maxFloors);
 
         double totalFootprintArea = footprints.Sum(x => x.Area());
-        int startingFloorCount = (int)Math.Floor(targetGFA / totalFootprintArea);
-
-        double totalGFA = totalFootprintArea * startingFloorCount;
+        double totalGFA = 0;
 
         List<BuildingCreationSpecs> buildingsWIP =
             footprints
-            .Select(x => new BuildingCreationSpecs(x, x.IArea(), startingFloorCount))
+            .Select(x => new BuildingCreationSpecs(x, x.IArea(), 0))
             .ToList();
 
         // First pack the buildings to the brim
@@ -59,7 +57,11 @@ public class BuildingLayoutFactoryBase
             foreach (var buildingWIP in buildingsWIP)
             {
                 var totalGFACheck = totalGFA + buildingWIP.FootprintArea;
-                if (totalGFACheck > targetGFA || buildingWIP.FloorCount >= maxFloorCount) continue;
+                if (totalGFACheck > targetGFA)
+                    break;
+
+                if(buildingWIP.FloorCount >= maxFloorCount) 
+                    continue;
 
                 buildingWIP.FloorCount++;
                 totalGFA += buildingWIP.FootprintArea;
