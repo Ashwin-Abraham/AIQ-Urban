@@ -2,6 +2,7 @@
 using ArchSitePlan.Core.Pipeline.CreationData;
 using ArchSitePlan.OSM;
 using ArchSitePlan.RhinoInterface.Constants;
+using ArchSitePlan.RhinoInterface.HTML_UI;
 using ArchSitePlan.RhinoInterface.HTML_UI.HtmlCommsClasses;
 using ArchSitePlan.RhinoInterface.HTML_UI.MessageToUI;
 using ArchSitePlan.RhinoInterface.HTML_UI.Websockets;
@@ -59,7 +60,6 @@ public static class RhinoEventHandler
         RhinoDoc.SelectObjects -= _selectObjectHandler;
         RhinoDoc.DeselectObjects -= _deselectObjectHandler;
         RhinoDoc.DeselectAllObjects -= _deselectAllObjectsHandler;
-
     }
 
     public static void SubscribeModelEvents()
@@ -133,6 +133,7 @@ public static class RhinoEventHandler
     private static void ProcessEventPipepline(object? sender, EventArgs e)
     {
         if (EventLock) return;
+        if (!VueUI.WindowIsOpen) return;
 
         bool runEvents = _objectsForReplace.Count > 0 
             || _objectsForUndelete.Count > 0

@@ -25,15 +25,16 @@ public class OpenSitePlannerRhinoCommand : Command
     ///<returns>The command name as it appears on the Rhino command line.</returns>
     public override string EnglishName => "AIQ_Urban";
 
+    private const int _httpsServerPort = 6300;
+    private const int _webSocketServerPort = 6400;
     protected override Result RunCommand(RhinoDoc doc, RunMode mode)
     {
         try
         {
-            //Rhino.UI.Panels.OpenPanel(MainViewHost.PanelId);
-            //RhinoApp.WriteLine("Loaded plugin");
-            HttpServerComms.StartServer(6300);
-            WebSocketComms.StartServer(6400);
-            VueUI.OpenWindow();
+            HttpServerComms.StartServer(_httpsServerPort);
+            WebSocketComms.StartServer(_webSocketServerPort);
+            var window = VueUI.OpenWindow();
+            window.Closed += (sender, args) => HandleClosure(sender, args);
             UsageLogEmitter.RunPeriodicUsageLogEmitter();
 
             return Result.Success;
@@ -44,5 +45,22 @@ public class OpenSitePlannerRhinoCommand : Command
             return Result.Failure;
         }
         
+    }
+
+    private void HandleClosure(object sender, EventArgs e)
+    {
+        try
+        {
+            HttpServerComms.StopServer();
+            WebSocketComms.StopServer();
+            RhinoEventHandler.UnsubscribeModelEvents();
+            RhinoApp.WriteLine("AIQ Urban closed");
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show("AIQ Urban Plugin closure process incomplete. " +
+                "Consider saving and re-opening your document to avoid instability");
+        }
+       
     }
 }

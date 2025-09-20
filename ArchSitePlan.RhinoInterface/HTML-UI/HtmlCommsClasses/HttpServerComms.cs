@@ -26,6 +26,14 @@ public class HttpServerComms
         Task.Run(() => HandleRequestsAsync());
     }
 
+    public static void StopServer()
+    {
+        if (!_serverRunning) return;
+        _serverRunning = false;
+        _httpListener.Stop();
+        _httpListener.Close();
+    }
+
     private static async Task HandleRequestsAsync()
     {
         while (_serverRunning)
@@ -64,7 +72,6 @@ public class HttpServerComms
                     using (var reader = new System.IO.StreamReader(request.InputStream, request.ContentEncoding))
                     {
                         string requestBody = await reader.ReadToEndAsync();
-                        RhinoApp.WriteLine("Received data from Vue.js: " + requestBody);
 
                         // Process requestBody and perform operations in Rhino
                         var messageObj = MessageConverter.ConvertMessageToJson(requestBody);

@@ -1,12 +1,17 @@
-﻿using Eto.Drawing;
+﻿using ArchSitePlan.RhinoInterface.CoreModelInterface;
+using Eto.Drawing;
 using Eto.Forms;
 
 namespace ArchSitePlan.RhinoInterface.HTML_UI;
 
 public static class VueUI
 {
-    public static void OpenWindow()
+    public static bool WindowIsOpen { get; set; } = false;
+    public static Form? OpenWindow()
     {
+        if(WindowIsOpen)
+            return null;
+
         WebView webView = new WebView { 
             Height = 1000 ,
         };
@@ -28,5 +33,13 @@ public static class VueUI
 
         dialog.Content = layout;
         dialog.Show();
+
+        return dialog;
+    }
+
+    private static void ToggleWindowOpenVariable(object? sender, EventArgs e)
+    {
+        WindowIsOpen = false;
+        RhinoEventHandler.UnsubscribeModelEvents();
     }
 }
