@@ -169,11 +169,11 @@ public static class ModelBuilderPipelines
         CoreModelEditStepLibrary.SetLanduses(landuseData);
         CoreModelEditStepLibrary.AddOrUpdateRoad(transitData);
         CoreModelEditStepLibrary.AddOrUpdateStudyArea(studyData);
-        CoreModelEditStepLibrary.AddOrUpdateBulding(buildingData);
-        CoreModelEditStepLibrary.RecalculateParcelsAndRoadRoWs();
-        CoreModelEditStepLibrary.EditParcelUsesByClosestPoint(landuseAtPointsData);
         CoreModelEditStepLibrary.AddDivders(dividerData);
+        CoreModelEditStepLibrary.RecalculateParcelsAndRoadRoWs();
         CoreModelEditStepLibrary.DivideParcelsAndTransit();
+        CoreModelEditStepLibrary.EditParcelUsesByClosestPoint(landuseAtPointsData);
+        CoreModelEditStepLibrary.AddOrUpdateBulding(buildingData);
 
         //Output
         RhinoOutputPipeline(doc, currentAppMode, true);

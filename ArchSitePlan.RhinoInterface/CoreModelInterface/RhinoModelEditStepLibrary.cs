@@ -76,7 +76,7 @@ namespace ArchSitePlan.RhinoInterface.CoreModelInterface
                 var nearestMesh = meshEnvelopeObjs.MinBy(m => (m.Geometry as Rhino.Geometry.Mesh).ClosestPoint(testPoint).DistanceTo(testPoint));
 
                 if (buildingEnvelopeAndFloors.ContainsKey(nearestMesh))
-                    buildingEnvelopeAndFloors[nearestMesh].Append(floor);
+                    buildingEnvelopeAndFloors[nearestMesh].Add(floor);
                 else
                     buildingEnvelopeAndFloors.Add(nearestMesh, [floor]);
             }
