@@ -133,7 +133,6 @@ public static class RhinoEventHandler
     private static void ProcessEventPipepline(object? sender, EventArgs e)
     {
         if (EventLock) return;
-        if (!VueUI.WindowIsOpen) return;
 
         bool runEvents = _objectsForReplace.Count > 0 
             || _objectsForUndelete.Count > 0
