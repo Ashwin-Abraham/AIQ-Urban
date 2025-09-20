@@ -14,6 +14,7 @@ public static class VueUI
 
         WebView webView = new WebView { 
             Height = 1000 ,
+            Width = 420
         };
 
         var layout = new DynamicLayout { DefaultSpacing = new Size(5, 5), Padding = new Padding(0) };
