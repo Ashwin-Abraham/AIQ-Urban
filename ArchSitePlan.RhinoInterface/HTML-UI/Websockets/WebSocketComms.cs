@@ -46,7 +46,6 @@ public class WebSocketComms
         if (_wss != null)
         {
             _wss.Stop();
-            RhinoApp.WriteLine("WebSocket Server stopped.");
         }
     }
 }
