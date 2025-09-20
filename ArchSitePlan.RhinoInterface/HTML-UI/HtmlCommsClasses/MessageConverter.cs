@@ -25,7 +25,7 @@ public static class MessageConverter
                 return JsonConvert.DeserializeObject<TransitMessage>(json);
 
             case "landuse":
-                return JsonConvert.DeserializeObject<LanduseMessage>(json);
+                return JsonConvert.DeserializeObject<ChangeParcelLanduseMessage>(json);
 
             case "building":
                 return JsonConvert.DeserializeObject<BuildingMessage>(json);
@@ -63,6 +63,8 @@ public static class MessageConverter
             case "redo":
                 return JsonConvert.DeserializeObject<RedoMessage>(json);
 
+            case "modelstate":
+                return JsonConvert.DeserializeObject<CurrentModelStateMessage>(json);
             default:
                 throw new Exception($"Unsupported message type: {messageType}");
         }

@@ -1,6 +1,7 @@
 ﻿using ArchSitePlan.BHoM.Geometry.Extensions;
 using ArchSitePlan.Core.Comparer;
 using ArchSitePlan.Core.Constants;
+using ArchSitePlan.Core.Pipeline.CreationData;
 using BH.Engine.Geometry;
 using BH.oM.Geometry;
 using Newtonsoft.Json;
@@ -14,6 +15,7 @@ namespace ArchSitePlan.Core.Models
         public List<Road> Roads;
         public List<PlanarSurface> ROWs { get; set; }
         public List<Parcel> Parcels { get; set; } 
+        public List<Landuse> Landuses { get; set; }
         public List<Building> Buildings { get; set; } = new List<Building>();
 
         [JsonIgnore]
@@ -30,6 +32,8 @@ namespace ArchSitePlan.Core.Models
 
             _allStudy = new(null, Guid.NewGuid(), CoreGeneralConstants.FullProjectStudyName, new(), new(), new());
             Studies = new List<StudyArea>() { _allStudy };
+
+            Landuses = AppLanduses.InitialUses.ToList();
         }
 
         public void AddStudyArea(StudyArea studyArea) => Studies.Add(studyArea);
@@ -166,6 +170,7 @@ namespace ArchSitePlan.Core.Models
             Buildings = new();
             Parcels= new();
             Dividers= new();
+            Landuses = AppLanduses.InitialUses.ToList();
             ResetStudyAreas();
         }
 
@@ -209,6 +214,23 @@ namespace ArchSitePlan.Core.Models
             }
 
             return widthColors;
+        }
+
+        public Landuse GetUndefinedUse()
+        {
+            var undefinedTag = AppLanduses.Undefined;
+            return Landuses.First(
+                lu => lu.Name == undefinedTag.Name
+                || lu.Id == undefinedTag.Id);
+        }
+
+        internal Landuse GetUse(LanduseData useData)
+        {
+            var use = Landuses.First(
+                lu => lu.Name == useData.Name
+                || lu.Id == useData.Id);
+
+            return use == null? GetUndefinedUse() : use;
         }
     }
 }

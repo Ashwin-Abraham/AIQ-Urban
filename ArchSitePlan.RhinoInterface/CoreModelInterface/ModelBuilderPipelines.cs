@@ -1,6 +1,5 @@
 ﻿using ArchSitePlan.Core.Factories.Models;
 using ArchSitePlan.Core.ModelEditActions;
-using ArchSitePlan.Core.Models;
 using ArchSitePlan.Core.Pipeline;
 using ArchSitePlan.Core.Pipeline.CreationData;
 using Eto.Forms;
@@ -8,8 +7,6 @@ using Rhino;
 using static ArchSitePlan.RhinoInterface.Constants.Enums;
 
 namespace ArchSitePlan.RhinoInterface.CoreModelInterface;
-
-public record PipelineResult(bool Success, string Message);
 
 public static class ModelBuilderPipelines
 {
@@ -29,7 +26,7 @@ public static class ModelBuilderPipelines
         RhinoOutputPipeline(RhinoDoc.ActiveDoc, ModellingTool.Transit, true);
     }
 
-    public static void ChangeParcelUsePipeline(List<Guid> parcelIds, Landuse newUse)
+    public static void ChangeParcelUsePipeline(List<Guid> parcelIds, string newUse)
     {
         if (!RhinoEventHandler.ValidLicense)
             return;
@@ -84,7 +81,7 @@ public static class ModelBuilderPipelines
         RhinoOutputPipeline(RhinoDoc.ActiveDoc, appMode, true);
     }
 
-    internal static void AutoGenerateBuildingsOnParcel( List<BuildingLayout> layoutsToAdd)
+    internal static void AutoGenerateBuildingsOnParcel(List<BuildingLayout> layoutsToAdd)
     {
         if (!RhinoEventHandler.ValidLicense)
             return;
@@ -113,7 +110,8 @@ public static class ModelBuilderPipelines
             RhinoOutputPipeline(doc, currentAppMode, true);
     }
 
-    internal static void AddStudyAreaPipeline(RhinoDoc doc, 
+    internal static void AddStudyAreaPipeline(
+        RhinoDoc doc, 
         List<StudyData> studyData,
         ModellingTool currentAppMode)
     {
@@ -160,7 +158,7 @@ public static class ModelBuilderPipelines
         RhinoEventHandler.SubscribeModelEvents();
 
         // Extract required data
-        var landuseData = RhinoModelEditStepLibrary.ExtractRhinoLanduseData(doc);
+        var landuseData = RhinoModelEditStepLibrary.ExtractRhinoLanduseData(doc, out var landuseAtPointsData);
         var transitData = RhinoModelEditStepLibrary.ExtractTransitFromRhino(doc);
         var studyData = RhinoModelEditStepLibrary.ExtractStudyAreasFromRhino(doc);
         var buildingData = RhinoModelEditStepLibrary.ExtractBuildingCreationDataFromRhino(doc);
@@ -168,11 +166,12 @@ public static class ModelBuilderPipelines
 
         // Edit Core Model
         CoreModelEditStepLibrary.ClearCoreModel();
+        CoreModelEditStepLibrary.SetLanduses(landuseData);
         CoreModelEditStepLibrary.AddOrUpdateRoad(transitData);
         CoreModelEditStepLibrary.AddOrUpdateStudyArea(studyData);
         CoreModelEditStepLibrary.AddOrUpdateBulding(buildingData);
         CoreModelEditStepLibrary.RecalculateParcelsAndRoadRoWs();
-        CoreModelEditStepLibrary.EditParcelUsesByClosestPoint(landuseData);
+        CoreModelEditStepLibrary.EditParcelUsesByClosestPoint(landuseAtPointsData);
         CoreModelEditStepLibrary.AddDivders(dividerData);
         CoreModelEditStepLibrary.DivideParcelsAndTransit();
 
@@ -211,16 +210,6 @@ public static class ModelBuilderPipelines
         CoreModelEditStepLibrary.RecalculateParcelsAndRoadRoWs();
         CoreModelEditStepLibrary.DivideParcelsAndTransit();
         RhinoOutputPipeline(doc, currentAppMode, true);
-    }
-
-    internal static void DeleteParcelUseAndReassignUseBasedObjs(RhinoDoc doc, string oldUseName)
-    {
-        if (!AppLanduses.TryDeleteUse(oldUseName, out var deletedUse))
-            return;
-
-        CoreModelEditStepLibrary.ReplaceParcelUse(deletedUse!, AppLanduses.Undefined);
-        CoreModelEditStepLibrary.ReplaceBuildingUse(deletedUse!, AppLanduses.Undefined);
-        RhinoOutputPipeline(doc, ModellingTool.Zones, true);
     }
 
     internal static void TryRollBack()

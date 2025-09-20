@@ -169,7 +169,7 @@ public static class RhinoEventHandler
         ResetEventQueueAndObjects();
 
         // Output metrics
-        WS.SendMessage(new StudyAreaMetricsMessage());
+        WS.SendMessage(new ModelStateMessage());
     }
 
     public static void ResetEventQueueAndObjects()

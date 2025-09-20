@@ -34,7 +34,6 @@ public class OpenSitePlannerRhinoCommand : Command
             HttpServerComms.StartServer(6300);
             WebSocketComms.StartServer(6400);
             VueUI.OpenWindow();
-            ModelBuilderPipelines.ReloadAppPipeline(doc, ModellingTool.Transit);
             UsageLogEmitter.RunPeriodicUsageLogEmitter();
 
             return Result.Success;

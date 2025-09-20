@@ -12,13 +12,13 @@ using static ArchSitePlan.RhinoInterface.Constants.Enums;
 
 namespace ArchSitePlan.RhinoInterface.HTML_UI.MessagesFromUI;
 
-public class TransitMessage : IMessageFromUI<StudyAreaMetricsMessage>
+public class TransitMessage : IMessageFromUI<ModelStateMessage>
 {
     public TypeOfMessage MessageType { get; init; } = TypeOfMessage.Transit;
     public double RoadWidth { get; init; }
     public double RightPavementWidth { get; init; }
     public double LeftPavementWidth { get; init; }
-    public StudyAreaMetricsMessage HandleMessage()
+    public ModelStateMessage HandleMessage()
     {
         RhinoEventHandler.HTMLViewModel.AppMode = ModellingTool.Transit;
 
