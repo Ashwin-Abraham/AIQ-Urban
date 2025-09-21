@@ -25,13 +25,13 @@ public class ModelStateMessage :IMessageToUI
     public ModelStateMessage()
     {
         StudyAreaDataForUI = CoreModelSingelton.Instance.Studies
-            .Select(x => RefreshActiveStudyAndMetrics(x))
+            .Select(x => ConvertToStudyForUI(x))
             .ToList();
 
         Landuses = CoreModelSingelton.Instance.Landuses;
     }
 
-    private static StudyAreasDataForUI RefreshActiveStudyAndMetrics(StudyArea study)
+    private static StudyAreasDataForUI ConvertToStudyForUI(StudyArea study)
     {
         return new(
             study.Name,
@@ -39,7 +39,7 @@ public class ModelStateMessage :IMessageToUI
             RoadAreaData: ExtractRoadAreaGraphData(study.Metrics),
             UrbanLandAreaData: ExtractLandUseGraphData(study.Metrics),
             UrbanBuiltAreaData: ExtractBuiltUseGraphData(study.Metrics),
-            study.Metrics.BoundedArea,
+            study.Metrics.DevelopableArea,
             study.Metrics.BuiltArea,
             study.Metrics.FAR,
             study.Metrics.CoverageRatio);

@@ -11,13 +11,9 @@ namespace ArchSitePlan.Core.Metrics
     public class StudyAreaMetrics
     {
         public double BoundedArea { get; private set; } = 25;
-        public double BoundedArea_Display { get; private set; } = 25;
         public double FAR { get; private set; } = 12;
-        public double FAR_Display { get; private set; } = 12;
         public double DevelopableArea { get; private set; } = 5;
-        public double DevelopableArea_Display { get; private set; } = 5;
         public double BuiltArea { get; private set; } = 2;
-        public double BuiltArea_Display { get; private set; } = 2;
         public double BuiltCoverageArea { get; private set; } = 0;
         public double CoverageRatio { get; private set; } = 0;
         public List<ParcelMetrics> ParcelMetrics = new();
@@ -39,7 +35,6 @@ namespace ArchSitePlan.Core.Metrics
             FAR = BuiltArea / DevelopableArea;
             BuiltCoverageArea = SetBuiltCoverage(buildings);
             CoverageRatio = BuiltCoverageArea / DevelopableArea;
-            PopulateDisplayAreas();
         }
 
         private double SetBuiltCoverage(List<Building> buildings)
@@ -76,14 +71,6 @@ namespace ArchSitePlan.Core.Metrics
             {
                 TransitMetrics.Add(new TransitMetrics(roadType));
             }    
-        }
-
-        private void PopulateDisplayAreas()
-        {
-            BoundedArea_Display = BoundedArea.Round();
-            FAR_Display = FAR.Round(CoreGeneralConstants.DecimalPts);
-            DevelopableArea_Display = DevelopableArea.Round();
-            BuiltArea_Display = BuiltArea.Round();
         }
 
         public StudyAreaMetrics(

@@ -27,7 +27,7 @@ namespace ArchSitePlan.Core.Models
             Boundary = boundary;
             Id = id;
             Name = name;
-            Area = Math.Abs(boundary?.IArea()?? 0);
+            Area = parcels.Sum(x => x.Area());
             Metrics = new StudyAreaMetrics(
                 boundary,
                 parcels,
