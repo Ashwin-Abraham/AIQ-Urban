@@ -26,7 +26,7 @@ public static class VueUI
         var dialog = new Form
         {
             Title = "Rhino Web Plugin",
-            Width = 350,
+            Width = 420,
             Height = 800,
             Topmost = true,
             Opacity=0.5
