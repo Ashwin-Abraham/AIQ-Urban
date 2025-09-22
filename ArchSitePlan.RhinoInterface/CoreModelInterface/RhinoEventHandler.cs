@@ -23,7 +23,7 @@ public static class RhinoEventHandler
     public static bool ModellingToolModeActive = false;
     public static bool ValidLicense = true;
 
-    public static UIViewModel HTMLViewModel = new();
+    public static UIViewModel HTMLViewModel = new(ModellingTool.Transit);
 
     private static bool _isReplacement = false;
     private static List<RhinoObject> _objectsForReplace = new();
@@ -429,41 +429,45 @@ public static class RhinoEventHandler
 
             RhinoApp.InvokeOnUiThread(() =>
             {
-                var message = SelectedObjectMetricsMessage.FromEmpty();
+                // Construct messages
+                var roads = CoreModelSingelton.Instance.Roads.Where(rd => selectedIDs.Contains(rd.CenterLineId)).ToList();
+                var roadMessage = SelectedObjectMetricsMessage.FromRoads(roads);
+
+                var parcels = CoreModelSingelton.Instance.Parcels.Where(p => selectedIDs.Contains(p.ClientModelId)).ToList();
+                var parcelMessage = SelectedObjectMetricsMessage.FromParcels(parcels);
+
+                var buildings = CoreModelSingelton.Instance.Buildings.Where(bldg => selectedIDs.Contains(bldg.EnvelopeId)).ToList();
+                var buildingMessage = SelectedObjectMetricsMessage.FromBuildings(buildings);
+
+                var dividers = CoreModelSingelton.Instance.Dividers.Where(bldg => selectedIDs.Contains(bldg.Id)).ToList();
+                var dividerMessage = SelectedObjectMetricsMessage.FromDividers(dividers);
+
+                // Prioritise message based on app mode
+                List<SelectedObjectMetricsMessage?> messagesInPriority = [];
 
                 switch (HTMLViewModel.AppMode)
                 {
                     case ModellingTool.Transit:
-                        var roads = CoreModelSingelton.Instance.Roads.Where(rd => selectedIDs.Contains(rd.CenterLineId)).ToList();
-                        
-                        if (roads.Count > 0)
-                            message = SelectedObjectMetricsMessage.FromRoads(roads);
+                        messagesInPriority = [roadMessage, parcelMessage, dividerMessage, buildingMessage];
                         break;
 
                     case ModellingTool.LandUse:
-                        var parcels = CoreModelSingelton.Instance.Parcels.Where(p => selectedIDs.Contains(p.ClientModelId)).ToList();
-
-                        if (parcels.Count > 0)
-                            message = SelectedObjectMetricsMessage.FromParcels(parcels);
+                        messagesInPriority = [parcelMessage, roadMessage, buildingMessage, dividerMessage];
                         break;
 
                     case ModellingTool.AutoBuilding:
                     case ModellingTool.Building:
-                        var buildings = CoreModelSingelton.Instance.Buildings.Where(bldg => selectedIDs.Contains(bldg.EnvelopeId)).ToList();
-
-                        if (buildings.Count > 0) 
-                            message = SelectedObjectMetricsMessage.FromBuildings(buildings);
+                        messagesInPriority = [buildingMessage, parcelMessage, roadMessage, dividerMessage, ];
                         break;
 
                     case ModellingTool.Dividers:
-                        var dividers = CoreModelSingelton.Instance.Dividers.Where(bldg => selectedIDs.Contains(bldg.Id)).ToList();
-
-                        if (dividers.Count > 0)
-                            message = SelectedObjectMetricsMessage.FromDividers(dividers);
+                        messagesInPriority = [dividerMessage, roadMessage, parcelMessage, buildingMessage];
                         break;
-
                 }
-                message.BroadcastMessage();
+
+                var selectedMessage = messagesInPriority.Where(x => x != null).FirstOrDefault();
+
+                (selectedMessage ?? SelectedObjectMetricsMessage.FromEmpty()).BroadcastMessage();
             });
         }
         catch (Exception ex)

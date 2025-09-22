@@ -1,12 +1,24 @@
 ﻿using System.Net.NetworkInformation;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace ArchSitePlan.Licensing
 {
     public static class MachineCodeHelpers
     {
         // Method to get MAC Address on Windows and macOS
-        public static string GetMacAddress()
+        public static string GetHashedMacAddress()
+        {
+            string mac = GetMacAddress(); 
+            using (var sha256 = SHA256.Create())
+            {
+                byte[] bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(mac));
+                return Convert.ToBase64String(bytes);
+            }
+        }
+
+        private static string GetMacAddress()
         {
             // Retrieve the MAC address based on the platform
             string platformName = "Unknown OS";
