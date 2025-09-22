@@ -22,8 +22,11 @@ internal class SelectedObjectMetricsMessage:IMessageToUI
         Metrics = metrics;
     }
 
-    public static SelectedObjectMetricsMessage FromBuildings(List<Building> buildings)
+    public static SelectedObjectMetricsMessage? FromBuildings(List<Building> buildings)
     {
+        if (buildings.Count == 0)
+            return null;
+
         var bua = buildings.Sum(x => x.BUA()).Round(1);
         var uses = buildings.Select(x => x.Use.Name).Distinct().ToList();
         string use = _multipleObjects;
@@ -33,16 +36,19 @@ internal class SelectedObjectMetricsMessage:IMessageToUI
         var footprintArea = buildings.Sum(x => x.FootprintArea()).Round(1);
 
         (string Title, string Data)[] items = [
-            ("Use: ", use),
-            ("Built Area: ", bua.ToString()),
-            ("Footprint Area: ", footprintArea.ToString())
+            ("Use", use),
+            ("Built Area", bua.ToString()),
+            ("Footprint Area", footprintArea.ToString())
             ];
 
         return new SelectedObjectMetricsMessage("Building", buildings.Count, items.ToList());
     }
 
-    public static SelectedObjectMetricsMessage FromParcels(List<Parcel> parcels)
+    public static SelectedObjectMetricsMessage? FromParcels(List<Parcel> parcels)
     {
+        if (parcels.Count == 0)
+            return null;
+
         var uses = parcels.Select(x => x.LandUse.Name).Distinct().ToList();
         string use = _multipleObjects;
         if (uses.Count == 1)
@@ -55,18 +61,21 @@ internal class SelectedObjectMetricsMessage:IMessageToUI
         var perimeter = parcels.Sum(x => x.Perimeter()).Round(1);
 
         (string Title, string Data)[] items = [
-            ("Use: ", use),
-            ("Perimeter: ", perimeter.ToString()),
-            ("Site Area: ", siteArea.ToString()),
-            ("Built Area: ", bua.ToString()),
-            ("FAR: ", far.ToString()),
+            ("Use", use),
+            ("Perimeter", perimeter.ToString()),
+            ("Site Area", siteArea.ToString()),
+            ("Built Area", bua.ToString()),
+            ("FAR", far.ToString()),
            ];
 
         return new SelectedObjectMetricsMessage("Parcel", parcels.Count, items.ToList());
     }
 
-    public static SelectedObjectMetricsMessage FromRoads(List<Road> roads)
+    public static SelectedObjectMetricsMessage? FromRoads(List<Road> roads)
     {
+        if (roads.Count == 0)
+            return null;
+
         var widths = roads.Select(x => x.Width).Distinct().ToList();
         string width = _multipleObjects;
         if (widths.Count == 1)
@@ -75,8 +84,8 @@ internal class SelectedObjectMetricsMessage:IMessageToUI
         var length = roads.Sum(x => x.Centerline.Length()).Round(1);
 
         (string Title, string Data)[] items = [
-            ("Width: ", width),
-            ("Length: ", length.ToString()),
+            ("Width", width),
+            ("Length", length.ToString()),
            ];
 
         return new SelectedObjectMetricsMessage("Transit", roads.Count, items.ToList());
@@ -95,7 +104,7 @@ internal class SelectedObjectMetricsMessage:IMessageToUI
         var length = dividers.Sum(x => x.Curve.ILength()).Round(1);
 
         (string Title, string Data)[] items = [
-            ("Length: ", length.ToString()),
+            ("Length", length.ToString()),
            ];
 
         return new SelectedObjectMetricsMessage("Divider", dividers.Count, items.ToList());

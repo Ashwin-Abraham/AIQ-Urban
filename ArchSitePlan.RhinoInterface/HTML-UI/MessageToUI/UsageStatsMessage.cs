@@ -5,7 +5,7 @@ namespace ArchSitePlan.RhinoInterface.HTML_UI.MessageToUI;
 public class UsageStatsMessage : IMessageToUI
 {
     public string Type => nameof(UsageStatsMessage);
-    public string UserId => MachineCodeHelpers.GetMacAddress();
+    public string UserId => MachineCodeHelpers.GetHashedMacAddress();
     public string LastUsed => DateTime.UtcNow.ToString();
     public List<ToolUseData> ToolUseStats { get; set; } = [];
 
