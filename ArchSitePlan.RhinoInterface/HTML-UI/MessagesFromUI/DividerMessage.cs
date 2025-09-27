@@ -62,7 +62,7 @@ namespace ArchSitePlan.RhinoInterface.HTML_UI.MessagesFromUI
             var vm = RhinoEventHandler.HTMLViewModel;
             if (!dividerData.Any()) return new();
 
-            ModelBuilderPipelines.AddOrUpdateParcelDividerPipeline(dividerData);
+            ModelBuilderPipelines.AddOrUpdateParcelDividerPipeline(dividerData, true);
 
             return new();
         }

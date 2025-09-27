@@ -93,12 +93,6 @@ public class RhinoBuildingData
 
         GeometryHelpers.RescaleMesh(rhinoMesh, (double)floorCount * floorHeight);
 
-        var floorPlates = GeometryHelpers
-                    .GetContours(rhinoMesh, floorHeight)
-                    .Select(c => c.ToBHoM())
-                    .Select(c => new PlanarSurface(c, new List<ICurve>()))
-                    .ToList();
-
         return new RhinoBuildingData(rhinoMesh, floorHeight, obj.Id);
     }
 

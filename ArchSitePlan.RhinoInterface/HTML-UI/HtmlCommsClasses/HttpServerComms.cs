@@ -77,7 +77,9 @@ public class HttpServerComms
                         var messageObj = MessageConverter.ConvertMessageToJson(requestBody);
                         RhinoEventHandler.UseStatsMessage.Increment(messageObj.MessageType.ToString());
 
+                        RhinoEventHandler.EventLock = true;
                         var responseMessage = messageObj.HandleMessage();
+                        RhinoEventHandler.EventLock = false;
 
                         response = AddCORSHeaders(response);
 

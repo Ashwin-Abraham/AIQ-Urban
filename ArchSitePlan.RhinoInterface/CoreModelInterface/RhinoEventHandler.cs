@@ -19,7 +19,7 @@ namespace ArchSitePlan.RhinoInterface.CoreModelInterface;
 
 public static class RhinoEventHandler
 {
-    public static bool EventLock = false;
+    public static bool EventLock { get; set; } = false;
     public static bool ModellingToolModeActive = false;
     public static bool ValidLicense = true;
 
@@ -42,7 +42,6 @@ public static class RhinoEventHandler
 
     public static UsageStatsMessage UseStatsMessage = new();
 
-    private static bool _eventsSubscribed = false;
     // TODO: Implement osm objects data pop up
     // RhinoDoc.SelectObjects += (sender, args) => ShowObjectInfoEvent(args);
 
@@ -50,8 +49,6 @@ public static class RhinoEventHandler
 
     public static void UnsubscribeModelEvents()
     {
-        if (!_eventsSubscribed) return;
-
         RhinoApp.Idle -= _processPipeline;
         RhinoDoc.ReplaceRhinoObject -= _replacementQueueBuilder;
         RhinoDoc.AddRhinoObject -= _addObjectQueueBuilder;
@@ -60,12 +57,12 @@ public static class RhinoEventHandler
         RhinoDoc.SelectObjects -= _selectObjectHandler;
         RhinoDoc.DeselectObjects -= _deselectObjectHandler;
         RhinoDoc.DeselectAllObjects -= _deselectAllObjectsHandler;
+        RhinoDoc.BeginOpenDocument -= (sender, args) => EventLock = true;
+        RhinoDoc.EndOpenDocument -= (sender, args) => EventLock = false;
     }
 
     public static void SubscribeModelEvents()
     {
-        if (_eventsSubscribed) return;
-
         RhinoApp.Idle += _processPipeline;
         RhinoDoc.ReplaceRhinoObject += _replacementQueueBuilder;
         RhinoDoc.AddRhinoObject += _addObjectQueueBuilder;
@@ -74,6 +71,9 @@ public static class RhinoEventHandler
         RhinoDoc.SelectObjects += _selectObjectHandler;
         RhinoDoc.DeselectObjects += _deselectObjectHandler;
         RhinoDoc.DeselectAllObjects += _deselectAllObjectsHandler;
+        RhinoDoc.BeginOpenDocument += (sender, args) => EventLock = true;
+        RhinoDoc.EndOpenDocument += (sender, args) => ModelBuilderPipelines.ReloadAppPipeline(RhinoDoc.ActiveDoc, HTMLViewModel.AppMode);
+        RhinoDoc.EndOpenDocument += (sender, args) => EventLock = false;
     }
 
     private static void ShowObjectInfoEvent(RhinoObjectSelectionEventArgs args)
@@ -140,17 +140,17 @@ public static class RhinoEventHandler
             || _objectsForRemoval.Count > 0
             ;
 
+        if (!runEvents) return;
+
         // Pick the actions to execute.
         // Because Rhino sometimes sends both remove + add as well as replace objects events, we need to pick the one of these pathways only
         _objectsForAddition = _objectsForAddition.Where(id => !_objectsForReplace.Contains(id)).ToList();
         _objectsForRemoval = _objectsForRemoval.Where(id => !_objectsForReplace.Contains(id)).ToList();
 
-        if (!runEvents) return;
-
         // Rhino events are a little peculiar in that a replacement event also
         // triggers an add+remove event. 
         // However SOME replacement events like Curve Join are merely remove + add events
-         if (_objectsForReplace.Count > 0) 
+           if (_objectsForReplace.Count > 0) 
             RunReplacementOperations(_objectsForReplace);
 
         else
@@ -162,8 +162,11 @@ public static class RhinoEventHandler
                 RunObjectRemovalOperations(_objectsForRemoval);
         }
 
-        if (_objectsForUndelete.Count > 0)
-            RunCoreModelUndoOperations(_objectsForUndelete);
+        //if (_objectsForUndelete.Count > 0)
+        //    RunCoreModelUndoOperations(_objectsForUndelete);
+
+        // Output to Rhino
+        ModelBuilderPipelines.RhinoOutputPipeline(RhinoDoc.ActiveDoc, HTMLViewModel.AppMode, true);
 
         // Clean queue
         ResetEventQueueAndObjects();
@@ -296,8 +299,8 @@ public static class RhinoEventHandler
         List<Guid> ids = rhinoCreationData.Select(x => x.ID).ToList();
 
         RhinoDoc doc = RhinoDoc.ActiveDoc;
-        ModelBuilderPipelines.DeleteBuildingPipeline(doc, buildingData, HTMLViewModel.AppMode);
-        ModelBuilderPipelines.AddOrUpdateBuldingPipeline(buildingData, HTMLViewModel.AppMode);
+        ModelBuilderPipelines.DeleteBuildingPipeline(doc, buildingData, HTMLViewModel.AppMode, false);
+        ModelBuilderPipelines.AddOrUpdateBuldingPipeline(buildingData, HTMLViewModel.AppMode, false);
     }
 
     private static void RunObjectAddOperations(List<RhinoObject> newObjects)
@@ -313,7 +316,7 @@ public static class RhinoEventHandler
             {
                 var result = new TransitInputValidator().ValidateInput(newObjects);
                 if (result.ValidObjects.Count == 0)
-                    return;
+                    throw new Exception(result.Message);
 
                 var roadData = RhinoRoadData.FromExisting(result.ValidObjects).ToList();
                 var coreRoadData = RhinoRoadData.ToCoreModelCreationData(roadData).ToList();
@@ -329,7 +332,7 @@ public static class RhinoEventHandler
             {
                 var result = new DividerInputValidator(true).ValidateInput(newObjects);
                 if(result.ValidObjects.Count == 0)
-                    return;
+                    throw new Exception(result.Message);
 
                 var rhinoDividerData = RhinoDividerData.Create(result.ValidObjects);
                 var coreDividerData = RhinoDividerData.ToCoreModelData(rhinoDividerData).ToList();

@@ -20,6 +20,14 @@ public static class DoubleExtensions
         return number > other;
     }
 
+    public static bool LessThan(this double number, double other, double tolerance = 1E-05)
+    {
+        if (number.AlmostEquals(other, tolerance))
+            return false;
+
+        return number < other;
+    }
+    
     public static bool LessThanORAlmostEquals(this double number, double other, double tolerance = 1E-05)
     {
         if (number < other) return true;

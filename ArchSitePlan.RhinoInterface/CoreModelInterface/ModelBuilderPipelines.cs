@@ -10,7 +10,9 @@ namespace ArchSitePlan.RhinoInterface.CoreModelInterface;
 
 public static class ModelBuilderPipelines
 {
-    public static void AddOrUpdateRoadPipeline(List<TransitData> creationData)
+    public static void AddOrUpdateRoadPipeline(
+        List<TransitData> creationData,
+        bool updateRhino = false)
     {
         if (!RhinoEventHandler.ValidLicense)
         {
@@ -23,10 +25,14 @@ public static class ModelBuilderPipelines
         CoreModelEditStepLibrary.RecalculateParcelsAndRoadRoWs();
         CoreModelEditStepLibrary.DivideParcelsAndTransit();
         CoreModelEditStepLibrary.RefreshBuildingUse();
-        RhinoOutputPipeline(RhinoDoc.ActiveDoc, ModellingTool.Transit, true);
+
+        if(updateRhino)
+            RhinoOutputPipeline(RhinoDoc.ActiveDoc, ModellingTool.Transit, true);
     }
 
-    public static void ChangeParcelUsePipeline(List<Guid> parcelIds, string newUse)
+    public static void ChangeParcelUsePipeline(
+        List<Guid> parcelIds,
+        string newUse)
     {
         if (!RhinoEventHandler.ValidLicense)
             return;
@@ -35,16 +41,9 @@ public static class ModelBuilderPipelines
         CoreModelEditStepLibrary.RefreshBuildingUse();
     }
 
-    public static void RefreshStudyAreaMetricsPipeline()
-    {
-        if (!RhinoEventHandler.ValidLicense)
-            return;
-
-        CoreModelEditStepLibrary.DivideParcelsAndTransit();
-        CoreModelEditStepLibrary.RefreshStudyAreaMetrics();
-    }
-
-    public static void AddOrUpdateParcelDividerPipeline(List<DividerData> dividerData)
+    public static void AddOrUpdateParcelDividerPipeline(
+        List<DividerData> dividerData,
+        bool updateRhino = false)
     {
         if (!RhinoEventHandler.ValidLicense)
             return;
@@ -54,11 +53,15 @@ public static class ModelBuilderPipelines
         CoreModelEditStepLibrary.RecalculateParcelsAndRoadRoWs();
         CoreModelEditStepLibrary.DivideParcelsAndTransit();
         CoreModelEditStepLibrary.RefreshBuildingUse();
-        RhinoOutputPipeline(RhinoDoc.ActiveDoc, ModellingTool.Dividers, true);
+
+        if(updateRhino)
+            RhinoOutputPipeline(RhinoDoc.ActiveDoc, ModellingTool.Dividers, true);
     }
+
     public static void DeleteParcelDividers(RhinoDoc doc, 
         List<DividerData> dividerData,
-        ModellingTool currentAppMode)
+        ModellingTool currentAppMode,
+        bool updateRhino = false)
     {
         if (!RhinoEventHandler.ValidLicense)
             return;
@@ -67,10 +70,14 @@ public static class ModelBuilderPipelines
         CoreModelEditStepLibrary.DivideParcelsAndTransit();
         CoreModelEditStepLibrary.RefreshBuildingUse();
 
-        RhinoOutputPipeline(doc, currentAppMode, true);
+        if(updateRhino)
+            RhinoOutputPipeline(doc, currentAppMode, true);
     }
 
-    internal static void AddOrUpdateBuldingPipeline(List<BuildingData> buildingData, ModellingTool appMode)
+    internal static void AddOrUpdateBuldingPipeline(
+        List<BuildingData> buildingData,
+        ModellingTool appMode,
+        bool triggerRhinoUpdate = false)
     {
         if (!RhinoEventHandler.ValidLicense)
             return;
@@ -78,10 +85,14 @@ public static class ModelBuilderPipelines
         CoreModelEditStepLibrary.AddOrUpdateBulding(buildingData);
         CoreModelEditStepLibrary.RefreshBuildingUse();
         CoreModelEditStepLibrary.RefreshStudyAreaMetrics();
-        RhinoOutputPipeline(RhinoDoc.ActiveDoc, appMode, true);
+
+        if(triggerRhinoUpdate)
+            RhinoOutputPipeline(RhinoDoc.ActiveDoc, appMode, true);
     }
 
-    internal static void AutoGenerateBuildingsOnParcel(List<BuildingLayout> layoutsToAdd)
+    internal static void AutoGenerateBuildingsOnParcel(
+        List<BuildingLayout> layoutsToAdd,
+        bool updateRhino = false)
     {
         if (!RhinoEventHandler.ValidLicense)
             return;
@@ -91,7 +102,9 @@ public static class ModelBuilderPipelines
         var buildings = layoutsToAdd.SelectMany(x=> x.Buildings).ToList();
         CoreModelEditStepLibrary.AddOrUpdateBulding(buildings);
         CoreModelEditStepLibrary.RefreshBuildingUse();
-        RhinoOutputPipeline(RhinoDoc.ActiveDoc, RhinoEventHandler.HTMLViewModel.AppMode, true);
+
+        if(updateRhino)
+            RhinoOutputPipeline(RhinoDoc.ActiveDoc, RhinoEventHandler.HTMLViewModel.AppMode, true);
     }
 
     internal static void DeleteBuildingPipeline(
@@ -113,7 +126,8 @@ public static class ModelBuilderPipelines
     internal static void AddStudyAreaPipeline(
         RhinoDoc doc, 
         List<StudyData> studyData,
-        ModellingTool currentAppMode)
+        ModellingTool currentAppMode,
+        bool triggerRhinoUpdate = false)
     {
         if (!RhinoEventHandler.ValidLicense)
             return;
@@ -122,7 +136,9 @@ public static class ModelBuilderPipelines
         CoreModelEditStepLibrary.RecalculateParcelsAndRoadRoWs();
         CoreModelEditStepLibrary.DivideParcelsAndTransit();
         CoreModelEditStepLibrary.RefreshBuildingUse();
-        RhinoOutputPipeline(doc, currentAppMode, true);
+
+        if(triggerRhinoUpdate)
+            RhinoOutputPipeline(doc, currentAppMode, true);
     }
 
     internal static void DeleteStudyAreaPipeline(RhinoDoc doc, 
@@ -141,13 +157,16 @@ public static class ModelBuilderPipelines
 
     internal static void UpdateStudyAreas(RhinoDoc doc, 
         List<StudyData> studyData,
-        ModellingTool currentAppMode)
+        ModellingTool currentAppMode,
+        bool updateRhino = false)
     {
         if (!RhinoEventHandler.ValidLicense)
             return;
 
         AddStudyAreaPipeline(doc, studyData, currentAppMode);
-        RhinoOutputPipeline(doc, currentAppMode, true);
+
+        if(updateRhino)
+            RhinoOutputPipeline(doc, currentAppMode, true);
     }
 
     public static void ReloadAppPipeline(RhinoDoc doc, ModellingTool currentAppMode)
@@ -209,7 +228,6 @@ public static class ModelBuilderPipelines
         CoreModelEditStepLibrary.TryRemoveRoad(transitData);
         CoreModelEditStepLibrary.RecalculateParcelsAndRoadRoWs();
         CoreModelEditStepLibrary.DivideParcelsAndTransit();
-        RhinoOutputPipeline(doc, currentAppMode, true);
     }
 
     internal static void TryRollBack()

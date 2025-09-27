@@ -67,7 +67,8 @@ public class LanduseActions
     /// <param name="use"></param>
     private static void ReplaceCoreModelUse(Landuse use)
     {
-        if(use.Id == _undefined.Id) return;
+        if(use.Id == _undefined.Id || use.Name.Equals(_undefined.Name, StringComparison.OrdinalIgnoreCase)) 
+            return;
 
         var existingUse = CoreModelSingelton.Instance.Landuses
             .FirstOrDefault(lu => lu.Id == use.Id);
