@@ -4,7 +4,20 @@ using System.Reflection;
 namespace ArchSitePlan.RhinoInterface.Constants;
 public static class FilePathConstants
 {
-    public const string VueHtmlPath = @"C:\Users\Ashwin\source\repos\aiqurban-ui\dist";
+#if DEBUG
+    public static string VueHtmlPath { get; } = @"C:\Users\Ashwin\source\repos\aiqurban-ui\dist";
+#endif
+
+#if RELEASE
+    public static string VueHtmlPath { get; } = GetReleaseVueHtmlPath();
+#endif
+
+    private static string GetReleaseVueHtmlPath()
+    {
+        var directory = ExecutingAssemblyDirectory();
+        var vueHtmlPath = Path.Combine(directory.FullName, "dist");
+        return vueHtmlPath;
+    }
 
     public static string GetUsageLogPath()
     {

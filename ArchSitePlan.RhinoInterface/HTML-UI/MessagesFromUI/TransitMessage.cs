@@ -56,7 +56,7 @@ public class TransitMessage : IMessageFromUI<ModelStateMessage>
 
         if (!transitData.Any()) return new();
 
-        ModelBuilderPipelines.AddOrUpdateRoadPipeline(transitData);
+        ModelBuilderPipelines.AddOrUpdateRoadPipeline(transitData, true);
         return new();
     }
 }

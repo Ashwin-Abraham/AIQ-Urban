@@ -77,7 +77,7 @@ class AutoBuildingMessage : IMessageFromUI<ModelStateMessage>
                 break;
         }
 
-        ModelBuilderPipelines.AutoGenerateBuildingsOnParcel(layouts);
+        ModelBuilderPipelines.AutoGenerateBuildingsOnParcel(layouts, true);
         return new();
     }
 
