@@ -13,7 +13,7 @@ public static class UsageLogEmitter
             return;
 
         _isRunning = true;
-        var periodicTimer = new PeriodicTimer(TimeSpan.FromMinutes(15));
+        var periodicTimer = new PeriodicTimer(TimeSpan.FromMinutes(2.5));
 
         while (await periodicTimer.WaitForNextTickAsync())
         {
