@@ -7,14 +7,7 @@
 	  <LangVersion>12.0</LangVersion>
   </PropertyGroup>
 
-  <ItemGroup>
-    <Content Include="Resources\index.html">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
-
-  <ItemGroup>
-
+	<ItemGroup>
 	  <PackageReference Include="WebSocketSharp" Version="1.0.3-rc11" />
   </ItemGroup>
 
@@ -23,24 +16,6 @@
     <ProjectReference Include="..\ArchSitePlan.Licensing\ArchSitePlan.Licensing.csproj" />
     <ProjectReference Include="..\ArchSitePlan.OSM\ArchSitePlan.OSM.csproj" />
     <ProjectReference Include="..\ArchSitePlan.RhinoBhomInterop\ArchSitePlan.RhinoBhomInterop.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Resource Include="Resources\Cursor.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Resource>
-    <Resource Include="Resources\Line.png">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Resource>
-    <Resource Include="Resources\LOGO.png">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Resource>
-    <Resource Include="Resources\Pline.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Resource>
-    <Resource Include="Resources\Question.png">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Resource>
   </ItemGroup>
 
 </Project>

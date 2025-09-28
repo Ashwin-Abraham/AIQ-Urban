@@ -51,7 +51,19 @@
 	<ItemGroup>
 	  <ProjectReference Include="..\ArchSitePlan.RhinoInterface\ArchSitePlan.RhinoInterface.csproj" />
 	</ItemGroup>
+	
+	<Target Name="CopyDist" AfterTargets="Build">
+		<ItemGroup>
+			<!-- Collect all files under dist -->
+			<DistFiles Include="$(ProjectDir)dist\**\*" />
+		</ItemGroup>
 
+		<Copy
+		  SourceFiles="@(DistFiles)"
+		  DestinationFolder="$(TargetDir)dist\%(RecursiveDir)"
+		  SkipUnchangedFiles="true" />
+	</Target>
+	
 	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
 	  <Exec Command="xcopy /Y &quot;$(ProjectDir)manifest.yml&quot; &quot;$(TargetDir)&quot;" />
 	</Target>
