@@ -6,6 +6,10 @@ namespace ArchSitePlan.DebugModel;
 
 public static class BhomDebugExtensions
 {
+    public static List<Element> Debug(this Mesh mesh)
+        => [mesh.ToHypar().Debug()];
+
+   
     public static List<Element> Debug(this ICurve curve, Material? material = null, double zMovt = 0)
         => curve.ToHypar().Debug(material, zMovt);
 

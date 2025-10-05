@@ -2,6 +2,7 @@
 using BH.oM.Geometry;
 using Elements;
 using BoundedCurve = Elements.Geometry.BoundedCurve;
+using ColorSys = System.Drawing.Color;
 
 namespace ArchSitePlan.DebugModel.BHoMExtensions
 {
@@ -58,21 +59,11 @@ namespace ArchSitePlan.DebugModel.BHoMExtensions
         public static List<BoundedCurve> ToHypar(this IEnumerable<ICurve> curves)
             => curves.SelectMany(x => x.ToHypar()).ToList();
 
-        public static Elements.Geometry.Mesh ToHypar(this Mesh mesh)
-        {
-            mesh = mesh.Triangulate().MergeVertices(1e-04);
-            var meshVertices = mesh.Vertices
-                .Select(v => new Elements.Geometry.Vertex(v.ToHypar()))
-                .ToList();
+        
 
-            var triangles = mesh.Faces
-                .Select(f => CreateTriangle(f, meshVertices))
-                .Where(tri => tri.IsValid())
-                .ToList();
+       
 
-            return new Elements.Geometry.Mesh(meshVertices, triangles);
-        }
-
+       
         private static Elements.Geometry.Triangle CreateTriangle(Face f, List<Elements.Geometry.Vertex> vertices)
         {
             var vertexList = new List<Elements.Geometry.Vertex>()
@@ -185,5 +176,79 @@ namespace ArchSitePlan.DebugModel.BHoMExtensions
         {
             return new Elements.Geometry.Vector3(point.X, point.Y, point.Z);
         }
+
+        private static Elements.Geometry.Vertex GetVertex(this Point point)
+        {
+            return new Elements.Geometry.Vertex(point.ToHypar());
+        }
+
+        public static IEnumerable<Elements.Geometry.Triangle> ToHypar(
+            this Face face,
+            Mesh mesh,
+            List<Elements.Geometry.Vertex> vertices)
+        {
+            if (!face.IsQuad())
+            {
+                var v1 = vertices[face.A];
+                var v2 = vertices[face.B];
+                var v3 = vertices[face.C];
+
+                yield return new Elements.Geometry.Triangle(
+                    vertices: [v1, v2, v3],
+                    normal: face.Normal(mesh).ToHypar());
+            }
+            else
+            {
+                var v1 = vertices[face.A];
+                var v2 = vertices[face.B];
+                var v3 = vertices[face.C];
+                var v4 = vertices[face.D];
+
+                yield return new Elements.Geometry.Triangle(
+                    vertices: [v1, v2, v4],
+                    normal: face.Normal(mesh).ToHypar());
+
+                yield return new Elements.Geometry.Triangle(
+                    vertices: [v2, v3, v4],
+                    normal: face.Normal(mesh).ToHypar());
+            }
+        }
+
+        public static Elements.Geometry.Mesh ToHypar(
+           this Mesh mesh,
+           ColorSys? color = null)
+        {
+            color ??= ColorSys.Azure;
+
+            var hyparVertices = mesh.Vertices
+                       .Select(v => new Elements.Geometry.Vertex(v.ToHypar()))
+                       .ToList();
+
+            var triangles = new List<Elements.Geometry.Triangle>();
+
+            for (int i = 0; i < mesh.Faces.Count; i++)
+            {
+                var face = mesh.Faces[i];
+                var faceTriangles = face.ToHypar(mesh, hyparVertices).ToList();
+                triangles.AddRange(faceTriangles);
+            }
+
+            return new Elements.Geometry.Mesh(hyparVertices, triangles);
+        }
+
+        //public static Elements.Geometry.Mesh ToHypar(this Mesh mesh)
+        //{
+        //    var vertices = mesh.Vertices.Select(v => v.GetVertex()).ToList();
+        //    var triangles = new List<Elements.Geometry.Triangle>();
+
+        //    foreach (var face in mesh.Faces)
+        //    {
+        //        triangles.AddRange(face.ToHypar(mesh, vertices));
+        //    }
+
+        //    var hyparMesh = new Elements.Geometry.Mesh(vertices, triangles);
+
+        //    return hyparMesh;
+        //}
     }
 }

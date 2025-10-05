@@ -41,10 +41,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\AIQ-Resi\AIQ.Climate\AIQ.Climate.csproj" />
     <ProjectReference Include="..\ArchSitePlan.DebugModel\ArchSitePlan.DebugModel.csproj" />
     <ProjectReference Include="..\ArchSitePlan.OSM\ArchSitePlan.OSM.csproj" />
     <ProjectReference Include="..\ArchSitePlan.RhinoBhomInterop\ArchSitePlan.RhinoBhomInterop.csproj" />
-    <ProjectReference Include="..\ArchSitePlan.RhinoInterface\ArchSitePlan.RhinoInterface.csproj" />
   </ItemGroup>
 
   <ItemGroup>
