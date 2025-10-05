@@ -1,6 +1,5 @@
 ﻿using AIQ.Primitives.Extensions;
 using ArchSitePlan.BHoM.Geometry.Comparers;
-using ArchSitePlan.DebugModel.Extensions;
 using BH.Engine.Geometry;
 using BH.oM.Geometry;
 

@@ -1,7 +1,6 @@
 ﻿using BH.Engine.Geometry;
 using BH.Engine.Geometry.Triangulation;
 using BH.oM.Geometry;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace ArchSitePlan.BHoM.Geometry.Extensions;
 

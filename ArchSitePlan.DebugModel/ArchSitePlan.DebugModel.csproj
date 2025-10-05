@@ -3,6 +3,7 @@
   <PropertyGroup>
 	  <TargetFrameworks>net7.0</TargetFrameworks>
 	  <ImplicitUsings>enable</ImplicitUsings>
+	  <LangVersion>12.0</LangVersion>
     <Nullable>enable</Nullable>
     <Configurations>Debug;Release;DEBUG_Viz</Configurations>
   </PropertyGroup>
@@ -12,5 +13,5 @@
     <PackageReference Include="BHoM.Engine" Version="8.1.0-alpha.4.0" />
     <PackageReference Include="Hypar.Elements" Version="2.4.0-alpha.9" />
   </ItemGroup>
-
+	
 </Project>

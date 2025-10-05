@@ -1,5 +1,4 @@
-﻿
-using System.Reflection;
+﻿using System.Reflection;
 
 namespace ArchSitePlan.RhinoInterface.Constants;
 public static class FilePathConstants

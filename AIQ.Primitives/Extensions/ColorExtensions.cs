@@ -4,6 +4,17 @@ namespace AIQ.Primitives.Extensions;
 
 public static class ColorExtensions
 {
+    public static Color Average(this IEnumerable<Color> colors)
+    {
+        var colorList = colors.ToList();
+        var red = Math.Round(colorList.Average(x => x.R));
+        var green = Math.Round(colorList.Average(x => x.G));
+        var blue = Math.Round(colorList.Average(x => x.B));
+        var alpha = Math.Round(colorList.Average(x => x.A));
+
+        return Color.FromArgb((int)alpha, (int)red, (int)green, (int)blue);
+    }
+
     public static Color SetTransparency(this Color color, int alpha)
     {
         return Color.FromArgb(alpha, color.R, color.G, color.B);

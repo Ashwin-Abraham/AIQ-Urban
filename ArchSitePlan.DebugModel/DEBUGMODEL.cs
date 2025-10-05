@@ -1,4 +1,5 @@
-﻿using Elements;
+﻿using ArchSitePlan.DebugModel.Extensions;
+using Elements;
 using Elements.Geometry;
 using Elements.Geometry.Solids;
 using System.Diagnostics;
@@ -254,11 +255,34 @@ namespace ArchSitePlan.DebugModel
             yield return Debug(zAxis, DebugMaterials.Blue);
         }
 
-        public static void Debug(this Mesh hyparMesh, Material? material = null)
+        public static Element Debug(this Mesh hyparMesh, Material? material = null)
         {
-            material ??= DebugMaterials.Gray;
-            _hyparModel.AddElement(new MeshElement(hyparMesh, material: material));
+            material ??= DebugMaterials.Red;
+            return new MeshElement(hyparMesh, material: material);
         }
+
+        public static Element DebugWithColours(this Triangle face, Material material)
+        {
+            (var polygonXY, var toGlobal) = face.ToPolygonXY();
+
+            var mass = new Mass(polygonXY.EnsureClockwise(), 1e-3, material);
+            mass.Transform = toGlobal;
+
+            return mass;
+        }
+
+        //public static List<Element> DebugWithColours(this Mesh hyparMesh)
+        //{
+        //    var elements = new List<Element>();
+
+        //    foreach (var face in hyparMesh.Triangles)
+        //    {
+        //        var material = new Material("", face.GetColor());
+        //        elements.Add(face.DebugWithColours(material));
+        //    }
+
+        //    return elements;
+        //}
 
         public static void Debug(this IEnumerable<Mesh> meshes)
         {
