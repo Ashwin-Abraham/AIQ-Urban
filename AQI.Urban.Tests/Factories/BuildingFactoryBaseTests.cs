@@ -4,7 +4,7 @@ using ArchSitePlan.DebugModel.BHoMExtensions;
 using BH.Engine.Geometry;
 using BH.oM.Geometry;
 
-namespace ArchSitePlan.Test.ArchSitePlan.Core.Factories;
+namespace AIQ.Urban.Core.Tests.Factories;
 
 public class BuildingFactoryBaseTests
 {
