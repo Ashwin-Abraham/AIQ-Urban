@@ -2,6 +2,7 @@
 using ArchSitePlan.DebugModel.BHoMExtensions;
 
 namespace ArchSitePlan.BHoM.Geometry.DebugHelpers;
+#if DEBUG
 public static class ToHyparExtensions
 {
     public static Elements.Geometry.Mesh ToHypar(this ColoredMesh mesh)
@@ -30,3 +31,4 @@ public static class ToHyparExtensions
         return new Elements.Geometry.Mesh(hyparVertices, triangles);
     }
 }
+#endif

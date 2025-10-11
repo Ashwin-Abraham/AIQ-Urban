@@ -1,6 +1,7 @@
 ﻿using ArchSitePlan.RhinoInterface.Constants;
 using ArchSitePlan.RhinoInterface.CoreModelInterface;
 using ArchSitePlan.RhinoInterface.HTML_UI.HtmlCommsClasses;
+using ArchSitePlan.RhinoInterface.HTML_UI.MessageToUI;
 using Newtonsoft.Json;
 using Rhino;
 using System.Net;
@@ -78,13 +79,31 @@ public class HttpServerComms
                         RhinoEventHandler.UseStatsMessage.Increment(messageObj.MessageType.ToString());
 
                         RhinoEventHandler.EventLock = true;
-                        var responseMessage = messageObj.HandleMessage();
+
+                        var tcs = new TaskCompletionSource<IMessageToUI?>();
+
+                        RhinoApp.InvokeOnUiThread(() =>
+                        {
+                            try
+                            {
+                                var result = messageObj.HandleMessage();
+                                tcs.SetResult(result);
+                            }
+                            catch (Exception ex)
+                            {
+                                tcs.SetException(ex);
+                            }
+                        });
+
+                        var responseMessage = await tcs.Task;
+
                         RhinoEventHandler.EventLock = false;
 
                         response = AddCORSHeaders(response);
 
                         // Send response back to Vue.js
                         string json = JsonConvert.SerializeObject(responseMessage);
+
                         byte[] buffer = Encoding.UTF8.GetBytes(json);
                         response.ContentLength64 = buffer.Length;
                         response.ContentType = "application/json";
