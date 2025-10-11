@@ -1,4 +1,5 @@
-﻿using ArchSitePlan.BHoM.Geometry.DebugHelpers;
+﻿using AQI.Urban.Core.Tests.TestUtils;
+using ArchSitePlan.BHoM.Geometry.DebugHelpers;
 using ArchSitePlan.Core.Factories;
 using ArchSitePlan.Core.Factories.Models;
 using ArchSitePlan.Core.Pipeline.CreationData;
@@ -130,7 +131,7 @@ public class BuildingsAlongRoadFactoryTests
 
         // Visualize
         DEBUGMODEL.Reset();
-        DEBUGMODEL.Debug(building.Buildings.Select(x => x.Envelope.ToHypar()));
+        TestVisualizers.DebugBuildingLayout(building);
         siteBoundary.Debug();
         generatorEdge.Debug(DebugMaterials.Red, 1);
         DEBUGMODEL.OpenAsGlb();

@@ -111,7 +111,7 @@ public static class TestVisualizers
         DEBUGMODEL.OpenAsGlb();
     }
 
-    private static void DebugBuildingLayout(BuildingLayout layout)
+    public static void DebugBuildingLayout(BuildingLayout layout)
     {
         var floors = layout.Buildings
             .SelectMany(x => x.FloorPlates)

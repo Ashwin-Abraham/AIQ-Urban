@@ -8,11 +8,11 @@ using BH.oM.Geometry;
 
 namespace ArchSitePlan.Core.Factories;
 
-public class RectangleBuildingFactory:BuildingLayoutFactoryBase
+public class PrimarySiteAxisBuildingFactory:BuildingLayoutFactoryBase
 {
-    AutoRectangleBuildingData _config;
+    PrimaryAxisBuildingData _config;
 
-    public RectangleBuildingFactory(AutoRectangleBuildingData config)
+    public PrimarySiteAxisBuildingFactory(PrimaryAxisBuildingData config)
     {
         _config = config;
     }
