@@ -42,7 +42,7 @@ public class BuildingLayoutFactoryBase
         int maxFloorCount = (int)Math.Floor(maxFloors);
 
         double totalFootprintArea = footprints.Sum(x => x.Area());
-        double totalGFA = 0;
+        //double totalGFA = 0;
 
         List<BuildingCreationSpecs> buildingsWIP =
             footprints
@@ -51,30 +51,32 @@ public class BuildingLayoutFactoryBase
 
         // First pack the buildings to the brim
         var smallestFootPrint = buildingsWIP.Min(x => x.FootprintArea);
+        
+        double totalGfa = 0;
+        buildingsWIP = buildingsWIP.OrderBy(x => x.FootprintArea).ToList();
+        double smallestFloorArea = buildingsWIP[0].FootprintArea;
 
-        while (totalGFA < targetGFA)
+        var remainingBuildings = new List<BuildingCreationSpecs>(buildingsWIP);
+
+        for (int i = 0; i <= maxFloorCount && remainingBuildings.Count > 0; i++)
         {
-            foreach (var buildingWIP in buildingsWIP)
+            for(int j = 0; j < remainingBuildings.Count; j++)
             {
-                var totalGFACheck = totalGFA + buildingWIP.FootprintArea;
-                if (totalGFACheck > targetGFA)
+                var building = remainingBuildings[j];
+                double nextTotal = totalGfa + building.FootprintArea;
+                
+                // Adding a floor is possible, therefore add it
+                if(nextTotal < targetGFA)
+                {
+                    building.FloorCount++;
+                    totalGfa += building.FootprintArea;
                     continue;
+                }
 
-                if(buildingWIP.FloorCount >= maxFloorCount) 
-                    continue;
-
-                buildingWIP.FloorCount++;
-                totalGFA += buildingWIP.FootprintArea;
+                // This building cant be added to, therefore stop trying to add
+                j--;
+                remainingBuildings.Remove(building);
             }
-
-            var buildingsBelowHeight = buildingsWIP
-                .Where(x => x.FloorCount < maxFloorCount)
-                .ToList();
-
-            if (buildingsBelowHeight.Count == 0) break;
-
-            smallestFootPrint = buildingsBelowHeight.Min(x => x.FootprintArea);
-            if (totalGFA + smallestFootPrint > targetGFA) break;
         }
 
         // Next Apply variance

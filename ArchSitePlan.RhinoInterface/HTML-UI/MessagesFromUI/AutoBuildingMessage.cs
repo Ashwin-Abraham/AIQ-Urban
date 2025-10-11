@@ -83,7 +83,7 @@ class AutoBuildingMessage : IMessageFromUI<ModelStateMessage>
 
     private List<BuildingLayout> ComputeAutoRectangleLayouts(List<(ICurve, Guid?)> sites)
     {
-        var rowConfig = new AutoRectangleBuildingData(
+        var rowConfig = new PrimaryAxisBuildingData(
                     BuildingWidth: FloorDepth,
                     TargetMode: ModeIsGFA ? BuildingTargetMode.GFA : BuildingTargetMode.FAR,
                     TargetGFA: GFA,
@@ -98,7 +98,7 @@ class AutoBuildingMessage : IMessageFromUI<ModelStateMessage>
 
         foreach (var site in sites)
         {
-            var layout = new RectangleBuildingFactory(rowConfig).Generate(site.Item1, site.Item2);
+            var layout = new PrimarySiteAxisBuildingFactory(rowConfig).Generate(site.Item1, site.Item2);
             if (layout != null)
                 layouts.Add(layout);
         }

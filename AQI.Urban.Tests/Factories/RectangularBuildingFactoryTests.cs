@@ -34,6 +34,7 @@ public class RectangularBuildingFactoryTests
     [Fact]
     public void GenerateRectangleBuilding()
     {
+        // Arrange
         var siteBoundary = Create.Polygon([
             Create.Point(0,0),
             Create.Point(200,0),
@@ -41,7 +42,7 @@ public class RectangularBuildingFactoryTests
             Create.Point(0,100)
         ]);
 
-        var config = new AutoRectangleBuildingData(
+        var config = new PrimaryAxisBuildingData(
             BuildingWidth: 15,
             TargetMode: BuildingTargetMode.GFA,
             TargetGFA: 50000,
@@ -52,12 +53,14 @@ public class RectangularBuildingFactoryTests
             MinLength: 10,
             FloorHeight: 3.6);
 
-        // Test Line Boolean Intersections
-        // Then test building
-
-        var building = new RectangleBuildingFactory(config)
+        // Act
+        var building = new PrimarySiteAxisBuildingFactory(config)
             .Generate(Create.PolyCurve([siteBoundary]));
 
+        // Visualize
+        TestVisualizers.VisualizeBuildingLayout(building);
+
+        // Assert
         var gfa = building.Buildings.Sum(x => x.BUA());
         Assert.Equal(50000, gfa, 1000.0);
     }
@@ -70,7 +73,7 @@ public class RectangularBuildingFactoryTests
         // Arrange
         var siteBoundary = _narrowSite;
 
-        var config = new AutoRectangleBuildingData(
+        var config = new PrimaryAxisBuildingData(
             BuildingWidth: 15,
             TargetMode: BuildingTargetMode.GFA,
             TargetGFA: 50000,
@@ -82,7 +85,7 @@ public class RectangularBuildingFactoryTests
             FloorHeight: 3.6);
 
         // Act
-        var layout = new RectangleBuildingFactory(config)
+        var layout = new PrimarySiteAxisBuildingFactory(config)
             .Generate(Create.PolyCurve([siteBoundary]));
 
         var gfa = layout.Buildings.Sum(x => x.BUA());
@@ -100,19 +103,19 @@ public class RectangularBuildingFactoryTests
         // Arrange
         var siteBoundary = _narrowSite;
 
-        var config = new AutoRectangleBuildingData(
+        var config = new PrimaryAxisBuildingData(
             BuildingWidth: 25,
             TargetMode: BuildingTargetMode.GFA,
             TargetGFA: 50000,
             TargetFAR: null,
             Setback: 6,
-            MaxHeight: 24,
+            MaxHeight: 100,
             MaxLength: 50,
             MinLength: 10,
             FloorHeight: 3.6);
 
         // Act
-        var layout = new RectangleBuildingFactory(config)
+        var layout = new PrimarySiteAxisBuildingFactory(config)
             .Generate(Create.PolyCurve([siteBoundary]));
 
         var gfa = layout.Buildings.Sum(x => x.BUA());
@@ -130,19 +133,19 @@ public class RectangularBuildingFactoryTests
         // Arrange
         var siteBoundary = _twistingSite;
 
-        var config = new AutoRectangleBuildingData(
+        var config = new PrimaryAxisBuildingData(
             BuildingWidth: 13,
             TargetMode: BuildingTargetMode.GFA,
             TargetGFA: 50000,
             TargetFAR: null,
             Setback: 6,
-            MaxHeight: 24,
+            MaxHeight: 100,
             MaxLength: 50,
             MinLength: 10,
             FloorHeight: 3.6);
 
         // Act
-        var layout = new RectangleBuildingFactory(config)
+        var layout = new PrimarySiteAxisBuildingFactory(config)
             .Generate(Create.PolyCurve([siteBoundary]));
 
         var gfa = layout.Buildings.Sum(x => x.BUA());

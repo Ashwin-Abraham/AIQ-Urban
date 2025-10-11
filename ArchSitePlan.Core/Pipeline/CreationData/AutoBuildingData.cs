@@ -19,7 +19,7 @@ public record AutoBuildingData(
     double MaxHeight,
     double FloorHeight);
 
-public record AutoRectangleBuildingData(
+public record PrimaryAxisBuildingData(
     double BuildingWidth,
     BuildingTargetMode TargetMode,
     double? TargetGFA,

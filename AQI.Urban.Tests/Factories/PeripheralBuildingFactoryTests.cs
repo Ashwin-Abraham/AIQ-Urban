@@ -34,16 +34,37 @@ public class PeripheralBuildingFactoryTests
             Create.Point(0,100)
         ]);
 
-        //yield return new object[]
-        //{
-        //    siteBoundary,
-        //    69581        
-        //};
+        Polygon mBoundary = Create.Polygon([
+            Create.Point(0,0),
+            Create.Point(100,0),
+            Create.Point(100, 400),
+            Create.Point(200, 200),
+            Create.Point(300, 400),
+            Create.Point(300, 0),
+            Create.Point(400, 0),
+            Create.Point(400, 600),
+            Create.Point(300, 600),
+            Create.Point(200, 350),
+            Create.Point(100, 600),
+            Create.Point(0, 600),
+        ]);
+
+        yield return new object[]
+        {
+            siteBoundary,
+            69432
+        };
 
         yield return new object[]
         {
             jaggedBoundary,
             69782
+        };
+
+        yield return new object[]
+        {
+            mBoundary,
+            69889
         };
     }
 
@@ -85,16 +106,16 @@ public class PeripheralBuildingFactoryTests
     {
         // Arrange
         var siteBoundary = _siteBoundary;
-        var targetFAR = 4;
+        var targetFAR = 3;
 
         var config = new AutoPeripheralBuildingData(
             BuildingWidth: 15,
             MinFloorPlateDepth: 5,
             TargetMode: BuildingTargetMode.FAR,
             TargetGFA: null,
-            TargetFAR: 4,
+            TargetFAR: targetFAR,
             Setback: 6,
-            MaxHeight: 45,
+            MaxHeight: 70,
             MaxLength: 50,
             MinLength: 15,
             FloorHeight: 3.6);
