@@ -4,6 +4,7 @@ using ArchSitePlan.DebugModel.BHoMExtensions;
 using Elements;
 
 namespace ArchSitePlan.BHoM.Geometry.DebugHelpers;
+#if DEBUG
 public static class DebugExtensions
 {
     public static List<Element> Debug(this ColoredMesh mesh)
@@ -35,9 +36,5 @@ public static class DebugExtensions
 
         return elements;
     }
-
-
-
-
-   
 }
+#endif

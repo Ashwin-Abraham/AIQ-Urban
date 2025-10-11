@@ -166,7 +166,10 @@ public static class RhinoEventHandler
         //    RunCoreModelUndoOperations(_objectsForUndelete);
 
         // Output to Rhino
-        ModelBuilderPipelines.RhinoOutputPipeline(RhinoDoc.ActiveDoc, HTMLViewModel.AppMode, true);
+        RhinoApp.InvokeOnUiThread(() =>
+        {
+            ModelBuilderPipelines.RhinoOutputPipeline(RhinoDoc.ActiveDoc, HTMLViewModel.AppMode, true);
+        });
 
         // Clean queue
         ResetEventQueueAndObjects();

@@ -48,7 +48,8 @@ namespace ArchSitePlan.RhinoInterface.HTML_UI.MessagesFromUI
             RhinoDoc doc2 = RhinoDoc.ActiveDoc;
             ModelBuilderPipelines.AddStudyAreaPipeline(doc: doc2,
                 studyData: [new StudyData(bhomCrv!, rhinoObj.Id, Name)],
-                ModellingTool.Zones);
+                ModellingTool.Zones,
+                triggerRhinoUpdate: true);
 
             return new ModelStateMessage();
         }

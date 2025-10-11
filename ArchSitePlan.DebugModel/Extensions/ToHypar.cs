@@ -59,11 +59,6 @@ namespace ArchSitePlan.DebugModel.BHoMExtensions
         public static List<BoundedCurve> ToHypar(this IEnumerable<ICurve> curves)
             => curves.SelectMany(x => x.ToHypar()).ToList();
 
-        
-
-       
-
-       
         private static Elements.Geometry.Triangle CreateTriangle(Face f, List<Elements.Geometry.Vertex> vertices)
         {
             var vertexList = new List<Elements.Geometry.Vertex>()
