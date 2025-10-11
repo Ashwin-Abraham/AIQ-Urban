@@ -1,10 +1,11 @@
-﻿using ArchSitePlan.Core.Factories;
+﻿using AQI.Urban.Core.Tests.TestUtils;
+using ArchSitePlan.Core.Factories;
 using ArchSitePlan.Core.Pipeline.CreationData;
 using BH.Engine.Geometry;
 using BH.oM.Geometry;
 using static ArchSitePlan.Core.Constants.Enums;
 
-namespace ArchSitePlan.Test.ArchSitePlan.Core.Factories;
+namespace AIQ.Urban.Core.Tests.Factories;
 
 public class RectangularBuildingFactoryTests
 {

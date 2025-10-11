@@ -8,7 +8,7 @@ using BH.Engine.Geometry;
 using BH.oM.Geometry;
 using static ArchSitePlan.Core.Constants.Enums;
 
-namespace ArchSitePlan.Test.ArchSitePlan.Core.Factories;
+namespace AIQ.Urban.Core.Tests.Factories;
 
 public class BuildingsAlongRoadFactoryTests
 {

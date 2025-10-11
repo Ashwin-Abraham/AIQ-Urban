@@ -58,7 +58,7 @@ public class BuildingLayoutFactoryBase
             {
                 var totalGFACheck = totalGFA + buildingWIP.FootprintArea;
                 if (totalGFACheck > targetGFA)
-                    break;
+                    continue;
 
                 if(buildingWIP.FloorCount >= maxFloorCount) 
                     continue;

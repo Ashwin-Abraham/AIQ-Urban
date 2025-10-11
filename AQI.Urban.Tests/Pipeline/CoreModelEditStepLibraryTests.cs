@@ -4,8 +4,9 @@ using ArchSitePlan.DebugModel;
 using BH.Engine.Geometry;
 using BH.oM.Geometry;
 using Elements;
+using AQI.Urban.Core.Tests.TestUtils;
 
-namespace ArchSitePlan.Test.ArchSitePlan.Core;
+namespace AQI.Urban.Core.Tests.Pipeline;
 public class CoreModelEditStepLibraryTests
 {
     private static List<Road> GetRoads(List<ICurve> curves)

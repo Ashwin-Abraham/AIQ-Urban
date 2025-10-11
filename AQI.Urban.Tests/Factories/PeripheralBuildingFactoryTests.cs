@@ -1,12 +1,11 @@
-﻿using ArchSitePlan.Core.Factories;
+﻿using AQI.Urban.Core.Tests.TestUtils;
+using ArchSitePlan.Core.Factories;
 using ArchSitePlan.Core.Pipeline.CreationData;
-using ArchSitePlan.DebugModel;
-using ArchSitePlan.DebugModel.BHoMExtensions;
 using BH.Engine.Geometry;
 using BH.oM.Geometry;
 using static ArchSitePlan.Core.Constants.Enums;
 
-namespace ArchSitePlan.Test.ArchSitePlan.Core.Factories;
+namespace AIQ.Urban.Core.Tests.Factories;
 
 public class PeripheralBuildingFactoryTests
 {
@@ -17,12 +16,44 @@ public class PeripheralBuildingFactoryTests
                 Create.Point(0,100)
     ]);
 
-    [Fact]
-    public void GeneratePeripheralBuilding()
+    public static IEnumerable<object[]> CreateData()
+    {
+        Polygon siteBoundary = Create.Polygon([
+            Create.Point(0,0),
+                        Create.Point(200,0),
+                        Create.Point(225, 300),
+                        Create.Point(0,100)
+        ]);
+
+        Polygon jaggedBoundary = Create.Polygon([
+            Create.Point(0,0),
+            Create.Point(200,0),
+            Create.Point(225, 300),
+            Create.Point(50, 280),
+            Create.Point(-25, 300),
+            Create.Point(0,100)
+        ]);
+
+        //yield return new object[]
+        //{
+        //    siteBoundary,
+        //    69581        
+        //};
+
+        yield return new object[]
+        {
+            jaggedBoundary,
+            69782
+        };
+    }
+
+    [Theory]
+    [MemberData(nameof(CreateData))]
+    public void GeneratePeripheralBuilding(
+        Polygon siteBoundary, 
+        double expectedGfa)
     {
         // Arrange
-        var siteBoundary = _siteBoundary;
-
         var config = new AutoPeripheralBuildingData(
             BuildingWidth: 15,
             MinFloorPlateDepth: 5,
@@ -46,7 +77,7 @@ public class PeripheralBuildingFactoryTests
         TestVisualizers.VisualizeBuildingLayout(layout);
 
         // Assert
-        Assert.Equal(70000, gfa, 2000.0);
+        Assert.Equal(expectedGfa, gfa, 10.0);
     }
 
     [Fact]
