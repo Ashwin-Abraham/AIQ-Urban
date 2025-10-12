@@ -2,7 +2,6 @@
 using ArchSitePlan.Core.Pipeline.CreationData;
 using ArchSitePlan.OSM;
 using ArchSitePlan.RhinoInterface.Constants;
-using ArchSitePlan.RhinoInterface.HTML_UI;
 using ArchSitePlan.RhinoInterface.HTML_UI.HtmlCommsClasses;
 using ArchSitePlan.RhinoInterface.HTML_UI.MessageToUI;
 using ArchSitePlan.RhinoInterface.HTML_UI.Websockets;
@@ -319,7 +318,7 @@ public static class RhinoEventHandler
             {
                 var result = new TransitInputValidator().ValidateInput(newObjects);
                 if (result.ValidObjects.Count == 0)
-                    throw new Exception(result.Message);
+                    return;
 
                 var roadData = RhinoRoadData.FromExisting(result.ValidObjects).ToList();
                 var coreRoadData = RhinoRoadData.ToCoreModelCreationData(roadData).ToList();
@@ -331,11 +330,11 @@ public static class RhinoEventHandler
             }
             // Landuse (ie Dividers) needs the add event because the join command
             // on curves in rhino will not trigger a replace event
-            else if (HTMLViewModel.AppMode == ModellingTool.LandUse)
+            else if (HTMLViewModel.AppMode == ModellingTool.Dividers)
             {
                 var result = new DividerInputValidator(true).ValidateInput(newObjects);
-                if(result.ValidObjects.Count == 0)
-                    throw new Exception(result.Message);
+                if (result.ValidObjects.Count == 0)
+                    return;
 
                 var rhinoDividerData = RhinoDividerData.Create(result.ValidObjects);
                 var coreDividerData = RhinoDividerData.ToCoreModelData(rhinoDividerData).ToList();
