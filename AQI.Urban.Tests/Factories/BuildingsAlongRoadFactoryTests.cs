@@ -171,11 +171,13 @@ public class BuildingsAlongRoadFactoryTests
             .Generate(Create.PolyCurve([siteBoundary]), generatorEdge);
 
         // Visualize
+#if DEBUG
         DEBUGMODEL.Reset();
         DEBUGMODEL.Debug(building.Buildings.Select(x => x.Envelope.ToHypar()));
         siteBoundary.Debug();
         generatorEdge.Debug(DebugMaterials.Red, 1);
         DEBUGMODEL.OpenAsGlb();
+#endif
 
         // Assert
         var gfa = building.Buildings.Sum(x => x.BUA());
