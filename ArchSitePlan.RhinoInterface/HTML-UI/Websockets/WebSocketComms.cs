@@ -21,8 +21,6 @@ public class WebSocketComms
         _wss.Start();
 
         _wss.AddWebSocketService<RhinoWebSocketBehavior>("/");
-
-        RhinoApp.WriteLine($"WebSocket Server is running on ws://localhost:{port}");
     }
 
     /// <summary>
@@ -34,7 +32,6 @@ public class WebSocketComms
         {
             string json = JsonConvert.SerializeObject(message);
             _wss.WebSocketServices.Broadcast(json);
-            RhinoApp.WriteLine("Broadcasted message: "+ json);
         }
     }
 

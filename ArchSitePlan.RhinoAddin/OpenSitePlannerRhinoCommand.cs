@@ -65,7 +65,7 @@ public class OpenSitePlannerRhinoCommand : Command
             RhinoEventHandler.UnsubscribeModelEvents();
             RhinoApp.WriteLine("AIQ Urban closed");
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             MessageBox.Show("AIQ Urban Plugin closure process incomplete. " +
                 "Consider saving and re-opening your document to avoid instability");
