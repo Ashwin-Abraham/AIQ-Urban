@@ -29,6 +29,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{02EA681E
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AQI.Urban.Core.Tests", "AQI.Urban.Tests\AQI.Urban.Core.Tests.csproj", "{39F4AC44-86E7-4425-B490-6CFC4690C264}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AIQ.Mapbox", "AIQ.Mapbox\AIQ.Mapbox.csproj", "{51FBFEE0-0275-4DFD-A624-5AD034080841}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AIQ.Mapbox.Tests", "AIQ.Mapbox.Tests\AIQ.Mapbox.Tests.csproj", "{CDDA3EE9-BBB2-4D6E-BF9F-4DAC89760851}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -129,12 +133,27 @@ Global
 		{39F4AC44-86E7-4425-B490-6CFC4690C264}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{39F4AC44-86E7-4425-B490-6CFC4690C264}.Release|x64.ActiveCfg = Release|Any CPU
 		{39F4AC44-86E7-4425-B490-6CFC4690C264}.Release|x64.Build.0 = Release|Any CPU
+		{51FBFEE0-0275-4DFD-A624-5AD034080841}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{51FBFEE0-0275-4DFD-A624-5AD034080841}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{51FBFEE0-0275-4DFD-A624-5AD034080841}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{51FBFEE0-0275-4DFD-A624-5AD034080841}.Debug|x64.Build.0 = Debug|Any CPU
+		{51FBFEE0-0275-4DFD-A624-5AD034080841}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{51FBFEE0-0275-4DFD-A624-5AD034080841}.Release|x64.ActiveCfg = Release|Any CPU
+		{51FBFEE0-0275-4DFD-A624-5AD034080841}.Release|x64.Build.0 = Release|Any CPU
+		{CDDA3EE9-BBB2-4D6E-BF9F-4DAC89760851}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CDDA3EE9-BBB2-4D6E-BF9F-4DAC89760851}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CDDA3EE9-BBB2-4D6E-BF9F-4DAC89760851}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{CDDA3EE9-BBB2-4D6E-BF9F-4DAC89760851}.Debug|x64.Build.0 = Debug|Any CPU
+		{CDDA3EE9-BBB2-4D6E-BF9F-4DAC89760851}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CDDA3EE9-BBB2-4D6E-BF9F-4DAC89760851}.Release|x64.ActiveCfg = Release|Any CPU
+		{CDDA3EE9-BBB2-4D6E-BF9F-4DAC89760851}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{39F4AC44-86E7-4425-B490-6CFC4690C264} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{CDDA3EE9-BBB2-4D6E-BF9F-4DAC89760851} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {01F5ED00-627C-4FE9-9BB0-6F079BEA3E65}
