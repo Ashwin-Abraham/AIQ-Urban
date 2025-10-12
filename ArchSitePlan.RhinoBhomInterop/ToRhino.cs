@@ -84,14 +84,6 @@ public static class ToRhinoInterop
     public static Rhino.Geometry.Point3d ToOSMRhino(this Point point)
     {
         return point.ToRhino();
-
-        var doc = RhinoDoc.ActiveDoc;
-        var xForm = doc.EarthAnchorPoint.GetModelToEarthTransform(doc.ModelUnitSystem);
-        xForm.TryGetInverse(out var inverse);
-        var rhPoint = point.ToRhino();
-        rhPoint.Transform(inverse);
-
-        return rhPoint;
     }
 
     public static Rhino.Geometry.Curve ToRhino(this ICurve curve)

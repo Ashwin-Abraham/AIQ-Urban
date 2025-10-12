@@ -21,7 +21,6 @@ namespace ArchSitePlan.RhinoInterface.InputValidation.Validators
 
         public BuildingInputValidationResult ValidateInput(List<RhinoObject> rhinoObjs)
         {
-            BuildingInputValidationResult result;
             string message = string.Empty;
             int removed = 0;
 

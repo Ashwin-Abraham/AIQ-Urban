@@ -38,6 +38,5 @@ public class RhinoWebSocketBehavior : WebSocketBehavior
     {
         string json = JsonConvert.SerializeObject(message);
         Send(JsonConvert.SerializeObject(message));
-        RhinoApp.WriteLine("Sending message to UI\n" + json);
     }
 }

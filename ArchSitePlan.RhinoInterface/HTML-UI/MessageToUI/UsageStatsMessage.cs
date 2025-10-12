@@ -29,6 +29,17 @@ public class UsageStatsMessage : IMessageToUI
 
     internal void Combine(UsageStatsMessage? previousStats)
     {
-        throw new NotImplementedException();
+        if (previousStats == null)
+            return;
+
+        foreach(var tool in ToolUseStats)
+        {
+            var previousStatsTool = previousStats.ToolUseStats.Find(x => x.ToolName == tool.ToolName);
+            
+            if (previousStatsTool == null)
+                continue;
+
+            tool.UseCount += previousStatsTool.UseCount;
+        }
     }
 }

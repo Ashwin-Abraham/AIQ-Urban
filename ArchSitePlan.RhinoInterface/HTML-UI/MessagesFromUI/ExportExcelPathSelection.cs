@@ -12,8 +12,6 @@ namespace ArchSitePlan.RhinoInterface.HTML_UI.MessagesFromUI
 
         public EmptyMessage HandleMessage()
         {
-            string path = "";
-
             RhinoApp.InvokeOnUiThread(() =>
             {
                 RhinoEventHandler.HTMLViewModel.AppMode = ModellingTool.Export;
@@ -25,9 +23,7 @@ namespace ArchSitePlan.RhinoInterface.HTML_UI.MessagesFromUI
 
                 var result = dialog.ShowDialog(Rhino.UI.RhinoEtoApp.MainWindow);
 
-                if (result != DialogResult.Ok && result != DialogResult.Yes)
-                    path = "Invalid";
-                else
+                if (result == DialogResult.Ok || result == DialogResult.Yes)
                     RhinoEventHandler.HTMLViewModel.ExcelDirectory = dialog.Directory;
             });
             
