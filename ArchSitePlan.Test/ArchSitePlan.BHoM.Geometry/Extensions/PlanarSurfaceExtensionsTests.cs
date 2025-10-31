@@ -1,14 +1,6 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using ArchSitePlan.BHoM.Geometry.Extensions;
-using ArchSitePlan.BHoM.Geometry.Models;
+﻿using ArchSitePlan.BHoM.Geometry.Extensions;
 using ArchSitePlan.DebugModel;
 using BH.Engine.Geometry;
-using BH.oM.Geometry;
 
 namespace ArchSitePlan.Test.ArchSitePlan.BHoM.Geometry.Extensions;
 public class PlanarSurfaceExtensionsTests

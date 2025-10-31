@@ -3,7 +3,7 @@
 namespace ArchSitePlan.RhinoInterface.Constants;
 public static class FilePathConstants
 {
-#if DEBUG
+#if DEBUG || DEBUG_NOVIZ
     public static string VueHtmlPath { get; } = @"C:\Users\Ashwin\source\repos\aiqurban-ui\dist";
 #endif
 

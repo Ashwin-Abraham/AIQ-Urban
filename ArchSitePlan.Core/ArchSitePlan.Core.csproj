@@ -1,10 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-	  <TargetFrameworks>net7.0</TargetFrameworks>
+	  <TargetFrameworks>net8.0</TargetFrameworks>
 	  <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
 	<LangVersion>12.0</LangVersion>
+	<Configurations>Debug;Release;Debug_NoViz</Configurations>
   </PropertyGroup>
 
   <ItemGroup>
@@ -15,6 +16,7 @@
     <PackageReference Include="Clipper2" Version="1.4.0" />
     <PackageReference Include="ClosedXML" Version="0.104.2" />
     <PackageReference Include="DeepCloner" Version="0.10.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
   </ItemGroup>
 
   <ItemGroup>

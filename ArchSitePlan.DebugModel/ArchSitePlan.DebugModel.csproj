@@ -1,11 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-	  <TargetFrameworks>net7.0</TargetFrameworks>
+	  <TargetFrameworks>net8.0</TargetFrameworks>
 	  <ImplicitUsings>enable</ImplicitUsings>
 	  <LangVersion>12.0</LangVersion>
     <Nullable>enable</Nullable>
-    <Configurations>Debug;Release;DEBUG_Viz</Configurations>
+    <Configurations>Debug;DEBUG_Viz</Configurations>
   </PropertyGroup>
 
   <ItemGroup>

@@ -1,5 +1,4 @@
 ﻿using AQI.Urban.Core.Tests.TestUtils;
-using ArchSitePlan.BHoM.Geometry.DebugHelpers;
 using ArchSitePlan.Core.Factories;
 using ArchSitePlan.Core.Factories.Models;
 using ArchSitePlan.Core.Pipeline.CreationData;
