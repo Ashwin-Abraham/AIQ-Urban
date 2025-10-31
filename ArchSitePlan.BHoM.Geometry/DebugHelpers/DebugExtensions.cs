@@ -1,10 +1,11 @@
-﻿using ArchSitePlan.BHoM.Geometry.Models;
+﻿#if DEBUG
+
+using ArchSitePlan.BHoM.Geometry.Models;
 using ArchSitePlan.DebugModel;
 using ArchSitePlan.DebugModel.BHoMExtensions;
 using Elements;
 
 namespace ArchSitePlan.BHoM.Geometry.DebugHelpers;
-#if DEBUG
 public static class DebugExtensions
 {
     public static List<Element> Debug(this ColoredMesh mesh)

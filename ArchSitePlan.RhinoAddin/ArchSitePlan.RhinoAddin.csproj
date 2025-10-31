@@ -1,13 +1,14 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net7.0</TargetFrameworks>
+    <TargetFrameworks>net8.0</TargetFrameworks>
     <Version>1.0</Version>
     <Title>ArchSitePlan.RhinoAddin</Title>
     <Description>Description of ArchSitePlan.RhinoAddin</Description>
     <TargetExt>.rhp</TargetExt>
     <AutoGenerateBindingRedirects>True</AutoGenerateBindingRedirects>
 	  <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+	  <Configurations>Debug;Release;Debug_NoViz</Configurations>
   </PropertyGroup>
 
   <ItemGroup>
@@ -58,10 +59,7 @@
 			<DistFiles Include="$(ProjectDir)dist\**\*" />
 		</ItemGroup>
 
-		<Copy
-		  SourceFiles="@(DistFiles)"
-		  DestinationFolder="$(TargetDir)dist\%(RecursiveDir)"
-		  SkipUnchangedFiles="true" />
+		<Copy SourceFiles="@(DistFiles)" DestinationFolder="$(TargetDir)dist\%(RecursiveDir)" SkipUnchangedFiles="true" />
 	</Target>
 	
 	<Target Name="PostBuild" AfterTargets="PostBuildEvent">

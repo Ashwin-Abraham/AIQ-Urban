@@ -1,9 +1,7 @@
-﻿using ArchSitePlan.BHoM.Geometry.DebugHelpers;
+﻿using ArchSitePlan.BHoM.Geometry.Models;
 using BH.oM.Geometry;
-using CreateGeom = BH.Engine.Geometry.Create;
 using ColorSys = System.Drawing.Color;
-using ArchSitePlan.DebugModel;
-using ArchSitePlan.BHoM.Geometry.Models;
+using CreateGeom = BH.Engine.Geometry.Create;
 
 namespace ArchSitePlan.Test.ArchSitePlan.BHoM.Geometry.Models;
 public class ColouredMeshTests
@@ -50,6 +48,8 @@ public class ColouredMeshTests
                 ColorSys.FromArgb(255, 0, 255),
         });
 
+#if DEBUG
         coloredMesh.Debug().OpenAsGlb();
+#endif
     }
 }

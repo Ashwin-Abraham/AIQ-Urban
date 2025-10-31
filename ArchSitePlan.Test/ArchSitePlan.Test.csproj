@@ -1,14 +1,14 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net7.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
 
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
 	  <LangVersion>12.0</LangVersion>
-	  <Configurations>Debug;Release;DEBUG_Viz</Configurations>
+	  <Configurations>Debug;Release;DEBUG_Viz;Debug_NoViz</Configurations>
   </PropertyGroup>
 
   <ItemGroup>
@@ -36,16 +36,15 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="DeepCloner" Version="0.10.4" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.0.0" />
     <PackageReference Include="xunit" Version="2.9.3" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.1">
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.5">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\AIQ-Resi\AIQ.Climate\AIQ.Climate.csproj" />
     <ProjectReference Include="..\ArchSitePlan.DebugModel\ArchSitePlan.DebugModel.csproj" />
     <ProjectReference Include="..\ArchSitePlan.OSM\ArchSitePlan.OSM.csproj" />
     <ProjectReference Include="..\ArchSitePlan.RhinoBhomInterop\ArchSitePlan.RhinoBhomInterop.csproj" />

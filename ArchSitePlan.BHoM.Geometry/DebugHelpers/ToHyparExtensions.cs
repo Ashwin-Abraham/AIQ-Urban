@@ -1,8 +1,9 @@
-﻿using ArchSitePlan.BHoM.Geometry.Models;
+﻿#if DEBUG
+
+using ArchSitePlan.BHoM.Geometry.Models;
 using ArchSitePlan.DebugModel.BHoMExtensions;
 
 namespace ArchSitePlan.BHoM.Geometry.DebugHelpers;
-#if DEBUG
 public static class ToHyparExtensions
 {
     public static Elements.Geometry.Mesh ToHypar(this ColoredMesh mesh)

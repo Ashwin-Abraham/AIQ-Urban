@@ -1,5 +1,4 @@
-﻿using ArchSitePlan.BHoM.Geometry.DebugHelpers;
-using ArchSitePlan.Core.Factories.Models;
+﻿using ArchSitePlan.Core.Factories.Models;
 using ArchSitePlan.DebugModel;
 using ArchSitePlan.DebugModel.BHoMExtensions;
 using BH.Engine.Geometry;
@@ -117,9 +116,11 @@ public static class TestVisualizers
             .SelectMany(x => x.Profile.InternalBoundaries
                 .Append(x.Profile.ExternalBoundary));
 
+#if DEBUG
         DEBUGMODEL.Debug(floors.ToHypar());
         DEBUGMODEL.Debug(layout.SiteBoundary.ToHypar());
         DEBUGMODEL.Debug(layout.SetBackBoundary.ToHypar());
         DEBUGMODEL.Debug(layout.Buildings.Select(x => x.Envelope.ToHypar()));
+#endif
     }
 }

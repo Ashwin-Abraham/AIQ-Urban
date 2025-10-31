@@ -1,7 +1,6 @@
 ﻿using BH.Engine.Geometry;
 using BH.oM.Geometry;
 using CoordinateSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using OsmSharp;
 using ProjNet.CoordinateSystems;
 using ProjNet.CoordinateSystems.Transformations;
