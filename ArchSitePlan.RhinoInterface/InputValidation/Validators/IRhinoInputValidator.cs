@@ -1,10 +1,20 @@
 ﻿using ArchSitePlan.RhinoInterface.InputValidation.Results;
 using Rhino.DocObjects;
 
-namespace ArchSitePlan.RhinoInterface.InputValidation.Validators
+namespace ArchSitePlan.RhinoInterface.InputValidation.Validators;
+
+public interface IRhinoInputValidator
 {
-    public interface IRhinoInputValidator<TResult> where TResult : IValidationResult
+    GeneralValidationResult ValidateInput(List<RhinoObject> rhinoObjs);
+
+    static ValidationResult GetValidationResult(int originalCount, int removedCount)
     {
-        TResult ValidateInput(List<RhinoObject> rhinoObjs);
+        if (removedCount == originalCount)
+            return ValidationResult.All_Invalid;
+
+        if (removedCount == 0)
+            return ValidationResult.All_Valid;
+
+        return ValidationResult.Some_Valid;
     }
 }

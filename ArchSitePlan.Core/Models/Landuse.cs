@@ -33,7 +33,7 @@ public class Landuse
         return (Name, color);
     }
 
-    public Color GetBuildingColor(int transparency = 150, double darkenPctg  =0.3)
+    public Color GetBuildingColor(int transparency = 150, double darkenPctg  = 0.3)
     {
         return this.Color.SetTransparency(transparency).Darken(darkenPctg);
     }

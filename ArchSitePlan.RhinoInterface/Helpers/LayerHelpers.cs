@@ -31,9 +31,15 @@ namespace ArchSitePlan.RhinoInterface.Helpers
             if (index != LayerConstants.DefaultLayerIndex)
                 doc.Layers[index].IsLocked = lockLayer;
         }
+
         public static string ConstructParcelRhinoLayerName(Landuse use)
         {
             return LayerConstants.ParcelsLayer + "::" + use.Name;
+        }
+
+        public static string ConstructFloorplateRhinoLayerName(Landuse use)
+        {
+            return LayerConstants.BuildingFloorOutlineLayer + "::" + use.Name;
         }
 
         public static List<Landuse> GetLandusesInDocument(RhinoDoc doc)
@@ -43,6 +49,24 @@ namespace ArchSitePlan.RhinoInterface.Helpers
 
             return usesInModel;
         }
+
+        public static List<int> GetBuildingOutlineRhinoLayerIndices(RhinoDoc doc)
+            => GetBuildingOutlineRhinoLayers(doc).Select(x => x.Index).ToList();
+
+        public static List<Layer> GetBuildingOutlineRhinoLayers(RhinoDoc doc)
+        {
+            var buildingLayerIndex = doc.Layers.FindByFullPath(LayerConstants.BuildingFloorOutlineLayer, LayerConstants.DefaultLayerIndex);
+            if (buildingLayerIndex == LayerConstants.DefaultLayerIndex)
+                return [];
+
+            var buildingOutlineLayer = doc.Layers[buildingLayerIndex];
+            var children = buildingOutlineLayer.GetChildren().ToList();
+
+            return children;
+        }
+
+        public static List<int> GetParcelRhinoLayerIndices(RhinoDoc doc)
+            => GetParcelRhinoLayers(doc).Select(x => x.Index).ToList();
 
         public static List<Layer> GetParcelRhinoLayers(RhinoDoc doc)
         {

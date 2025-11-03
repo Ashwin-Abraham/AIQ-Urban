@@ -32,6 +32,24 @@ public static class CoreModelEditStepLibrary
     {
         CoreModelSingelton.Instance.RefreshStudyAreaMetrics();
     }
+
+    /// <summary>
+    /// Updates the floorplate use if it exists
+    /// </summary>
+    public static void UpdateFloorplateUse(List<Guid> clientModelIDs, string useName)
+    {
+        var use = CoreModelSingelton.Instance.Landuses.FirstOrDefault(l => l.Name == useName);
+
+        if (use == null)
+            return;
+
+        var floorplateData = clientModelIDs
+            .Select(id => new FloorplateData(id, use))
+            .ToList();
+
+        new FloorplateEditUseAction().Run(floorplateData);
+    }
+
     /// <summary>
     /// Updates the parcel use if it exists
     /// </summary>
@@ -41,6 +59,14 @@ public static class CoreModelEditStepLibrary
             editType: EditType.Edit,
             clientIdsToModifyOrRemove: clientModelIDs, 
             useName: use);
+    }
+
+    /// <summary>
+    /// Updates the parcel use if it exists
+    /// </summary>
+    public static void EnsureEachFloorplateHasUse()
+    {
+        new AssignUseToFloorplatesWithoutUse().Run();
     }
 
     public static bool TryRemoveRoad(IEnumerable<TransitData> transitData)
@@ -314,31 +340,6 @@ public static class CoreModelEditStepLibrary
         List<(ICurve?, Guid, string)> studyData = new();
         guids.ForEach(id => studyData.Add((null, id, string.Empty)));
         StudyAreaAction.Run(studyData, EditType.Remove);
-    }
-
-    public static void RefreshBuildingUse()
-    {
-        var buildingConfigs = CoreModelSingelton.Instance.Buildings
-            .Select(b => new BuildingActionConfig(b))
-            .ToList();
-
-        BuildingAction.Run(buildingConfigs, EditType.UpdateUse);
-    }
-
-    public static void ReplaceParcelUse(Landuse oldUse, Landuse newUse)
-    {
-        CoreModelSingelton.Instance.Parcels
-            .Where(x => x.LandUse == oldUse)
-            .ToList()
-            .ForEach(x => x.LandUse = newUse);
-    }
-
-    public static void ReplaceBuildingUse(Landuse oldUse, Landuse newUse)
-    {
-        CoreModelSingelton.Instance.Buildings
-            .Where(x => x.Use == oldUse)
-            .ToList()
-            .ForEach(x => x.Use = newUse);
     }
 
     public static void RemoveBuildingsOnParcels(List<BuildingLayout> layoutsToAdd)

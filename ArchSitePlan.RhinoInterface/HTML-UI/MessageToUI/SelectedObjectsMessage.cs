@@ -28,10 +28,13 @@ internal class SelectedObjectMetricsMessage:IMessageToUI
             return null;
 
         var bua = buildings.Sum(x => x.BUA()).Round(1);
-        var uses = buildings.Select(x => x.Use.Name).Distinct().ToList();
+        var uses = buildings.Select(x => x.GetLargestUse()?? AppLanduses.Undefined)
+            .Distinct()
+            .ToList();
+
         string use = _multipleObjects;
         if (uses.Count == 1)
-            use = uses[0];
+            use = uses[0].Name;
 
         var footprintArea = buildings.Sum(x => x.FootprintArea()).Round(1);
 

@@ -6,15 +6,15 @@ using Rhino.Geometry.Intersect;
 
 namespace ArchSitePlan.RhinoInterface.InputValidation.Validators
 {
-    public class TransitInputValidator : IRhinoInputValidator<TransitInputValidationResult>
+    public class TransitInputValidator : IRhinoInputValidator
     {
-        public TransitInputValidationResult ValidateInput(List<RhinoObject> rhinoObjs)
+        public GeneralValidationResult ValidateInput(List<RhinoObject> rhinoObjs)
         {
             List<RhinoObject> validCLs = new();
 
             if (rhinoObjs.Count == 0)
             {
-                return new TransitInputValidationResult(
+                return new GeneralValidationResult(
                     validCLs,
                     ValidationResult.EmptyInput,
                     "Empty input\n" + UIMessages.RoadInstruction);
@@ -42,7 +42,7 @@ namespace ArchSitePlan.RhinoInterface.InputValidation.Validators
                 result = ValidationResult.All_Valid;
             }
 
-            return new TransitInputValidationResult(
+            return new GeneralValidationResult(
                 validCLs,
                 result,
                 message);
