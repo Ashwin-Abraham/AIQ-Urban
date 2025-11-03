@@ -1,4 +1,5 @@
-﻿using ArchSitePlan.RhinoInterface.CoreModelInterface;
+﻿using ArchSitePlan.Core.Models;
+using ArchSitePlan.RhinoInterface.CoreModelInterface;
 using ArchSitePlan.RhinoInterface.Helpers;
 using ArchSitePlan.RhinoInterface.HTML_UI.MessageToUI;
 using ArchSitePlan.RhinoInterface.InputValidation.Results;
@@ -13,7 +14,6 @@ namespace ArchSitePlan.RhinoInterface.HTML_UI.MessagesFromUI;
 
 public class BuildingMessage:IMessageFromUI<ModelStateMessage>
 {
-
     public TypeOfMessage MessageType { get; init; } = TypeOfMessage.Building;
     
     [JsonProperty("floorCount")]

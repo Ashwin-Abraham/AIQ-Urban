@@ -1,10 +1,8 @@
 ﻿using ArchSitePlan.Core.Constants;
-using ArchSitePlan.Core.Extensions;
 using ArchSitePlan.Core.Models;
 using BH.Engine.Data;
 using BH.Engine.Geometry;
 using BH.oM.Geometry;
-using System.Runtime.Serialization;
 
 namespace ArchSitePlan.Core.Metrics
 {

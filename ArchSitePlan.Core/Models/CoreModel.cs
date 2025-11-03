@@ -12,16 +12,17 @@ namespace ArchSitePlan.Core.Models
     public class CoreModel
     {
         private StudyArea _allStudy;
-        public List<Road> Roads;
+
+        public List<Road> Roads { get; set; }
         public List<PlanarSurface> ROWs { get; set; }
         public List<Parcel> Parcels { get; set; } 
         public List<Landuse> Landuses { get; set; }
-        public List<Building> Buildings { get; set; } = new List<Building>();
+        public List<Building> Buildings { get; set; }
 
         [JsonIgnore]
         public List<StudyArea> Studies { get; set; }
 
-        public List<ParcelDivider> Dividers { get; set; } = new ();
+        public List<ParcelDivider> Dividers { get; set; }
         public CoreModel() 
         {
             Roads = [];
@@ -37,7 +38,6 @@ namespace ArchSitePlan.Core.Models
         }
 
         public void AddStudyArea(StudyArea studyArea) => Studies.Add(studyArea);
-        public void RemoveStudyArea(StudyArea studyArea) => Studies.Remove(studyArea);
 
         public void RecalculateBuildingHostParcelIDs()
         {
@@ -81,88 +81,6 @@ namespace ArchSitePlan.Core.Models
             }
         }
 
-        public bool TryAddBuilding(Mesh envelope,
-            List<PlanarSurface> floorPlates,
-            Guid envelopeID,
-            Guid footPrintId,
-            double floorToFloorHt)
-        {
-
-            if (!TryGetBuilding(footPrintId, envelopeID, out Building building))
-            {
-                var origin = Building.CalculateOrigin(envelope);
-
-                var nearest = Parcels.FirstOrDefault(p => p.Boundary.ExternalBoundary.IIsContaining([origin]));
-                var use = nearest != null ? nearest.LandUse : AppLanduses.Undefined;
-
-                var newBldg = new Building(
-                    envelope,
-                    floorPlates,
-                    floorToFloorHt,
-                    envelopeID,
-                    use,
-                    footPrintId);
-                
-                Buildings.Add(newBldg);
-
-                return true;
-            }
-            return false;
-        }
-
-        public bool TryGetStudyArea(Guid id, out StudyArea study)
-        {
-            study = Studies.Find(s => s.Id == id);
-            return study != null;
-        }
-
-        public bool TryGetStudyArea(string name, out StudyArea? study)
-        {
-            study = Studies.Find(s => s.Name == name);
-            return study != null;
-        }
-
-        public bool TryAddOrUpdateStudyArea(Polyline boundary, Guid id, string name)
-        {
-            if (Studies.Any(s => s.Id == id))
-            {
-                int index = Studies.FindIndex(s => s.Id == id);
-                Studies[index] = new StudyArea(boundary, id, name, Parcels, Buildings, Roads.ToList());
-            }
-            else
-                Studies.Add(new StudyArea(boundary, id, name, Parcels, Buildings, Roads.ToList()));
-            return true;
-        }
-
-        public bool TryFindRoad(Guid id, out Road road)
-        {
-            road = Roads.FirstOrDefault(r => r.CenterLineId == id);
-            return road != null;
-        }
-
-        public bool TryRemoveBuilding(Guid id)
-        {
-            int count = Buildings.RemoveAll(b => b.FootprintId == id || b.EnvelopeId == id);
-            
-            return count > 0;
-        }
-
-        public bool TryGetBuilding(Guid footPrintId, Guid massId, out Building? building)
-        {
-            building = Buildings.FirstOrDefault(b =>
-            (footPrintId != Guid.Empty && b.FootprintId == footPrintId)
-            || (massId != Guid.Empty && b.EnvelopeId == massId));
-            return building != null;
-        }
-
-        public List<Building> FindBuildingsInParcels(List<Parcel> parcels)
-        {
-            var parcelGuids = parcels.Select(p => p.CoreModelId).ToList();
-            var buildings = Buildings.Where(b => parcelGuids.Contains(b.HostParcelCoreModelId)).ToList();
-
-            return buildings;
-        }
-
         public void ClearModel()
         {
             Roads = new();
@@ -185,8 +103,6 @@ namespace ArchSitePlan.Core.Models
                 new List<Building>(),
                 new List<Road>()));
         }
-
-        
 
         public StudyArea ProjectWideStudy()
             => Studies.FirstOrDefault(s => s.Name == CoreGeneralConstants.FullProjectStudyName);

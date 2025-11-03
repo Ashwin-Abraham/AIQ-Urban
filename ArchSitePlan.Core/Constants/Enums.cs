@@ -19,7 +19,6 @@ public static class Enums
         Edit,
         Divide,
         ClearAll,
-        UpdateUse
     }
 
     public enum BuildingTargetMode

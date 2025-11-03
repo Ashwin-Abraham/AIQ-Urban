@@ -1,6 +1,7 @@
-﻿using ArchSitePlan.RhinoInterface.Constants;
-using ArchSitePlan.RhinoInterface.CoreModelInterface;
+﻿using ArchSitePlan.RhinoInterface.CoreModelInterface;
 using ArchSitePlan.RhinoInterface.HTML_UI.MessageToUI;
+using ArchSitePlan.RhinoInterface.InputValidation.Results;
+using ArchSitePlan.RhinoInterface.InputValidation.Validators;
 using Rhino;
 using Rhino.DocObjects;
 
@@ -15,18 +16,24 @@ public class ChangeParcelLanduseMessage: IMessageFromUI<ModelStateMessage>
     public ModelStateMessage HandleMessage()
     {
         RhinoDoc doc = RhinoDoc.ActiveDoc;
-        
+        var allowedTypes = new List<ObjectType>
+        {
+            ObjectType.Curve, ObjectType.Brep, ObjectType.Mesh, ObjectType.Extrusion
+        };
+
         // Try to select a surface
-        var srfObjs = RhinoDoc.ActiveDoc.Objects.GetSelectedObjects(false, false)
-            .Where(obj => obj.ObjectType == ObjectType.Brep
-            || obj.ObjectType == ObjectType.Surface)
+        var rhinoObjs = RhinoDoc.ActiveDoc.Objects.GetSelectedObjects(false, false)
+            .Where(obj => allowedTypes.Contains(obj.ObjectType))
             .ToList();
 
-        if (srfObjs.Count == 0)
-            throw new Exception(UIMessages.ChangeLandUseInstruction);
+        var validation = new UseChangeValidator()
+            .ValidateInput(rhinoObjs);
 
-        ModelBuilderPipelines.ChangeParcelUsePipeline(
-            srfObjs.Select(s => s.Id).ToList(),
+        if (validation.Result != ValidationResult.All_Valid)
+            throw new Exception(validation.Message);
+
+        ModelBuilderPipelines.ChangeObjectUsePipeline(
+            rhinoObjs.Select(s => s.Id).ToList(),
             Use);
 
         ModelBuilderPipelines.RhinoOutputPipeline(doc, RhinoEventHandler.HTMLViewModel.AppMode, true);

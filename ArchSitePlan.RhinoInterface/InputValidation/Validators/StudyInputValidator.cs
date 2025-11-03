@@ -6,15 +6,15 @@ using Rhino.Geometry.Intersect;
 
 namespace ArchSitePlan.RhinoInterface.InputValidation.Validators
 {
-    public class StudyInputValidator : IRhinoInputValidator<StudyInputValidationResult>
+    public class StudyInputValidator : IRhinoInputValidator
     {
-        public StudyInputValidationResult ValidateInput(List<RhinoObject> rhinoObjs)
+        public GeneralValidationResult ValidateInput(List<RhinoObject> rhinoObjs)
         {
             List<RhinoObject> validBoundaries = new();
 
             if (rhinoObjs.Count == 0)
             {
-                return new StudyInputValidationResult(
+                return new GeneralValidationResult(
                     validBoundaries,
                     ValidationResult.EmptyInput,
                     "Empty input\n" + UIMessages.AddStudyInstruction);
@@ -43,7 +43,7 @@ namespace ArchSitePlan.RhinoInterface.InputValidation.Validators
                 result = ValidationResult.All_Valid;
             }
 
-            return new StudyInputValidationResult(
+            return new GeneralValidationResult(
                 validBoundaries,
                 result,
                 message);

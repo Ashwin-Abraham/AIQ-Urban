@@ -1,5 +1,6 @@
 ﻿using ArchSitePlan.Core.Factories.Models;
 using ArchSitePlan.Core.ModelEditActions;
+using ArchSitePlan.Core.Models;
 using ArchSitePlan.Core.Pipeline;
 using ArchSitePlan.Core.Pipeline.CreationData;
 using Eto.Forms;
@@ -24,21 +25,51 @@ public static class ModelBuilderPipelines
         CoreModelEditStepLibrary.AddOrUpdateRoad(creationData);
         CoreModelEditStepLibrary.RecalculateParcelsAndRoadRoWs();
         CoreModelEditStepLibrary.DivideParcelsAndTransit();
-        CoreModelEditStepLibrary.RefreshBuildingUse();
+        CoreModelEditStepLibrary.EnsureEachFloorplateHasUse();
 
         if(updateRhino)
             RhinoOutputPipeline(RhinoDoc.ActiveDoc, ModellingTool.Transit, true);
     }
 
-    public static void ChangeParcelUsePipeline(
-        List<Guid> parcelIds,
+    public static void ChangeObjectUsePipeline(
+        List<Guid> objectIds,
         string newUse)
     {
         if (!RhinoEventHandler.ValidLicense)
             return;
 
+        // Change buildings
+        var buildings = CoreModelSingelton.Instance.Buildings
+            .Where(x => objectIds.Contains(x.EnvelopeId))
+            .ToList();
+
+        var floorplatesInBuilding = buildings.SelectMany(x => x.FloorPlates).ToList();
+
+        // Change floorplates
+        var floorplateIds = CoreModelSingelton.Instance.Buildings.SelectMany(x => x.FloorPlates).Select(x => x.Id).ToHashSet();
+        var floorplateIdsForPipeline = objectIds
+            .Where(id => floorplateIds.Contains(id))
+            .Concat(floorplatesInBuilding.Select(x => x.Id))
+            .ToList();
+
+        CoreModelEditStepLibrary.UpdateFloorplateUse(floorplateIdsForPipeline, newUse);
+
+        // Change parcels
+        var parcelIdsForPipeline = objectIds
+            .Where(id => CoreModelSingelton.Instance.Parcels.Any(b => b.ClientModelId == id))
+            .ToList();
+        ChangeParcelUsePipeline(parcelIdsForPipeline, newUse);
+
+        CoreModelEditStepLibrary.UpdateParcelUse(objectIds, newUse);
+        CoreModelEditStepLibrary.EnsureEachFloorplateHasUse();
+    }
+
+    private static void ChangeParcelUsePipeline(
+        List<Guid> parcelIds,
+        string newUse)
+    {
         CoreModelEditStepLibrary.UpdateParcelUse(parcelIds, newUse);
-        CoreModelEditStepLibrary.RefreshBuildingUse();
+        CoreModelEditStepLibrary.EnsureEachFloorplateHasUse();
     }
 
     public static void AddOrUpdateParcelDividerPipeline(
@@ -52,7 +83,7 @@ public static class ModelBuilderPipelines
         CoreModelEditStepLibrary.AddDivders(dividerData);
         CoreModelEditStepLibrary.RecalculateParcelsAndRoadRoWs();
         CoreModelEditStepLibrary.DivideParcelsAndTransit();
-        CoreModelEditStepLibrary.RefreshBuildingUse();
+        CoreModelEditStepLibrary.EnsureEachFloorplateHasUse();
 
         if(updateRhino)
             RhinoOutputPipeline(RhinoDoc.ActiveDoc, ModellingTool.Dividers, true);
@@ -68,7 +99,7 @@ public static class ModelBuilderPipelines
 
         if (!CoreModelEditStepLibrary.TryRemoveDivders(dividerData)) return;
         CoreModelEditStepLibrary.DivideParcelsAndTransit();
-        CoreModelEditStepLibrary.RefreshBuildingUse();
+        CoreModelEditStepLibrary.EnsureEachFloorplateHasUse();
 
         if(updateRhino)
             RhinoOutputPipeline(doc, currentAppMode, true);
@@ -83,7 +114,7 @@ public static class ModelBuilderPipelines
             return;
 
         CoreModelEditStepLibrary.AddOrUpdateBulding(buildingData);
-        CoreModelEditStepLibrary.RefreshBuildingUse();
+        CoreModelEditStepLibrary.EnsureEachFloorplateHasUse();
         CoreModelEditStepLibrary.RefreshStudyAreaMetrics();
 
         if(triggerRhinoUpdate)
@@ -101,7 +132,7 @@ public static class ModelBuilderPipelines
 
         var buildings = layoutsToAdd.SelectMany(x=> x.Buildings).ToList();
         CoreModelEditStepLibrary.AddOrUpdateBulding(buildings);
-        CoreModelEditStepLibrary.RefreshBuildingUse();
+        CoreModelEditStepLibrary.EnsureEachFloorplateHasUse();
 
         if(updateRhino)
             RhinoOutputPipeline(RhinoDoc.ActiveDoc, RhinoEventHandler.HTMLViewModel.AppMode, true);
@@ -135,7 +166,7 @@ public static class ModelBuilderPipelines
         CoreModelEditStepLibrary.AddOrUpdateStudyArea(studyData);
         CoreModelEditStepLibrary.RecalculateParcelsAndRoadRoWs();
         CoreModelEditStepLibrary.DivideParcelsAndTransit();
-        CoreModelEditStepLibrary.RefreshBuildingUse();
+        CoreModelEditStepLibrary.EnsureEachFloorplateHasUse();
 
         if(triggerRhinoUpdate)
             RhinoOutputPipeline(doc, currentAppMode, true);
@@ -151,7 +182,7 @@ public static class ModelBuilderPipelines
         CoreModelEditStepLibrary.DeleteStudyAreas(guids);
         CoreModelEditStepLibrary.RecalculateParcelsAndRoadRoWs();
         CoreModelEditStepLibrary.DivideParcelsAndTransit();
-        CoreModelEditStepLibrary.RefreshBuildingUse();
+        CoreModelEditStepLibrary.EnsureEachFloorplateHasUse();
         RhinoOutputPipeline(doc, currentAppMode, true);
     }
 

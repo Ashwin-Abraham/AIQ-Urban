@@ -1,5 +1,6 @@
 ﻿using ArchSitePlan.Core.ModelEditActions.Configs;
 using ArchSitePlan.Core.Models;
+using ArchSitePlan.Core.Pipeline.CreationData;
 using BH.Engine.Geometry;
 using static ArchSitePlan.Core.Constants.Enums;
 
@@ -20,10 +21,6 @@ namespace ArchSitePlan.Core.ModelEditActions
                     TryAddToCoreModel(configs);
                     break;
 
-                case EditType.UpdateUse:
-                    EditUse(configs);
-                    break;
-
                 //case EditType.Edit:
                 //    var building = CoreModelSingelton.InstanceBuildings.Find(b => b.EnvelopeId == envelopeId);
                 //    if(building is not null)
@@ -32,27 +29,6 @@ namespace ArchSitePlan.Core.ModelEditActions
 
                 default:
                     throw new NotImplementedException(nameof(ParcelAction) + $" Edit mode:{editType}");
-            }
-        }
-
-        private static void EditUse(List<BuildingActionConfig> configs)
-        {
-            var ids = configs.Select(c => c.EnvelopeId).ToList();
-            var buildings = CoreModelSingelton.Instance.Buildings.Where(b => ids.Contains(b.EnvelopeId)).ToList();
-
-            foreach ( var building in buildings)
-            {
-                var parcel = CoreModelSingelton.Instance.Parcels
-                    .Where(p => p.Boundary.ExternalBoundary.IIsContaining([building.Origin]))
-                    .MinBy(x => x.Area());
-
-                if (parcel != null)
-                {
-                    building.Use = parcel.LandUse;
-                    building.HostParcelCoreModelId = parcel.CoreModelId;
-                }
-                else
-                    building.Use = AppLanduses.Undefined;
             }
         }
 
@@ -71,24 +47,11 @@ namespace ArchSitePlan.Core.ModelEditActions
                         config.FloorPlates,
                         config.FlootToFloorHt,
                         config.EnvelopeId,
-                        use,
                         config.FootprintId);
 
                 CoreModelSingelton.Instance.Buildings.Add(newBldg);
             }
 
-        }
-
-        /// <summary>
-        /// Edits the buildings host parcel id
-        /// </summary>
-        private static bool TryEditInCoreModel(Building building)
-        {
-            var parcel = CoreModelSingelton.Instance.Parcels
-                .FirstOrDefault(p => p.Boundary.ExternalBoundary.IIsContaining([building.Origin]));
-            building.HostParcelCoreModelId = parcel?.CoreModelId ?? Guid.Empty;
-
-            return building.HostParcelCoreModelId == Guid.Empty;
         }
 
         private static bool TryRemoveFromCoreModel(List<BuildingActionConfig> configs)

@@ -7,7 +7,7 @@ using Rhino.Geometry.Intersect;
 
 namespace ArchSitePlan.RhinoInterface.InputValidation.Validators
 {
-    public class DividerInputValidator : IRhinoInputValidator<DividerInputValidationResult>
+    public class DividerInputValidator : IRhinoInputValidator
     {
         bool _checkCorrectLayer;
         public DividerInputValidator(bool checkCorrectLayer = false)
@@ -15,14 +15,14 @@ namespace ArchSitePlan.RhinoInterface.InputValidation.Validators
             _checkCorrectLayer = checkCorrectLayer;
         }
 
-        public DividerInputValidationResult ValidateInput(List<RhinoObject> rhinoObjs)
+        public GeneralValidationResult ValidateInput(List<RhinoObject> rhinoObjs)
         {
             RhinoDoc doc = RhinoDoc.ActiveDoc;
             List<RhinoObject> validCLs = new();
 
             if (rhinoObjs.Count == 0)
             {
-                return new DividerInputValidationResult(
+                return new GeneralValidationResult(
                     validCLs,
                     ValidationResult.EmptyInput,
                     "Empty input\n" + UIMessages.AddDividerInstruction);
@@ -61,7 +61,7 @@ namespace ArchSitePlan.RhinoInterface.InputValidation.Validators
                 result = ValidationResult.All_Valid;
             }
 
-            return new DividerInputValidationResult(
+            return new GeneralValidationResult(
                 validCLs,
                 result,
                 message);

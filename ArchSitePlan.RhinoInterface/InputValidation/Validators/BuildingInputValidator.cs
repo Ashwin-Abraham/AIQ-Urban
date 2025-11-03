@@ -1,5 +1,4 @@
-﻿using AIQ.Primitives.Extensions;
-using ArchSitePlan.Core.Models;
+﻿using ArchSitePlan.Core.Models;
 using ArchSitePlan.RhinoInterface.Constants;
 using ArchSitePlan.RhinoInterface.InputValidation.Results;
 using Rhino.DocObjects;
@@ -9,8 +8,7 @@ using static ArchSitePlan.RhinoInterface.Constants.Enums;
 
 namespace ArchSitePlan.RhinoInterface.InputValidation.Validators
 {
-    public class BuildingInputValidator
-        : IRhinoInputValidator<BuildingInputValidationResult>
+    public class BuildingInputValidator : IRhinoInputValidator
     {
         readonly BuildingGeneratorStartPoint _inputType;
 
@@ -19,7 +17,7 @@ namespace ArchSitePlan.RhinoInterface.InputValidation.Validators
             _inputType = inputType;
         }
 
-        public BuildingInputValidationResult ValidateInput(List<RhinoObject> rhinoObjs)
+        public GeneralValidationResult ValidateInput(List<RhinoObject> rhinoObjs)
         {
             string message = string.Empty;
             int removed = 0;

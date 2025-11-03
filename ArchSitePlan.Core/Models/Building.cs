@@ -10,57 +10,50 @@ namespace ArchSitePlan.Core.Models
         public int FloorCount { get; set; }
         public double FloorToFloorHeight { get; set;}
         public Guid FootprintId { get; init;}
-        public Guid EnvelopeId { get; set;} = Guid.Empty;
+        public Guid EnvelopeId { get; set;}
         public Guid HostParcelCoreModelId { get; set;} = Guid.Empty;
         public Point Origin { get; private set; }
         public Mesh Envelope { get; private set; }
-        public Landuse? Use { get; set; }
-        public List<(PlanarSurface Profile, Guid Id)> FloorPlates { get; set; }
+        public List<FloorPlate> FloorPlates { get; set; }
 
         public Building(
             Building building,
             Mesh envelope,
             List<(PlanarSurface, Guid)> floorPlates)
             : this(envelope,
-                  floorPlates,
-                  building.FloorToFloorHeight,
-                  building.EnvelopeId,
-                  building.Use,
-                  building.FootprintId) { }
+                floorPlates.Select(x => new FloorPlate(x.Item1, x.Item2, null)).ToList(),
+                building.FloorToFloorHeight,
+                building.EnvelopeId,
+                building.FootprintId) { }
 
         public Building(
             Mesh envelope,
             List<PlanarSurface> floorPlates,
             double floorToFloorHeight,
             Guid envelopeId = default,
-            Landuse? use = null,
             Guid footprintId = default)
             : this(
                 envelope,
-                floorPlates.Select(x => (x, Guid.Empty)).ToList(),
+                floorPlates.Select(x => new FloorPlate(x, Guid.Empty, null)).ToList(),
                 floorToFloorHeight,
                 envelopeId,
-                use,
                 footprintId)
         { }
 
         [JsonConstructor]
         public Building(
             Mesh envelope,
-            List<(PlanarSurface, Guid)> floorPlates,
+            List<FloorPlate> floorPlates,
             double floorToFloorHeight,
             Guid envelopeId = default,
-            Landuse? use = null,
             Guid footprintId = default)
         {
-            Use = use;
             Envelope = envelope;
             FloorToFloorHeight = floorToFloorHeight;
             
             FloorPlates = floorPlates
-                .Where(p => p.Item1 !=null && Math.Abs(p.Item1.Area()) > 1E-06)
-                .OrderBy(p => p.Item1.ControlPointCentroid().Z)
-                .Select(f => (f.Item1, f.Item2))
+                .Where(p => Math.Abs(p.Profile.Area()) > 1E-06)
+                .OrderBy(p => p.Profile.ControlPointCentroid().Z)
                 .ToList();
 
             FootprintId = footprintId;
@@ -98,52 +91,31 @@ namespace ArchSitePlan.Core.Models
             return Math.Abs(area);
         }
 
-        public Landuse FindHostParcelUse()
-        {
-            var host = CoreModelSingelton.Instance.Parcels.Find(p => p.Boundary.ExternalBoundary.IIsContaining([Origin]));
-            return host?.LandUse?? AppLanduses.Undefined;
-        }
-
         internal List<PlanarSurface> GetFloorPlates()
         {
             List<PlanarSurface> floors = FloorPlates.Select(x => x.Profile).ToList();
             return floors;
         }
 
-        //private List<(PlanarSurface, Guid)> CreateFloorPlates(PlanarSurface baseOutline)
-        //{
-        //    var floorPlates = new List<(PlanarSurface,Guid)>();
+        public Landuse? GetLargestUse()
+        {
+            var usesAndAreas = new Dictionary<Landuse, double>();
 
-        //    for(int i = 0; i < FloorCount; i++)
-        //    {
-        //        var mover = Create.Vector(0,0, i * FloorToFloorHeight);
-        //        var floor = baseOutline.Translate(mover);
-        //        floorPlates.Add((floor, Guid.Empty));
-        //    }
-        //    return floorPlates;
-        //}
-        //public Mesh GetEnvelope()
-        //{
-        //    if (BaseOutline != null)
-        //    {
-        //        var extr = Create.Extrusion(
-        //            BaseOutline.ExternalBoundary,
-        //            Create.Vector(0, 0, FloorToFloorHeight * FloorCount),
-        //            true);
+            foreach (var floorplate in FloorPlates)
+            {
+                if (floorplate.Use is null)
+                    continue;
 
-        //        return extr.ToMesh();
-        //    }
-        //    else
-        //    {
-        //        return Envelope;
-        //    }
-        //}
-        //public void UpdateProperties(PlanarSurface footPrint, int floorCount, double floorToFloorHeight)
-        //{
-        //    BaseOutline = footPrint;
-        //    FloorCount = floorCount;
-        //    FloorToFloorHeight = floorToFloorHeight;
-        //    FloorPlates = CreateFloorPlates(footPrint);
-        //}
+                if (!usesAndAreas.ContainsKey(floorplate.Use))
+                    usesAndAreas.Add(floorplate.Use, floorplate.AreaAbs());
+
+                usesAndAreas[floorplate.Use] += floorplate.AreaAbs();
+            }
+
+            if(usesAndAreas.Count == 0)
+                return null;
+
+            return usesAndAreas.MaxBy(x => x.Value).Key;
+        }
     }
 }

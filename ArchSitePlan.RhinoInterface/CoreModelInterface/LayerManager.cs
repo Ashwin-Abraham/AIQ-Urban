@@ -22,7 +22,12 @@ public static class LayerManager
                 break;
 
             case ModellingTool.LandUse:
-                layersToUnlock.AddRange(new string[] { LayerConstants.ParcelsLayer, LayerConstants.ParcelDividerLayer });
+                layersToUnlock.AddRange(new string[] {
+                    LayerConstants.ParcelsLayer, 
+                    LayerConstants.ParcelDividerLayer,
+                    LayerConstants.BuildingFloorOutlineLayer,
+                    LayerConstants.BuildingLayer
+                });
                 break;
 
             case ModellingTool.AutoBuilding:
@@ -30,6 +35,7 @@ public static class LayerManager
                 layersToUnlock.Add(LayerConstants.ParcelsLayer);
                 additionalLayersToLock.Add(LayerConstants.BuildingFloorOutlineLayer);
                 break;
+
             case ModellingTool.Building:
                 layersToUnlock.Add(LayerConstants.BuildingLayer);
                 additionalLayersToLock.Add(LayerConstants.BuildingFloorOutlineLayer);

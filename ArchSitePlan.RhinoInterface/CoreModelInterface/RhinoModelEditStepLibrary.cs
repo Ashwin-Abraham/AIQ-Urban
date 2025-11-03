@@ -188,8 +188,7 @@ namespace ArchSitePlan.RhinoInterface.CoreModelInterface
             OutputRoadsToRhino(doc);
             OutputParcelsToRhino(doc);
             OutputStudyAreasToRhino(doc);
-
-            BakeRhinoBuilding(doc);
+            OutputRhinoBuilding(doc);
 
             RemoveEmptyAppLayers(doc);
             doc.Views.Redraw();
@@ -224,24 +223,18 @@ namespace ArchSitePlan.RhinoInterface.CoreModelInterface
                 .Select(obj => doc.Objects.Delete(obj, true, true))
                 .ToList();
         }
-        internal static void BakeRhinoBuilding(RhinoDoc doc)
+        internal static void OutputRhinoBuilding(RhinoDoc doc)
         {
             DeleteAllRhinoBuilding(doc);
 
-            int outlineLayerIndex = LayerHelpers.CreateOrGetLayerIndex(
-                RhinoDoc.ActiveDoc,
-                LayerConstants.BuildingFloorOutlineLayer,
-                LayerConstants.BuildingFloorOutlineColour);
+            Dictionary<Landuse, ObjectAttributes> floorplateGeometryAttributes =
+                CoreModelSingelton.Instance.Landuses
+                .ToDictionary(x => x, x => GetFloorplateAttributesByUse(doc, x));
 
             int massLayerIndex = LayerHelpers.CreateOrGetLayerIndex(
                 RhinoDoc.ActiveDoc,
                 LayerConstants.BuildingMassLayer,
                 LayerConstants.BuildingMassColour);
-
-            var outlineAttrib = new ObjectAttributes()
-            {
-                LayerIndex = outlineLayerIndex
-            };
 
             var massAttrib = new ObjectAttributes()
             {
@@ -252,15 +245,22 @@ namespace ArchSitePlan.RhinoInterface.CoreModelInterface
             foreach (var building in CoreModelSingelton.Instance.Buildings)
             {
                 var rhinoMesh = building.Envelope.ToRhino();
-                massAttrib.ObjectColor = building.Use.GetBuildingColor();
+                massAttrib.ObjectColor = AppLanduses.Undefined.GetBuildingColor(transparency: 200, darkenPctg: 0.1);
 
                 // Create new building
                 building.EnvelopeId = doc.Objects.AddMesh(rhinoMesh, massAttrib);
+
                 for (int i = 0; i < building.FloorPlates.Count; i++)
                 {
-                    var curve = building.FloorPlates[i].Profile.ExternalBoundary.ToRhino();
+                    var floorPlate = building.FloorPlates[i];
+
+                    var curve = floorPlate.Profile.ExternalBoundary.ToRhino();
+
+                    if (floorPlate.Use == null || !floorplateGeometryAttributes.TryGetValue(floorPlate.Use, out var outlineAttrib))
+                        continue;
+                    
                     var newId = doc.Objects.AddCurve(curve, outlineAttrib);
-                    building.FloorPlates[i] = (building.FloorPlates[i].Profile, newId);
+                    floorPlate.UpdateId(newId);
                 }
             }
            
@@ -387,6 +387,22 @@ namespace ArchSitePlan.RhinoInterface.CoreModelInterface
 
             LayerHelpers.SetLayerColour(doc, layerIndex, use.Color);
 
+            ObjectAttributes parcelGeometryAttributes = new ObjectAttributes()
+            {
+                LayerIndex = layerIndex
+            };
+
+            return parcelGeometryAttributes;
+        }
+
+        private static ObjectAttributes GetFloorplateAttributesByUse(RhinoDoc doc, Landuse use)
+        {
+            string layerName = LayerHelpers.ConstructFloorplateRhinoLayerName(use);
+            int layerIndex = LayerHelpers.CreateOrGetLayerIndex(
+                doc,
+                layerName,
+                use.Color);
+            LayerHelpers.SetLayerColour(doc, layerIndex, use.Color);
             ObjectAttributes parcelGeometryAttributes = new ObjectAttributes()
             {
                 LayerIndex = layerIndex
