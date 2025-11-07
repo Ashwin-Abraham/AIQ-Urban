@@ -37,7 +37,7 @@ namespace ArchSitePlan.Core.ModelEditActions
         {
             var dividers = CoreModelSingelton.Instance.Dividers.Select(d => d.Curve as ICurve).ToList();
             var studyDividers = CoreModelSingelton.Instance
-                .Studies
+                .Zones
                 .Where(s => s.Boundary != null)
                 .Select(x => (x.Boundary as ICurve)!)
                 .ToList();

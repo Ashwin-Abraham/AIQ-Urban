@@ -174,7 +174,7 @@ public static class RhinoEventHandler
         ResetEventQueueAndObjects();
 
         // Output metrics
-        WS.SendMessage(new ModelStateMessage());
+        WS.SendMessage(ModelBuilderPipelines.GenerateModelStateMessage());
     }
 
     public static void ResetEventQueueAndObjects()
@@ -246,12 +246,12 @@ public static class RhinoEventHandler
 
             if (HTMLViewModel.AppMode == ModellingTool.Building || HTMLViewModel.AppMode == ModellingTool.AutoBuilding)
             {
-                List<RhinoBuildingData> buildingData = RhinoBuildingData.FromExisting(replacedObjects).ToList();
+                List<BuildingData> buildingData = BuildingDataCreator.FromExistingCoreModelBuildings(replacedObjects).ToList();
 
                 if (buildingData.Count == 0)
                     return;
 
-                UpdateSelectedBuildingsPosition(buildingData);
+                UpdateSelectedBuildingsPosition(doc, buildingData);
             }
             else if (HTMLViewModel.AppMode == ModellingTool.Transit)
             {
@@ -295,13 +295,10 @@ public static class RhinoEventHandler
         }
     }
 
-    public static void UpdateSelectedBuildingsPosition(List<RhinoBuildingData> rhinoCreationData)
+    public static void UpdateSelectedBuildingsPosition(RhinoDoc doc, List<BuildingData> buildingData)
     {
-        var buildingData = rhinoCreationData.Select(x => x.ToCoreModelData()).OfType<BuildingData>().ToList();
-        List<Guid> ids = rhinoCreationData.Select(x => x.ID).ToList();
-
-        RhinoDoc doc = RhinoDoc.ActiveDoc;
-        ModelBuilderPipelines.DeleteBuildingPipeline(doc, buildingData, HTMLViewModel.AppMode, false);
+        List<Guid> ids = buildingData.Select(x => x.EnvelopeId).ToList();
+        ModelBuilderPipelines.DeleteBuildingPipeline(doc, ids, HTMLViewModel.AppMode, false);
         ModelBuilderPipelines.AddOrUpdateBuldingPipeline(buildingData, HTMLViewModel.AppMode, false);
     }
 
@@ -376,21 +373,9 @@ public static class RhinoEventHandler
 
                 case ModellingTool.AutoBuilding:
                 case ModellingTool.Building:
-                    var buildingResult = new BuildingInputValidator(BuildingGeneratorStartPoint.Mass)
-                        .ValidateInput(removedObjects);
-
-                    if (buildingResult.Result == ValidationResult.All_Invalid
-                        || buildingResult.Result == ValidationResult.EmptyInput)
-                        break;
-
-                    var buildingData = RhinoBuildingData
-                        .FromExisting(buildingResult.ValidObjects)
-                        .Select(x => x.ToCoreModelData())
-                        .Where(x => x != null)
-                        .Cast<BuildingData>()
-                        .ToList();
-
-                    ModelBuilderPipelines.DeleteBuildingPipeline(doc, buildingData, HTMLViewModel.AppMode, true);
+                    // Enevelope ids to delete
+                    var rhinoIds = removedObjects.Select(x => x.Id).ToList();
+                    ModelBuilderPipelines.DeleteBuildingPipeline(doc, rhinoIds, HTMLViewModel.AppMode, true);
                     break;
 
                 case ModellingTool.Zones:

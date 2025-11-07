@@ -1,6 +1,7 @@
 ﻿using ArchSitePlan.BHoM.Geometry.Extensions;
 using ArchSitePlan.Core.Comparer;
 using ArchSitePlan.Core.Constants;
+using ArchSitePlan.Core.Metrics;
 using ArchSitePlan.Core.Pipeline.CreationData;
 using BH.Engine.Geometry;
 using BH.oM.Geometry;
@@ -20,7 +21,7 @@ namespace ArchSitePlan.Core.Models
         public List<Building> Buildings { get; set; }
 
         [JsonIgnore]
-        public List<StudyArea> Studies { get; set; }
+        public List<StudyArea> Zones { get; set; }
 
         public List<ParcelDivider> Dividers { get; set; }
         public CoreModel() 
@@ -32,12 +33,12 @@ namespace ArchSitePlan.Core.Models
             Dividers = [];
 
             _allStudy = new(null, Guid.NewGuid(), CoreGeneralConstants.FullProjectStudyName, new(), new(), new());
-            Studies = new List<StudyArea>() { _allStudy };
+            Zones = new List<StudyArea>() { _allStudy };
 
             Landuses = AppLanduses.InitialUses.ToList();
         }
 
-        public void AddStudyArea(StudyArea studyArea) => Studies.Add(studyArea);
+        public void AddStudyArea(StudyArea studyArea) => Zones.Add(studyArea);
 
         public void RecalculateBuildingHostParcelIDs()
         {
@@ -45,39 +46,6 @@ namespace ArchSitePlan.Core.Models
             {
                 var parcel = Parcels.FirstOrDefault(p => p.Boundary.ExternalBoundary.IIsContaining([building.Origin]));
                 building.HostParcelCoreModelId = parcel?.CoreModelId?? Guid.Empty;
-            }
-        }
-        internal void RefreshStudyAreaMetrics()
-        {
-            for (int i = 0; i < Studies.Count; i++) 
-            {
-                if (Studies[i].Boundary == null)
-                {
-                    Studies[i] = new StudyArea(Studies[i], Parcels, Buildings, Roads.ToList());
-                }
-                else
-                {
-                    var parcelsInArea = Parcels
-                        .Where(p => Studies[i].Boundary.IIsContaining([p.Boundary.ControlPointCentroid()]))
-                        .ToList();
-
-                    var buildingsInArea = Buildings
-                        .Where(bldg =>
-                        {
-                            var boundaryPt = Studies[i].Boundary.IStartPoint();
-                            var bldgPt = bldg.Origin.Project(Create.Plane(boundaryPt, Vector.ZAxis));
-                            return Studies[i].Boundary.IIsContaining([bldgPt]);
-                        })
-                        .ToList();
-
-                    var roadsInArea = Roads.Where(road =>
-                    {
-                        var roadPoint = road.Centerline.PointAtParameter(0.5);
-                        return Studies[i].Boundary.IIsContaining([roadPoint]);
-                    }).ToList();
-
-                    Studies[i] = new StudyArea(Studies[i], parcelsInArea, buildingsInArea, roadsInArea);
-                }
             }
         }
 
@@ -94,7 +62,7 @@ namespace ArchSitePlan.Core.Models
 
         public void ResetStudyAreas()
         {
-            Studies = new();
+            Zones = new();
             AddStudyArea(new StudyArea(
                 null,
                 Guid.NewGuid(),
@@ -105,7 +73,7 @@ namespace ArchSitePlan.Core.Models
         }
 
         public StudyArea ProjectWideStudy()
-            => Studies.FirstOrDefault(s => s.Name == CoreGeneralConstants.FullProjectStudyName);
+            => Zones.FirstOrDefault(s => s.Name == CoreGeneralConstants.FullProjectStudyName);
 
         public bool TryGetParcelDivider(Guid objectId, out ParcelDivider divider)
         {

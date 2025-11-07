@@ -10,8 +10,7 @@ public class CurrentModelStateMessage : IMessageFromUI<ModelStateMessage>
 
     public ModelStateMessage HandleMessage()
     {
-        ModelBuilderPipelines.ReloadAppPipeline(RhinoDoc.ActiveDoc, ModellingTool.Transit);
-        return new();
+        return ModelBuilderPipelines.ReloadAppPipeline(RhinoDoc.ActiveDoc, ModellingTool.Transit);
     }
 }
 

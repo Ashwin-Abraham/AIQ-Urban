@@ -10,7 +10,8 @@ namespace ArchSitePlan.RhinoInterface.HTML_UI.MessagesFromUI
         public ModelStateMessage HandleMessage()
         {
             ModelBuilderPipelines.TryRollForward();
-            return new();
+
+            return ModelBuilderPipelines.GenerateModelStateMessage();
         }
     }
 }

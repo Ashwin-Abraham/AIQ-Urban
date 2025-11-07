@@ -41,7 +41,7 @@ namespace ArchSitePlan.Core.Models
 
         // Variables
         public string ExcelPath { get; set; }
-        public StudyAreaMetrics ProjectWideStudy { get; set; }
+        private readonly (StudyArea Study, StudyAreaMetrics Metrics) _projectWideStudy ;
         private List<LandUseSummaryDataRow> _landUseSummary { get; set; }
         private List<TransitSummaryDataRow> _transitSummary { get; set; }
         private List<StudySummaryDataRow> _studyAreasSummary { get; set; }
@@ -49,26 +49,20 @@ namespace ArchSitePlan.Core.Models
         
         public ProjectReport(
             string excelFilePath, 
-            StudyAreaMetrics projectWideStudy,
-            List<StudyArea> studies)
+            List<(StudyArea Zone, StudyAreaMetrics Metrics)> zonesAndMetrics)
         {
-            ProjectWideStudy = projectWideStudy;
+            _projectWideStudy = zonesAndMetrics.FirstOrDefault(x => x.Zone.Name == CoreGeneralConstants.FullProjectStudyName);
             ExcelPath = excelFilePath;
 
-            BuildLandUseData(projectWideStudy);
-            BuildTransitData(studies.First(s => s.Name == CoreGeneralConstants.FullProjectStudyName));
-            BuildStudyAreasData(studies);
+            BuildLandUseData();
+            BuildTransitData();
+            BuildStudyAreasData(zonesAndMetrics);
         }
 
-        private void BuildStudyAreasData(List<StudyArea> studies)
+        private void BuildStudyAreasData(List<(StudyArea Study, StudyAreaMetrics Metrics)> studies)
         {
-            double totalBuiltArea = studies
-                .First(s => s.Name.Contains(CoreGeneralConstants.FullProjectStudyName))
-                .Metrics.BuiltArea;
-
-            double totalDevArea = studies
-                .First(s => s.Name.Contains(CoreGeneralConstants.FullProjectStudyName))
-                .Metrics.DevelopableArea;
+            double totalBuiltArea = _projectWideStudy.Metrics.BuiltArea;
+            double totalDevArea = _projectWideStudy.Metrics.DevelopableArea;
 
             _studyAreasSummary = new();
             foreach (var study in studies)
@@ -79,10 +73,10 @@ namespace ArchSitePlan.Core.Models
                 double parcelPctg = totalDevArea.AlmostZero() ?
                     0 : study.Metrics.DevelopableArea / totalDevArea;
 
-                double transitArea = study.Metrics.TransitMetrics.Sum(tm => tm.Area);
+                double transitArea = study.Metrics.TransitMetrics.Sum(tm => tm.Metrics.Area);
 
                 var row = new StudySummaryDataRow(
-                    StudyName: study.Name,
+                    StudyName: study.Study.Name,
                     Colour: Color.Aqua,
                     BoundedArea: study.Metrics.BoundedArea,
                     ParcelArea: study.Metrics.DevelopableArea,
@@ -97,41 +91,41 @@ namespace ArchSitePlan.Core.Models
             }
         }
 
-        private void BuildTransitData(StudyArea fullProjectStudy)
+        private void BuildTransitData()
         {
-            var transitMetrics = fullProjectStudy.Metrics.TransitMetrics;
+            var transitMetrics = _projectWideStudy.Metrics.TransitMetrics;
             _transitSummary = new();
 
-            double totalTransitArea = transitMetrics.Sum(t => t.Area);
-            double totalTransitLength = transitMetrics.Sum(t => t.RunningLength);
+            double totalTransitArea = transitMetrics.Sum(t => t.Metrics.Area);
+            double totalTransitLength = transitMetrics.Sum(t => t.Metrics.RunningLength);
 
             foreach(var transit in transitMetrics)
             {
                 var row = new TransitSummaryDataRow(
-                    TransitType:  $"{transit.Type.ToString()} - {transit.RoadWidth}m",
+                    TransitType:  $"Road - {transit.Metrics.RoadWidth}m",
                     Colour: Color.FromArgb(_transitSummary.Count * 10,0, 0,0),
-                    RunningLength: transit.RunningLength,
-                    RunningLengthPctg: transit.RunningLength/ totalTransitLength,
-                    TransitArea: transit.Area,
-                    TransitAreaPctg: transit.Area/ totalTransitArea);
+                    RunningLength: transit.Metrics.RunningLength,
+                    RunningLengthPctg: transit.Metrics.RunningLength/ totalTransitLength,
+                    TransitArea: transit.Metrics.Area,
+                    TransitAreaPctg: transit.Metrics.Area/ totalTransitArea);
 
                 _transitSummary.Add(row);
             }
         }
 
-        private void BuildLandUseData(StudyAreaMetrics projectWideStudy)
+        private void BuildLandUseData()
         {
             // Landuse summary is grouped by landuse
-            var landUseGroups = projectWideStudy.ParcelMetrics.GroupBy(p => p.Use);
+            var landUseGroups = _projectWideStudy.Metrics.ParcelMetrics.GroupBy(p => p.Parcel.LandUse);
             _landUseSummary = new();
             
-            double totalLandArea = landUseGroups.Sum(grp => grp.Sum(parcel => parcel.Area));
-            double totalBuiltArea = landUseGroups.Sum(grp => grp.Sum(parcel => parcel.BUA));
+            double totalLandArea = landUseGroups.Sum(grp => grp.Sum(parcel => parcel.Metrics.Area));
+            double totalBuiltArea = landUseGroups.Sum(grp => grp.Sum(parcel => parcel.Metrics.BUA));
 
             foreach (var useGroup in landUseGroups)
             {
-                double landArea = useGroup.Sum(grp => grp.Area);
-                double builtArea= useGroup.Sum(grp => grp.BUA);
+                double landArea = useGroup.Sum(grp => grp.Metrics.Area);
+                double builtArea= useGroup.Sum(grp => grp.Metrics.BUA);
                 double areaPctg = Math.Clamp(landArea / totalLandArea, 0, 1);
                 areaPctg = double.IsNaN(areaPctg) ? 0 : areaPctg;
 
@@ -153,51 +147,51 @@ namespace ArchSitePlan.Core.Models
         }
 
         // Landuse Styles
-        private IXLStyleData TableSubHeadingStyle_LandUse = new IXLStyleData(
+        private static readonly IXLStyleData _tableSubHeadingStyle_LandUse = new IXLStyleData(
             FillColour: Color.PeachPuff,
             formatId: (int)XLPredefinedFormat.Number.Precision2,
             BoldFont: true,
             HorizontalAlign: XLAlignmentHorizontalValues.Center);
 
-        private IXLStyleData TableSubHeadingStyle_Pctg_LandUse = new IXLStyleData(
+        private static readonly IXLStyleData _tableSubHeadingStyle_Pctg_LandUse = new IXLStyleData(
             FillColour: Color.PeachPuff,
             formatId: (int)XLPredefinedFormat.Number.PercentPrecision2,
             BoldFont: true,
             HorizontalAlign: XLAlignmentHorizontalValues.Center);
 
-        private IXLStyleData TableHeadingStyle_LandUse = new IXLStyleData(
+        private static readonly IXLStyleData _tableHeadingStyle_LandUse = new IXLStyleData(
             FillColour: Color.PeachPuff,
             formatId: (int)XLPredefinedFormat.General,
             FontSize: 16,
             BoldFont: true);
 
         // Study Area Styles
-        private IXLStyleData TableSubHeadingStyle_StudyArea = new IXLStyleData(
+        private static readonly IXLStyleData _tableSubHeadingStyle_StudyArea = new IXLStyleData(
             FillColour: Color.LightPink,
             formatId: (int)XLPredefinedFormat.Number.Precision2,
             BoldFont: true,
             HorizontalAlign: XLAlignmentHorizontalValues.Center);
 
-        private IXLStyleData TableSubHeadingStyle_Pctg_StudyArea = new IXLStyleData(
+        private static readonly IXLStyleData _tableSubHeadingStyle_Pctg_StudyArea = new IXLStyleData(
             FillColour: Color.LightPink,
             formatId: (int)XLPredefinedFormat.Number.PercentInteger,
             BoldFont: true,
             HorizontalAlign: XLAlignmentHorizontalValues.Center);
 
-        private IXLStyleData TableHeadingStyle_StudyArea = new IXLStyleData(
+        private static readonly IXLStyleData _tableHeadingStyle_StudyArea = new IXLStyleData(
             FillColour: Color.LightPink,
             formatId: (int)XLPredefinedFormat.General,
             FontSize: 16,
             BoldFont: true);
 
         // Transit Styles
-        private IXLStyleData TableSubHeadingStyle_Transit = new IXLStyleData(
+        private static readonly IXLStyleData _tableSubHeadingStyle_Transit = new IXLStyleData(
             FillColour: Color.Silver,
             formatId: (int)XLPredefinedFormat.Number.Precision2,
             BoldFont: true,
             HorizontalAlign: XLAlignmentHorizontalValues.Center);
 
-        private IXLStyleData TableSubHeadingStyle_Pctg_Transit = new IXLStyleData(
+        private static readonly IXLStyleData _tableSubHeadingStyle_Pctg_Transit = new IXLStyleData(
            FillColour: Color.Silver,
            formatId: (int)XLPredefinedFormat.Number.PercentInteger,
            BoldFont: true,
@@ -210,10 +204,10 @@ namespace ArchSitePlan.Core.Models
             BoldFont: true);
 
         // General Data Styles
-        private IXLStyleData AreaLengthDataStyle = new IXLStyleData(
+        private static readonly IXLStyleData _areaLengthDataStyle = new IXLStyleData(
            formatId: (int)XLPredefinedFormat.Number.Precision2WithSeparator);
 
-        private IXLStyleData PercentageDatasStyle = new IXLStyleData(
+        private static readonly IXLStyleData _percentageDatasStyle = new IXLStyleData(
             formatId: (int)XLPredefinedFormat.Number.PercentPrecision2);
 
         public void WriteExcelFile()
@@ -227,17 +221,17 @@ namespace ArchSitePlan.Core.Models
 
             //////////////// LANDUSE SUMMARY //////////////////
             // LANDUSE HEADER
-            worksheet.Cell(0 + rowOffset, 1).SetContents("LANDUSE SUMMARY", TableHeadingStyle_LandUse);
-            worksheet.Cells(0 + rowOffset, 2, 7).SetContents("", TableHeadingStyle_LandUse);
+            worksheet.Cell(0 + rowOffset, 1).SetContents("LANDUSE SUMMARY", _tableHeadingStyle_LandUse);
+            worksheet.Cells(0 + rowOffset, 2, 7).SetContents("", _tableHeadingStyle_LandUse);
             rowOffset += 1;
 
-            worksheet.Cell(0 + rowOffset, 1).SetContents("Landuse", TableSubHeadingStyle_LandUse);
-            worksheet.Cell(0 + rowOffset, 2).SetContents("Colour", TableSubHeadingStyle_LandUse);
-            worksheet.Cell(0 + rowOffset, 3).SetContents("Land Area", TableSubHeadingStyle_LandUse);
-            worksheet.Cell(0 + rowOffset, 4).SetContents("Percentage", TableSubHeadingStyle_LandUse);
-            worksheet.Cell(0 + rowOffset, 5).SetContents("Built Area", TableSubHeadingStyle_LandUse);
-            worksheet.Cell(0 + rowOffset, 6).SetContents("Built Area Percentage", TableSubHeadingStyle_LandUse);
-            worksheet.Cell(0 + rowOffset, 7).SetContents("FAR", TableSubHeadingStyle_LandUse);
+            worksheet.Cell(0 + rowOffset, 1).SetContents("Landuse", _tableSubHeadingStyle_LandUse);
+            worksheet.Cell(0 + rowOffset, 2).SetContents("Colour", _tableSubHeadingStyle_LandUse);
+            worksheet.Cell(0 + rowOffset, 3).SetContents("Land Area", _tableSubHeadingStyle_LandUse);
+            worksheet.Cell(0 + rowOffset, 4).SetContents("Percentage", _tableSubHeadingStyle_LandUse);
+            worksheet.Cell(0 + rowOffset, 5).SetContents("Built Area", _tableSubHeadingStyle_LandUse);
+            worksheet.Cell(0 + rowOffset, 6).SetContents("Built Area Percentage", _tableSubHeadingStyle_LandUse);
+            worksheet.Cell(0 + rowOffset, 7).SetContents("FAR", _tableSubHeadingStyle_LandUse);
             rowOffset += 1;
 
             // LANDUSE TABLE BODY
@@ -249,21 +243,21 @@ namespace ArchSitePlan.Core.Models
                 worksheet.Cell(r, 1).Value = _landUseSummary[i].Landuse; 
                 worksheet.Cell(r, 2).Style.Fill
                     .SetBackgroundColor(XLColor.FromColor(_landUseSummary[i].Colour)); 
-                worksheet.Cell(r, 3).SetContents(_landUseSummary[i].Area, AreaLengthDataStyle);
+                worksheet.Cell(r, 3).SetContents(_landUseSummary[i].Area, _areaLengthDataStyle);
                 var s = worksheet.Cell(r, 3).GetFormattedString();
 
                 worksheet.Cell(r, 4).SetContents("",
-                    PercentageDatasStyle,
+                    _percentageDatasStyle,
                     BuildPercentageFormula(r,3,rowOffset, rTotals, 3));
 
-                worksheet.Cell(r, 5).SetContents(_landUseSummary[i].BuiltArea, AreaLengthDataStyle);
+                worksheet.Cell(r, 5).SetContents(_landUseSummary[i].BuiltArea, _areaLengthDataStyle);
 
                 worksheet.Cell(r, 6).SetContents("",
-                    PercentageDatasStyle,
+                    _percentageDatasStyle,
                     BuildPercentageFormula(r, 5, rowOffset, rTotals, 5));
 
                 worksheet.Cell(r, 7).SetContents("",
-                    AreaLengthDataStyle,
+                    _areaLengthDataStyle,
                     BuildRatioFormula(r, 5, r, 3));
             }
 
@@ -273,28 +267,28 @@ namespace ArchSitePlan.Core.Models
             int totalEndRow = rowOffset - 1;
 
             // LANDUSE TOTALS
-            worksheet.Cell(rowOffset, 1).SetContents("Total", TableSubHeadingStyle_LandUse);
-            worksheet.Cell(rowOffset, 2).SetContents("", TableSubHeadingStyle_LandUse);
+            worksheet.Cell(rowOffset, 1).SetContents("Total", _tableSubHeadingStyle_LandUse);
+            worksheet.Cell(rowOffset, 2).SetContents("", _tableSubHeadingStyle_LandUse);
             
             // Land Area Total
             worksheet.Cell(rowOffset, 3).SetContents("",
-                TableSubHeadingStyle_LandUse,
+                _tableSubHeadingStyle_LandUse,
                 BuildTotalFormula(totalStartRow, totalEndRow, 3));
             //  Land Area Percentage Total
             worksheet.Cell(rowOffset, 4).SetContents("",
-                TableSubHeadingStyle_Pctg_LandUse,
+                _tableSubHeadingStyle_Pctg_LandUse,
                 BuildTotalFormula(totalStartRow, totalEndRow, 4));
             // Built Area total
             worksheet.Cell(rowOffset, 5).SetContents("",
-                TableSubHeadingStyle_LandUse,
+                _tableSubHeadingStyle_LandUse,
                 BuildTotalFormula(totalStartRow, totalEndRow, 5));
             // Built Area Percentage Total
             worksheet.Cell(rowOffset, 6).SetContents("",
-                TableSubHeadingStyle_Pctg_LandUse,
+                _tableSubHeadingStyle_Pctg_LandUse,
                 BuildTotalFormula(totalStartRow, totalEndRow, 6));
             // FAR Total
             worksheet.Cell(rowOffset, 7).SetContents("",
-                TableSubHeadingStyle_LandUse,
+                _tableSubHeadingStyle_LandUse,
                 BuildTotalFormula(totalStartRow, totalEndRow, 7));
 
             rowOffset += tableRowGap;
@@ -306,13 +300,13 @@ namespace ArchSitePlan.Core.Models
             rowOffset += 1;
 
             // Sub heading
-            worksheet.Cell(0 + rowOffset, 1).SetContents("Transit Type", TableSubHeadingStyle_Transit);
-            worksheet.Cell(0 + rowOffset, 2).SetContents("Colour", TableSubHeadingStyle_Transit);
-            worksheet.Cell(0 + rowOffset, 3).SetContents("Running Length", TableSubHeadingStyle_Transit);
-            worksheet.Cell(0 + rowOffset, 4).SetContents("Running Length Percentage", TableSubHeadingStyle_Transit);
-            worksheet.Cell(0 + rowOffset, 5).SetContents("Area", TableSubHeadingStyle_Transit);
-            worksheet.Cell(0 + rowOffset, 6).SetContents("Area Percentage", TableSubHeadingStyle_Transit);
-            worksheet.Cell(0 + rowOffset, 7).SetContents("", TableSubHeadingStyle_Transit);
+            worksheet.Cell(0 + rowOffset, 1).SetContents("Transit Type", _tableSubHeadingStyle_Transit);
+            worksheet.Cell(0 + rowOffset, 2).SetContents("Colour", _tableSubHeadingStyle_Transit);
+            worksheet.Cell(0 + rowOffset, 3).SetContents("Running Length", _tableSubHeadingStyle_Transit);
+            worksheet.Cell(0 + rowOffset, 4).SetContents("Running Length Percentage", _tableSubHeadingStyle_Transit);
+            worksheet.Cell(0 + rowOffset, 5).SetContents("Area", _tableSubHeadingStyle_Transit);
+            worksheet.Cell(0 + rowOffset, 6).SetContents("Area Percentage", _tableSubHeadingStyle_Transit);
+            worksheet.Cell(0 + rowOffset, 7).SetContents("", _tableSubHeadingStyle_Transit);
             rowOffset += 1;
 
             // Table Body
@@ -323,14 +317,14 @@ namespace ArchSitePlan.Core.Models
                 worksheet.Cell(r, 1).Value = _transitSummary[i].TransitType;
                 worksheet.Cell(r, 2).Style.Fill
                     .SetBackgroundColor(XLColor.FromColor(_transitSummary[i].Colour));
-                worksheet.Cell(r, 3).SetContents(_transitSummary[i].RunningLength, AreaLengthDataStyle);
+                worksheet.Cell(r, 3).SetContents(_transitSummary[i].RunningLength, _areaLengthDataStyle);
                 worksheet.Cell(r, 4).SetContents("",
-                    PercentageDatasStyle,
+                    _percentageDatasStyle,
                     BuildPercentageFormula(r, 3, totalsRow, totalsRow, 3));
 
-                worksheet.Cell(r, 5).SetContents(_transitSummary[i].TransitArea, AreaLengthDataStyle);
+                worksheet.Cell(r, 5).SetContents(_transitSummary[i].TransitArea, _areaLengthDataStyle);
                 worksheet.Cell(r, 6).SetContents("",
-                    PercentageDatasStyle,
+                    _percentageDatasStyle,
                     BuildPercentageFormula(r, 5, totalsRow, totalsRow, 5));
             }
             rowOffset += _transitSummary.Count;
@@ -339,48 +333,48 @@ namespace ArchSitePlan.Core.Models
             totalStartRow = rowOffset - _transitSummary.Count;
             totalEndRow = rowOffset - 1;
 
-            worksheet.Cell(rowOffset, 1).SetContents("Total", TableSubHeadingStyle_Transit);
-            worksheet.Cell(rowOffset, 2).SetContents("", TableSubHeadingStyle_Transit);
+            worksheet.Cell(rowOffset, 1).SetContents("Total", _tableSubHeadingStyle_Transit);
+            worksheet.Cell(rowOffset, 2).SetContents("", _tableSubHeadingStyle_Transit);
 
             // Running Length Total
 
             worksheet.Cell(rowOffset, 3).SetContents("",
-                TableSubHeadingStyle_Transit,
+                _tableSubHeadingStyle_Transit,
                 BuildTotalFormula(totalStartRow, totalEndRow, 3));
             //  Running Length Percentage Total
             worksheet.Cell(rowOffset, 4).SetContents("",
-                TableSubHeadingStyle_Pctg_Transit,
+                _tableSubHeadingStyle_Pctg_Transit,
                 BuildTotalFormula(totalStartRow, totalEndRow, 4));
             // Transit Area total
             worksheet.Cell(rowOffset, 5).SetContents("",
-                TableSubHeadingStyle_Transit,
+                _tableSubHeadingStyle_Transit,
                 BuildTotalFormula(totalStartRow, totalEndRow, 5));
             // Transit Area Percentage Total
             worksheet.Cell(rowOffset, 6).SetContents("",
-                TableSubHeadingStyle_Pctg_Transit,
+                _tableSubHeadingStyle_Pctg_Transit,
                 BuildTotalFormula(totalStartRow, totalEndRow, 6));
 
-            worksheet.Cell(rowOffset, 7).SetContents("", TableSubHeadingStyle_Transit);
+            worksheet.Cell(rowOffset, 7).SetContents("", _tableSubHeadingStyle_Transit);
 
             rowOffset += tableRowGap;
 
             //////////////// STUDY AREA SUMMARY //////////////////
             // Heading
-            worksheet.Cell(0 + rowOffset, 1).SetContents("STUDY AREA SUMMARY", TableHeadingStyle_StudyArea);
-            worksheet.Cells(0 + rowOffset, 2, 10).SetContents("", TableHeadingStyle_StudyArea);
+            worksheet.Cell(0 + rowOffset, 1).SetContents("STUDY AREA SUMMARY", _tableHeadingStyle_StudyArea);
+            worksheet.Cells(0 + rowOffset, 2, 10).SetContents("", _tableHeadingStyle_StudyArea);
             rowOffset += 1;
 
             // Sub heading
-            worksheet.Cell(0 + rowOffset, 1).SetContents("Study Name", TableSubHeadingStyle_StudyArea);
-            worksheet.Cell(0 + rowOffset, 2).SetContents("Colour", TableSubHeadingStyle_StudyArea);
-            worksheet.Cell(0 + rowOffset, 3).SetContents("Bounded Area", TableSubHeadingStyle_StudyArea);
-            worksheet.Cell(0 + rowOffset, 4).SetContents("Parcel Area", TableSubHeadingStyle_StudyArea);
-            worksheet.Cell(0 + rowOffset, 5).SetContents("Parcel Area Percentage (of entire proect)", TableSubHeadingStyle_StudyArea);
-            worksheet.Cell(0 + rowOffset, 6).SetContents("Transit Area", TableSubHeadingStyle_StudyArea);
-            worksheet.Cell(0 + rowOffset, 7).SetContents("Transit Area Percentage (of entire proect)", TableSubHeadingStyle_StudyArea);
-            worksheet.Cell(0 + rowOffset, 8).SetContents("Built Area", TableSubHeadingStyle_StudyArea);
-            worksheet.Cell(0 + rowOffset, 9).SetContents("Built Area Percentage (of entire proect)", TableSubHeadingStyle_StudyArea);
-            worksheet.Cell(0 + rowOffset, 10).SetContents("FAR (of this study area)", TableSubHeadingStyle_StudyArea);
+            worksheet.Cell(0 + rowOffset, 1).SetContents("Study Name", _tableSubHeadingStyle_StudyArea);
+            worksheet.Cell(0 + rowOffset, 2).SetContents("Colour", _tableSubHeadingStyle_StudyArea);
+            worksheet.Cell(0 + rowOffset, 3).SetContents("Bounded Area", _tableSubHeadingStyle_StudyArea);
+            worksheet.Cell(0 + rowOffset, 4).SetContents("Parcel Area", _tableSubHeadingStyle_StudyArea);
+            worksheet.Cell(0 + rowOffset, 5).SetContents("Parcel Area Percentage (of entire proect)", _tableSubHeadingStyle_StudyArea);
+            worksheet.Cell(0 + rowOffset, 6).SetContents("Transit Area", _tableSubHeadingStyle_StudyArea);
+            worksheet.Cell(0 + rowOffset, 7).SetContents("Transit Area Percentage (of entire proect)", _tableSubHeadingStyle_StudyArea);
+            worksheet.Cell(0 + rowOffset, 8).SetContents("Built Area", _tableSubHeadingStyle_StudyArea);
+            worksheet.Cell(0 + rowOffset, 9).SetContents("Built Area Percentage (of entire proect)", _tableSubHeadingStyle_StudyArea);
+            worksheet.Cell(0 + rowOffset, 10).SetContents("FAR (of this study area)", _tableSubHeadingStyle_StudyArea);
             rowOffset += 1;
 
             // Table body
@@ -392,25 +386,25 @@ namespace ArchSitePlan.Core.Models
                 worksheet.Cell(r, 1).Value = _studyAreasSummary[i].StudyName;
                 worksheet.Cell(r, 2).Style.Fill
                     .SetBackgroundColor(XLColor.FromColor(_studyAreasSummary[i].Colour));
-                worksheet.Cell(r, 3).SetContents(_studyAreasSummary[i].BoundedArea, AreaLengthDataStyle);
-                worksheet.Cell(r, 4).SetContents(_studyAreasSummary[i].ParcelArea, AreaLengthDataStyle);
+                worksheet.Cell(r, 3).SetContents(_studyAreasSummary[i].BoundedArea, _areaLengthDataStyle);
+                worksheet.Cell(r, 4).SetContents(_studyAreasSummary[i].ParcelArea, _areaLengthDataStyle);
                 worksheet.Cell(r, 5).SetContents("",
-                    PercentageDatasStyle,
+                    _percentageDatasStyle,
                     BuildPercentageFormula(r, 4, totalsRow, totalsRow, 4));
 
-                worksheet.Cell(r, 6).SetContents(_studyAreasSummary[i].TransitArea, AreaLengthDataStyle);
+                worksheet.Cell(r, 6).SetContents(_studyAreasSummary[i].TransitArea, _areaLengthDataStyle);
                 worksheet.Cell(r, 7).SetContents("",
-                    PercentageDatasStyle,
+                    _percentageDatasStyle,
                     BuildPercentageFormula(r, 6, totalsRow, totalsRow, 6));
 
-                worksheet.Cell(r, 8).SetContents(_studyAreasSummary[i].BuiltArea, AreaLengthDataStyle);
+                worksheet.Cell(r, 8).SetContents(_studyAreasSummary[i].BuiltArea, _areaLengthDataStyle);
                 worksheet.Cell(r, 9).SetContents("",
-                    PercentageDatasStyle,
+                    _percentageDatasStyle,
                     BuildPercentageFormula(r, 8, totalsRow, totalsRow, 8));
 
-                worksheet.Cell(r, 10).SetContents(_studyAreasSummary[i].FAR, AreaLengthDataStyle);
+                worksheet.Cell(r, 10).SetContents(_studyAreasSummary[i].FAR, _areaLengthDataStyle);
                 worksheet.Cell(r, 10).SetContents("",
-                    AreaLengthDataStyle,
+                    _percentageDatasStyle,
                     BuildRatioFormula(r, 8, r, 4));
             }
 

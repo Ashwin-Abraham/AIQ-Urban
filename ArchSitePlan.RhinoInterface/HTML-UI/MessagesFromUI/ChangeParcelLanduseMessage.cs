@@ -37,6 +37,6 @@ public class ChangeParcelLanduseMessage: IMessageFromUI<ModelStateMessage>
             Use);
 
         ModelBuilderPipelines.RhinoOutputPipeline(doc, RhinoEventHandler.HTMLViewModel.AppMode, true);
-        return new();
+        return ModelBuilderPipelines.GenerateModelStateMessage();
     }
 }

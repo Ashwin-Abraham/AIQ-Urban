@@ -49,10 +49,10 @@ namespace ArchSitePlan.RhinoInterface.CoreModelInterface
 
             return dividerData;
         }
-        public static List<BuildingData> ExtractBuildingCreationDataFromRhino(RhinoDoc doc)
+
+        public static List<BuildingData> ExtractBuildingCreationDataFromRhino(RhinoDoc doc, List<LanduseData> extractedLanduseData)
         {
             List<BuildingData> buildingData = new();
-            CoreModelSingelton.Instance.Buildings = new();
 
             // Read mesh envelope objects
             int envelopeLayer = doc.Layers.FindByFullPath(LayerConstants.BuildingMassLayer, true);
@@ -64,8 +64,10 @@ namespace ArchSitePlan.RhinoInterface.CoreModelInterface
                 .Where(o => o.Attributes.LayerIndex == envelopeLayer && o.ObjectType == ObjectType.Mesh)
                 .ToList();
 
+            var floorplateLayers = LayerHelpers.GetBuildingOutlineRhinoLayerIndices(doc);
+
             var floorOutlines = doc.Objects
-                .Where(o => o.Attributes.LayerIndex == floorLayer && o.ObjectType == ObjectType.Curve)
+                .Where(o => floorplateLayers.Contains(o.Attributes.LayerIndex) && o.ObjectType == ObjectType.Curve)
                 .ToList();
 
             // Group mesh and floor outlines together
@@ -85,23 +87,45 @@ namespace ArchSitePlan.RhinoInterface.CoreModelInterface
             foreach (var entry in buildingEnvelopeAndFloors)
             {
                 var envelope = (entry.Key.Geometry as Rhino.Geometry.Mesh).ToBHoM();
-                var floors = entry.Value
-                    .Select(f => (f.Geometry as Curve).ToBHoM())
-                    .Select(c => new PlanarSurface(c, new List<ICurve>()))
+
+                var floorData = entry.Value
+                    .Select(c => CreateFloorplateData(doc, c, extractedLanduseData))
+                    .OfType<FloorplateData>()
                     .ToList();
 
-                double ffHt = floors.Count > 1 ?
-                    floors[0].IBounds().Min.Z - floors[1].IBounds().Min.Z
+                double ffHt = floorData.Count > 1 ?
+                    floorData[0].Geometry.IBounds().Min.Z - floorData[1].Geometry.IBounds().Min.Z
                     : envelope.Bounds().Height();
 
                 ffHt = Math.Abs(ffHt);
 
-                var data = new BuildingData(envelope, floors, entry.Key.Id, Guid.Empty, ffHt);
+                var data = new BuildingData(envelope, floorData, entry.Key.Id, Guid.Empty, ffHt);
                 buildingData.Add(data);
             }
 
             return buildingData;
         }
+
+        private static FloorplateData? CreateFloorplateData(
+            RhinoDoc doc, 
+            RhinoObject floorplateObject, 
+            List<LanduseData> extractedLanduseData)
+        {
+            var geometry = (floorplateObject.Geometry as Curve)?.ToBHoM();
+
+            if (geometry == null)
+                return null;
+
+            var layerName = doc.Layers.FindIndex(floorplateObject.Attributes.LayerIndex).Name;
+
+            var use = extractedLanduseData.Find(x => x.Name == layerName);
+
+            return new FloorplateData(
+                BH.Engine.Geometry.Create.PlanarSurface(geometry),
+                floorplateObject.Id,
+                use);
+        }
+
         public static List<StudyData> ExtractStudyAreasFromRhino(RhinoDoc doc)
         {
             CoreModelSingelton.Instance.ResetStudyAreas();
@@ -311,7 +335,7 @@ namespace ArchSitePlan.RhinoInterface.CoreModelInterface
 
         private static void OutputStudyAreasToRhino(RhinoDoc doc)
         {
-            var studies = CoreModelSingelton.Instance.Studies;
+            var studies = CoreModelSingelton.Instance.Zones;
             List<(Curve, ObjectAttributes)> studyBoundaries = new();
             foreach (var study in studies)
             {

@@ -77,8 +77,7 @@ class AutoBuildingMessage : IMessageFromUI<ModelStateMessage>
                 break;
         }
 
-        ModelBuilderPipelines.AutoGenerateBuildingsOnParcel(layouts, true);
-        return new();
+        return ModelBuilderPipelines.AutoGenerateBuildingsOnParcel(layouts, true);
     }
 
     private List<BuildingLayout> ComputeAutoRectangleLayouts(List<(ICurve, Guid?)> sites)

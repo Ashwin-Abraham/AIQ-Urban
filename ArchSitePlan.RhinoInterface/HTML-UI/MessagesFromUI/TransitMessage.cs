@@ -54,9 +54,9 @@ public class TransitMessage : IMessageFromUI<ModelStateMessage>
             LayerHelpers.ChangeLayer(rhinoObj, roadLayerIndex);
         }
 
-        if (!transitData.Any()) return new();
+        if (!transitData.Any()) 
+            return ModelBuilderPipelines.GenerateModelStateMessage();
 
-        ModelBuilderPipelines.AddOrUpdateRoadPipeline(transitData, true);
-        return new();
+        return ModelBuilderPipelines.AddOrUpdateRoadPipeline(transitData, true);
     }
 }

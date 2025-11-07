@@ -28,11 +28,7 @@ public static class CoreModelEditStepLibrary
         }
     }
     public static void ClearCoreModel() => CoreModelSingelton.Instance.ClearModel();
-    public static void RefreshStudyAreaMetrics()
-    {
-        CoreModelSingelton.Instance.RefreshStudyAreaMetrics();
-    }
-
+    
     /// <summary>
     /// Updates the floorplate use if it exists
     /// </summary>
@@ -44,7 +40,7 @@ public static class CoreModelEditStepLibrary
             return;
 
         var floorplateData = clientModelIDs
-            .Select(id => new FloorplateData(id, use))
+            .Select(id => (id, use))
             .ToList();
 
         new FloorplateEditUseAction().Run(floorplateData);
@@ -80,7 +76,7 @@ public static class CoreModelEditStepLibrary
     {
         var dividers = CoreModelSingelton.Instance.Dividers
             .Select(d => d.Curve)
-            .Concat(CoreModelSingelton.Instance.Studies.Select(s => s.Boundary))
+            .Concat(CoreModelSingelton.Instance.Zones.Select(s => s.Boundary))
             .Where(x => x != null)
             .Cast<ICurve>()
             .ToList();
@@ -114,7 +110,7 @@ public static class CoreModelEditStepLibrary
             .BooleanUnion()
             .ToList();
 
-        var studiesCombined = CoreModelSingelton.Instance.Studies
+        var studiesCombined = CoreModelSingelton.Instance.Zones
             .Where(s => s.Boundary != null)
             .Select(s => s.Boundary)
             .BooleanUnion()
@@ -302,30 +298,10 @@ public static class CoreModelEditStepLibrary
     {
         CoreModelSingelton.Instance.Buildings.AddRange(buildings);
     }
+
     public static void AddOrUpdateBulding(List<BuildingData> buildingData)
     {
-        var configs = new List<BuildingActionConfig>();
-
-        foreach (var data in buildingData)
-        {
-            var config = new BuildingActionConfig(
-                data.Envelope,
-                data.EnvelopeId,
-                Guid.Empty,
-                data.FloorHt,
-                data.Floors.Count,
-                data.Floors);
-
-            configs.Add(config);
-        }
-
-        BuildingAction.Run(configs, EditType.Add);
-    }
-
-    public static int TryDeleteBuildings(List<BuildingData> buildingData)
-    {
-        var ids = buildingData.Select(x => x.EnvelopeId).ToList();
-        return CoreModelSingelton.Instance.Buildings.RemoveAll(bld => ids.Contains(bld.EnvelopeId));
+        AddBuildingAction.Run(buildingData);
     }
 
     public static void AddOrUpdateStudyArea(List<StudyData> studyData) =>

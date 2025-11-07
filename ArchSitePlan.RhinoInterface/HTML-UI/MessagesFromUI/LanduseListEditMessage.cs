@@ -39,7 +39,7 @@ namespace ArchSitePlan.RhinoInterface.HTML_UI.MessagesFromUI
                 RhinoEventHandler.HTMLViewModel.AppMode,
                 true);
 
-            return new ModelStateMessage();
+            return ModelBuilderPipelines.GenerateModelStateMessage();
         }
     }
 

@@ -38,7 +38,7 @@ namespace ArchSitePlan.RhinoInterface.HTML_UI.MessagesFromUI
             if (boundary is null || boundary.Degree > 1)
                 throw new Exception("Select closed polylines only.");
 
-            var study = CoreModelSingelton.Instance.Studies.Find(s => s.Name == Name);
+            var study = CoreModelSingelton.Instance.Zones.Find(s => s.Name == Name);
 
             if (study != null && study.Id != rhinoObj.Id)
                 throw new Exception($"Another study named \"{Name}\" already exists.");
@@ -46,12 +46,12 @@ namespace ArchSitePlan.RhinoInterface.HTML_UI.MessagesFromUI
             var bhomCrv = boundary.ToBHoM2DegreeCrv();
 
             RhinoDoc doc2 = RhinoDoc.ActiveDoc;
-            ModelBuilderPipelines.AddStudyAreaPipeline(doc: doc2,
+            var modelStateMessage = ModelBuilderPipelines.AddStudyAreaPipeline(doc: doc2,
                 studyData: [new StudyData(bhomCrv!, rhinoObj.Id, Name)],
                 ModellingTool.Zones,
                 triggerRhinoUpdate: true);
 
-            return new ModelStateMessage();
+            return modelStateMessage;
         }
     }
 }

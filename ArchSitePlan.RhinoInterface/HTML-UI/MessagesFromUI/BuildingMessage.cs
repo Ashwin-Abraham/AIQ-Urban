@@ -51,16 +51,21 @@ public class BuildingMessage:IMessageFromUI<ModelStateMessage>
             throw new Exception(validation.Message);
 
         if (validation.ValidObjects.Count == 0)
-            return new();
+            return ModelBuilderPipelines.GenerateModelStateMessage();
 
         var rhinoBuildingData = validation.ValidObjects
-            .Select(o => RhinoBuildingData.FromRhinoObject(o, FloorCount, FloorHeight))
+            .Select(o => BuildingDataCreator.FromRhinoObject(o, FloorCount, FloorHeight))
             .ToList();
 
         DocObjectHelpers.DeleteRhinoObjectsIfPresent(doc, rhinoObjs.Select(r => r.Id));
-        RhinoEventHandler.UpdateSelectedBuildingsPosition(rhinoBuildingData);
-        ModelBuilderPipelines.RhinoOutputPipeline(doc, ModellingTool.Building, true);
-        return new();
+        RhinoEventHandler.UpdateSelectedBuildingsPosition(doc, rhinoBuildingData);
+
+        RhinoApp.InvokeOnUiThread(() =>
+        {
+            ModelBuilderPipelines.RhinoOutputPipeline(doc, ModellingTool.Building, true);
+        });
+
+        return ModelBuilderPipelines.GenerateModelStateMessage();
     }
 }
 
