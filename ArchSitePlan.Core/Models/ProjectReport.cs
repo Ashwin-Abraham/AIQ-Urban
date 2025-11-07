@@ -1,7 +1,6 @@
 ﻿using AIQ.Primitives.Extensions;
 using ArchSitePlan.Core.Constants;
 using ArchSitePlan.Core.Extensions;
-using ArchSitePlan.Core.Metrics;
 using ClosedXML.Excel;
 using System.Drawing;
 

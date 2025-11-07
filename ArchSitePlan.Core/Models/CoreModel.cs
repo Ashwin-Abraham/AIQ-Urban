@@ -1,12 +1,10 @@
-﻿using ArchSitePlan.BHoM.Geometry.Extensions;
+﻿using System.Drawing;
 using ArchSitePlan.Core.Comparer;
 using ArchSitePlan.Core.Constants;
-using ArchSitePlan.Core.Metrics;
-using ArchSitePlan.Core.Pipeline.CreationData;
+using ArchSitePlan.Core.Models.CreationData;
 using BH.Engine.Geometry;
 using BH.oM.Geometry;
 using Newtonsoft.Json;
-using System.Drawing;
 
 namespace ArchSitePlan.Core.Models
 {

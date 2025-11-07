@@ -1,5 +1,4 @@
-﻿using ArchSitePlan.Core.Metrics;
-using BH.Engine.Geometry;
+﻿using BH.Engine.Geometry;
 using BH.oM.Geometry;
 using Newtonsoft.Json;
 

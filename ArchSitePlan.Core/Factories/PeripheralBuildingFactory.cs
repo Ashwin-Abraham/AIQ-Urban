@@ -1,7 +1,7 @@
 ﻿using ArchSitePlan.BHoM.Geometry.Extensions;
 using ArchSitePlan.Core.Factories.Models;
 using ArchSitePlan.Core.Models;
-using ArchSitePlan.Core.Pipeline.CreationData;
+using ArchSitePlan.Core.Models.CreationData;
 using BH.Engine.Geometry;
 using BH.oM.Geometry;
 

@@ -1,6 +1,5 @@
 ﻿using AIQ.Primitives.Extensions;
 using ArchSitePlan.Core.Constants;
-using ArchSitePlan.Core.Metrics;
 using ArchSitePlan.Core.Models;
 using System.Drawing;
 

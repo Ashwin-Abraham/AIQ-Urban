@@ -1,5 +1,4 @@
 ﻿using ArchSitePlan.Core.Models;
-using ArchSitePlan.Core.Pipeline.CreationData;
 using ArchSitePlan.RhinoInterface.Constants;
 using ArchSitePlan.RhinoInterface.Helpers;
 using ArchSitePlan.RhinoBhomInterop;
@@ -9,6 +8,7 @@ using Rhino.Geometry;
 using Mesh = Rhino.Geometry.Mesh;
 using Point = BH.oM.Geometry.Point;
 using BH.Engine.Geometry;
+using ArchSitePlan.Core.Models.CreationData;
 
 namespace ArchSitePlan.RhinoInterface.Models;
 public static class BuildingDataCreator

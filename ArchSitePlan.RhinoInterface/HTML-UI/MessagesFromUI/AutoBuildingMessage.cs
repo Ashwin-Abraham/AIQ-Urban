@@ -1,7 +1,7 @@
 ﻿using ArchSitePlan.Core.Factories;
 using ArchSitePlan.Core.Factories.Models;
 using ArchSitePlan.Core.Models;
-using ArchSitePlan.Core.Pipeline.CreationData;
+using ArchSitePlan.Core.Models.CreationData;
 using ArchSitePlan.RhinoBhomInterop;
 using ArchSitePlan.RhinoInterface.CoreModelInterface;
 using ArchSitePlan.RhinoInterface.HTML_UI.MessageToUI;

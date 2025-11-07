@@ -1,9 +1,9 @@
 ﻿using ArchSitePlan.BHoM.Geometry.Extensions;
 using ArchSitePlan.Core.Factories.Models;
-using ArchSitePlan.Core.ModelEditActions;
-using ArchSitePlan.Core.ModelEditActions.Configs;
+using ArchSitePlan.Core.ModelEditActions.BuildingActions;
+using ArchSitePlan.Core.ModelEditActions.Misc;
 using ArchSitePlan.Core.Models;
-using ArchSitePlan.Core.Pipeline.CreationData;
+using ArchSitePlan.Core.Models.CreationData;
 using BH.Engine.Geometry;
 using BH.oM.Geometry;
 using static ArchSitePlan.Core.Constants.Enums;

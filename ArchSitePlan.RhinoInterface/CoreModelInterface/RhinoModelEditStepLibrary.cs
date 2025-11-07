@@ -1,7 +1,7 @@
 ﻿using ArchSitePlan.Core.Constants;
 using ArchSitePlan.Core.ModelEditActions;
 using ArchSitePlan.Core.Models;
-using ArchSitePlan.Core.Pipeline.CreationData;
+using ArchSitePlan.Core.Models.CreationData;
 using ArchSitePlan.RhinoBhomInterop;
 using ArchSitePlan.RhinoInterface.Constants;
 using ArchSitePlan.RhinoInterface.Helpers;

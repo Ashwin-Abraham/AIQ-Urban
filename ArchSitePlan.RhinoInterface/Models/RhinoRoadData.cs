@@ -1,6 +1,6 @@
 ﻿using AIQ.Primitives.Extensions;
 using ArchSitePlan.Core.Models;
-using ArchSitePlan.Core.Pipeline.CreationData;
+using ArchSitePlan.Core.Models.CreationData;
 using ArchSitePlan.RhinoBhomInterop;
 using ArchSitePlan.RhinoInterface.Helpers;
 using Rhino.DocObjects;

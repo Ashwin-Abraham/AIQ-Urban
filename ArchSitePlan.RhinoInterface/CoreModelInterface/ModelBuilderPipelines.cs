@@ -1,8 +1,10 @@
 ﻿using ArchSitePlan.Core.Factories.Models;
-using ArchSitePlan.Core.ModelEditActions;
+using ArchSitePlan.Core.ModelEditActions.BuildingActions;
+using ArchSitePlan.Core.ModelEditActions.MetricsActions;
+using ArchSitePlan.Core.ModelEditActions.Misc;
 using ArchSitePlan.Core.Models;
+using ArchSitePlan.Core.Models.CreationData;
 using ArchSitePlan.Core.Pipeline;
-using ArchSitePlan.Core.Pipeline.CreationData;
 using ArchSitePlan.RhinoInterface.HTML_UI.MessageToUI;
 using Eto.Forms;
 using Rhino;
@@ -36,7 +38,8 @@ public static class ModelBuilderPipelines
 
     public static ModelStateMessage GenerateModelStateMessage()
     {
-        var studyMetrics = new RefreshAllZoneContentsAndMetricsAction().Run();
+        new RefreshAllZoneContentsAction().Run();
+        var studyMetrics = new RefreshAllZoneMetricsAction().Run(); 
         return new ModelStateMessage(studyMetrics);
     }
 
