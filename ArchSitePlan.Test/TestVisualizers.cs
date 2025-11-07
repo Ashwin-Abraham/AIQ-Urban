@@ -62,12 +62,6 @@ public static class TestVisualizers
         Visualize(curve, splitter, hyparCrvs, circles);
     }
 
-    //public static void Visualize(this IEnumerable<ICurve> curves)
-    //{
-    //    curves.Debug();
-    //    DEBUGMODEL.OpenAsGlb();
-    //}
-
     public static void Debug(this PlanarSurface srf, Material? material = null)
     {
 #if DEBUG

@@ -4,7 +4,7 @@ using BH.Engine.Geometry;
 using BH.oM.Geometry;
 using static ArchSitePlan.Core.Constants.Enums;
 
-namespace ArchSitePlan.Core.ModelEditActions;
+namespace ArchSitePlan.Core.ModelEditActions.Misc;
 
 public class ParcelAction:IModelEditAction
 {

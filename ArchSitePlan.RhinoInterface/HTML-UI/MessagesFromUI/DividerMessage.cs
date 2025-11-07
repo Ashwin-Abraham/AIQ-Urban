@@ -1,4 +1,4 @@
-﻿using ArchSitePlan.Core.Pipeline.CreationData;
+﻿using ArchSitePlan.Core.Models.CreationData;
 using ArchSitePlan.RhinoBhomInterop;
 using ArchSitePlan.RhinoInterface.Constants;
 using ArchSitePlan.RhinoInterface.CoreModelInterface;
@@ -60,11 +60,10 @@ namespace ArchSitePlan.RhinoInterface.HTML_UI.MessagesFromUI
                     $"\n 2. Self intersecting");
 
             var vm = RhinoEventHandler.HTMLViewModel;
-            if (!dividerData.Any()) return new();
+            if (!dividerData.Any()) 
+                return ModelBuilderPipelines.GenerateModelStateMessage();
 
-            ModelBuilderPipelines.AddOrUpdateParcelDividerPipeline(dividerData, true);
-
-            return new();
+            return ModelBuilderPipelines.AddOrUpdateParcelDividerPipeline(dividerData, true);
         }
     }
 }

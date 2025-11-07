@@ -1,7 +1,7 @@
 ﻿using ArchSitePlan.Core.Models;
 using BH.Engine.Geometry;
 
-namespace ArchSitePlan.Core.ModelEditActions;
+namespace ArchSitePlan.Core.ModelEditActions.BuildingActions;
 public class AssignUseToFloorplatesWithoutUse : IModelEditAction
 {
     public void Run()

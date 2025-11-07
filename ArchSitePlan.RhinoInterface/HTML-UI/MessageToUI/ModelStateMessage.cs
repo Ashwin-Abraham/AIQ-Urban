@@ -1,6 +1,5 @@
 ﻿using AIQ.Primitives.Extensions;
 using ArchSitePlan.Core.Constants;
-using ArchSitePlan.Core.Metrics;
 using ArchSitePlan.Core.Models;
 using System.Drawing;
 
@@ -17,46 +16,45 @@ public record StudyAreasDataForUI(
         double LandCoverage);
 public class ModelStateMessage :IMessageToUI
 {
-    
     public string Type { get; } = nameof(ModelStateMessage);
     public List<StudyAreasDataForUI> StudyAreaDataForUI { get; private set; }
     public List<Landuse> Landuses { get; private set; }
 
-    public ModelStateMessage()
+    public ModelStateMessage(List<(StudyArea Zone, StudyAreaMetrics Metrics)> studyAndMetrics)
     {
-        StudyAreaDataForUI = CoreModelSingelton.Instance.Studies
-            .Select(x => ConvertToStudyForUI(x))
+        StudyAreaDataForUI = studyAndMetrics
+            .Select(x => ConvertToStudyForUI(x.Zone, x.Metrics))
             .ToList();
 
         Landuses = CoreModelSingelton.Instance.Landuses;
     }
 
-    private static StudyAreasDataForUI ConvertToStudyForUI(StudyArea study)
+    private static StudyAreasDataForUI ConvertToStudyForUI(StudyArea zone, StudyAreaMetrics metrics)
     {
         return new(
-            study.Name,
-            RoadLengthData: ExtractRoadLengthGraphData(study.Metrics),
-            RoadAreaData: ExtractRoadAreaGraphData(study.Metrics),
-            UrbanLandAreaData: ExtractLandUseGraphData(study.Metrics),
-            UrbanBuiltAreaData: ExtractBuiltUseGraphData(study.Metrics),
-            study.Metrics.DevelopableArea,
-            study.Metrics.BuiltArea,
-            study.Metrics.FAR,
-            study.Metrics.CoverageRatio);
+            zone.Name,
+            RoadLengthData: ExtractRoadLengthGraphData(metrics),
+            RoadAreaData: ExtractRoadAreaGraphData(metrics),
+            UrbanLandAreaData: ExtractLandUseGraphData(metrics),
+            UrbanBuiltAreaData: ExtractBuiltUseGraphData(metrics),
+            metrics.DevelopableArea,
+            metrics.BuiltArea,
+            metrics.FAR,
+            metrics.CoverageRatio);
     }
 
     private static List<GraphData> ExtractLandUseGraphData(StudyAreaMetrics metrics)
     {
         var graphData = new List<GraphData>();
 
-        var metricsByUse = metrics.ParcelMetrics.GroupBy(p => p.Use);
+        var metricsByUse = metrics.ParcelMetrics.GroupBy(p => p.Parcel.LandUse);
 
         foreach (var group in metricsByUse)
         {
             graphData.Add(
                 new GraphData(
                     Label: group.Key.Name,
-                    Data: group.Sum(u => u.Area),
+                    Data: group.Sum(u => u.Metrics.Area),
                     Color: ColorToRGBA(group.Key.Color)
                     ));
         }
@@ -73,15 +71,19 @@ public class ModelStateMessage :IMessageToUI
     {
         var graphData = new List<GraphData>();
 
-        var metricsByUse = metrics.ParcelMetrics.GroupBy(p => p.Use);
+        var buaByUse = metrics.BuildingMetrics
+            .SelectMany(x => x.Metrics.BuaPerUse)
+            .GroupBy(x  => x.Use)
+            .Select(x => (x.Key, x.Sum(x => x.BUA)))
+            .ToList();
 
-        foreach (var use in metricsByUse)
+        foreach (var group in buaByUse)
         {
             graphData.Add(
                 new GraphData(
-                    Label: use.Key.Name,
-                    Data: use.Sum(u => u.BUA),
-                    Color: ColorToRGBA(use.Key.Color)
+                    Label: group.Key?.Name?? "null",
+                    Data: group.Item2,
+                    Color: ColorToRGBA(group.Key?.Color?? Color.Gray)
                     ));
         }
 
@@ -90,7 +92,7 @@ public class ModelStateMessage :IMessageToUI
 
     private static List<GraphData> ExtractRoadLengthGraphData(StudyAreaMetrics metrics)
     {
-        var groupedByWidth = metrics.TransitMetrics.GroupBy(p => Math.Round(p.RoadWidth, 1));
+        var groupedByWidth = metrics.TransitMetrics.GroupBy(p => Math.Round(p.Metrics.RoadWidth, 1));
         var graphData = new List<GraphData>();
         int colorIndex = 0;
 
@@ -105,7 +107,7 @@ public class ModelStateMessage :IMessageToUI
             graphData.Add(
                 new GraphData(
                     Label: transit.Key.ToString(),
-                    Data: transit.Sum(u => u.RunningLength),
+                    Data: transit.Sum(u => u.Metrics.RunningLength),
                     Color: ColorToRGBA(color)
                     ));
 
@@ -116,7 +118,7 @@ public class ModelStateMessage :IMessageToUI
 
     private static List<GraphData> ExtractRoadAreaGraphData(StudyAreaMetrics metrics)
     {
-        var groupedByWidth = metrics.TransitMetrics.GroupBy(p => Math.Round(p.RoadWidth, 1));
+        var groupedByWidth = metrics.TransitMetrics.GroupBy(p => Math.Round(p.Metrics.RoadWidth, 1));
         var graphData = new List<GraphData>();
         int colorIndex = 0;
 
@@ -131,7 +133,7 @@ public class ModelStateMessage :IMessageToUI
             graphData.Add(
                 new GraphData(
                     Label: transit.Key.ToString(),
-                    Data: transit.Sum(u => u.Area),
+                    Data: transit.Sum(u => u.Metrics.Area),
                     Color: ColorToRGBA(color)
                     ));
         }

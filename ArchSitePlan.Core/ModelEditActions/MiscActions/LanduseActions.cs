@@ -1,8 +1,8 @@
 ﻿using ArchSitePlan.Core.Models;
-using ArchSitePlan.Core.Pipeline.CreationData;
+using ArchSitePlan.Core.Models.CreationData;
 using static ArchSitePlan.Core.Constants.Enums;
 
-namespace ArchSitePlan.Core.ModelEditActions;
+namespace ArchSitePlan.Core.ModelEditActions.Misc;
 public class LanduseActions
 {
     static Landuse _undefined = CoreModelSingelton.Instance.GetUndefinedUse();

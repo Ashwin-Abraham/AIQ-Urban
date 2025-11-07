@@ -1,9 +1,9 @@
 ﻿using ArchSitePlan.BHoM.Geometry.Extensions;
 using ArchSitePlan.Core.Models;
-using ArchSitePlan.Core.Pipeline.CreationData;
+using ArchSitePlan.Core.Models.CreationData;
 using BH.Engine.Geometry;
 
-namespace ArchSitePlan.Core.ModelEditActions;
+namespace ArchSitePlan.Core.ModelEditActions.BuildingActions;
 public class AddMixedUseBuildings(List<MixedUseBuildingData> configs)
 {
     public void Run()

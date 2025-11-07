@@ -1,7 +1,7 @@
 ﻿using AQI.Urban.Core.Tests.TestUtils;
 using ArchSitePlan.Core.Factories;
 using ArchSitePlan.Core.Factories.Models;
-using ArchSitePlan.Core.Pipeline.CreationData;
+using ArchSitePlan.Core.Models.CreationData;
 using ArchSitePlan.DebugModel;
 using ArchSitePlan.DebugModel.BHoMExtensions;
 using BH.Engine.Geometry;

@@ -1,5 +1,5 @@
 ﻿using ArchSitePlan.Core.Models;
-using ArchSitePlan.Core.Pipeline.CreationData;
+using ArchSitePlan.Core.Models.CreationData;
 using ArchSitePlan.RhinoBhomInterop;
 using Rhino.DocObjects;
 using Rhino.Geometry;
@@ -50,11 +50,11 @@ namespace ArchSitePlan.RhinoInterface.Models
         internal static List<RhinoStudyData> FromExisting(List<RhinoObject> rhinoObjects)
         {
             List<RhinoStudyData> dataObjects = new();
-            var studyIDs = CoreModelSingelton.Instance.Studies.Select(s => s.Id).ToList();
+            var studyIDs = CoreModelSingelton.Instance.Zones.Select(s => s.Id).ToList();
 
             foreach (RhinoObject obj in rhinoObjects)
             {
-                StudyArea? study = CoreModelSingelton.Instance.Studies.Find(s => s.Id == obj.Id);
+                StudyArea? study = CoreModelSingelton.Instance.Zones.Find(s => s.Id == obj.Id);
                 RhinoStudyData? data = null;
                 
                 if (study != null && ValidateInput(obj))

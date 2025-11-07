@@ -1,7 +1,7 @@
 ﻿using ArchSitePlan.Core.Models;
 using Newtonsoft.Json;
 
-namespace ArchSitePlan.Core.ModelEditActions;
+namespace ArchSitePlan.Core.ModelEditActions.Misc;
 public class HistoryAction:IModelEditAction
 {
     private static List<string> _historyJson = new();

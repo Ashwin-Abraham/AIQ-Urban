@@ -1,12 +1,12 @@
 ﻿using ArchSitePlan.BHoM.Geometry.Extensions;
 using ArchSitePlan.Core.Extensions;
 using ArchSitePlan.Core.Models;
-using ArchSitePlan.Core.Pipeline.CreationData;
+using ArchSitePlan.Core.Models.CreationData;
 using BH.Engine.Geometry;
 using BH.oM.Geometry;
 using static ArchSitePlan.Core.Constants.Enums;
 
-namespace ArchSitePlan.Core.ModelEditActions
+namespace ArchSitePlan.Core.ModelEditActions.Misc
 {
     internal class RoadAction:IModelEditAction
     {
@@ -37,7 +37,7 @@ namespace ArchSitePlan.Core.ModelEditActions
         {
             var dividers = CoreModelSingelton.Instance.Dividers.Select(d => d.Curve as ICurve).ToList();
             var studyDividers = CoreModelSingelton.Instance
-                .Studies
+                .Zones
                 .Where(s => s.Boundary != null)
                 .Select(x => (x.Boundary as ICurve)!)
                 .ToList();

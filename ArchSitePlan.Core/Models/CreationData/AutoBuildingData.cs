@@ -2,7 +2,7 @@
 using BH.oM.Geometry;
 using static ArchSitePlan.Core.Constants.Enums;
 
-namespace ArchSitePlan.Core.Pipeline.CreationData;
+namespace ArchSitePlan.Core.Models.CreationData;
 
 public record BuildingAlongRoadConfig(
     List<BuildingDefinition> Definitions,

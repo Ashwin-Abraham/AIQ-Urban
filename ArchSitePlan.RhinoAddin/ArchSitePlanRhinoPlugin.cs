@@ -31,26 +31,3 @@ public class ArchSitePlanRhinoPlugin : Rhino.PlugIns.PlugIn
         return Rhino.PlugIns.LoadReturnCode.Success;
     }
 }
-
-//[Guid("0874C691-A083-4C05-9E31-96C2C63F7C7E")]
-//public class MainViewHost : RhinoWindows.Controls.WpfElementHost
-
-//{
-//    //public static MainViewModel viewModel = new MainViewModel();
-//    //public static Main view = new Main();
-//    public MainViewHost() : base(view, viewModel)
-//    {
-//        RhinoEventHandler.WPFViewModel = viewModel;
-//    }
-
-//    /// <summary>
-//    /// Returns the ID of this panel.
-//    /// </summary>
-//    public static System.Guid PanelId
-//    {
-//        get
-//        {
-//            return typeof(MainViewHost).GUID;
-//        }
-//    }
-//}

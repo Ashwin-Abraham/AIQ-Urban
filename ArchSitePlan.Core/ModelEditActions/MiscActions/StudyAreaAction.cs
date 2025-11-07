@@ -5,7 +5,7 @@ using BH.Engine.Geometry;
 using BH.oM.Geometry;
 using static ArchSitePlan.Core.Constants.Enums;
 
-namespace ArchSitePlan.Core.ModelEditActions
+namespace ArchSitePlan.Core.ModelEditActions.Misc
 {
     public class StudyAreaAction:IModelEditAction
     {
@@ -57,12 +57,12 @@ namespace ArchSitePlan.Core.ModelEditActions
                 newStudies.Add(study);
             }
 
-            CoreModelSingelton.Instance.Studies.AddRange(newStudies);
+            CoreModelSingelton.Instance.Zones.AddRange(newStudies);
         }
 
         private static void RemoveFromCoreModel(List<Guid> ids)
         {
-            int removed = CoreModelSingelton.Instance.Studies.RemoveAll(study => ids.Contains(study.Id));
+            int removed = CoreModelSingelton.Instance.Zones.RemoveAll(study => ids.Contains(study.Id));
         }
     }
 }

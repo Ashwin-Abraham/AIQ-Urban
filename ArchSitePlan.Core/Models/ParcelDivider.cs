@@ -1,4 +1,4 @@
-﻿using ArchSitePlan.Core.Pipeline.CreationData;
+﻿using ArchSitePlan.Core.Models.CreationData;
 using BH.oM.Geometry;
 using Newtonsoft.Json;
 using System;

@@ -1,6 +1,6 @@
 ﻿using AQI.Urban.Core.Tests.TestUtils;
 using ArchSitePlan.Core.Factories;
-using ArchSitePlan.Core.Pipeline.CreationData;
+using ArchSitePlan.Core.Models.CreationData;
 using BH.Engine.Geometry;
 using BH.oM.Geometry;
 using static ArchSitePlan.Core.Constants.Enums;

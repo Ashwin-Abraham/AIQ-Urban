@@ -2,7 +2,7 @@
 using System.Drawing;
 using System.Runtime.Intrinsics.X86;
 
-namespace ArchSitePlan.Core.Pipeline.CreationData;
+namespace ArchSitePlan.Core.Models.CreationData;
 public class LanduseData
 {
     public string Name;

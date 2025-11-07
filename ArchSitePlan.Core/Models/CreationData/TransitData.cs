@@ -1,6 +1,6 @@
 ﻿using BH.oM.Geometry;
 
-namespace ArchSitePlan.Core.Pipeline.CreationData
+namespace ArchSitePlan.Core.Models.CreationData
 {
     public class TransitData
     {

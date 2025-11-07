@@ -1,8 +1,5 @@
-﻿using ArchSitePlan.Core.Metrics;
-using BH.Engine.Geometry;
-using BH.oM.Geometry;
+﻿using BH.oM.Geometry;
 using Newtonsoft.Json;
-using System.Runtime.Serialization;
 
 namespace ArchSitePlan.Core.Models
 {
@@ -13,7 +10,10 @@ namespace ArchSitePlan.Core.Models
         public string Name { get; private set; }
         public double Area { get; private set; }
 
-        public StudyAreaMetrics Metrics { get; private set; }
+        public List<Parcel> Parcels { get; set; }
+        public List<Road> Transit { get;set; }
+        public List<Building> Buildings { get; set; }
+
 
         [JsonConstructor]
         public StudyArea(
@@ -22,17 +22,15 @@ namespace ArchSitePlan.Core.Models
             string name,
             List<Parcel> parcels,
             List<Building> buildings,
-            List<Road> transitRoutes)
+            List<Road> transit)
         {
             Boundary = boundary;
             Id = id;
             Name = name;
             Area = parcels.Sum(x => x.Area());
-            Metrics = new StudyAreaMetrics(
-                boundary,
-                parcels,
-                buildings,
-                transitRoutes);
+            Parcels = parcels;
+            Buildings = buildings;
+            Transit = transit;
         }
 
         public StudyArea(
