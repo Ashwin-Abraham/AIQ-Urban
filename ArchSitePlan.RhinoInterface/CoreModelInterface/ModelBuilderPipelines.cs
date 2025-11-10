@@ -2,9 +2,14 @@
 using ArchSitePlan.Core.ModelEditActions.BuildingActions;
 using ArchSitePlan.Core.ModelEditActions.MetricsActions;
 using ArchSitePlan.Core.ModelEditActions.Misc;
+using ArchSitePlan.Core.ModelEditActions.MiscActions;
 using ArchSitePlan.Core.Models;
 using ArchSitePlan.Core.Models.CreationData;
 using ArchSitePlan.Core.Pipeline;
+using ArchSitePlan.RhinoBhomInterop;
+using ArchSitePlan.RhinoInterface.Constants;
+using ArchSitePlan.RhinoInterface.Exports;
+using ArchSitePlan.RhinoInterface.Helpers;
 using ArchSitePlan.RhinoInterface.HTML_UI.MessageToUI;
 using Eto.Forms;
 using Rhino;
@@ -14,6 +19,34 @@ namespace ArchSitePlan.RhinoInterface.CoreModelInterface;
 
 public static class ModelBuilderPipelines
 {
+    public static void CreateNamedViewsOfEachZone(RhinoDoc doc)
+    {
+        // get (2dBounds, name) per study
+        var zoneData = CalculateStudyBoundsAction.Run();
+
+        // create named views if absent
+        foreach(var info in zoneData)
+        {
+            ViewHelpers.CreatePlanNamedView(doc, info.Bounds.ToRhino(), info.Name);
+        }
+    }
+
+    public static void ExportNamedViews(
+        RhinoDoc doc)
+    {
+        var mainLayerIndex = doc.Layers.FindByFullPath(LayerConstants.MainModellingLayer, -1);
+
+        if (mainLayerIndex == -1)
+            return;
+
+        var path = @"C:\Users\AshwinAbraham\Downloads\";
+
+        var mainLayer = doc.Layers[mainLayerIndex];
+        var children = mainLayer.GetChildren(true).Append(mainLayer).ToList();
+
+        RhinoExportOrchestrator.ExportPlanImageForObjects(doc, path, children);
+    }
+
     public static ModelStateMessage AddOrUpdateRoadPipeline(
         List<TransitData> creationData,
         bool updateRhino = false)

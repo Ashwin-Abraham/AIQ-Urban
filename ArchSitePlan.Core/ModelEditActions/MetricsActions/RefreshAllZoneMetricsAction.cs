@@ -5,7 +5,7 @@ using BH.Engine.Geometry;
 namespace ArchSitePlan.Core.ModelEditActions.MetricsActions;
 public class RefreshAllZoneMetricsAction
 {
-    public List<(StudyArea Study, StudyAreaMetrics Metrics)> Run()
+    public List<StudyAreaMetrics> Run()
     {
         var zones = CoreModelSingelton.Instance.Zones;
 
@@ -17,13 +17,18 @@ public class RefreshAllZoneMetricsAction
                 .Where(b => parcel.Boundary.ExternalBoundary.IIsContaining([b.Origin]))
                 .ToList();
 
-            allParcelMetrics.Add(new CalculateParcelMetricsAction(parcel, buildingsInParcel).Run());
+            allParcelMetrics.Add((parcel, new CalculateParcelMetricsAction(parcel, buildingsInParcel).Run()));
         }
 
-        List<(Building Building, BuildingMetrics Metrics)> allBuildingMetrics = new CalculateBuildingMetricsAction(CoreModelSingelton.Instance.Buildings).Run();
-        List<(Road Road, TransitMetrics Metrics)> allTransitMetrics = new CalculateTransitMetricsAction(CoreModelSingelton.Instance.Roads).Run();
+        List<(Building Building, BuildingMetrics Metrics)> allBuildingMetrics = CoreModelSingelton.Instance.Buildings
+            .Select(x => (x, CalculateBuildingMetricsAction.Run(x)))
+            .ToList();
 
-        List<(StudyArea, StudyAreaMetrics)> zoneMetrics = [];
+        List<(Road Road, TransitMetrics Metrics)> allTransitMetrics = CoreModelSingelton.Instance.Roads
+            .Select(x => (x, CalculateTransitMetricsAction.Run(x)))
+            .ToList();
+
+        List<StudyAreaMetrics> zoneMetrics = [];
 
         foreach (var zone in zones)
         {
@@ -47,9 +52,12 @@ public class RefreshAllZoneMetricsAction
                     .ToList();
             }
 
-            zoneMetrics.Add((
-                zone, 
-                new CalculateZoneMetricsAction(parcelMetrics, transitMetrics, buildingMetrics).Run(zone)));
+            zoneMetrics.Add(
+                new CalculateZoneMetricsAction(
+                    parcelMetrics.Select(x => x.Metrics).ToList(),
+                    transitMetrics.Select(x => x.Metrics).ToList(), 
+                    buildingMetrics.Select(x => x.Metrics).ToList())
+                .Run(zone));
         }
 
         return zoneMetrics;

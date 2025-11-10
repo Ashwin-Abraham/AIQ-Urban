@@ -1,47 +1,142 @@
-﻿using BH.Engine.Geometry;
+﻿using System.Drawing;
+using AIQ.Primitives.Extensions;
+using ArchSitePlan.Core.Constants;
+using ArchSitePlan.Core.Utils;
+using BH.Engine.Geometry;
 using BH.oM.Geometry;
 
 namespace ArchSitePlan.Core.Models;
 
 public class StudyAreaMetrics
 {
-    public double BoundedArea { get; private set; } = 25;
-    public double FAR { get; private set; } = 12;
-    public double DevelopableArea { get; private set; } = 5;
-    public double BuiltArea { get; private set; } = 2;
-    public double BuiltCoverageArea { get; private set; } = 0;
-    public double CoverageRatio { get; private set; } = 0;
+    public double BoundedArea { get; private set; }
+    public double FAR { get; private set; }
+    public double DevelopableArea { get; private set; }
+    public double BuiltArea { get; private set; }
+    public double BuiltCoverageArea { get; private set; }
+    public double CoverageRatio { get; init; }
+    public string ZoneName { get; init; }
 
-    public IReadOnlyList<(Parcel Parcel, ParcelMetrics Metrics)> ParcelMetrics { get; private set; }
+    public IReadOnlyList<ParcelMetrics> ParcelMetrics { get; private set; }
 
-    public IReadOnlyList<(Building Building, BuildingMetrics Metrics)> BuildingMetrics { get; private set; }
+    public IReadOnlyList<BuildingMetrics> BuildingMetrics { get; private set; }
 
-    public IReadOnlyList<(Road Transit, TransitMetrics Metrics)> TransitMetrics { get; private set; }
+    public IReadOnlyList<TransitMetrics> TransitMetrics { get; private set; }
 
     public StudyAreaMetrics(
         ICurve? boundary, 
-        List<(Parcel, ParcelMetrics)> parcelMetrics, 
-        List<(Building, BuildingMetrics)> buildingsMetrics,
-        List<(Road, TransitMetrics)> transitMetrics)
+        string zoneName,
+        List<ParcelMetrics> parcelMetrics, 
+        List<BuildingMetrics> buildingsMetrics,
+        List<TransitMetrics> transitMetrics)
     {
         ParcelMetrics = parcelMetrics;
         BuildingMetrics = buildingsMetrics;
         TransitMetrics = transitMetrics;
-
+        ZoneName = zoneName;
         BoundedArea = Math.Abs(boundary?.IArea()?? 0);
-        DevelopableArea = ParcelMetrics.Sum(p => p.Metrics.Area);
-        BuiltArea = BuildingMetrics.Sum(b => b.Building.BUA());
+        DevelopableArea = ParcelMetrics.Sum(p => p.Area);
+        BuiltArea = BuildingMetrics.Sum(b => b.BUA);
         FAR = BuiltArea / DevelopableArea;
-        BuiltCoverageArea = SetBuiltCoverage();
+        BuiltCoverageArea = BuildingMetrics.Sum(x => x.GroundCoverageArea);
         CoverageRatio = BuiltCoverageArea / DevelopableArea;
     }
 
-    private double SetBuiltCoverage()
+    public List<GraphData> ExtractLandAreaGraphData()
     {
-        var buildingCoverage = BuildingMetrics
-            .Select(x => x.Building.FloorPlates.MinBy(f => f.Profile.ExternalBoundary.IStartPoint().Z))
-            .Sum(floor => floor?.Profile.ExternalBoundary.IArea()?? 0);
+        var graphData = new List<GraphData>();
 
-        return buildingCoverage;
+        var metricsByUse = ParcelMetrics.GroupBy(p => p.Use);
+
+        foreach (var group in metricsByUse)
+        {
+            graphData.Add(
+                new GraphData(
+                    Label: group.Key.Name,
+                    Data: group.Sum(u => u.Area),
+                    Color: ColorToRGBA(group.Key.Color)
+                    ));
+        }
+
+        return graphData;
+    }
+
+    public List<GraphData> ExtractBuiltUseGraphData()
+    {
+        var graphData = new List<GraphData>();
+
+        var buaByUse = BuildingMetrics
+            .SelectMany(x => x.BuaPerUse)
+            .GroupBy(x => x.Use)
+            .Select(x => (x.Key, x.Sum(x => x.BUA)))
+            .ToList();
+
+        foreach (var group in buaByUse)
+        {
+            graphData.Add(
+                new GraphData(
+                    Label: group.Key?.Name ?? "null",
+                    Data: group.Item2,
+                    Color: ColorToRGBA(group.Key?.Color ?? Color.Gray)
+                    ));
+        }
+
+        return graphData;
+    }
+
+    public List<GraphData> ExtractRoadLengthGraphData()
+    {
+        var groupedByWidth = TransitMetrics.GroupBy(p => Math.Round(p.RoadWidth, 1));
+        var graphData = new List<GraphData>();
+        int colorIndex = 0;
+
+        foreach (var transit in groupedByWidth)
+        {
+            if (colorIndex > AppColours.StandardColors.Count - 1)
+                colorIndex = 0;
+
+            var color = AppColours.StandardColors[colorIndex].ToRGB();
+            colorIndex++;
+
+            graphData.Add(
+                new GraphData(
+                    Label: transit.Key.ToString(),
+                    Data: transit.Sum(u => u.RunningLength),
+                    Color: ColorToRGBA(color)
+                    ));
+
+        }
+
+        return graphData;
+    }
+
+    public List<GraphData> ExtractRoadAreaGraphData()
+    {
+        var groupedByWidth = TransitMetrics.GroupBy(p => Math.Round(p.RoadWidth, 1));
+        var graphData = new List<GraphData>();
+        int colorIndex = 0;
+
+        foreach (var transit in groupedByWidth)
+        {
+            if (colorIndex > AppColours.StandardColors.Count - 1)
+                colorIndex = 0;
+
+            var color = AppColours.StandardColors[colorIndex].ToRGB();
+            colorIndex++;
+
+            graphData.Add(
+                new GraphData(
+                    Label: transit.Key.ToString(),
+                    Data: transit.Sum(u => u.Area),
+                    Color: ColorToRGBA(color)
+                    ));
+        }
+
+        return graphData;
+    }
+
+    private static string ColorToRGBA(Color color)
+    {
+        return $"rgba({color.R}, {color.G}, {color.B}, {color.A})";
     }
 }

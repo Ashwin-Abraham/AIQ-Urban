@@ -1,12 +1,16 @@
 ﻿namespace ArchSitePlan.Core.Models;
 
-public class ParcelMetrics
+public record ParcelMetrics(
+    Guid ParcelId,
+    double Area,
+    double Perimeter,
+    Landuse Use,
+    double BUA,
+    double CoverageArea);
+
+public static class ParcelMetricsExtension
 {
-    public double Area { get; init; }
-    public double Perimeter { get; init; }
-    public Landuse Use { get; init; }
-    public double BUA { get; init; }
-    public double FAR { get; init; }
-    public double CoverageArea { get; init; }
-    public double CoverageRatio { get; init; }
+    public static double FAR(this ParcelMetrics metrics) => metrics.BUA / metrics.Area;
+
+    public static double CoverageRatio(this ParcelMetrics metrics) => metrics.CoverageArea / metrics.Area;
 }

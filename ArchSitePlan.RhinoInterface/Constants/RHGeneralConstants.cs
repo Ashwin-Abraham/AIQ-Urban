@@ -5,6 +5,8 @@ namespace ArchSitePlan.RhinoInterface.Constants
 {
     public static class RHGeneralConstants
     {
+        public const string NamedViewPrefix = "AIQ_NamedView_";
+
         public static int MaxGraphBarSize = 200;
 
         public static List<ObjectType> BuildingFootprintObjectTypes = new List<ObjectType>(){ ObjectType.Curve};

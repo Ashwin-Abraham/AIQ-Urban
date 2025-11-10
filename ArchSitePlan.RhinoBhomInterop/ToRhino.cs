@@ -7,6 +7,11 @@ namespace ArchSitePlan.RhinoBhomInterop;
 
 public static class ToRhinoInterop
 {
+    public static Rhino.Geometry.BoundingBox ToRhino(this BoundingBox bbox)
+    {
+        return new(min: bbox.Min.ToRhino(), max: bbox.Max.ToRhino());
+    }
+
     public static Rhino.Geometry.Brep ToRhino(this PlanarSurface bhomSurface)
     {
         List<ICurve> crvList = [bhomSurface.ExternalBoundary];
