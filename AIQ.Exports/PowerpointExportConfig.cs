@@ -3,6 +3,7 @@
 namespace AIQ.Exports;
 public record PowerpointExportConfig(
     string SaveLocation,
+    string AuthorLogoPath,
     string AuthorName,
     string ProjectName,
     ZoneExportConfig FullProjectExportConfig,

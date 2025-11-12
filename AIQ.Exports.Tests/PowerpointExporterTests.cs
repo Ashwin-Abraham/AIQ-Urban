@@ -1,6 +1,7 @@
 using Color = System.Drawing.Color;
 using ArchSitePlan.Core.Models;
 using ShapeCrawler;
+using AIQ.Exports.Helpers;
 
 namespace AIQ.Exports.Tests;
 
@@ -22,6 +23,7 @@ public class PowerpointExporterTests
         // Arrange
         var config = new PowerpointExportConfig(
             SaveLocation: TestUtils.GetPptTargetPathInDownloads(),
+            AuthorLogoPath: PathHelpers.GetLogoTemplatePath(),
             AuthorName: "Ashwin Abraham",
             ProjectName: "Oxagon Urban",
             FullProjectExportConfig: BuildZoneConfig("Full Project", TestUtils.GetTestResourcePath("TestMasterplan.jpg")),

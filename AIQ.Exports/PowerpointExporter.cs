@@ -1,6 +1,7 @@
 ﻿using AIQ.Exports.Helpers;
 using AIQ.Exports.PowerpointExport;
 using AIQ.Exports.PowerpointExport.ShapeActions;
+using AIQ.Primitives.Extensions;
 using ArchSitePlan.Core.Utils;
 using BH.Engine.Data;
 using ShapeCrawler;
@@ -12,7 +13,8 @@ public class PowerpointExporter
 {
     private const string CoverSlideIdentifier = "AIQ_SlideTemplateName_CoverPage";
     private const string ZonePlanImageIdentifier = "AIQ_Image_ZonePlan";
-    private const string ZoneAuthorIdentifier = "AIQ_Author";
+    private const string ZoneNameIdentifier = "AIQ_ZoneName ";
+
     private const string ZoneDonutChartForLandAreasIdentifier = "AIQ_DonutChart_LandAreas";
     private const string ZoneDonutChartForBuiltAreasIdentifier = "AIQ_DonutChart_BuiltAreas";
     private const string ZoneLandAreaTotal = "AIQ_ZoneLandArea";
@@ -22,7 +24,27 @@ public class PowerpointExporter
     private const string ProjectNameIdentifier = "AIQ_ProjectName";
     private const string LegendUseNameIdentifier = "AIQ_Legend_UseName";
     private const string LegendUseColorIdentifier = "AIQ_Legend_UseColour";
-    private const int MaxUseCountInTemplatePPT = 20;
+    private const string ZoneUsesTableIdentifier = "AIQ_Table_Uses";
+    private const int MaxUseCountInTemplatePPT = 18;
+
+    // Author identifiers
+    private const string ZoneAuthorIdentifier = "AIQ_Author";
+    private const string ZoneAuthorLogoIdentifier = "AIQ_AuthorLogo";
+
+    // Table text identifiers
+    // For data rows
+    private const string TableUseNameIdentifier = "AIQ_UseName";
+    private const string TableUseLandAreaIdentifier = "AIQ_UseLandArea";
+    private const string TableUseBuiltAreaIdentifier = "AIQ_UseBuiltArea";
+    private const string TableUseFARIdentifier = "AIQ_UseFAR";
+    private const string TableUseLandShareIdentifier = "AIQ_UseLandShare";
+    private const string TableUseBuiltShareIdentifier = "AIQ_UseBuiltShare";
+    // For total row
+    private const string TableUseLandAreaTotalIdentifier = "AIQ_TableTotal_LandArea";
+    private const string TableUseBuiltAreaTotalIdentifier = "AIQ_TableTotal_BuiltArea";
+    private const string TableUseFARTotalIdentifier = "AIQ_TableTotal_FAR";
+    private const string TableUseLandShareTotalIdentifier = "AIQ_TableTotal_LandShare";
+    private const string TableUseBuiltShareTotalIdentifier = "AIQ_TableTotal_BuiltShare";
 
     private readonly PowerpointExportConfig _config;
     private readonly List<GraphData> _listOfAllUses;
@@ -58,15 +80,45 @@ public class PowerpointExporter
             success = false;
         }
 
+        // Create 1 copy of repeating slides per zone
+        int[] repeatingSlides = [2, 3, 4];
+        List<(ZoneExportConfig Config, List<int> SlideNos)> configSlideMap = [];
+        int newIndex = presentation.Slides.Count;
+
+        for(int i = 0; i < _config.OtherZoneExportConfigs.Count; i++)
+        {
+            List<int> slideNos = [];
+
+            foreach(var slideIndex in repeatingSlides)
+            {
+                var newSlide = presentation.Slide(slideIndex);
+                presentation.Slides.Add(newSlide);
+                slideNos.Add(newIndex);
+                newIndex++;
+            }
+
+            configSlideMap.Add((_config.OtherZoneExportConfigs[i], slideNos));
+        }
+
+        configSlideMap.Add((_config.FullProjectExportConfig, repeatingSlides.ToList()));
+
         // Modify zone slides
-        var slideShapeReplacementSteps = BuildZoneShapeReplacementActions(_config.FullProjectExportConfig);
-        var shapeEditActions = BuildZoneShapeEditActions(_config.FullProjectExportConfig);
-        var shapeRemovalActions = RemoveShapeActions(_config.FullProjectExportConfig);
+        foreach((ZoneExportConfig Config, List<int> SlideNos) in configSlideMap)
+        {
+            var zoneConfig = Config;
+            var slideShapeReplacementSteps = BuildZoneShapeReplacementActions(zoneConfig);
+            var shapeEditActions = BuildZoneShapeEditActions(zoneConfig);
+            var shapeRemovalActions = RemoveShapeActions(zoneConfig);
 
-        ModifySlideContents(presentation.Slide(2), shapeEditActions, slideShapeReplacementSteps, shapeRemovalActions);
-        ModifySlideContents(presentation.Slide(3), shapeEditActions, slideShapeReplacementSteps, shapeRemovalActions);
-        ModifySlideContents(presentation.Slide(4), shapeEditActions, slideShapeReplacementSteps, shapeRemovalActions);
-
+            foreach (var slideIndex in SlideNos)
+            {
+                var slideToEdit = presentation.Slide(slideIndex);
+                ModifySlideContents(slideToEdit, shapeEditActions, slideShapeReplacementSteps, shapeRemovalActions);
+                ModifySlideContents(slideToEdit, shapeEditActions, slideShapeReplacementSteps, shapeRemovalActions);
+                ModifySlideContents(slideToEdit, shapeEditActions, slideShapeReplacementSteps, shapeRemovalActions);
+            }
+        }
+        
         // Save and exit
         presentation.Save(_config.SaveLocation);
         return success;
@@ -103,47 +155,121 @@ public class PowerpointExporter
     {
         return new()
         {
+            // For Plan Legends
             new ConditionalSetShapeTextAction(
-                _textMapper: shape => LanduseLegendNameCasesAlphabetically(shape, zoneConfig),
-                _fontSize: (decimal)10.5
-                ),
+                _textMapper: shape => LanduseLegendNameCasesAlphabetically(shape, zoneConfig)),
 
             new EditShapeFillColorAction(_colorHexMapper: shape => LanduseColorLegendCasesAlphabetically(shape, zoneConfig)),
 
+            // Slide Template Actions like author, project name company logo
             new SetShapeTextAction(
                 _filter: shape => TextboxContains(shape, ProjectNameIdentifier),
-                _text: _config.ProjectName,
-                _fontSize: 36),
+                _text: _config.ProjectName),
 
+            new SetShapeImageAction(
+                _filter: shape => NameContains(shape, ZoneAuthorLogoIdentifier) && IsPicture(shape),
+                _newImagePath: _config.AuthorLogoPath,
+                _alignRight: true),
+
+            // Zone HUD actions
             new SetShapeTextAction(
                 _filter: shape => TextboxContains(shape, ZoneLandAreaTotal),
-                _text: zoneConfig.Metrics.DevelopableArea.Round(0).ToString(),
-                _fontSize: 18),
+                _text: zoneConfig.Metrics.DevelopableArea.Round(0).ToString()),
 
             new SetShapeTextAction(
                 _filter: shape => TextboxContains(shape, ZoneBuiltAreaTotal),
-                _text: zoneConfig.Metrics.BuiltArea.Round(0).ToString(),
-                _fontSize: 18),
+                _text: zoneConfig.Metrics.BuiltArea.Round(0).ToString()),
 
             new SetShapeTextAction(
                 _filter: shape => TextboxContains(shape, ZoneFar),
-                _text: zoneConfig.Metrics.FAR.Round(2).ToString(),
-                _fontSize: 18),
-
-            new SetShapeTextAction(
-                _filter: shape => TextboxContains(shape, ZoneFar),
-                _text: zoneConfig.Metrics.FAR.Round(2).ToString(),
-                _fontSize: 18),
+                _text: zoneConfig.Metrics.FAR.Round(2).ToString()),
 
             new SetShapeTextAction(
                 _filter: shape => TextboxContains(shape, ZoneCoveragePctg),
-                _text: zoneConfig.Metrics.CoverageRatio.Round(1).ToString() + "%",
-                _fontSize: 18),
+                _text: (zoneConfig.Metrics.CoverageRatio * 100).Round(2).ToString()+"%"),
+
+            new SetShapeTextAction(
+                _filter: shape => TextboxContains(shape, ZoneNameIdentifier ),
+                _text: zoneConfig.Metrics.ZoneName),
+
+            // Plan Image Actions
+            new SetShapeTextAction(
+                _filter: shape => TextboxContains(shape, ZoneLandAreaTotal),
+                _text: zoneConfig.Metrics.DevelopableArea.Round(0).ToString()),
 
             new SetShapeImageAction(
                 _filter: shape => NameContains(shape, ZonePlanImageIdentifier) && IsPicture(shape),
                 _newImagePath: zoneConfig.PlanImagePath),
+
+            // Data table actions
+            new ReplaceTableTextAction(
+                _filter: shape => NameContains(shape, ZoneUsesTableIdentifier),
+                _cellTextReplacementMap: BuildUseTableReplacementMap(zoneConfig)),
+
+            new DeleteTableRowAction(
+                _shapeFilter: shape => IsTable(shape),
+                _removeRowFilter: row => AnyCellContains(
+                    row,
+                    [TableUseNameIdentifier, TableUseLandAreaIdentifier, TableUseBuiltAreaIdentifier, TableUseFARIdentifier, TableUseBuiltShareIdentifier, TableUseLandShareIdentifier]))
         };
+    }
+
+    private static bool AnyCellContains(ITableRow row, List<string> identifiers)
+    {
+        foreach(var cell in row.Cells)
+        {
+            string? text = cell.TextBox?.Text;
+            
+            if(text == null)
+                continue;
+
+            if(identifiers.Any(x => text.Contains(x)))
+                return true;
+        }
+
+        return false;
+    }
+
+    private static List<(string, string)> BuildUseTableReplacementMap(ZoneExportConfig zoneConfig)
+    {
+        var landUseMetrics = zoneConfig.Metrics.ExtractLandAreaGraphData();
+        var builtUseMetrics = zoneConfig.Metrics.ExtractBuiltUseGraphData();
+
+        landUseMetrics = landUseMetrics.EnsureItIncludes(builtUseMetrics).InAplhabeticalOrder();
+        builtUseMetrics = builtUseMetrics.EnsureItIncludes(landUseMetrics).InAplhabeticalOrder();
+
+        double totalLandArea = landUseMetrics.Sum(x => x.Data);
+        double totalBuiltArea = builtUseMetrics.Sum(x => x.Data);
+
+        List<(string, string)> map = [];
+        for (int i = 0; i < landUseMetrics.Count; i++)
+        {
+            int index = i + 1;
+            var landUse = landUseMetrics[i];
+            var builtUse = builtUseMetrics[i];
+
+            // Create some mappings for each element of this use's data
+            map.Add(($"{TableUseNameIdentifier}{index}_", landUse.Label));
+            map.Add(($"{TableUseLandAreaIdentifier}{index}_", landUse.Data.ToFormattedText(decimals: 2)));
+            map.Add(($"{TableUseBuiltAreaIdentifier}{index}_", builtUse.Data.ToFormattedText(decimals: 2)));
+
+            double far = builtUse.Data / landUse.Data;
+            map.Add(($"{TableUseFARIdentifier}{index}_", far.ToFormattedText(decimals: 2)));
+
+            double landShare = landUse.Data / totalLandArea;
+            map.Add(($"{TableUseLandShareIdentifier}{index}_", landShare.ToFormattedText(decimals: 2)));
+
+            double builtShare = builtUse.Data / totalBuiltArea;
+            map.Add(($"{TableUseBuiltShareIdentifier}{index}_", builtShare.ToFormattedText(decimals: 2)));
+        }
+
+        map.Add(($"{TableUseLandAreaTotalIdentifier}", zoneConfig.Metrics.DevelopableArea.ToFormattedText(decimals: 2)));
+        map.Add(($"{TableUseBuiltAreaTotalIdentifier}", zoneConfig.Metrics.BuiltArea.ToFormattedText(decimals: 2)));
+        map.Add(($"{TableUseFARTotalIdentifier}", zoneConfig.Metrics.FAR.ToFormattedText(decimals: 2)));
+        map.Add(($"{TableUseBuiltShareTotalIdentifier}", "100%"));
+        map.Add(($"{TableUseLandShareTotalIdentifier}", "100%"));
+
+        return map;
     }
 
     private static string? LanduseColorLegendCasesAlphabetically(IShape shape, ZoneExportConfig zoneConfig)
@@ -196,8 +322,7 @@ public class PowerpointExporter
         {
             new SetShapeTextAction(
                 _filter: shape => TextboxContains(shape, ZoneAuthorIdentifier), 
-                _text: _config.AuthorName,
-                _fontSize : 14),
+                _text: _config.AuthorName),
 
             new SetShapeImageAction(
                 _filter: shape => NameContains(shape, ZonePlanImageIdentifier) && IsPicture(shape),

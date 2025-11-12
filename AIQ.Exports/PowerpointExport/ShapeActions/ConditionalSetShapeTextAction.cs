@@ -1,7 +1,7 @@
 ﻿using ShapeCrawler;
 
 namespace AIQ.Exports.PowerpointExport.ShapeActions;
-public class ConditionalSetShapeTextAction(Func<IShape, string?> _textMapper, decimal _fontSize)
+public class ConditionalSetShapeTextAction(Func<IShape, string?> _textMapper)
     : IShapeEditAction
 {
     public IShape EditShape(IShape shape)
@@ -11,8 +11,9 @@ public class ConditionalSetShapeTextAction(Func<IShape, string?> _textMapper, de
         if (textToSet == null)
             return shape;
 
+        var priorSize = shape.TextBox!.Paragraphs.FirstOrDefault()?.Portions.FirstOrDefault()?.Font?.Size?? 14;
         shape.TextBox!.SetText(textToSet);
-        shape.SetFontSize(_fontSize);
+        shape.SetFontSize(priorSize);
 
         return shape;
     }

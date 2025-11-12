@@ -12,6 +12,13 @@ public static class TestUtils
             file);
     }
 
+    public static string GetLogoTargetPathInDownloads()
+    {
+        return Path.Combine(
+            GetDownloadsFolder(),
+            "LEGO.png");
+    }
+
     public static string GetPptTargetPathInDownloads()
     {
         return Path.Combine(

@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <None Remove="AIQ Export Resources\AIQUrbanTemplate.pptx" />
+    <None Remove="AIQ Export Resources\LEGO.png" />
   </ItemGroup>
 
   <ItemGroup>
@@ -21,6 +22,9 @@
 
   <ItemGroup>
     <EmbeddedResource Include="AIQ Export Resources\AIQUrbanTemplate.pptx">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="AIQ Export Resources\LEGO.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </EmbeddedResource>
   </ItemGroup>

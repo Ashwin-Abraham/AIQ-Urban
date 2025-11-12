@@ -21,6 +21,8 @@ public static class ShapeFilters
         return names.Any(name => shape.Name.Contains(name));
     }
 
+    public static bool IsTable(IShape shape) => shape.Table != null;
+
     public static bool IsPicture(IShape shape)
     {
         return shape.Picture != null;
