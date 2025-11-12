@@ -13,6 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\AIQ.Exports\AIQ.Exports.csproj" />
     <ProjectReference Include="..\ArchSitePlan.Core\ArchSitePlan.Core.csproj" />
     <ProjectReference Include="..\ArchSitePlan.Licensing\ArchSitePlan.Licensing.csproj" />
     <ProjectReference Include="..\ArchSitePlan.OSM\ArchSitePlan.OSM.csproj" />

@@ -3,18 +3,31 @@
 namespace ArchSitePlan.Core.Models;
 public class BuildingMetrics
 {
+    public Guid EnvelopeId { get; init; }
     public double BUA { get; init; }
-    public double GroundCoverage { get; init; }
+    public double GroundCoverageArea { get; init; }
     public List<(Landuse? Use, double BUA)> BuaPerUse { get; init; }
 
     public BuildingMetrics(Building building)
     {
         BuaPerUse = CalculateBuaPerUse(building);
         BUA = BuaPerUse.Sum(x => x.BUA);
-        GroundCoverage = building.FloorPlates
+        GroundCoverageArea = building.FloorPlates
             .Where(fp => Math.Abs(fp.Profile.IArea()) > 1E-06)
             .MinBy(fp => fp.Profile.ExternalBoundary.IStartPoint().Z)?
             .Profile.IArea() ?? 0;
+        EnvelopeId = building.EnvelopeId;
+    }
+
+    public BuildingMetrics(
+        Guid envelopeId,
+        double groundCoverage,
+        List<(Landuse? Use, double BUA)> buaPerUse)
+    {
+        EnvelopeId = envelopeId;
+        BUA = buaPerUse.Sum(x => x.BUA);
+        GroundCoverageArea = groundCoverage;
+        BuaPerUse = buaPerUse;
     }
 
     private static List<(Landuse? Use, double BUA)> CalculateBuaPerUse(Building building)

@@ -1,15 +1,18 @@
 ﻿using ArchSitePlan.Core.Models;
+using BH.Engine.Geometry;
 
 namespace ArchSitePlan.Core.ModelEditActions.MetricsActions;
-public class CalculateTransitMetricsAction(List<Road> _transit) : IModelEditAction
+public class CalculateTransitMetricsAction : IModelEditAction
 {
-    public List<(Road, TransitMetrics)> Run()
+    public static TransitMetrics Run(Road road)
     {
-        var transitAndMetrics = new List<(Road, TransitMetrics)>();
+        var length = road.Centerline.Length();
+        var area = length * road.Width;
 
-        foreach(var road in _transit)
-            transitAndMetrics.Add((road, new TransitMetrics(road)));
-
-        return transitAndMetrics;
+        return new TransitMetrics(
+            road.Width,
+            length,
+            area,
+            road.CenterLineId);
     }
 }

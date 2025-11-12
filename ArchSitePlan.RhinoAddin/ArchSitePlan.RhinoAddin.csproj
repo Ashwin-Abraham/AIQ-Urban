@@ -50,6 +50,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <ProjectReference Include="..\AIQ.Exports\AIQ.Exports.csproj" />
 	  <ProjectReference Include="..\ArchSitePlan.RhinoInterface\ArchSitePlan.RhinoInterface.csproj" />
 	</ItemGroup>
 	

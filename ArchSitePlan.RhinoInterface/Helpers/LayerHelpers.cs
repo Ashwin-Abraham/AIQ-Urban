@@ -91,11 +91,6 @@ namespace ArchSitePlan.RhinoInterface.Helpers
             obj.CommitChanges();
         }
 
-        internal static object GetTransitLayerNames()
-        {
-            throw new NotImplementedException();
-        }
-
         internal static string GenerateRoadCLLayer(double width)
         {
             return LayerConstants.RoadCLLayer + LayerConstants._Sep_ + width.ToString();

@@ -7,6 +7,7 @@ public class Parcel
 {
     public PlanarSurface Boundary {  get; set; }
     public Landuse LandUse { get; set; }
+    // TODO: Try to get rid of these duplicate ids
     public Guid CoreModelId { get; set; }
     public Guid ClientModelId { get; set; }
 

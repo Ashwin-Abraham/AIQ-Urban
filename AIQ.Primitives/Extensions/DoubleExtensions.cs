@@ -42,4 +42,13 @@ public static class DoubleExtensions
 
     public static double DegreesToRadians(this double degree)
         => degree * Math.PI / 180;
+
+    public static string ToFormattedText(this double number, bool withCommas = true, int decimals = 2)
+    {
+        string format = withCommas
+            ? "N" + decimals   // e.g. "N2" → 1,234.56
+            : "F" + decimals;  // e.g. "F2" → 1234.56
+
+        return number.ToString(format);
+    }
 }
