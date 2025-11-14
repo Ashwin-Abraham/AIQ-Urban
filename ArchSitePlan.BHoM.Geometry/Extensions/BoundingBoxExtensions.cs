@@ -1,15 +1,23 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using BH.Engine.Geometry;
+﻿using BH.Engine.Geometry;
 using BH.oM.Data.Collections;
 using BH.oM.Geometry;
 
 namespace ArchSitePlan.BHoM.Geometry.Extensions;
 public static class BoundingBoxExtensions
 {
+    public static BoundingBox ExtendByRatio(this BoundingBox boundingBox, double xRatio, double yRatio, double zRatio)
+    {
+        var xAxis = boundingBox.XDomain().ExtendByRatio(xRatio);
+        var yAxis = boundingBox.YDomain().ExtendByRatio(yRatio);
+        var zAxis = boundingBox.ZDomain().ExtendByRatio(zRatio);
+
+        return new BoundingBox()
+        {
+            Min = Create.Point(xAxis.Min, yAxis.Min, zAxis.Min),
+            Max = Create.Point(xAxis.Max, yAxis.Max, zAxis.Max)
+        };
+    }
+
     public static List<Point> FourPoints(this BoundingBox boundingBox)
     {
         var min = boundingBox.Min;

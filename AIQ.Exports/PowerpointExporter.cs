@@ -1,5 +1,4 @@
 ﻿using AIQ.Exports.Helpers;
-using AIQ.Exports.PowerpointExport;
 using AIQ.Exports.PowerpointExport.ShapeActions;
 using AIQ.Primitives.Extensions;
 using ArchSitePlan.Core.Utils;
@@ -28,8 +27,8 @@ public class PowerpointExporter
     private const int MaxUseCountInTemplatePPT = 18;
 
     // Author identifiers
-    private const string ZoneAuthorIdentifier = "AIQ_Author";
-    private const string ZoneAuthorLogoIdentifier = "AIQ_AuthorLogo";
+    private const string ProjectAuthorIdentifier = "AIQ_Author";
+    private const string ProjectAuthorLogoIdentifier = "AIQ_AuthorLogo";
 
     // Table text identifiers
     // For data rows
@@ -55,7 +54,6 @@ public class PowerpointExporter
         _listOfAllUses = config.ExtractUniqueLandUseBasedGraphData();
     }
 
-   
     public bool ExportToPowerpoint()
     {
         // Setup
@@ -83,7 +81,7 @@ public class PowerpointExporter
         // Create 1 copy of repeating slides per zone
         int[] repeatingSlides = [2, 3, 4];
         List<(ZoneExportConfig Config, List<int> SlideNos)> configSlideMap = [];
-        int newIndex = presentation.Slides.Count;
+        int newIndex = presentation.Slides.Count + 1;
 
         for(int i = 0; i < _config.OtherZoneExportConfigs.Count; i++)
         {
@@ -166,8 +164,12 @@ public class PowerpointExporter
                 _filter: shape => TextboxContains(shape, ProjectNameIdentifier),
                 _text: _config.ProjectName),
 
+            new SetShapeTextAction(
+                _filter: shape => TextboxContains(shape, ProjectAuthorIdentifier),
+                _text: _config.AuthorName),
+
             new SetShapeImageAction(
-                _filter: shape => NameContains(shape, ZoneAuthorLogoIdentifier) && IsPicture(shape),
+                _filter: shape => NameContains(shape, ProjectAuthorLogoIdentifier) && IsPicture(shape),
                 _newImagePath: _config.AuthorLogoPath,
                 _alignRight: true),
 
@@ -321,7 +323,7 @@ public class PowerpointExporter
         return new()
         {
             new SetShapeTextAction(
-                _filter: shape => TextboxContains(shape, ZoneAuthorIdentifier), 
+                _filter: shape => TextboxContains(shape, ProjectAuthorIdentifier), 
                 _text: _config.AuthorName),
 
             new SetShapeImageAction(

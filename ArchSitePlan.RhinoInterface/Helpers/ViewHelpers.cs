@@ -6,7 +6,7 @@ using Rhino.Geometry;
 namespace ArchSitePlan.RhinoInterface.Helpers;
 public static class ViewHelpers
 {
-    public static int CreatePlanNamedView(RhinoDoc doc, BoundingBox objectBounds, string zoneName)
+    public static int CreatePlanNamedView(RhinoDoc doc, BoundingBox objectBounds, string viewName)
     {
         var originalView = doc.Views.ActiveView;
 
@@ -17,8 +17,6 @@ public static class ViewHelpers
         viewInfo.Viewport.SetCameraLocation(new Point3d(objectBounds.Center.X, objectBounds.Center.Y, objectBounds.Max.Z));
 
         // Create new view
-        string viewName = RHGeneralConstants.NamedViewPrefix + zoneName;
-
         var newView = doc.Views.Add(
             viewName,
             Rhino.Display.DefinedViewportProjection.Top,

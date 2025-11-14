@@ -32,7 +32,7 @@ public class ReplaceTableTextAction(
                 var priorColor = priorFont?.Color;
 
                 cell.TextBox.SetText(mapEntry.Replacement);
-
+                
                 if (priorFont != null)
                 {
                     cell.TextBox.Paragraphs[0]!.Portions[0]!.Font!.Size = priorSize;
