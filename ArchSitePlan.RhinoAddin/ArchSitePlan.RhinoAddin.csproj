@@ -22,6 +22,8 @@
     <Content Include="manifest.yml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <PackageReference Include="SkiaSharp" Version="3.119.1" />
+    <PackageReference Include="SkiaSharp.NativeAssets.Win32" Version="3.119.1" />
     <PackageReference Include="System.Drawing.Common" Version="8.0.7" />
   </ItemGroup>
 	
@@ -66,5 +68,12 @@
 	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
 	  <Exec Command="xcopy /Y &quot;$(ProjectDir)manifest.yml&quot; &quot;$(TargetDir)&quot;" />
 	</Target>
-  
+
+	<Target Name="CopyRequiredNativeAssets" AfterTargets="Build">
+		<ItemGroup>
+			<NativeAssetToCopy Include="$(TargetDir)runtimes\win-x64\native\*.*" />
+		</ItemGroup>
+		<Copy SourceFiles="@(NativeAssetToCopy)" DestinationFolder="$(TargetDir)" />
+	</Target>
+	
 </Project>

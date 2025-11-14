@@ -6,9 +6,9 @@ namespace ArchSitePlan.Core.ModelEditActions.MiscActions;
 
 public static class CalculateStudyBoundsAction
 {
-    public static List<(string Name, BoundingBox Bounds)> Run()
+    public static List<(StudyArea Zone, BoundingBox Bounds)> Run()
     {
-        List < (string Name, BoundingBox bounds)> result = [];
+        List < (StudyArea Zone, BoundingBox bounds)> result = [];
 
         foreach(var zone in CoreModelSingelton.Instance.Zones)
         {
@@ -16,7 +16,7 @@ public static class CalculateStudyBoundsAction
                 CalculateEntireModelBounds()
                 : zone.Boundary.IBounds();
 
-            result.Add((zone.Name, bounds));
+            result.Add((zone, bounds));
         }
 
         return result;

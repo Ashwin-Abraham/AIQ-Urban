@@ -1,4 +1,6 @@
-﻿using ArchSitePlan.Core.Factories.Models;
+﻿using AIQ.Exports;
+using ArchSitePlan.BHoM.Geometry.Extensions;
+using ArchSitePlan.Core.Factories.Models;
 using ArchSitePlan.Core.ModelEditActions.BuildingActions;
 using ArchSitePlan.Core.ModelEditActions.MetricsActions;
 using ArchSitePlan.Core.ModelEditActions.Misc;
@@ -19,32 +21,51 @@ namespace ArchSitePlan.RhinoInterface.CoreModelInterface;
 
 public static class ModelBuilderPipelines
 {
-    public static void CreateNamedViewsOfEachZone(RhinoDoc doc)
+    public static List<(StudyArea Zone, string ViewName)> CreateNamedViewsOfEachZone(RhinoDoc doc)
     {
+        List<(StudyArea Zone, string ViewName)> zoneAndViewName = [];
+
         // get (2dBounds, name) per study
         var zoneData = CalculateStudyBoundsAction.Run();
 
         // create named views if absent
         foreach(var info in zoneData)
         {
-            ViewHelpers.CreatePlanNamedView(doc, info.Bounds.ToRhino(), info.Name);
+            string viewName = RHGeneralConstants.NamedViewPrefix + info.Zone.Name;
+            int result = ViewHelpers.CreatePlanNamedView(
+                doc, 
+                info.Bounds.ExtendByRatio(1.1, 1.1, 0).ToRhino(),
+                viewName);
+
+            if (result != -1)
+                zoneAndViewName.Add((info.Zone, viewName));
         }
+
+        return zoneAndViewName;
     }
 
-    public static void ExportNamedViews(
-        RhinoDoc doc)
+    public static string? ExportNamedView(
+        RhinoDoc doc, 
+        string namedView,
+        string saveLocation)
     {
         var mainLayerIndex = doc.Layers.FindByFullPath(LayerConstants.MainModellingLayer, -1);
+        var roadOutlineLayerIndex = doc.Layers.FindByFullPath(LayerConstants.RoadOutlineLayer, -1);
 
         if (mainLayerIndex == -1)
-            return;
+            return null;
 
-        var path = @"C:\Users\AshwinAbraham\Downloads\";
 
         var mainLayer = doc.Layers[mainLayerIndex];
-        var children = mainLayer.GetChildren(true).Append(mainLayer).ToList();
+        var roadOutlineLayer = doc.Layers[roadOutlineLayerIndex];
 
-        RhinoExportOrchestrator.ExportPlanImageForObjects(doc, path, children);
+        var children = mainLayer
+            .GetChildren(true)
+            .Append(mainLayer)
+            .Except([roadOutlineLayer])
+            .ToList();
+
+        return RhinoImageExporter.ExportPlanImageForObjects(doc, namedView, saveLocation, children);
     }
 
     public static ModelStateMessage AddOrUpdateRoadPipeline(
@@ -357,5 +378,64 @@ public static class ModelBuilderPipelines
             RhinoEventHandler.HTMLViewModel.AppMode,
             true,
             false);
+    }
+
+    public static bool ExportPresentationPipeline(
+        RhinoDoc doc, 
+        string saveFolder,
+        string? logoPath,
+        string? authorName,
+        string? projectName)
+    {
+        List<(StudyArea Zone, string ViewName)> zoneAndView = CreateNamedViewsOfEachZone(doc);
+        List<(StudyArea Zone, string ExportPath)> zoneImageExportPaths = [];
+
+        foreach(var info in zoneAndView)
+        {
+            string? exportPath = ExportNamedView(doc, info.ViewName, saveFolder);
+
+            if (exportPath != null)
+                zoneImageExportPaths.Add((info.Zone, exportPath));
+        }
+
+        new RefreshAllZoneContentsAction().Run();
+        var allZoneMetrics = new RefreshAllZoneMetricsAction().Run();
+
+        List<ZoneExportConfig> otherZoneExportConfigs = [];
+        ZoneExportConfig? fullProjectConfig = null;
+
+        foreach(var zoneImage in zoneImageExportPaths)
+        {
+            var zoneMetrics = allZoneMetrics.Find(x => x.ZoneName.Equals(zoneImage.Zone.Name));
+
+            if (zoneMetrics == null)
+                continue;
+
+            var zoneExportConfig = new ZoneExportConfig(
+                zoneMetrics,
+                zoneImage.ExportPath);
+
+            if (zoneImage.Zone == CoreModelSingelton.Instance.ProjectWideStudy())
+                fullProjectConfig = zoneExportConfig;
+            else
+                otherZoneExportConfigs.Add(zoneExportConfig);
+        }
+
+        logoPath ??= string.Empty;
+        authorName??= "Author unset";
+        projectName ??= "Project Name Unset";
+
+        if (fullProjectConfig == null)
+            return false;
+
+        var pptConfig = new PowerpointExportConfig(
+            Path.Combine(saveFolder, projectName + ".pptx"),
+            logoPath,
+            authorName,
+            projectName,
+            fullProjectConfig,
+            otherZoneExportConfigs);
+
+        return new PowerpointExporter(pptConfig).ExportToPowerpoint();
     }
 }

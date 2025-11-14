@@ -19,11 +19,16 @@ public class SampleCommand:Command
 
     protected override Result RunCommand(RhinoDoc doc, RunMode mode)
     {
-        var path = @"C:\Users\AshwinAbraham\Downloads\TestFile";
-        
-        // PowerpointExporter.ExportToPowerpoint(path);
+        var path = @"C:\Users\AshwinAbraham\Downloads\";
         ModelBuilderPipelines.CreateNamedViewsOfEachZone(doc);
-        ModelBuilderPipelines.ExportNamedViews(doc);
+        ModelBuilderPipelines.ExportNamedView(doc, "AIQ_NamedView_A1", path);
+
+        ModelBuilderPipelines.ExportPresentationPipeline(
+            doc,
+            saveFolder: @"C:\Users\AshwinAbraham\Downloads\",
+            logoPath: null,
+            authorName: "Ashwin From Rhino",
+            projectName: "AIQ Export City");
 
         return Result.Success;
     }

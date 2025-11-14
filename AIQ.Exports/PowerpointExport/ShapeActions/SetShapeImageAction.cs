@@ -8,7 +8,7 @@ public class SetShapeImageAction(
 {
     public IShape EditShape(IShape shape)
     {
-        if (!_filter.Invoke(shape))
+        if (!_filter.Invoke(shape) || _newImagePath.Length == 0)
             return shape;
 
         var previousWidth = shape.Width;
