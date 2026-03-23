@@ -23,7 +23,7 @@ public class MergePdfsComponent : GH_Component
         _lastFolder = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
     }
 
-    public override Guid ComponentGuid => new Guid(ComponentGuids.MergePdfs);
+    public override Guid ComponentGuid => ComponentGuids.MergePdfs;
 
     protected override System.Drawing.Bitmap Icon => null;
 

@@ -20,7 +20,7 @@ public class CreateLayerConfigurationComponent : GH_Component
     {
     }
 
-    public override Guid ComponentGuid => new Guid(ComponentGuids.CreateLayerConfiguration);
+    public override Guid ComponentGuid => ComponentGuids.CreateLayerConfiguration;
 
     protected override System.Drawing.Bitmap Icon => null;
 

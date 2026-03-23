@@ -17,7 +17,7 @@ public class SetDetailTargetComponent : GH_Component
     {
     }
 
-    public override Guid ComponentGuid => new Guid(ComponentGuids.SetDetailTarget);
+    public override Guid ComponentGuid => ComponentGuids.SetDetailTarget;
 
     protected override System.Drawing.Bitmap Icon => null;
 

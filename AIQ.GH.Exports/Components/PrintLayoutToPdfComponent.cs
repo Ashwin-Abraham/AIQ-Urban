@@ -25,7 +25,7 @@ public class PrintLayoutToPdfComponent : GH_Component
         _lastFolder = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
     }
 
-    public override Guid ComponentGuid => new Guid(ComponentGuids.PrintLayoutToPdf);
+    public override Guid ComponentGuid => ComponentGuids.PrintLayoutToPdf;
 
     protected override System.Drawing.Bitmap Icon => null;
 

@@ -20,7 +20,7 @@ public class CopyLayoutViewComponent : GH_Component
     {
     }
 
-    public override Guid ComponentGuid => new Guid(ComponentGuids.CopyLayoutView);
+    public override Guid ComponentGuid => ComponentGuids.CopyLayoutView;
 
     protected override System.Drawing.Bitmap Icon => null;
 

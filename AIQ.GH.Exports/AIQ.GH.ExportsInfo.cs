@@ -12,7 +12,10 @@ public class AIQ_GH_ExportsInfo : GH_AssemblyInfo
     public override Bitmap Icon => null;
 
     //Return a short string describing the purpose of this GHA library.
-    public override string Description => "Layout and PDF export components for Grasshopper";
+    public override string Description =>
+        "Layout management and PDF export components for Grasshopper. " +
+        "Create layouts from templates, configure detail views, manage layer visibility, " +
+        "and export to PDF.";
 
     public override Guid Id => new Guid("5f2fd04a-4177-4998-9730-780a6c572ee0");
 

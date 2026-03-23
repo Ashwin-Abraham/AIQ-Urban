@@ -45,8 +45,8 @@ All components communicate via custom GH data types passed through wires.
 | [Phase 1: Project Infrastructure](2026-03-23-PLAN-AIQ-GH-Exports/Phase1-Infrastructure.md) | Update .csproj, create directory structure, update assembly info | Phase1-Infrastructure.md |
 | [Phase 2: Data Types and Helpers](2026-03-23-PLAN-AIQ-GH-Exports/Phase2-DataTypesAndHelpers.md) | Custom GH data types and RhinoCommon helpers | Phase2-DataTypesAndHelpers.md |
 | [Phase 3: Core Components](2026-03-23-PLAN-AIQ-GH-Exports/Phase3-CoreComponents.md) | 5 Grasshopper components | Phase3-CoreComponents.md |
-| [Phase 4: Supporting Types](2026-03-23-PLAN-AIQ-GH-Exports/Phase4-SupportingTypes.md) | Additional GH wrapper types | Phase4-SupportingTypes.md |
-| [Phase 5: Documentation](2026-03-23-PLAN-AIQ-GH-Exports/Phase5-Documentation.md) | Assembly info and final polish | Phase5-Documentation.md |
+| [Phase 4: Supporting Types](2026-03-23-PLAN-AIQ-GH-Exports/Phase4-SupportingTypes.md) | Additional GH wrapper types | Phase4-SupportingTypes.md | ✓ COMPLETE |
+| [Phase 5: Documentation](2026-03-23-PLAN-AIQ-GH-Exports/Phase5-Documentation.md) | Assembly info and final polish | Phase5-Documentation.md | ✓ COMPLETE |
 
 ## File Structure Summary
 

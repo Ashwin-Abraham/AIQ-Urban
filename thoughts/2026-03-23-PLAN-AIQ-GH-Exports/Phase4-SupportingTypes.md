@@ -131,10 +131,10 @@ public static class ComponentGuids
 ## Success Criteria
 
 ### Automated Verification
-- [ ] LayerConfigurationListGoo serializes/deserializes correctly
-- [ ] Multiple configurations can be passed through a single wire
-- [ ] Component GUIDs are consistent across all components
-- [ ] ListGoo displays correct count in tooltips
+- [x] LayerConfigurationListGoo serializes/deserializes correctly
+- [x] Multiple configurations can be passed through a single wire
+- [x] Component GUIDs are consistent across all components
+- [x] ListGoo displays correct count in tooltips
 
 ### Manual Verification
 - [ ] Data flows correctly from CreateLayerConfiguration to PrintLayoutToPdf
