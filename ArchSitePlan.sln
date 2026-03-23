@@ -37,6 +37,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AIQ.Exports.Tests", "AIQ.Ex
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AIQ.Primitives.Tests", "AIQ.Primitives.Tests\AIQ.Primitives.Tests.csproj", "{71E75A8D-C688-48CF-A883-C3C795E9E192}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AIQ.GH.Exports", "AIQ.GH.Exports\AIQ.GH.Exports.csproj", "{9EDD6612-E122-42A9-A591-6800E73FC00C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug_NoViz|Any CPU = Debug_NoViz|Any CPU
@@ -234,6 +236,18 @@ Global
 		{71E75A8D-C688-48CF-A883-C3C795E9E192}.Release|Any CPU.Build.0 = Release|Any CPU
 		{71E75A8D-C688-48CF-A883-C3C795E9E192}.Release|x64.ActiveCfg = Release|Any CPU
 		{71E75A8D-C688-48CF-A883-C3C795E9E192}.Release|x64.Build.0 = Release|Any CPU
+		{9EDD6612-E122-42A9-A591-6800E73FC00C}.Debug_NoViz|Any CPU.ActiveCfg = Debug|Any CPU
+		{9EDD6612-E122-42A9-A591-6800E73FC00C}.Debug_NoViz|Any CPU.Build.0 = Debug|Any CPU
+		{9EDD6612-E122-42A9-A591-6800E73FC00C}.Debug_NoViz|x64.ActiveCfg = Debug|Any CPU
+		{9EDD6612-E122-42A9-A591-6800E73FC00C}.Debug_NoViz|x64.Build.0 = Debug|Any CPU
+		{9EDD6612-E122-42A9-A591-6800E73FC00C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9EDD6612-E122-42A9-A591-6800E73FC00C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9EDD6612-E122-42A9-A591-6800E73FC00C}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{9EDD6612-E122-42A9-A591-6800E73FC00C}.Debug|x64.Build.0 = Debug|Any CPU
+		{9EDD6612-E122-42A9-A591-6800E73FC00C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9EDD6612-E122-42A9-A591-6800E73FC00C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9EDD6612-E122-42A9-A591-6800E73FC00C}.Release|x64.ActiveCfg = Release|Any CPU
+		{9EDD6612-E122-42A9-A591-6800E73FC00C}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
