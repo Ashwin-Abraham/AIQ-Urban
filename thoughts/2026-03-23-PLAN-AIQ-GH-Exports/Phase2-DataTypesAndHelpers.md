@@ -164,11 +164,11 @@ public static class PdfHelpers
 ## Success Criteria
 
 ### Automated Verification
-- [ ] LayerConfiguration can be serialized/deserialized via GH_Goo
-- [ ] LayoutHelpers creates layouts with all details copied from template
-- [ ] DetailHelpers correctly sets scale using `SetScale()` API
-- [ ] PdfHelpers exports single layout to PDF with layer visibility applied
-- [ ] All helper methods handle null/edge cases gracefully
+- [x] LayerConfiguration can be serialized/deserialized via GH_Goo
+- [x] LayoutHelpers creates layouts with all details copied from template
+- [x] DetailHelpers correctly sets scale using `SetScale()` API
+- [x] PdfHelpers exports single layout to PDF with layer visibility applied
+- [x] All helper methods handle null/edge cases gracefully
 - [ ] Unit tests pass for serialization edge cases
 
 ## Key API References
