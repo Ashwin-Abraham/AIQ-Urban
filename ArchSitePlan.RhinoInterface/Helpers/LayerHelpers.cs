@@ -154,6 +154,21 @@ namespace ArchSitePlan.RhinoInterface.Helpers
             width = roadWidth;
             return true;
         }
+
+        public static void ApplyLayerProperties(RhinoDoc doc, Layer layer, bool isVisible, Color displayColor, double plotWeight, string lineTypeName)
+        {
+            layer.IsVisible = isVisible;
+            layer.Color = displayColor;
+            layer.PlotWeight = plotWeight;
+
+            var lineTypeIndex = doc.Linetypes.Find(lineTypeName);
+            if (lineTypeIndex >= 0)
+                layer.LinetypeIndex = lineTypeIndex;
+
+#pragma warning disable CS0618
+            layer.CommitChanges();
+#pragma warning restore CS0618
+        }
     }
 
 }
