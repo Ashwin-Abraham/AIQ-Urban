@@ -54,6 +54,13 @@ public class MergePdfsComponent : GH_Component
             return;
         }
 
+        if(!Directory.CreateDirectory(outputPath).Exists)
+        {
+            AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "PDF path cannot be empty");
+            da.SetData(1, false);
+            return;
+        }
+
         foreach (var path in pdfPaths)
         {
             if (string.IsNullOrWhiteSpace(path))
@@ -86,7 +93,16 @@ public class MergePdfsComponent : GH_Component
 
         try
         {
-            PdfHelpers.MergePdfFiles(pdfPaths, outputPath);
+            var fileName = Path.GetFileNameWithoutExtension(outputPath);
+            var directory = Path.GetDirectoryName(outputPath);
+
+            if (fileName.Length == 0)
+                fileName = RhinoFileName() + "-Export";
+
+            fileName += ".pdf";
+            var path = Path.Combine(directory, fileName);
+
+            PdfHelpers.MergePdfFiles(pdfPaths, path);
             da.SetData(0, outputPath);
             da.SetData(1, true);
         }
@@ -95,5 +111,11 @@ public class MergePdfsComponent : GH_Component
             AddRuntimeMessage(GH_RuntimeMessageLevel.Error, ex.Message);
             da.SetData(1, false);
         }
+    }
+
+    private static string RhinoFileName()
+    {
+        var name = RhinoDoc.ActiveDoc.Name;
+        return name.Replace(".3dm", "");
     }
 }

@@ -36,6 +36,7 @@ public class PrintLayoutToPdfComponent : GH_Component
         manager.AddBooleanParameter("Open After", "O", "Open PDF after export", GH_ParamAccess.item, false);
         manager.AddBooleanParameter("Apply Layer Config", "A", "Apply layer configuration before export", GH_ParamAccess.item, false);
         manager.AddGenericParameter("Layer Config", "C", "Layer configuration to apply", GH_ParamAccess.item);
+        manager[4].Optional = true;
     }
 
     protected override void RegisterOutputParams(GH_OutputParamManager manager)
@@ -50,7 +51,7 @@ public class PrintLayoutToPdfComponent : GH_Component
         string outputFolder = null;
         bool openAfter = false;
         bool applyConfig = false;
-        LayerConfiguration layerConfig = null;
+        LayerConfiguration? layerConfig = null;
 
         if (!da.GetData(0, ref layoutName)) return;
         da.GetData(1, ref outputFolder);
@@ -58,7 +59,7 @@ public class PrintLayoutToPdfComponent : GH_Component
         da.GetData(3, ref applyConfig);
 
         var configGoo = new LayerConfigurationGoo();
-        if (da.GetData(4, ref configGoo) && configGoo.Value is not null)
+        if (applyConfig && da.GetData(4, ref configGoo) && configGoo.Value is not null)
         {
             layerConfig = configGoo.Value;
             applyConfig = true;

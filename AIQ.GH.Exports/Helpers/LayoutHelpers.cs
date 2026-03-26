@@ -1,39 +1,38 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using AIQ.GH.Exports.NewFolder;
 using Rhino;
 using Rhino.Display;
 using Rhino.DocObjects;
 using Rhino.Geometry;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace AIQ.GH.Exports.Helpers;
 
 public static class LayoutHelpers
 {
-    public static RhinoPageView CreateLayoutFromTemplate(
+    public static RhinoPageView? CreateLayoutFromTemplate(
         RhinoDoc doc,
         string templateLayoutName,
         string newLayoutName)
     {
         var template = GetLayoutByName(doc, templateLayoutName);
+
         if (template == null)
-        {
-            return null!;
-        }
+            return null;
 
-        var newLayout = CreateEmptyLayout(
-            doc,
-            newLayoutName,
-            template.PageWidth,
-            template.PageHeight,
-            doc.PageUnitSystem
-        );
-
-        if (newLayout != null)
-        {
-            CopyDetailsToLayout(template, newLayout);
-        }
+        DeleteLayouts(newLayoutName, doc);
+        var newLayout = CopyLayout(doc, template, newLayoutName);
 
         return newLayout;
+    }
+
+    private static void DeleteLayouts(string pageName, RhinoDoc doc)
+    {
+        doc.Views
+            .Where(x => x is RhinoPageView page && page.PageName == pageName)
+            .ToList()
+            .ForEach(pv => pv.Close());
     }
 
     public static IEnumerable<string> GetAllLayoutNames(RhinoDoc doc)
@@ -90,6 +89,38 @@ public static class LayoutHelpers
         }
     }
 
+    public static RhinoPageView CopyLayout(
+        RhinoDoc doc,
+        RhinoPageView sourceView,
+        string layoutName)
+    {
+        var newPage = doc.Views.AddPageView(layoutName, sourceView.PageWidth, sourceView.PageHeight);
+        var modelUnits = doc.ModelUnitSystem;
+
+        foreach(var sourceDetail in sourceView.GetDetailViews())
+        {
+            var bounds = sourceDetail.Geometry.GetBoundingBox(true);
+
+            var detail = newPage.AddDetailView(
+                title: sourceDetail.DescriptiveTitle,
+                corner0: new Point2d(bounds.Min),
+                corner1: new Point2d(bounds.Max),
+                initialProjection: DefinedViewportProjection.Top
+                );
+
+            detail.DetailGeometry.SetScale(1, doc.ModelUnitSystem, sourceDetail.DetailGeometry.PageToModelRatio, doc.PageUnitSystem);
+            detail.Viewport.DisplayMode = sourceDetail.Viewport.DisplayMode;
+            detail.Viewport.SetCameraLocations(sourceDetail.Viewport.CameraTarget, sourceDetail.Viewport.CameraLocation);
+            detail.CommitChanges();
+            detail.CommitViewportChanges();
+        }
+
+        var objectsInSource = sourceView.GetObjects(doc).ToList();
+        newPage.CopyObjects(doc, objectsInSource);
+
+        return newPage;
+    }
+
     public static RhinoPageView CreateEmptyLayout(
         RhinoDoc doc,
         string layoutName,
@@ -99,6 +130,7 @@ public static class LayoutHelpers
     {
         doc.PageUnitSystem = units;
         var pageView = doc.Views.AddPageView(layoutName, width, height);
+        
         return pageView;
     }
 }
