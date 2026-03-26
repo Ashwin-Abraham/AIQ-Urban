@@ -5,7 +5,7 @@ using Rhino;
 using Rhino.Display;
 using Rhino.DocObjects;
 
-namespace AIQ.GH.Exports.NewFolder;
+namespace AIQ.GH.Exports.Extensions;
 public static class ViewExtensions
 {
     public static void CopyObjects(this RhinoPageView pageView, RhinoDoc doc, IEnumerable<RhinoObject> sourceObjects)

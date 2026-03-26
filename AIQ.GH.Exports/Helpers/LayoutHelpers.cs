@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using AIQ.GH.Exports.NewFolder;
+using AIQ.GH.Exports.Extensions;
 using Rhino;
 using Rhino.Display;
 using Rhino.DocObjects;
