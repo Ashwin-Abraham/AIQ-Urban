@@ -1,10 +1,7 @@
-using Grasshopper;
-using Grasshopper.Kernel;
-using AIQ.GH.Exports.Components;
-using AIQ.GH.Exports.Helpers;
-using Rhino;
 using System;
-using System.Linq;
+using AIQ.GH.Exports.Helpers;
+using Grasshopper.Kernel;
+using Rhino;
 
 namespace AIQ.GH.Exports.Components;
 
