@@ -164,10 +164,6 @@ namespace ArchSitePlan.RhinoInterface.Helpers
             var lineTypeIndex = doc.Linetypes.Find(lineTypeName);
             if (lineTypeIndex >= 0)
                 layer.LinetypeIndex = lineTypeIndex;
-
-#pragma warning disable CS0618
-            layer.CommitChanges();
-#pragma warning restore CS0618
         }
     }
 

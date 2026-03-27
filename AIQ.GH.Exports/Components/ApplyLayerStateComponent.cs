@@ -28,6 +28,7 @@ public class ApplyLayerStateComponent : GH_Component
     protected override void RegisterInputParams(GH_InputParamManager manager)
     {
         manager.AddGenericParameter("Doc Layer State", "DL", "Document layer state to apply", GH_ParamAccess.item);
+        manager.AddBooleanParameter("Run", "R", "Apply the layer state to the document", GH_ParamAccess.item, false);
     }
 
     protected override void RegisterOutputParams(GH_OutputParamManager manager)
@@ -37,6 +38,10 @@ public class ApplyLayerStateComponent : GH_Component
 
     protected override void SolveInstance(IGH_DataAccess da)
     {
+        bool run = false;
+        if (!da.GetData<bool>(1, ref run) || !run)
+            return;
+
         var doc = RhinoDoc.ActiveDoc;
         if (doc is null)
         {
