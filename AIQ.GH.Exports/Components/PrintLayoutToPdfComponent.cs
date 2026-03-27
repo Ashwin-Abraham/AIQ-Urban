@@ -4,6 +4,7 @@ using Grasshopper.Kernel.Data;
 using Grasshopper.Kernel.Types;
 using AIQ.GH.Exports.Components;
 using AIQ.GH.Exports.Helpers;
+using AIQ.GH.Exports.Models;
 using AIQ.GH.Exports.Types;
 using Rhino;
 using System;
@@ -34,9 +35,8 @@ public class PrintLayoutToPdfComponent : GH_Component
         manager.AddTextParameter("Layout Name", "L", "Name of the layout to export", GH_ParamAccess.item);
         manager.AddTextParameter("Output Folder", "F", "Folder to save the PDF (leave empty for desktop)", GH_ParamAccess.item);
         manager.AddBooleanParameter("Open After", "O", "Open PDF after export", GH_ParamAccess.item, false);
-        manager.AddBooleanParameter("Apply Layer Config", "A", "Apply layer configuration before export", GH_ParamAccess.item, false);
-        manager.AddGenericParameter("Layer Config", "C", "Layer configuration to apply", GH_ParamAccess.item);
-        manager[4].Optional = true;
+        manager.AddGenericParameter("Doc Layer State", "D", "Layer state to apply", GH_ParamAccess.item);
+        manager[3].Optional = true;
     }
 
     protected override void RegisterOutputParams(GH_OutputParamManager manager)
@@ -50,20 +50,12 @@ public class PrintLayoutToPdfComponent : GH_Component
         string layoutName = null;
         string outputFolder = null;
         bool openAfter = false;
-        bool applyConfig = false;
-        LayerConfiguration? layerConfig = null;
+        DocLayerStateGoo? docLayerStateGoo = null;
 
         if (!da.GetData(0, ref layoutName)) return;
         da.GetData(1, ref outputFolder);
         da.GetData(2, ref openAfter);
-        da.GetData(3, ref applyConfig);
-
-        var configGoo = new LayerConfigurationGoo();
-        if (applyConfig && da.GetData(4, ref configGoo) && configGoo.Value is not null)
-        {
-            layerConfig = configGoo.Value;
-            applyConfig = true;
-        }
+        da.GetData(3, ref docLayerStateGoo);
 
         if (string.IsNullOrWhiteSpace(layoutName))
         {
@@ -104,13 +96,9 @@ public class PrintLayoutToPdfComponent : GH_Component
             return;
         }
 
-        IEnumerable<LayerConfiguration>? configs = null;
-        if (applyConfig && layerConfig is not null)
-        {
-            configs = new[] { layerConfig };
-        }
+        docLayerStateGoo?.Value?.ApplyTo(doc);
 
-        string pdfPath = PdfHelpers.ExportLayoutToPdf(layout, folder, configs, doc);
+        string pdfPath = PdfHelpers.ExportLayoutToPdf(layout, folder, doc);
 
         if (pdfPath != null && openAfter)
         {

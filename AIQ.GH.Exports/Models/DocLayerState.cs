@@ -2,6 +2,7 @@
 using System.Drawing;
 using Rhino;
 using AIQ.GH.Exports.Models;
+using ArchSitePlan.RhinoInterface.Helpers;
 
 namespace AIQ.GH.Exports.Models;
 public class DocLayerState(List<LayerProperties> _layerState)
@@ -46,5 +47,19 @@ public class DocLayerState(List<LayerProperties> _layerState)
             ));
         }
         return new DocLayerState(layers);
+    }
+
+    public void ApplyTo(RhinoDoc doc)
+    {
+        foreach (var props in LayerState)
+        {
+            var layerIndex = doc.Layers.FindByFullPath(props.FullPath, -1);
+            if (layerIndex >= 0)
+            {
+                var layer = doc.Layers[layerIndex];
+                LayerHelpers.ApplyLayerProperties(doc, layer, props.LayerOn,
+                    props.LayerDisplayColor, props.LayerLineWeight, props.LayerLineType);
+            }
+        }
     }
 }

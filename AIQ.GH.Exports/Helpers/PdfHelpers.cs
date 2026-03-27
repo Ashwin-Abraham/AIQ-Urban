@@ -4,7 +4,8 @@ using Rhino.FileIO;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using AIQ.GH.Exports.Types;
+using AIQ.GH.Exports.Models;
+using ArchSitePlan.RhinoInterface.Helpers;
 using iText.Kernel.Pdf;
 using iText.Kernel.Utils;
 
@@ -15,14 +16,8 @@ public static class PdfHelpers
     public static string ExportLayoutToPdf(
         RhinoPageView layout,
         string outputFolder,
-        IEnumerable<LayerConfiguration>? layerConfigs,
         RhinoDoc doc)
     {
-        if (layerConfigs != null)
-        {
-            ApplyLayerConfigurations(doc, layerConfigs);
-        }
-
         var pdfPath = Path.Combine(outputFolder, $"{layout.PageName}.pdf");
 
         var viewCaptureSettings = new ViewCaptureSettings(layout, 300);
@@ -31,20 +26,6 @@ public static class PdfHelpers
         pdf.Write(pdfPath);
 
         return pdfPath;
-    }
-
-    public static void ApplyLayerConfigurations(
-        RhinoDoc doc,
-        IEnumerable<LayerConfiguration> configs)
-    {
-        foreach (var config in configs)
-        {
-            var layerIndex = doc.Layers.FindByFullPath(config.LayerName, -1);
-            if (layerIndex >= 0)
-            {
-                config.ApplyToRhinoLayer(doc.Layers[layerIndex]);
-            }
-        }
     }
 
     public static void MergePdfFiles(
