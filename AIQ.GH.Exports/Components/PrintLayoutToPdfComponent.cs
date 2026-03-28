@@ -1,16 +1,8 @@
-using Grasshopper;
-using Grasshopper.Kernel;
-using Grasshopper.Kernel.Data;
-using Grasshopper.Kernel.Types;
-using AIQ.GH.Exports.Components;
-using AIQ.GH.Exports.Helpers;
-using AIQ.GH.Exports.Models;
-using AIQ.GH.Exports.Types;
-using Rhino;
 using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
+using AIQ.GH.Exports.Helpers;
+using AIQ.GH.Exports.Types;
+using Grasshopper.Kernel;
+using Rhino;
 
 namespace AIQ.GH.Exports.Components;
 
@@ -35,8 +27,11 @@ public class PrintLayoutToPdfComponent : GH_Component
         manager.AddTextParameter("Layout Name", "L", "Name of the layout to export", GH_ParamAccess.item);
         manager.AddTextParameter("Output Folder", "F", "Folder to save the PDF (leave empty for desktop)", GH_ParamAccess.item);
         manager.AddBooleanParameter("Open After", "O", "Open PDF after export", GH_ParamAccess.item, false);
+
         manager.AddGenericParameter("Doc Layer State", "D", "Layer state to apply", GH_ParamAccess.item);
         manager[3].Optional = true;
+
+        manager.AddBooleanParameter("Run", "R", "Print the layouts", GH_ParamAccess.item);
     }
 
     protected override void RegisterOutputParams(GH_OutputParamManager manager)
@@ -50,12 +45,17 @@ public class PrintLayoutToPdfComponent : GH_Component
         string layoutName = null;
         string outputFolder = null;
         bool openAfter = false;
+        bool run = false;
         DocLayerStateGoo? docLayerStateGoo = null;
 
         if (!da.GetData(0, ref layoutName)) return;
         da.GetData(1, ref outputFolder);
         da.GetData(2, ref openAfter);
         da.GetData(3, ref docLayerStateGoo);
+        da.GetData(4, ref run);
+
+        if (!run)
+            return;
 
         if (string.IsNullOrWhiteSpace(layoutName))
         {
