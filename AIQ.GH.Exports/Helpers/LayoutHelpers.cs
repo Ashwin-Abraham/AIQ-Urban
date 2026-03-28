@@ -95,7 +95,6 @@ public static class LayoutHelpers
         string layoutName)
     {
         var newPage = doc.Views.AddPageView(layoutName, sourceView.PageWidth, sourceView.PageHeight);
-        var modelUnits = doc.ModelUnitSystem;
 
         foreach(var sourceDetail in sourceView.GetDetailViews())
         {
@@ -108,6 +107,7 @@ public static class LayoutHelpers
                 initialProjection: DefinedViewportProjection.Top
                 );
 
+            detail.Name = sourceDetail.Name;
             detail.DetailGeometry.SetScale(1, doc.ModelUnitSystem, sourceDetail.DetailGeometry.PageToModelRatio, doc.PageUnitSystem);
             detail.Viewport.DisplayMode = sourceDetail.Viewport.DisplayMode;
             detail.Viewport.SetCameraLocations(sourceDetail.Viewport.CameraTarget, sourceDetail.Viewport.CameraLocation);
