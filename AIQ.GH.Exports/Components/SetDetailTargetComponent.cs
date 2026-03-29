@@ -1,4 +1,5 @@
 using System;
+using System.Drawing;
 using AIQ.GH.Exports.Enums;
 using AIQ.GH.Exports.Helpers;
 using Grasshopper.Kernel;
@@ -17,7 +18,7 @@ public class SetDetailTargetComponent : GH_Component
 
     public override Guid ComponentGuid => ComponentGuids.SetDetailTarget;
 
-    protected override System.Drawing.Bitmap Icon => null;
+    protected override Bitmap Icon => IconLoader.LoadIcon("Set Detail Target.png");
 
     protected override void RegisterInputParams(GH_InputParamManager manager)
     {

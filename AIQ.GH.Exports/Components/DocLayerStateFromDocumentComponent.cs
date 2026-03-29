@@ -9,6 +9,8 @@ using Rhino;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using AIQ.GH.Exports.Helpers;
+
 using System.Linq;
 
 namespace AIQ.GH.Exports.Components;
@@ -24,7 +26,7 @@ public class DocLayerStateFromDocumentComponent : GH_Component
 
     public override Guid ComponentGuid => ComponentGuids.CreateDocLayerStateFromDocument;
 
-    protected override System.Drawing.Bitmap Icon => null;
+    protected override Bitmap Icon => IconLoader.LoadIcon("Save LayerState.png");
 
     protected override void RegisterInputParams(GH_InputParamManager manager)
     {

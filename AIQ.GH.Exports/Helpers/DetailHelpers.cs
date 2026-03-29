@@ -1,11 +1,10 @@
+using System.Collections.Generic;
+using System.Linq;
 using AIQ.GH.Exports.Enums;
 using Rhino;
 using Rhino.Display;
 using Rhino.DocObjects;
 using Rhino.Geometry;
-using System.Collections.Generic;
-using System.Linq;
-using Rhino.DocObjects;
 
 namespace AIQ.GH.Exports.Helpers;
 
@@ -66,7 +65,7 @@ public static class DetailHelpers
                 break;
 
             case AnchorPosition.BottomLeft:
-                offsetX = -worldWidth / 2;
+                offsetX = worldWidth / 2;
                 offsetY = worldHeight / 2;
                 break;
 

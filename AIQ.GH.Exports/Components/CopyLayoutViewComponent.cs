@@ -8,6 +8,8 @@ using AIQ.GH.Exports.Types;
 using Rhino;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
+
 
 namespace AIQ.GH.Exports.Components;
 
@@ -22,7 +24,7 @@ public class CopyLayoutViewComponent : GH_Component
 
     public override Guid ComponentGuid => ComponentGuids.CopyLayoutView;
 
-    protected override System.Drawing.Bitmap Icon => null;
+    protected override Bitmap Icon => IconLoader.LoadIcon("Copy Layout.png");
 
     protected override void RegisterInputParams(GH_InputParamManager manager)
     {

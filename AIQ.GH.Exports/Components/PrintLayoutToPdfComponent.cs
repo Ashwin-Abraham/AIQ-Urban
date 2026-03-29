@@ -1,4 +1,5 @@
 using System;
+using System.Drawing;
 using AIQ.GH.Exports.Helpers;
 using AIQ.GH.Exports.Types;
 using Grasshopper.Kernel;
@@ -20,7 +21,7 @@ public class PrintLayoutToPdfComponent : GH_Component
 
     public override Guid ComponentGuid => ComponentGuids.PrintLayoutToPdf;
 
-    protected override System.Drawing.Bitmap Icon => null;
+    protected override Bitmap Icon => IconLoader.LoadIcon("Print PDF.png");
 
     protected override void RegisterInputParams(GH_InputParamManager manager)
     {

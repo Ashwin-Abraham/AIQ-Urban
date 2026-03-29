@@ -6,6 +6,7 @@ using AIQ.GH.Exports.Components;
 using AIQ.GH.Exports.Helpers;
 using Rhino;
 using System;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 
@@ -25,7 +26,7 @@ public class MergePdfsComponent : GH_Component
 
     public override Guid ComponentGuid => ComponentGuids.MergePdfs;
 
-    protected override System.Drawing.Bitmap Icon => null;
+    protected override Bitmap Icon => IconLoader.LoadIcon("Print PDF.png");
 
     protected override void RegisterInputParams(GH_InputParamManager manager)
     {
