@@ -1,14 +1,10 @@
-using Grasshopper;
-using Grasshopper.Kernel;
-using Grasshopper.Kernel.Data;
-using Grasshopper.Kernel.Types;
-using AIQ.GH.Exports.Components;
-using AIQ.GH.Exports.Models;
+using System;
+using System.Drawing;
+using AIQ.GH.Exports.Helpers;
 using AIQ.GH.Exports.Types;
 using ArchSitePlan.RhinoInterface.Helpers;
+using Grasshopper.Kernel;
 using Rhino;
-using System;
-using System.Linq;
 
 namespace AIQ.GH.Exports.Components;
 
@@ -23,7 +19,7 @@ public class ApplyLayerStateComponent : GH_Component
 
     public override Guid ComponentGuid => ComponentGuids.ApplyLayerState;
 
-    protected override System.Drawing.Bitmap Icon => null;
+    protected override Bitmap Icon => IconLoader.LoadIcon("WriteLayerState.png");
 
     protected override void RegisterInputParams(GH_InputParamManager manager)
     {

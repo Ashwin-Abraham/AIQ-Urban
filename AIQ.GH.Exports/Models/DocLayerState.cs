@@ -3,6 +3,7 @@ using System.Drawing;
 using Rhino;
 using AIQ.GH.Exports.Models;
 using ArchSitePlan.RhinoInterface.Helpers;
+using System.Linq;
 
 namespace AIQ.GH.Exports.Models;
 public class DocLayerState(List<LayerProperties> _layerState)
@@ -29,21 +30,26 @@ public class DocLayerState(List<LayerProperties> _layerState)
 
     public static DocLayerState FromLists(
         List<string> fullPaths,
-        List<bool> layerOn,
-        List<Color> displayColors,
-        List<double> lineWeights,
-        List<string> lineTypes)
+        List<bool?> layerOn,
+        List<Color?> displayColors,
+        List<double?> lineWeights,
+        List<string?> lineTypes)
     {
-        var count = fullPaths.Count;
         var layers = new List<LayerProperties>();
-        for (int i = 0; i < count; i++)
+        for (int i = 0; i < fullPaths.Count; i++)
         {
+            var layerOnValue = layerOn.Count - 1 > i? layerOn[i] : null;
+            var displayColor = displayColors.Count - 1 > i? displayColors[i] : null;
+            var lineWeight = lineWeights.Count - 1 > i? lineWeights[i] : null;
+            var lineType = lineTypes.Count - 1 > i? lineTypes[i] : null;
+
+
             layers.Add(new LayerProperties(
                 fullPaths[i],
-                layerOn[i],
-                displayColors[i],
-                lineWeights[i],
-                lineTypes[i]
+                layerOnValue,
+                displayColor,
+                lineWeight,
+                lineType
             ));
         }
         return new DocLayerState(layers);
@@ -57,8 +63,13 @@ public class DocLayerState(List<LayerProperties> _layerState)
             if (layerIndex >= 0)
             {
                 var layer = doc.Layers[layerIndex];
-                LayerHelpers.ApplyLayerProperties(doc, layer, props.LayerOn,
-                    props.LayerDisplayColor, props.LayerLineWeight, props.LayerLineType);
+                LayerHelpers.ApplyLayerProperties(
+                    doc, 
+                    layer,
+                    props.LayerOn,
+                    props.LayerDisplayColor,
+                    props.LayerLineWeight,
+                    props.LayerLineType);
             }
         }
     }

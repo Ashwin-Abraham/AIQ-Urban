@@ -155,13 +155,18 @@ namespace ArchSitePlan.RhinoInterface.Helpers
             return true;
         }
 
-        public static void ApplyLayerProperties(RhinoDoc doc, Layer layer, bool isVisible, Color displayColor, double plotWeight, string lineTypeName)
+        public static void ApplyLayerProperties(RhinoDoc doc, Layer layer, bool? isVisible, Color? displayColor, double? plotWeight, string? lineTypeName)
         {
-            layer.IsVisible = isVisible;
-            layer.Color = displayColor;
-            layer.PlotWeight = plotWeight;
+            if(isVisible.HasValue)
+                layer.IsVisible = isVisible.Value;
 
-            var lineTypeIndex = doc.Linetypes.Find(lineTypeName);
+            if (displayColor.HasValue)
+                layer.Color = displayColor.Value;
+            
+            if(plotWeight.HasValue)
+                layer.PlotWeight = plotWeight.Value;
+
+            var lineTypeIndex = doc.Linetypes.Find(lineTypeName?? "");
             if (lineTypeIndex >= 0)
                 layer.LinetypeIndex = lineTypeIndex;
         }
