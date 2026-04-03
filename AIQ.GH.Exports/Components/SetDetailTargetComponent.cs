@@ -40,6 +40,7 @@ public class SetDetailTargetComponent : GH_Component
     protected override void RegisterOutputParams(GH_OutputParamManager manager)
     {
         manager.AddBooleanParameter("Success", "S", "True if target was set successfully", GH_ParamAccess.item);
+        manager.AddTextParameter("Layout Name", "L", "Layout Name Output", GH_ParamAccess.item);
     }
 
     protected override void SolveInstance(IGH_DataAccess da)
@@ -103,6 +104,7 @@ public class SetDetailTargetComponent : GH_Component
 
         DetailHelpers.SetDetailTarget(detail, target, scale, GetAnchorPosition(anchorPosition), doc);
         da.SetData(0, true);
+        da.SetData(1, layoutName);
     }
 
     private static AnchorPosition GetAnchorPosition(int anchorPosition)

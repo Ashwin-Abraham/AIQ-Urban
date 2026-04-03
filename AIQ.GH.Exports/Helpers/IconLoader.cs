@@ -1,6 +1,5 @@
 using System.Drawing;
 using System.Reflection;
-using Rhino;
 
 namespace AIQ.GH.Exports.Helpers;
 
