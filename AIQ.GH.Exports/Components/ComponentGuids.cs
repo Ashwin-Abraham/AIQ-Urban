@@ -9,4 +9,5 @@ public static class ComponentGuids
     public static readonly System.Guid CreateDocLayerStateFromList = new("f6a7b8c9-6789-abcd-ef01-23456789abcd");
     public static readonly System.Guid CreateDocLayerStateFromDocument = new("a7b8c9d0-789a-bcde-f012-3456789abcde");
     public static readonly System.Guid ApplyLayerState = new("b7c8d9e0-8901-bcde-f012-3456789abcde");
+    public static readonly System.Guid EditLayoutText = new("c8d9e0f1-9012-cdef-0123-456789abcdef");
 }

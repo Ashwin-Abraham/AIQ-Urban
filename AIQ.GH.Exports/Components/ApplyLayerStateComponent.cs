@@ -1,5 +1,6 @@
 using System;
 using System.Drawing;
+using System.Linq;
 using AIQ.GH.Exports.Helpers;
 using AIQ.GH.Exports.Types;
 using ArchSitePlan.RhinoInterface.Helpers;
@@ -56,15 +57,7 @@ public class ApplyLayerStateComponent : GH_Component
 
         var layerState = goo.Value;
 
-        foreach (var props in layerState.LayerState)
-        {
-            var layerIndex = doc.Layers.FindByFullPath(props.FullPath, -1);
-            if (layerIndex < 0)
-                continue;
-
-            var layer = doc.Layers[layerIndex];
-            LayerHelpers.ApplyLayerProperties(doc, layer, props.LayerOn, props.LayerDisplayColor, props.LayerLineWeight, props.LayerLineType);
-        }
+        layerState.ApplyTo(doc);
 
         da.SetData(0, true);
     }

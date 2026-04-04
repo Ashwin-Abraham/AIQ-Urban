@@ -1,22 +1,55 @@
-using Rhino;
-using Rhino.Display;
-using Rhino.FileIO;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using AIQ.GH.Exports.Models;
-using ArchSitePlan.RhinoInterface.Helpers;
 using iText.Kernel.Pdf;
 using iText.Kernel.Utils;
+using Rhino;
+using Rhino.Display;
+using Rhino.FileIO;
 
 namespace AIQ.GH.Exports.Helpers;
 
 public static class PdfHelpers
 {
+    public static bool ExportMultipleLayoutsToPdf(
+        RhinoDoc doc,
+        string pdfPath,
+        IEnumerable<string> layoutNames,
+        IEnumerable<DocLayerState> docLayerStates,
+        ref Logger logger)
+    {
+        var pdf = FilePdf.Create();
+        var layoutNameList = layoutNames.ToList();
+        var docLayerStateList = docLayerStates.ToList();
+        var docLayerState = docLayerStateList.FirstOrDefault();
+
+        for (int i = 0; i < layoutNameList.Count; i++)
+        {
+            var layout = LayoutHelpers.GetLayoutByName(doc, layoutNameList[i]);
+            if (layout is null)
+            {
+                logger.AddWarning($"Layout {layoutNameList[i]} not found in the rhino document.");
+                continue;
+            }
+
+            if(i < docLayerStateList.Count)
+                docLayerState = docLayerStateList[i];
+
+
+            docLayerState?.ApplyTo(doc, false);
+            var viewCaptureSettings = new ViewCaptureSettings(layout, 300);
+            pdf.AddPage(viewCaptureSettings);
+        }
+
+        pdf.Write(pdfPath);
+
+        return true;
+    }
+
     public static string ExportLayoutToPdf(
         RhinoPageView layout,
-        string outputFolder,
-        RhinoDoc doc)
+        string outputFolder)
     {
         var pdfPath = Path.Combine(outputFolder, $"{layout.PageName}.pdf");
 
