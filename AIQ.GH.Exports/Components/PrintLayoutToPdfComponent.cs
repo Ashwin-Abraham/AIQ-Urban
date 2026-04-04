@@ -1,6 +1,11 @@
 using System;
+using System.Collections.Generic;
 using System.Drawing;
+using System.IO;
+using System.Linq;
+using AIQ.GH.Exports.Extensions;
 using AIQ.GH.Exports.Helpers;
+using AIQ.GH.Exports.Models;
 using AIQ.GH.Exports.Types;
 using Grasshopper.Kernel;
 using Rhino;
@@ -9,15 +14,11 @@ namespace AIQ.GH.Exports.Components;
 
 public class PrintLayoutToPdfComponent : GH_Component
 {
-    private string _lastFolder;
-
     public PrintLayoutToPdfComponent()
         : base("Print Layout to PDF", "PrintPDF",
                "Exports a layout to a PDF file",
                "AIQ", "Export")
-    {
-        _lastFolder = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
-    }
+    {  }
 
     public override Guid ComponentGuid => ComponentGuids.PrintLayoutToPdf;
 
@@ -25,11 +26,11 @@ public class PrintLayoutToPdfComponent : GH_Component
 
     protected override void RegisterInputParams(GH_InputParamManager manager)
     {
-        manager.AddTextParameter("Layout Name", "L", "Name of the layout to export", GH_ParamAccess.item);
+        manager.AddTextParameter("Layout Names", "L", "Name of the layout to export. If multiple are provided, then it will export all of them into a single file.", GH_ParamAccess.list);
         manager.AddTextParameter("Output Folder", "F", "Folder to save the PDF (leave empty for desktop)", GH_ParamAccess.item);
-        manager.AddBooleanParameter("Open After", "O", "Open PDF after export", GH_ParamAccess.item, false);
+        manager.AddTextParameter("File Name", "N", "The name of the pdf file. The folder location and file extension will be added automatically", GH_ParamAccess.item, "AIQ Export");
 
-        manager.AddGenericParameter("Doc Layer State", "D", "Layer state to apply", GH_ParamAccess.item);
+        manager.AddGenericParameter("Doc Layer States", "D", "Layer state to apply for each layout", GH_ParamAccess.list);
         manager[3].Optional = true;
 
         manager.AddBooleanParameter("Run", "R", "Print the layouts", GH_ParamAccess.item);
@@ -43,78 +44,57 @@ public class PrintLayoutToPdfComponent : GH_Component
 
     protected override void SolveInstance(IGH_DataAccess da)
     {
-        string layoutName = null;
-        string outputFolder = null;
-        bool openAfter = false;
+        List<string> layoutNames = [];
+        string outputFolder = "";
+        string fileName = "";
         bool run = false;
-        DocLayerStateGoo? docLayerStateGoo = null;
+        List<DocLayerStateGoo> docLayerStateGoos = [];
+        var logger = new Logger();
 
-        if (!da.GetData(0, ref layoutName)) return;
+        if (!da.GetDataList(0, layoutNames)) return;
         da.GetData(1, ref outputFolder);
-        da.GetData(2, ref openAfter);
-        da.GetData(3, ref docLayerStateGoo);
+        da.GetData(2, ref fileName);
+        da.GetDataList(3, docLayerStateGoos);
         da.GetData(4, ref run);
 
         if (!run)
             return;
 
-        if (string.IsNullOrWhiteSpace(layoutName))
+        var emitLogToComponent = (Logger log, bool success) =>
         {
-            AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Layout name cannot be empty");
-            da.SetData(1, false);
+            logger.LogMessages(this);
+            da.SetData(1, success);
+        };
+
+        if (!FileHelpers.TryGetFilePath(outputFolder, fileName, ".pdf", ref logger, out string filePath))
+        {
+            emitLogToComponent(logger, false);
             return;
         }
-
-        var folder = string.IsNullOrWhiteSpace(outputFolder) ? _lastFolder : outputFolder;
-        if (!System.IO.Directory.Exists(folder))
-        {
-            try
-            {
-                System.IO.Directory.CreateDirectory(folder);
-            }
-            catch
-            {
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, $"Cannot access folder: {folder}");
-                da.SetData(1, false);
-                return;
-            }
-        }
-        _lastFolder = folder;
 
         var doc = RhinoDoc.ActiveDoc;
-        if (doc is null)
+        if (!logger.ValidateRhinoDoc(doc, this))
         {
-            AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "No active Rhino document");
-            da.SetData(1, false);
+            emitLogToComponent(logger, false);
             return;
         }
 
-        var layout = LayoutHelpers.GetLayoutByName(doc, layoutName);
-        if (layout is null)
+        var docLayerStates = docLayerStateGoos.Select(x => x.Value).ToList();
+        bool success = false;
+
+        try
         {
-            AddRuntimeMessage(GH_RuntimeMessageLevel.Error, $"Layout '{layoutName}' not found");
-            da.SetData(1, false);
+            success = PdfHelpers.ExportMultipleLayoutsToPdf(doc, filePath, layoutNames, docLayerStates, ref logger);
+        }
+        catch (Exception ex)
+        {
+            logger.AddError($"Failed to export PDF: {ex.Message}");
+            emitLogToComponent(logger, false);
             return;
         }
 
-        docLayerStateGoo?.Value?.ApplyTo(doc);
-
-        string pdfPath = PdfHelpers.ExportLayoutToPdf(layout, folder, doc);
-
-        if (pdfPath != null && openAfter)
-        {
-            try
-            {
-                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
-                {
-                    FileName = pdfPath,
-                    UseShellExecute = true
-                });
-            }
-            catch { }
-        }
-
-        da.SetData(0, pdfPath ?? string.Empty);
-        da.SetData(1, pdfPath != null);
+        da.SetData(0, filePath);
+        emitLogToComponent(logger, success);
+        return;
     }
 }

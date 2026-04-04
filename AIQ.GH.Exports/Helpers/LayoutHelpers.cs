@@ -7,10 +7,45 @@ using Rhino.Display;
 using Rhino.DocObjects;
 using Rhino.Geometry;
 
+
 namespace AIQ.GH.Exports.Helpers;
 
 public static class LayoutHelpers
 {
+    public static IEnumerable<Rhino.DocObjects.TextObject> GetTextObjectsInLayout(RhinoPageView layout, RhinoDoc doc)
+    {
+        var textObjects = new List<Rhino.DocObjects.TextObject>();
+
+        var objects = layout.GetObjects(doc);
+        foreach (var obj in objects)
+        {
+            if (obj is Rhino.DocObjects.TextObject textObj)
+            {
+                textObjects.Add(textObj);
+            }
+        }
+
+        return textObjects;
+    }
+
+    public static bool SetTextObjectText(RhinoDoc doc, Rhino.DocObjects.TextObject textObject, string newText)
+    {
+        try
+        {
+            var textEntity = textObject.TextGeometry;
+            if (textEntity is null)
+                return false;
+
+            textEntity.PlainText = newText;
+            textObject.CommitChanges();
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
     public static RhinoPageView? CreateLayoutFromTemplate(
         RhinoDoc doc,
         string templateLayoutName,

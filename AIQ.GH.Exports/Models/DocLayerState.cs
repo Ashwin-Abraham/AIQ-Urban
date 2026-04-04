@@ -55,9 +55,11 @@ public class DocLayerState(List<LayerProperties> _layerState)
         return new DocLayerState(layers);
     }
 
-    public void ApplyTo(RhinoDoc doc)
+    public void ApplyTo(RhinoDoc doc, bool withRedraw = true)
     {
-        foreach (var props in LayerState)
+        var layerProperties = LayerState.OrderBy(x => x.FullPath).ToList();
+
+        foreach (var props in layerProperties)
         {
             var layerIndex = doc.Layers.FindByFullPath(props.FullPath, -1);
             if (layerIndex >= 0)
@@ -72,5 +74,8 @@ public class DocLayerState(List<LayerProperties> _layerState)
                     props.LayerLineType);
             }
         }
+
+        if(withRedraw)
+            doc.Views.Redraw();
     }
 }
