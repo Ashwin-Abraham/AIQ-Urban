@@ -1,9 +1,11 @@
 using System.Collections.Generic;
 using System.Drawing;
 using Rhino;
+using Rhino.DocObjects.Tables;
 using AIQ.GH.Exports.Models;
 using ArchSitePlan.RhinoInterface.Helpers;
 using System.Linq;
+using System;
 
 namespace AIQ.GH.Exports.Models;
 public class DocLayerState(List<LayerProperties> _layerState)
@@ -61,6 +63,33 @@ public class DocLayerState(List<LayerProperties> _layerState)
             ));
         }
         return new DocLayerState(layers);
+    }
+
+    public static DocLayerState? FromLayerState(RhinoDoc doc, string stateName)
+    {
+        if (string.IsNullOrEmpty(stateName))
+            return null;
+
+        var layerStates = doc.NamedLayerStates;
+        var stateIndex = layerStates.FindName(stateName);
+        if (stateIndex < 0)
+            return null;
+
+        string tempStateName = $"__temp_{Guid.NewGuid()}";
+        try
+        {
+            layerStates.Save(tempStateName);
+            layerStates.Restore(stateName, RestoreLayerProperties.All);
+            var docLayerState = FromDocument(doc);
+            layerStates.Restore(tempStateName, RestoreLayerProperties.All);
+            layerStates.Delete(tempStateName);
+            return docLayerState;
+        }
+        catch
+        {
+            try { layerStates.Delete(tempStateName); } catch { }
+            return null;
+        }
     }
 
     public void ApplyTo(RhinoDoc doc, bool withRedraw = true)

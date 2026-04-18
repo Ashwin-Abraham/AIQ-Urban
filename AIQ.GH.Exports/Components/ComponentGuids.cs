@@ -11,4 +11,5 @@ public static class ComponentGuids
     public static readonly System.Guid ApplyLayerState = new("b7c8d9e0-8901-bcde-f012-3456789abcde");
     public static readonly System.Guid EditLayoutText = new("c8d9e0f1-9012-cdef-0123-456789abcdef");
     public static readonly System.Guid SetDetailLayerState = new("d9e0f1a2-0123-def4-5678-9abcdef0123");
+    public static readonly System.Guid CreateDocLayerStateFromLayerState = new("e0f1a2b3-1234-5678-9abc-def012345678");
 }
