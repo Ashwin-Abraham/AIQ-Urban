@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
@@ -7,12 +7,18 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="AIQ.Exports.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Remove="AIQ Export Resources\AIQUrbanTemplate.pptx" />
     <None Remove="AIQ Export Resources\LEGO.png" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="ClosedXML" Version="0.105.0" />
+    <!-- Base package for Google APIs -->
+    <PackageReference Include="Google.Apis.Slides.v1" Version="1.69.0.3701" />
     <PackageReference Include="ShapeCrawler" Version="0.75.2" />
   </ItemGroup>
 
