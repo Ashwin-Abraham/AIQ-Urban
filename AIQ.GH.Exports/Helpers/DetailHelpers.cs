@@ -26,6 +26,23 @@ public static class DetailHelpers
         return layout.GetDetailViews().ToList();
     }
 
+    public static List<DetailViewObject> FindDetails(
+        List<RhinoPageView> layouts,
+        string? detailName,
+        TextMatchStrategy strategy)
+    {
+        var allDetails = layouts
+            .SelectMany(l => l.GetDetailViews())
+            .ToList();
+
+        if (string.IsNullOrEmpty(detailName))
+            return allDetails;
+
+        return allDetails
+            .Where(d => TextMatchHelpers.Matches(d.Name, detailName, strategy))
+            .ToList();
+    }
+
     public static void SetDetailTarget(
         DetailViewObject detail,
         Point3d worldTarget,

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using AIQ.GH.Exports.Enums;
 using AIQ.GH.Exports.Extensions;
 using Rhino;
 using Rhino.Display;
@@ -84,6 +85,21 @@ public static class LayoutHelpers
             .Where(v => v is RhinoPageView)
             .Cast<RhinoPageView>()
             .FirstOrDefault(pv => pv.PageName == name);
+    }
+
+    public static List<RhinoPageView> FindLayouts(RhinoDoc doc, string? layoutName, TextMatchStrategy strategy)
+    {
+        var allLayouts = doc.Views
+            .Where(v => v is RhinoPageView)
+            .Cast<RhinoPageView>()
+            .ToList();
+
+        if (string.IsNullOrEmpty(layoutName))
+            return allLayouts;
+
+        return allLayouts
+            .Where(l => TextMatchHelpers.Matches(l.PageName, layoutName, strategy))
+            .ToList();
     }
 
     public static void CopyDetailsToLayout(
