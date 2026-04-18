@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Drawing;
 using Rhino;
 using AIQ.GH.Exports.Models;
@@ -22,7 +22,9 @@ public class DocLayerState(List<LayerProperties> _layerState)
                 layer.IsVisible,
                 layer.Color,
                 layer.PlotWeight,
-                lineTypeName
+                lineTypeName,
+                layer.PlotColor,
+                layer.PlotWeight
             ));
         }
         return new DocLayerState(layers);
@@ -33,7 +35,9 @@ public class DocLayerState(List<LayerProperties> _layerState)
         List<bool?> layerOn,
         List<Color?> displayColors,
         List<double?> lineWeights,
-        List<string?> lineTypes)
+        List<string?> lineTypes,
+        List<Color?> plotColors = null,
+        List<double?> plotWeights = null)
     {
         var layers = new List<LayerProperties>();
         for (int i = 0; i < fullPaths.Count; i++)
@@ -42,6 +46,8 @@ public class DocLayerState(List<LayerProperties> _layerState)
             var displayColor = displayColors.Count - 1 > i? displayColors[i] : null;
             var lineWeight = lineWeights.Count - 1 > i? lineWeights[i] : null;
             var lineType = lineTypes.Count - 1 > i? lineTypes[i] : null;
+            var plotColor = plotColors?.Count > i ? plotColors[i] : null;
+            var plotWeight = plotWeights?.Count > i ? plotWeights[i] : null;
 
 
             layers.Add(new LayerProperties(
@@ -49,7 +55,9 @@ public class DocLayerState(List<LayerProperties> _layerState)
                 layerOnValue,
                 displayColor,
                 lineWeight,
-                lineType
+                lineType,
+                plotColor,
+                plotWeight
             ));
         }
         return new DocLayerState(layers);

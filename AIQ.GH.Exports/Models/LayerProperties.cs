@@ -1,4 +1,4 @@
-﻿using System.Drawing;
+using System.Drawing;
 
 namespace AIQ.GH.Exports.Models;
 public record LayerProperties(
@@ -6,4 +6,6 @@ public record LayerProperties(
     bool? LayerOn,
     Color? LayerDisplayColor,
     double? LayerLineWeight,
-    string? LayerLineType);
+    string? LayerLineType,
+    Color? LayerPlotColor,
+    double? LayerPlotWeight);
