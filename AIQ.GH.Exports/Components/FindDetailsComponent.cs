@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using AIQ.GH.Exports.Enums;
+using AIQ.GH.Exports.Extensions;
 using AIQ.GH.Exports.Helpers;
 using Grasshopper.Kernel;
 using Rhino;
@@ -23,22 +24,22 @@ public class FindDetailsComponent : GH_Component
 
     protected override Bitmap Icon => IconLoader.LoadIcon("Copy Layout.png");
 
-    protected override void RegisterInputParams(GH_InputParamManager manager)
+    protected override void RegisterInputParams(GH_InputParamManager pManager)
     {
-        manager.AddTextParameter("Layout Name", "L", "Layout to search in. If empty, searches all layouts", GH_ParamAccess.item);
-        manager.AddTextParameter("Detail Name", "D", "Detail name to search for. If empty, returns all details in matching layouts", GH_ParamAccess.item);
-        manager.AddGenericParameter("Text Match Strategy", "M", "Text matching strategy: Contains, DoesNotContain, ExactMatch", GH_ParamAccess.item);
+        pManager.AddTextParameter("Layout Name", "L", "Layout to search in. If empty, searches all layouts", GH_ParamAccess.item);
+        pManager.AddTextParameter("Detail Name", "D", "Detail name to search for. If empty, returns all details in matching layouts", GH_ParamAccess.item);
+        pManager.AddGenericParameter("Text Match Strategy", "M", "Text matching strategy: Contains, DoesNotContain, ExactMatch", GH_ParamAccess.item);
 
-        manager[0].Optional = true;
-        manager[1].Optional = true;
+        pManager[0].Optional = true;
+        pManager[1].Optional = true;
     }
 
-    protected override void RegisterOutputParams(GH_OutputParamManager manager)
+    protected override void RegisterOutputParams(GH_OutputParamManager pManager)
     {
-        manager.AddGenericParameter("Details", "D", "List of matching detail objects", GH_ParamAccess.list);
+        pManager.AddGenericParameter("Details", "D", "List of matching detail objects", GH_ParamAccess.list);
     }
 
-    protected override void SolveInstance(IGH_DataAccess da)
+    protected override void SolveInstance(IGH_DataAccess DA)
     {
         var doc = RhinoDoc.ActiveDoc;
         if (doc is null)
@@ -48,33 +49,33 @@ public class FindDetailsComponent : GH_Component
         }
 
         string? layoutName = null;
-        da.GetData(0, ref layoutName);
+        DA.GetData(0, ref layoutName);
 
         string? detailName = null;
-        da.GetData(1, ref detailName);
+        DA.GetData(1, ref detailName);
 
         var strategy = TextMatchStrategy.Contains;
-        if (!da.GetData(2, ref strategy))
+        if (!DA.GetData(2, ref strategy))
         {
             strategy = TextMatchStrategy.Contains;
         }
 
-        var layouts = LayoutHelpers.FindLayouts(doc, layoutName, strategy);
+        var layout = doc.FindLayouts(layoutName, strategy);
         
-        if (layouts.Count == 0)
+        if (layout == null)
         {
             AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "No layouts found matching criteria");
-            da.SetDataList(0, new List<DetailViewObject>());
+            DA.SetDataList(0, new List<DetailViewObject>());
             return;
         }
 
-        var details = DetailHelpers.FindDetails(layouts, detailName, strategy);
+        var details = layout.FindDetails(detailName, strategy).ToList();
 
         if (details.Count == 0)
         {
             AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "No details found matching criteria");
         }
 
-        da.SetDataList(0, details);
+        DA.SetDataList(0, details);
     }
 }

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using AIQ.GH.Exports.Extensions;
 using AIQ.GH.Exports.Models;
 using iText.Kernel.Pdf;
 using iText.Kernel.Utils;
@@ -26,7 +27,7 @@ public static class PdfHelpers
 
         for (int i = 0; i < layoutNameList.Count; i++)
         {
-            var layout = LayoutHelpers.GetLayoutByName(doc, layoutNameList[i]);
+            var layout = doc.FindLayouts(layoutNameList[i]);
             if (layout is null)
             {
                 logger.AddWarning($"Layout {layoutNameList[i]} not found in the rhino document.");

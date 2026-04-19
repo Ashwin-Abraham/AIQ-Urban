@@ -9,6 +9,8 @@ using Rhino;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using AIQ.GH.Exports.Extensions;
+using System.Linq;
 
 
 namespace AIQ.GH.Exports.Components;
@@ -26,25 +28,25 @@ public class CopyLayoutViewComponent : GH_Component
 
     protected override Bitmap Icon => IconLoader.LoadIcon("Copy Layout.png");
 
-    protected override void RegisterInputParams(GH_InputParamManager manager)
+    protected override void RegisterInputParams(GH_InputParamManager pManager)
     {
-        manager.AddTextParameter("Template Layout", "T", "Name of the template layout to copy from", GH_ParamAccess.item);
-        manager.AddTextParameter("New Layout Name", "N", "Name for the new layout", GH_ParamAccess.item);
+        pManager.AddTextParameter("Template Layout", "T", "Name of the template layout to copy from", GH_ParamAccess.item);
+        pManager.AddTextParameter("New Layout Name", "N", "Name for the new layout", GH_ParamAccess.item);
     }
 
-    protected override void RegisterOutputParams(GH_OutputParamManager manager)
+    protected override void RegisterOutputParams(GH_OutputParamManager pManager)
     {
-        manager.AddTextParameter("Layout Name", "L", "Name of the created layout", GH_ParamAccess.item);
-        manager.AddBooleanParameter("Success", "S", "True if layout was created successfully", GH_ParamAccess.item);
+        pManager.AddTextParameter("Layout Name", "L", "Name of the created layout", GH_ParamAccess.item);
+        pManager.AddBooleanParameter("Success", "S", "True if layout was created successfully", GH_ParamAccess.item);
     }
 
-    protected override void SolveInstance(IGH_DataAccess da)
+    protected override void SolveInstance(IGH_DataAccess DA)
     {
-        string templateName = null;
-        string newLayoutName = null;
+        string? templateName = null;
+        string? newLayoutName = null;
 
-        if (!da.GetData(0, ref templateName)) return;
-        if (!da.GetData(1, ref newLayoutName)) return;
+        if (!DA.GetData(0, ref templateName)) return;
+        if (!DA.GetData(1, ref newLayoutName)) return;
 
         if (string.IsNullOrWhiteSpace(templateName))
         {
@@ -62,28 +64,28 @@ public class CopyLayoutViewComponent : GH_Component
         if (doc is null)
         {
             AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "No active Rhino document");
-            da.SetData(1, false);
+            DA.SetData(1, false);
             return;
         }
 
-        var templateLayout = LayoutHelpers.GetLayoutByName(doc, templateName);
+        var templateLayout = doc.FindLayouts(templateName);
         if (templateLayout is null)
         {
             AddRuntimeMessage(GH_RuntimeMessageLevel.Error, $"Template layout '{templateName}' not found");
-            da.SetData(1, false);
+            DA.SetData(1, false);
             return;
         }
 
-        var newLayout = LayoutHelpers.CreateLayoutFromTemplate(doc, templateName, newLayoutName);
+        var newLayout = templateLayout.CopyLayout(doc, newLayoutName);
 
         if (newLayout is null)
         {
             AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Failed to create layout");
-            da.SetData(1, false);
+            DA.SetData(1, false);
             return;
         }
 
-        da.SetData(0, newLayoutName);
-        da.SetData(1, true);
+        DA.SetData(0, newLayoutName);
+        DA.SetData(1, true);
     }
 }
