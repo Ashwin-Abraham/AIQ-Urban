@@ -22,21 +22,21 @@ public class DocLayerStateFromListComponent : GH_Component
 
     protected override Bitmap Icon => IconLoader.LoadIcon("Save LayerState2.png");
 
-    protected override void RegisterInputParams(GH_InputParamManager manager)
+    protected override void RegisterInputParams(GH_InputParamManager pManager)
     {
-        manager.AddTextParameter("Full Paths", "FP", "Full paths of layers", GH_ParamAccess.list);
-        manager.AddBooleanParameter("Layer On", "LO", "Layer visibility state", GH_ParamAccess.list, []);
-        manager.AddColourParameter("Display Colors", "DC", "Display colors", GH_ParamAccess.list, []);
-        manager.AddNumberParameter("Line Weights", "LW", "Line weights", GH_ParamAccess.list, []);
-        manager.AddTextParameter("Line Types", "LT", "Line type names", GH_ParamAccess.list, []);
+        pManager.AddTextParameter("Full Paths", "FP", "Full paths of layers", GH_ParamAccess.list);
+        pManager.AddBooleanParameter("Layer On", "LO", "Layer visibility state", GH_ParamAccess.list, []);
+        pManager.AddColourParameter("Display Colors", "DC", "Display colors", GH_ParamAccess.list, []);
+        pManager.AddNumberParameter("Line Weights", "LW", "Line weights", GH_ParamAccess.list, []);
+        pManager.AddTextParameter("Line Types", "LT", "Line type names", GH_ParamAccess.list, []);
     }
 
-    protected override void RegisterOutputParams(GH_OutputParamManager manager)
+    protected override void RegisterOutputParams(GH_OutputParamManager pManager)
     {
-        manager.AddGenericParameter("Doc Layer State", "DL", "Document layer state", GH_ParamAccess.item);
+        pManager.AddGenericParameter("Doc Layer State", "DL", "Document layer state", GH_ParamAccess.item);
     }
 
-    protected override void SolveInstance(IGH_DataAccess da)
+    protected override void SolveInstance(IGH_DataAccess DA)
     {
         var fullPaths = new List<string>();
         var layerOn = new List<bool?>();
@@ -44,11 +44,11 @@ public class DocLayerStateFromListComponent : GH_Component
         var lineWeights = new List<double?>();
         var lineTypes = new List<string?>();
 
-        if (!da.GetDataList(0, fullPaths)) return;
-        da.GetDataList(1, layerOn);
-        da.GetDataList(2, displayColors);
-        da.GetDataList(3, lineWeights);
-        da.GetDataList(4, lineTypes);
+        if (!DA.GetDataList(0, fullPaths)) return;
+        DA.GetDataList(1, layerOn);
+        DA.GetDataList(2, displayColors);
+        DA.GetDataList(3, lineWeights);
+        DA.GetDataList(4, lineTypes);
 
         var count = fullPaths.Count;
 
@@ -65,7 +65,7 @@ public class DocLayerStateFromListComponent : GH_Component
         }
 
         var docLayerState = DocLayerState.FromLists(fullPaths, layerOn, displayColors, lineWeights, lineTypes);
-        da.SetData(0, new DocLayerStateGoo(docLayerState));
+        DA.SetData(0, new DocLayerStateGoo(docLayerState));
     }
 
     private static Color? EnforceNull(Color? color)

@@ -1,6 +1,7 @@
 using System;
 using System.Drawing;
 using System.Linq;
+using AIQ.GH.Exports.Extensions;
 using AIQ.GH.Exports.Helpers;
 using Grasshopper.Kernel;
 using Rhino;
@@ -21,28 +22,28 @@ public class EditLayoutTextComponent : GH_Component
 
     protected override Bitmap Icon => IconLoader.LoadIcon("Edit Layout Text.png");
 
-    protected override void RegisterInputParams(GH_InputParamManager manager)
+    protected override void RegisterInputParams(GH_InputParamManager pManager)
     {
-        manager.AddTextParameter("Layout Name", "L", "Name of the layout containing the text object", GH_ParamAccess.item);
-        manager.AddTextParameter("Text Object Names", "N", "Name of the text object to edit", GH_ParamAccess.item);
-        manager.AddTextParameter("New Texts", "T", "New text content for the text object", GH_ParamAccess.item);
+        pManager.AddTextParameter("Layout Name", "L", "Name of the layout containing the text object", GH_ParamAccess.item);
+        pManager.AddTextParameter("Text Object Names", "N", "Name of the text object to edit", GH_ParamAccess.item);
+        pManager.AddTextParameter("New Texts", "T", "New text content for the text object", GH_ParamAccess.item);
     }
 
-    protected override void RegisterOutputParams(GH_OutputParamManager manager)
+    protected override void RegisterOutputParams(GH_OutputParamManager pManager)
     {
-        manager.AddTextParameter("Layout Name", "L", "Name of the layout", GH_ParamAccess.item);
-        manager.AddBooleanParameter("Success", "S", "True if text was updated successfully", GH_ParamAccess.item);
+        pManager.AddTextParameter("Layout Name", "L", "Name of the layout", GH_ParamAccess.item);
+        pManager.AddBooleanParameter("Success", "S", "True if text was updated successfully", GH_ParamAccess.item);
     }
 
-    protected override void SolveInstance(IGH_DataAccess da)
+    protected override void SolveInstance(IGH_DataAccess DA)
     {
-        string layoutName = null;
-        string textObjectName = null;
-        string newText = null;
+        string? layoutName = null;
+        string? textObjectName = null;
+        string? newText = null;
 
-        if (!da.GetData(0, ref layoutName)) return;
-        if (!da.GetData(1, ref textObjectName)) return;
-        if (!da.GetData(2, ref newText)) return;
+        if (!DA.GetData(0, ref layoutName)) return;
+        if (!DA.GetData(1, ref textObjectName)) return;
+        if (!DA.GetData(2, ref newText)) return;
 
         if (string.IsNullOrWhiteSpace(layoutName))
         {
@@ -54,19 +55,19 @@ public class EditLayoutTextComponent : GH_Component
         if (doc is null)
         {
             AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "No active Rhino document");
-            da.SetData(1, false);
+            DA.SetData(1, false);
             return;
         }
 
-        var layout = LayoutHelpers.GetLayoutByName(doc, layoutName);
+        var layout = doc.FindLayouts(layoutName);
         if (layout is null)
         {
             AddRuntimeMessage(GH_RuntimeMessageLevel.Error, $"Layout '{layoutName}' not found");
-            da.SetData(1, false);
+            DA.SetData(1, false);
             return;
         }
 
-        var textObjects = LayoutHelpers.GetTextObjectsInLayout(layout, doc);
+        var textObjects = doc.GetTextObjectsInLayout(layout);
 
         var textObject = textObjects.FirstOrDefault(t => t.Name == textObjectName);
         if (textObject is null)
@@ -75,9 +76,9 @@ public class EditLayoutTextComponent : GH_Component
             return;
         }
 
-        var updated = LayoutHelpers.SetTextObjectText(doc, textObject, newText);
+        var updated = textObject.SetText(newText?? "");
 
-        da.SetData(0, layoutName);
-        da.SetData(1, updated);
+        DA.SetData(0, layoutName);
+        DA.SetData(1, updated);
     }
 }

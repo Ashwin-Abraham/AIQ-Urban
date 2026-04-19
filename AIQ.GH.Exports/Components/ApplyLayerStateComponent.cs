@@ -22,36 +22,36 @@ public class ApplyLayerStateComponent : GH_Component
 
     protected override Bitmap Icon => IconLoader.LoadIcon("WriteLayerState.png");
 
-    protected override void RegisterInputParams(GH_InputParamManager manager)
+    protected override void RegisterInputParams(GH_InputParamManager pManager)
     {
-        manager.AddGenericParameter("Doc Layer State", "DL", "Document layer state to apply", GH_ParamAccess.item);
-        manager.AddBooleanParameter("Run", "R", "Apply the layer state to the document", GH_ParamAccess.item, false);
+        pManager.AddGenericParameter("Doc Layer State", "DL", "Document layer state to apply", GH_ParamAccess.item);
+        pManager.AddBooleanParameter("Run", "R", "Apply the layer state to the document", GH_ParamAccess.item, false);
     }
 
-    protected override void RegisterOutputParams(GH_OutputParamManager manager)
+    protected override void RegisterOutputParams(GH_OutputParamManager pManager)
     {
-        manager.AddBooleanParameter("Success", "S", "True if applied successfully", GH_ParamAccess.item);
+        pManager.AddBooleanParameter("Success", "S", "True if applied successfully", GH_ParamAccess.item);
     }
 
-    protected override void SolveInstance(IGH_DataAccess da)
+    protected override void SolveInstance(IGH_DataAccess DA)
     {
         bool run = false;
-        if (!da.GetData<bool>(1, ref run) || !run)
+        if (!DA.GetData<bool>(1, ref run) || !run)
             return;
 
         var doc = RhinoDoc.ActiveDoc;
         if (doc is null)
         {
             AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "No active Rhino document");
-            da.SetData(0, false);
+            DA.SetData(0, false);
             return;
         }
 
         DocLayerStateGoo? goo = null;
-        if (!da.GetData(0, ref goo) || goo?.Value is null)
+        if (!DA.GetData(0, ref goo) || goo?.Value is null)
         {
             AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Invalid DocLayerState input");
-            da.SetData(0, false);
+            DA.SetData(0, false);
             return;
         }
 
@@ -59,6 +59,6 @@ public class ApplyLayerStateComponent : GH_Component
 
         layerState.ApplyTo(doc);
 
-        da.SetData(0, true);
+        DA.SetData(0, true);
     }
 }

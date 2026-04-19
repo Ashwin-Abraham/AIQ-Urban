@@ -28,16 +28,16 @@ public class DocLayerStateFromDocumentComponent : GH_Component
 
     protected override Bitmap Icon => IconLoader.LoadIcon("Save LayerState.png");
 
-    protected override void RegisterInputParams(GH_InputParamManager manager)
+    protected override void RegisterInputParams(GH_InputParamManager pManager)
     {
     }
 
-    protected override void RegisterOutputParams(GH_OutputParamManager manager)
+    protected override void RegisterOutputParams(GH_OutputParamManager pManager)
     {
-        manager.AddGenericParameter("Doc Layer State", "DL", "Document layer state", GH_ParamAccess.item);
+        pManager.AddGenericParameter("Doc Layer State", "DL", "Document layer state", GH_ParamAccess.item);
     }
 
-    protected override void SolveInstance(IGH_DataAccess da)
+    protected override void SolveInstance(IGH_DataAccess DA)
     {
         var doc = RhinoDoc.ActiveDoc;
         if (doc is null)
@@ -47,6 +47,6 @@ public class DocLayerStateFromDocumentComponent : GH_Component
         }
 
         var docLayerState = DocLayerState.FromDocument(doc);
-        da.SetData(0, new DocLayerStateGoo(docLayerState));
+        DA.SetData(0, new DocLayerStateGoo(docLayerState));
     }
 }

@@ -11,5 +11,5 @@ public static class ComponentGuids
     public static System.Guid ApplyLayerState => new("b7c8d9e0-8901-bcde-f012-3456789abcde");
     public static System.Guid EditLayoutText => new("c8d9e0f1-9012-cdef-0123-456789abcdef");
     public static System.Guid FindDetails => new("f1a2b3c4-2345-6789-abcd-ef0123456789");
-    public static System.Guid ApplyLayerStateToDetail => new("a2b3c4d5-3456-789a-bcde-0123456789abc");
+    public static System.Guid ApplyLayerStateToDetail => new("a2b3c4d5-3456-789a-bcde-0123456789ac");
 }
