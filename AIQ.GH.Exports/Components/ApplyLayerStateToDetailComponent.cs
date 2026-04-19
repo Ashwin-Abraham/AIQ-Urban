@@ -4,29 +4,28 @@ using System.Drawing;
 using System.Linq;
 using AIQ.GH.Exports.Helpers;
 using AIQ.GH.Exports.Models;
-using AIQ.GH.Exports.Types;
 using Grasshopper.Kernel;
 using Rhino;
 using Rhino.Display;
 
 namespace AIQ.GH.Exports.Components;
 
-public class SetDetailLayerStateComponent : GH_Component
+public class ApplyLayerStateToDetailComponent : GH_Component
 {
-    public SetDetailLayerStateComponent()
-        : base("Assign Layer State to Detail", "DetailLayerState",
-               "Applies a DocLayerState to a detail view in a layout",
+    public ApplyLayerStateToDetailComponent()
+        : base("Apply Layer State to Detail", "ApplyLayerStateDetail",
+               "Applies a named layer state to a detail view in a layout",
                "AIQ", "Layers")
     { }
 
-    public override Guid ComponentGuid => ComponentGuids.SetDetailLayerState;
+    public override Guid ComponentGuid => ComponentGuids.ApplyLayerStateToDetail;
 
     protected override Bitmap Icon => IconLoader.LoadIcon("Set Detail Layer State.png");
 
     protected override void RegisterInputParams(GH_InputParamManager manager)
     {
         manager.AddTextParameter("Detail Name", "N", "Name of the detail to modify", GH_ParamAccess.item);
-        manager.AddGenericParameter("Doc Layer State", "DL", "Document layer state to apply", GH_ParamAccess.item);
+        manager.AddTextParameter("Layer State Name", "LS", "Name of the named layer state to apply", GH_ParamAccess.item);
         manager.AddTextParameter("Layout", "L", "The name of the layout. If empty, searches all layouts", GH_ParamAccess.item);
 
         manager[2].Optional = true;
@@ -55,10 +54,10 @@ public class SetDetailLayerStateComponent : GH_Component
             return;
         }
 
-        DocLayerStateGoo? goo = null;
-        if (!da.GetData(1, ref goo) || goo?.Value is null)
+        string? layerStateName = null;
+        if (!da.GetData(1, ref layerStateName) || string.IsNullOrEmpty(layerStateName))
         {
-            AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Invalid DocLayerState input");
+            AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Layer state name is required");
             da.SetData(0, false);
             return;
         }
@@ -66,9 +65,16 @@ public class SetDetailLayerStateComponent : GH_Component
         string? layoutName = null;
         da.GetData(2, ref layoutName);
 
-        var layerState = goo.Value;
+        var layerStates = doc.NamedLayerStates;
+        var stateIndex = layerStates.FindName(layerStateName);
+        if (stateIndex < 0)
+        {
+            AddRuntimeMessage(GH_RuntimeMessageLevel.Error, $"Layer state '{layerStateName}' not found");
+            da.SetData(0, false);
+            return;
+        }
 
-        bool success = ApplyLayerStateToDetail(doc, detailName, layerState, layoutName);
+        bool success = ApplyLayerStateToDetail(doc, detailName, layerStateName, layoutName);
 
         da.SetData(0, success);
     }
@@ -76,14 +82,12 @@ public class SetDetailLayerStateComponent : GH_Component
     private bool ApplyLayerStateToDetail(
         RhinoDoc doc,
         string detailName,
-        DocLayerState layerState,
+        string layerStateName,
         string? layoutName)
     {
         var pageViews = doc.Views
             .Where(v => v is RhinoPageView)
             .Cast<RhinoPageView>();
-
-        List<RhinoPageView> targetLayouts = [];
 
         bool focusOnSingleLayout = !string.IsNullOrEmpty(layoutName);
 
@@ -91,7 +95,7 @@ public class SetDetailLayerStateComponent : GH_Component
             pageViews.Where(x => x.PageName == layoutName).SelectMany(x => x.GetDetailViews()).ToList()
             : pageViews.SelectMany(x => x.GetDetailViews()).ToList();
 
-        if(detailViews.Count == 0)
+        if (detailViews.Count == 0)
         {
             string message = focusOnSingleLayout ?
                 $"Layout {layoutName} not found"
@@ -111,7 +115,7 @@ public class SetDetailLayerStateComponent : GH_Component
 
         foreach (var detail in detailViews)
         {
-            DetailHelpers.ApplyLayerStateToDetail(detail, layerState, doc);
+            DetailHelpers.ApplyLayerStateToDetail(detail, layerStateName, doc);
         }
 
         return true;
