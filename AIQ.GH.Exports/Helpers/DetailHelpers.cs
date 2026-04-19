@@ -147,6 +147,17 @@ public static class DetailHelpers
 
     public static void ApplyLayerStateToDetail(
         DetailViewObject detail,
+        string layerStateName,
+        RhinoDoc doc)
+    {
+        var docLayerState = DocLayerState.FromLayerState(doc, layerStateName);
+        if (docLayerState is null) return;
+
+        ApplyLayerStateToDetail(detail, docLayerState, doc);
+    }
+
+    public static void ApplyLayerStateToDetail(
+        DetailViewObject detail,
         DocLayerState layerState,
         RhinoDoc doc)
     {
