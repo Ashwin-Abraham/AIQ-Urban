@@ -9,7 +9,17 @@ public static class DetailExtensions
 {
     public static bool ApplyLayerStateToDetail(this DetailViewObject detail,string layerStateName, RhinoDoc doc)
     {
-        return doc.NamedLayerStates.Restore(layerStateName,RestoreLayerProperties.All, detail.Viewport.Id);
+        bool success = 
+            doc.NamedLayerStates.Restore(layerStateName,RestoreLayerProperties.ViewportVisible, detail.Viewport.Id)
+            && doc.NamedLayerStates.Restore(layerStateName, RestoreLayerProperties.ViewportColor, detail.Viewport.Id)
+            ;
+        
+        if (success)
+        {
+            detail.CommitChanges();
+        }
+
+        return success;
     }
 
     public static void SetDetailTarget(
