@@ -22,16 +22,17 @@ public class FindDetailsComponent : GH_Component
 
     public override Guid ComponentGuid => ComponentGuids.FindDetails;
 
-    protected override Bitmap Icon => IconLoader.LoadIcon("Copy Layout.png");
+    protected override Bitmap Icon => IconLoader.LoadIcon("Find Detail.png");
 
     protected override void RegisterInputParams(GH_InputParamManager pManager)
     {
         pManager.AddTextParameter("Layout Name", "L", "Layout to search in. If empty, searches all layouts", GH_ParamAccess.item);
         pManager.AddTextParameter("Detail Name", "D", "Detail name to search for. If empty, returns all details in matching layouts", GH_ParamAccess.item);
-        pManager.AddGenericParameter("Text Match Strategy", "M", "Text matching strategy: Contains, DoesNotContain, ExactMatch", GH_ParamAccess.item);
+        pManager.AddIntegerParameter("Text Match Strategy", "M", "Text matching strategy: 0 = Contains, 1 = DoesNotContain, 2 = ExactMatch", GH_ParamAccess.item);
 
         pManager[0].Optional = true;
         pManager[1].Optional = true;
+        pManager[2].Optional = true;
     }
 
     protected override void RegisterOutputParams(GH_OutputParamManager pManager)
@@ -54,12 +55,13 @@ public class FindDetailsComponent : GH_Component
         string? detailName = null;
         DA.GetData(1, ref detailName);
 
-        var strategy = TextMatchStrategy.Contains;
-        if (!DA.GetData(2, ref strategy))
+        var strategyInt = (int)TextMatchStrategy.ExactMatch;
+        if (!DA.GetData(2, ref strategyInt))
         {
-            strategy = TextMatchStrategy.Contains;
+            strategyInt = (int)TextMatchStrategy.ExactMatch;
         }
 
+        var strategy = (TextMatchStrategy)strategyInt;
         var layout = doc.FindLayouts(layoutName, strategy);
         
         if (layout == null)

@@ -37,7 +37,6 @@ public static class PdfHelpers
             if(i < docLayerStateList.Count)
                 docLayerState = docLayerStateList[i];
 
-
             docLayerState?.ApplyTo(doc, false);
             var viewCaptureSettings = new ViewCaptureSettings(layout, 300);
             pdf.AddPage(viewCaptureSettings);

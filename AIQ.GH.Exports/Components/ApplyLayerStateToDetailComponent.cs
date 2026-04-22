@@ -5,6 +5,7 @@ using AIQ.GH.Exports.Extensions;
 using AIQ.GH.Exports.Helpers;
 using Grasshopper.Kernel;
 using Rhino;
+using Rhino.DocObjects;
 
 namespace AIQ.GH.Exports.Components;
 
@@ -18,11 +19,11 @@ public class ApplyLayerStateToDetailComponent : GH_Component
 
     public override Guid ComponentGuid => ComponentGuids.ApplyLayerStateToDetail;
 
-    protected override Bitmap Icon => IconLoader.LoadIcon("Set Detail Layer State.png");
+    protected override Bitmap Icon => IconLoader.LoadIcon("ApplyLayerStateToDetail.png");
 
     protected override void RegisterInputParams(GH_InputParamManager pManager)
     {
-        pManager.AddTextParameter("Detail Name", "N", "Name of the detail to modify", GH_ParamAccess.item);
+        pManager.AddGenericParameter("Detail", "D", "The detail to modify", GH_ParamAccess.item);
         pManager.AddTextParameter("Layer State Name", "LS", "Name of the named layer state to apply", GH_ParamAccess.item);
     }
 
@@ -41,10 +42,10 @@ public class ApplyLayerStateToDetailComponent : GH_Component
             return;
         }
 
-        string detailName = "";
-        if (!DA.GetData(0, ref detailName))
+        DetailViewObject? detail = null;
+        if (!DA.GetData(0, ref detail))
         {
-            AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Detail name is required");
+            AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Detail is required");
             DA.SetData(0, false);
             return;
         }
@@ -66,9 +67,13 @@ public class ApplyLayerStateToDetailComponent : GH_Component
             return;
         }
 
-        var details = doc.GetDetailViews(detailName);
-        bool success = details.All(x => x.ApplyLayerStateToDetail(layerStateName, doc));
+        bool success = detail?.ApplyLayerStateToDetail(layerStateName, doc)?? false;
 
+        if (success)
+            detail?.CommitViewportChanges();
+
+        var detailName = detail.Name;
+        doc.Views.Redraw();
         DA.SetData(0, success);
     }
 }
