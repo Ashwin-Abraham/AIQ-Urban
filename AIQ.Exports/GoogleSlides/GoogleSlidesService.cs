@@ -105,4 +105,9 @@ public class GoogleSlidesService
         var batchRequest = CreateBatchUpdateRequest(new Request { ReplaceAllText = request });
         return await ExecuteBatchUpdateAsync(batchRequest);
     }
+
+    public async Task<int> ExecuteBatchAsync(GoogleSlidesDocument document)
+    {
+        return await document.ExecuteAsync();
+    }
 }

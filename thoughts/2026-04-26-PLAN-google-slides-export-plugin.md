@@ -176,8 +176,8 @@ public async Task<int> ExecuteBatchAsync(
 ### Success Criteria:
 
 #### Automated Verification:
-- [ ] Solution builds: `dotnet build AIQ.Exports/AIQ.Exports.csproj`
-- [ ] Unit tests pass: `dotnet test AIQ.Exports.Tests/`
+- [x] Solution builds: `dotnet build AIQ.Exports/AIQ.Exports.csproj`
+- [x] Unit tests pass: `dotnet test AIQ.Exports.Tests/`
 
 ---
 
