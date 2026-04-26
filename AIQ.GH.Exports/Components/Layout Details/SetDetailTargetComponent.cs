@@ -14,7 +14,7 @@ public class SetDetailTargetComponent : GH_Component
     public SetDetailTargetComponent()
         : base("Set Detail Target", "SetTarget",
                "Sets the camera target and scale for a detail view",
-               "AIQ", "Layout")
+               "AIQ", "Layout Details")
     {
     }
 

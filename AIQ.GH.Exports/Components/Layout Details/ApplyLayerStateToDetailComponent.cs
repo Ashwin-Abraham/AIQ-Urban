@@ -3,6 +3,7 @@ using System.Drawing;
 using System.Linq;
 using AIQ.GH.Exports.Extensions;
 using AIQ.GH.Exports.Helpers;
+using AIQ.GH.Exports.Types;
 using Grasshopper.Kernel;
 using Rhino;
 using Rhino.DocObjects;
@@ -13,8 +14,8 @@ public class ApplyLayerStateToDetailComponent : GH_Component
 {
     public ApplyLayerStateToDetailComponent()
         : base("Apply Layer State to Detail", "ApplyLayerStateDetail",
-               "Applies a named layer state to a detail view in a layout",
-               "AIQ", "Layers")
+               "Applies a DocLayerState to a detail view in a layout",
+               "AIQ", "Layout Details")
     { }
 
     public override Guid ComponentGuid => ComponentGuids.ApplyLayerStateToDetail;
@@ -24,7 +25,7 @@ public class ApplyLayerStateToDetailComponent : GH_Component
     protected override void RegisterInputParams(GH_InputParamManager pManager)
     {
         pManager.AddGenericParameter("Detail", "D", "The detail to modify", GH_ParamAccess.item);
-        pManager.AddTextParameter("Layer State Name", "LS", "Name of the named layer state to apply", GH_ParamAccess.item);
+        pManager.AddGenericParameter("Doc Layer State", "DL", "DocLayerState to apply", GH_ParamAccess.item);
     }
 
     protected override void RegisterOutputParams(GH_OutputParamManager pManager)
@@ -35,6 +36,7 @@ public class ApplyLayerStateToDetailComponent : GH_Component
     protected override void SolveInstance(IGH_DataAccess DA)
     {
         var doc = RhinoDoc.ActiveDoc;
+
         if (doc is null)
         {
             AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "No active Rhino document");
@@ -49,31 +51,18 @@ public class ApplyLayerStateToDetailComponent : GH_Component
             DA.SetData(0, false);
             return;
         }
-
-        string? layerStateName = null;
-        if (!DA.GetData(1, ref layerStateName) || string.IsNullOrEmpty(layerStateName))
+        
+        DocLayerStateGoo? goo = null;
+        if (!DA.GetData(1, ref goo) || goo?.Value is null)
         {
-            AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Layer state name is required");
+            AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Invalid DocLayerState input");
             DA.SetData(0, false);
             return;
         }
 
-        var layerStates = doc.NamedLayerStates;
-        var stateIndex = layerStates.FindName(layerStateName);
-        if (stateIndex < 0)
-        {
-            AddRuntimeMessage(GH_RuntimeMessageLevel.Error, $"Layer state '{layerStateName}' not found");
-            DA.SetData(0, false);
-            return;
-        }
+        if(detail != null)
+            goo.Value.ApplyTo(detail, doc);
 
-        bool success = detail?.ApplyLayerStateToDetail(layerStateName, doc)?? false;
-
-        if (success)
-            detail?.CommitViewportChanges();
-
-        var detailName = detail.Name;
-        doc.Views.Redraw();
-        DA.SetData(0, success);
+        DA.SetData(0, detail!= null);
     }
 }

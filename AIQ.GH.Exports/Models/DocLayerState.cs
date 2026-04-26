@@ -6,6 +6,8 @@ using AIQ.GH.Exports.Models;
 using ArchSitePlan.RhinoInterface.Helpers;
 using System.Linq;
 using System;
+using Rhino.Geometry;
+using Rhino.DocObjects;
 
 namespace AIQ.GH.Exports.Models;
 public class DocLayerState(List<LayerProperties> _layerState)
@@ -44,10 +46,10 @@ public class DocLayerState(List<LayerProperties> _layerState)
         var layers = new List<LayerProperties>();
         for (int i = 0; i < fullPaths.Count; i++)
         {
-            var layerOnValue = layerOn.Count - 1 > i? layerOn[i] : null;
-            var displayColor = displayColors.Count - 1 > i? displayColors[i] : null;
-            var lineWeight = lineWeights.Count - 1 > i? lineWeights[i] : null;
-            var lineType = lineTypes.Count - 1 > i? lineTypes[i] : null;
+            var layerOnValue = layerOn.Count > i? layerOn[i] : true;
+            var displayColor = displayColors.Count > i? displayColors[i] : null;
+            var lineWeight = lineWeights.Count > i? lineWeights[i] : null;
+            var lineType = lineTypes.Count > i? lineTypes[i] : null;
             var plotColor = plotColors?.Count > i ? plotColors[i] : null;
             var plotWeight = plotWeights?.Count > i ? plotWeights[i] : null;
 
@@ -114,5 +116,48 @@ public class DocLayerState(List<LayerProperties> _layerState)
 
         if(withRedraw)
             doc.Views.Redraw();
+    }
+
+    public void ApplyTo(DetailViewObject detail, RhinoDoc doc, bool withRedraw = true)
+    {
+        var layerProperties = LayerState.OrderBy(x => x.FullPath).ToList();
+        var viewportId = detail.Viewport.Id;
+
+        foreach (var props in layerProperties)
+        {
+            var layerIndex = doc.Layers.FindByFullPath(props.FullPath, -1);
+
+            if (layerIndex < 0)
+                continue;
+         
+            Layer layer = doc.Layers[layerIndex];
+
+            if(props.LayerOn.HasValue)
+                layer.SetPerViewportVisible(viewportId, props.LayerOn.Value);
+
+            if (props.LayerDisplayColor.HasValue)
+                layer.SetPerViewportColor(viewportId, props.LayerDisplayColor.Value);
+
+            if (props.LayerPlotColor.HasValue)
+                layer.SetPerViewportPlotColor(viewportId, props.LayerPlotColor.Value);
+
+            if (props.LayerLineWeight.HasValue)
+                layer.SetPerViewportPlotWeight(viewportId, props.LayerLineWeight.Value);
+
+            bool modified = props.LayerOn.HasValue 
+                || props.LayerDisplayColor.HasValue
+                || props.LayerPlotColor.HasValue 
+                || props.LayerLineWeight.HasValue;
+
+            if(modified)
+                doc.Layers.Modify(layer, layerIndex, true);
+        }
+
+        if (withRedraw)
+        {
+            detail.CommitViewportChanges();
+            detail.CommitChanges();
+            doc.Views.Redraw();
+        }
     }
 }

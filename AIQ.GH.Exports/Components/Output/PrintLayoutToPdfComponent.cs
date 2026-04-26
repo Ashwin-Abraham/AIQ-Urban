@@ -9,7 +9,7 @@ using AIQ.GH.Exports.Types;
 using Grasshopper.Kernel;
 using Rhino;
 
-namespace AIQ.GH.Exports.Components;
+namespace AIQ.GH.Exports.Components.Output;
 
 public class PrintLayoutToPdfComponent : GH_Component
 {

@@ -7,14 +7,14 @@ using Grasshopper.Kernel;
 using Rhino;
 
 
-namespace AIQ.GH.Exports.Components;
+namespace AIQ.GH.Exports.Components.Layouts;
 
 public class EditLayoutTextComponent : GH_Component
 {
     public EditLayoutTextComponent()
         : base("Edit Layout Text", "EditLayoutText",
                "Edits the text content of a text object in a layout",
-               "AIQ", "Layout")
+               "AIQ", "Output")
     {
     }
 

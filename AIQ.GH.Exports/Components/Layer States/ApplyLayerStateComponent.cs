@@ -14,7 +14,7 @@ public class ApplyLayerStateComponent : GH_Component
     public ApplyLayerStateComponent()
         : base("Apply Layer State", "ApplyLayerState",
                "Applies a DocLayerState to the active Rhino document",
-               "AIQ", "Layers")
+               "AIQ", "Layer States")
     {
     }
 

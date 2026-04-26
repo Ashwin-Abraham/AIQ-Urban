@@ -2,7 +2,6 @@ using Grasshopper;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Data;
 using Grasshopper.Kernel.Types;
-using AIQ.GH.Exports.Components;
 using AIQ.GH.Exports.Helpers;
 using AIQ.GH.Exports.Types;
 using Rhino;
@@ -13,14 +12,14 @@ using AIQ.GH.Exports.Extensions;
 using System.Linq;
 
 
-namespace AIQ.GH.Exports.Components;
+namespace AIQ.GH.Exports.Components.Layouts;
 
 public class CopyLayoutViewComponent : GH_Component
 {
     public CopyLayoutViewComponent()
         : base("Copy Layout View", "CopyLayout",
                "Creates a new layout by copying details from a template layout",
-               "AIQ", "Layout")
+               "AIQ", "Output")
     {
     }
 
