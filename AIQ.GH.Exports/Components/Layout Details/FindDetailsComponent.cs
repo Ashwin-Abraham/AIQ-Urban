@@ -17,7 +17,7 @@ public class FindDetailsComponent : GH_Component
     public FindDetailsComponent()
         : base("Find Details", "FindDetails",
                "Finds details in layouts by name using text matching strategies",
-               "AIQ", "Layout")
+               "AIQ", "Layout Details")
     { }
 
     public override Guid ComponentGuid => ComponentGuids.FindDetails;

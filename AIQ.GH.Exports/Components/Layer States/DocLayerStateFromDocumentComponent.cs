@@ -1,17 +1,10 @@
-using Grasshopper;
-using Grasshopper.Kernel;
-using Grasshopper.Kernel.Data;
-using Grasshopper.Kernel.Types;
-using AIQ.GH.Exports.Components;
-using AIQ.GH.Exports.Models;
-using AIQ.GH.Exports.Types;
-using Rhino;
 using System;
-using System.Collections.Generic;
 using System.Drawing;
 using AIQ.GH.Exports.Helpers;
-
-using System.Linq;
+using AIQ.GH.Exports.Models;
+using AIQ.GH.Exports.Types;
+using Grasshopper.Kernel;
+using Rhino;
 
 namespace AIQ.GH.Exports.Components;
 
@@ -20,7 +13,7 @@ public class DocLayerStateFromDocumentComponent : GH_Component
     public DocLayerStateFromDocumentComponent()
         : base("Doc Layer State From Document", "DocLayerStateDoc",
                "Creates a DocLayerState from the active Rhino document",
-               "AIQ", "Layers")
+               "AIQ", "Layer States")
     {
     }
 

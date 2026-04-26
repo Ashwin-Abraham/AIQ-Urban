@@ -2,7 +2,6 @@ using Grasshopper;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Data;
 using Grasshopper.Kernel.Types;
-using AIQ.GH.Exports.Components;
 using AIQ.GH.Exports.Helpers;
 using Rhino;
 using System;
@@ -10,7 +9,7 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 
-namespace AIQ.GH.Exports.Components;
+namespace AIQ.GH.Exports.Components.Output;
 
 public class MergePdfsComponent : GH_Component
 {

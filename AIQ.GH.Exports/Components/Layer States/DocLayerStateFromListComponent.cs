@@ -14,7 +14,7 @@ public class DocLayerStateFromListComponent : GH_Component
     public DocLayerStateFromListComponent()
         : base("Doc Layer State From List", "DocLayerStateList",
                "Creates a DocLayerState from lists of layer properties",
-               "AIQ", "Layers")
+               "AIQ", "Layer States")
     {
     }
 
@@ -27,8 +27,13 @@ public class DocLayerStateFromListComponent : GH_Component
         pManager.AddTextParameter("Full Paths", "FP", "Full paths of layers", GH_ParamAccess.list);
         pManager.AddBooleanParameter("Layer On", "LO", "Layer visibility state", GH_ParamAccess.list, []);
         pManager.AddColourParameter("Display Colors", "DC", "Display colors", GH_ParamAccess.list, []);
+        pManager[2].Optional = true;
+
         pManager.AddNumberParameter("Line Weights", "LW", "Line weights", GH_ParamAccess.list, []);
+        pManager[3].Optional = true;
+
         pManager.AddTextParameter("Line Types", "LT", "Line type names", GH_ParamAccess.list, []);
+        pManager[4].Optional = true;
     }
 
     protected override void RegisterOutputParams(GH_OutputParamManager pManager)

@@ -1,4 +1,7 @@
-﻿using AIQ.GH.Exports.Enums;
+using System;
+using System.Linq;
+using AIQ.GH.Exports.Enums;
+using AIQ.GH.Exports.Models;
 using Rhino;
 using Rhino.DocObjects;
 using Rhino.DocObjects.Tables;
@@ -9,17 +12,55 @@ public static class DetailExtensions
 {
     public static bool ApplyLayerStateToDetail(this DetailViewObject detail,string layerStateName, RhinoDoc doc)
     {
-        bool success = 
+        bool success =
             doc.NamedLayerStates.Restore(layerStateName,RestoreLayerProperties.ViewportVisible, detail.Viewport.Id)
             && doc.NamedLayerStates.Restore(layerStateName, RestoreLayerProperties.ViewportColor, detail.Viewport.Id)
             ;
-        
+
         if (success)
         {
             detail.CommitChanges();
         }
 
         return success;
+    }
+
+    public static bool ApplyDocLayerStateToDetail(
+        this DetailViewObject detail,
+        DocLayerState docLayerState,
+        RhinoDoc doc)
+    {
+        if (docLayerState?.LayerState is null || detail is null)
+            return false;
+
+        var viewportId = detail.Viewport.Id;
+        string tempStateName = $"__temp_apply_{Guid.NewGuid():N}";
+
+        try
+        {
+            doc.NamedLayerStates.Save(tempStateName);
+
+            docLayerState.ApplyTo(doc, false);
+
+            doc.NamedLayerStates.Save(tempStateName);
+
+            bool success = true;
+
+            success &= doc.NamedLayerStates.Restore(tempStateName, RestoreLayerProperties.ViewportVisible, viewportId);
+            success &= doc.NamedLayerStates.Restore(tempStateName, RestoreLayerProperties.ViewportColor, viewportId);
+
+            doc.NamedLayerStates.Delete(tempStateName);
+
+            detail.CommitViewportChanges();
+            detail.CommitChanges();
+
+            return success;
+        }
+        catch
+        {
+            try { doc.NamedLayerStates.Delete(tempStateName); } catch { }
+            return false;
+        }
     }
 
     public static void SetDetailTarget(
