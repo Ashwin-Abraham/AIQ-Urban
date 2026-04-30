@@ -25,6 +25,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ArchSitePlan.RhinoInterface\ArchSitePlan.RhinoInterface.csproj" />
+    <ProjectReference Include="..\AIQ.Exports\AIQ.Exports.csproj" />
   </ItemGroup>
   
   <ItemGroup Condition="'$(TargetFramework)' == 'net7.0'">

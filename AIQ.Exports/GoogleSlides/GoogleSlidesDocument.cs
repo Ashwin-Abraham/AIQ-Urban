@@ -1,7 +1,3 @@
-using Google.Apis.Slides.v1;
-using Google.Apis.Slides.v1.Data;
-using Google.Apis.Auth.OAuth2;
-using Google.Apis.Services;
 using AIQ.Exports.GoogleSlides.Actions;
 
 namespace AIQ.Exports.GoogleSlides;
@@ -9,8 +5,9 @@ public class GoogleSlidesDocument(
     string presentationId,
     string serviceAccountJsonPath) : IGoogleSlidesDocument
 {
+    private readonly GoogleSlidesService _service = new(serviceAccountJsonPath, presentationId);
+
     public string PresentationId { get; } = presentationId;
-    public string ServiceAccountJsonPath { get; } = serviceAccountJsonPath;
     public List<IGoogleSlidesAction> PendingActions { get; } = [];
 
     public void AddAction(IGoogleSlidesAction action)
@@ -25,61 +22,28 @@ public class GoogleSlidesDocument(
 
     public async Task<bool> ValidateAsync(CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var service = CreateService();
-
-            var presentation = await service.Presentations.Get(PresentationId).ExecuteAsync();
-
-            return presentation != null;
-        }
-        catch (OperationCanceledException)
-        {
-            throw;
-        }
-        catch
-        {
-            return false;
-        }
+        return await _service.ValidateAsync(cancellationToken);
     }
 
     public async Task<int> ExecuteAsync(CancellationToken cancellationToken = default)
     {
-        var service = CreateService();
-        
-        var requests = PendingActions
-            .Select(action => action.ToRequest(PresentationId))
-            .ToList();
-
-        var batchRequest = new BatchUpdatePresentationRequest
-        {
-            Requests = requests
-        };
-
-        var response = await service.Presentations.BatchUpdate(batchRequest, PresentationId).ExecuteAsync();
-        
-        var count = response.Replies?.Sum(r => 
-            (r.ReplaceAllText?.OccurrencesChanged ?? 0) +
-            (r.ReplaceAllShapesWithImage?.OccurrencesChanged ?? 0)) ?? 0;
-
+        var count = await _service.ExecuteBatchAsync(PendingActions, cancellationToken);
         ClearActions();
         return count;
     }
 
-    private SlidesService CreateService(int timeoutSec = 5)
+    public async Task<int> ReplaceTextAsync(string findText, string replaceText, string slideTitle)
     {
-        string json = File.ReadAllText(ServiceAccountJsonPath);
-        var credential = GoogleCredential
-            .FromJson(json)
-            .CreateScoped(Scopes);
-
-        return new SlidesService(new BaseClientService.Initializer
-        {
-            HttpClientInitializer = credential,
-            ApplicationName = "AIQ.Exports",
-            HttpClientTimeout = TimeSpan.FromSeconds(timeoutSec)
-        });
+        return await _service.ReplaceTextAsync(findText, replaceText, slideTitle);
     }
 
-    private static string[] Scopes => ["https://www.googleapis.com/auth/presentations"];
+    public async Task<int> ReplaceTextAsync(string findText, string replaceText, int slideIndex)
+    {
+        return await _service.ReplaceTextAsync(findText, replaceText, slideIndex);
+    }
+
+    public async Task<int> ReplaceTextAsync(string findText, string replaceText)
+    {
+        return await _service.ReplaceTextAsync(findText, replaceText);
+    }
 }

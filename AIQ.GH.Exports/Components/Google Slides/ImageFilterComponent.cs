@@ -6,6 +6,7 @@ using AIQ.GH.Exports.Types;
 using AIQ.Exports.GoogleSlides;
 using System;
 using System.Drawing;
+using AIQ.Exports.GoogleSlides.Filters;
 
 namespace AIQ.GH.Exports.Components.GoogleSlides;
 public class ImageFilterComponent : GH_Component
