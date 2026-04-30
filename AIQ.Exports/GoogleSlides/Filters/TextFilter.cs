@@ -1,6 +1,6 @@
 using Google.Apis.Slides.v1.Data;
 
-namespace AIQ.Exports.GoogleSlides;
+namespace AIQ.Exports.GoogleSlides.Filters;
 public enum TextMatchOption
 {
     MatchCase,

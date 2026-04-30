@@ -2,14 +2,15 @@ using Google.Apis.Slides.v1;
 using Google.Apis.Slides.v1.Data;
 using Google.Apis.Auth.OAuth2;
 using Google.Apis.Services;
+using AIQ.Exports.GoogleSlides.Actions;
 
 namespace AIQ.Exports.GoogleSlides;
 public class GoogleSlidesDocument(
     string presentationId,
-    string serviceAccountJson)
+    string serviceAccountJsonPath)
 {
     public string PresentationId { get; } = presentationId;
-    public string ServiceAccountJson { get; } = serviceAccountJson;
+    public string ServiceAccountJsonPath { get; } = serviceAccountJsonPath;
     public List<IGoogleSlidesAction> PendingActions { get; } = [];
 
     public void AddAction(IGoogleSlidesAction action)
@@ -20,6 +21,26 @@ public class GoogleSlidesDocument(
     public void ClearActions()
     {
         PendingActions.Clear();
+    }
+
+    public async Task<bool> ValidateAsync(CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var service = CreateService();
+
+            var presentation = await service.Presentations.Get(PresentationId).ExecuteAsync();
+
+            return presentation != null;
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch
+        {
+            return false;
+        }
     }
 
     public async Task<int> ExecuteAsync()
@@ -45,15 +66,18 @@ public class GoogleSlidesDocument(
         return count;
     }
 
-    private SlidesService CreateService()
+    private SlidesService CreateService(int timeoutSec = 5)
     {
-        var credential = GoogleCredential.FromJson(ServiceAccountJson)
+        string json = File.ReadAllText(ServiceAccountJsonPath);
+        var credential = GoogleCredential
+            .FromJson(json)
             .CreateScoped(Scopes);
 
         return new SlidesService(new BaseClientService.Initializer
         {
             HttpClientInitializer = credential,
-            ApplicationName = "AIQ.Exports"
+            ApplicationName = "AIQ.Exports",
+            HttpClientTimeout = TimeSpan.FromSeconds(timeoutSec)
         });
     }
 
