@@ -1,4 +1,4 @@
-namespace AIQ.Exports.GoogleSlides;
+namespace AIQ.Exports.GoogleSlides.Filters;
 public class ImageFilter(
     string? slideName,
     string imageElementName)

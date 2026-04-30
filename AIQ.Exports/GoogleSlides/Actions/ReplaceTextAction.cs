@@ -1,6 +1,7 @@
+using AIQ.Exports.GoogleSlides.Filters;
 using Google.Apis.Slides.v1.Data;
 
-namespace AIQ.Exports.GoogleSlides;
+namespace AIQ.Exports.GoogleSlides.Actions;
 public class ReplaceTextAction(TextFilter filter, string findText, string replacementText) : IGoogleSlidesAction
 {
     public TextFilter Filter { get; } = filter;

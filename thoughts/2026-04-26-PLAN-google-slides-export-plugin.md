@@ -287,9 +287,9 @@ public class AddActionComponent : GH_Component
 ### Success Criteria:
 
 #### Automated Verification:
-- [ ] Solution builds: `dotnet build AIQ.GH.Exports/AIQ.GH.Exports.csproj`
-- [ ] All components compile without errors
-- [ ] No regressions in existing components
+- [x] Solution builds: `dotnet build AIQ.GH.Exports/AIQ.GH.Exports.csproj`
+- [x] All components compile without errors
+- [x] No regressions in existing components
 
 ---
 
@@ -314,8 +314,8 @@ Each wraps the corresponding core class + provides Marshal/Unmarshal for GH seri
 ### Success Criteria:
 
 #### Automated Verification:
-- [ ] All Goo types can be serialized/deserialized
-- [ ] Component registration works in Grasshopper
+- [x] All Goo types can be serialized/deserialized
+- [x] Component registration works in Grasshopper
 
 ---
 

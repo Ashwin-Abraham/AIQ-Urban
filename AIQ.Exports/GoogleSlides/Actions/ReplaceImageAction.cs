@@ -1,6 +1,7 @@
+using AIQ.Exports.GoogleSlides.Filters;
 using Google.Apis.Slides.v1.Data;
 
-namespace AIQ.Exports.GoogleSlides;
+namespace AIQ.Exports.GoogleSlides.Actions;
 public class ReplaceImageAction(ImageFilter filter, string imageSource) : IGoogleSlidesAction
 {
     public ImageFilter Filter { get; } = filter;
