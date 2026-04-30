@@ -7,7 +7,7 @@ using AIQ.Exports.GoogleSlides.Actions;
 namespace AIQ.Exports.GoogleSlides;
 public class GoogleSlidesDocument(
     string presentationId,
-    string serviceAccountJsonPath)
+    string serviceAccountJsonPath) : IGoogleSlidesDocument
 {
     public string PresentationId { get; } = presentationId;
     public string ServiceAccountJsonPath { get; } = serviceAccountJsonPath;
@@ -43,7 +43,7 @@ public class GoogleSlidesDocument(
         }
     }
 
-    public async Task<int> ExecuteAsync()
+    public async Task<int> ExecuteAsync(CancellationToken cancellationToken = default)
     {
         var service = CreateService();
         
