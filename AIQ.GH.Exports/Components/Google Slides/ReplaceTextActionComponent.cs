@@ -6,6 +6,7 @@ using AIQ.GH.Exports.Types;
 using AIQ.Exports.GoogleSlides;
 using System;
 using System.Drawing;
+using AIQ.Exports.GoogleSlides.Actions;
 
 namespace AIQ.GH.Exports.Components.GoogleSlides;
 public class ReplaceTextActionComponent : GH_Component

@@ -13,7 +13,8 @@ public class ReplaceTextAction(TextFilter filter, string findText, string replac
         var replaceRequest = new ReplaceAllTextRequest
         {
             ContainsText = Filter.ToSubstringMatchCriteria(FindText),
-            ReplaceText = ReplacementText
+            ReplaceText = ReplacementText,
+            PageObjectIds = Filter.SlideName != null ? [Filter.SlideName] : null
         };
 
         return new Request { ReplaceAllText = replaceRequest };
