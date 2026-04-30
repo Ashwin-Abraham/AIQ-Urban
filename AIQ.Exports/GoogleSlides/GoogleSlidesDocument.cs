@@ -32,18 +32,4 @@ public class GoogleSlidesDocument(
         return count;
     }
 
-    public async Task<int> ReplaceTextAsync(string findText, string replaceText, string slideTitle)
-    {
-        return await _service.ReplaceTextAsync(findText, replaceText, slideTitle);
-    }
-
-    public async Task<int> ReplaceTextAsync(string findText, string replaceText, int slideIndex)
-    {
-        return await _service.ReplaceTextAsync(findText, replaceText, slideIndex);
-    }
-
-    public async Task<int> ReplaceTextAsync(string findText, string replaceText)
-    {
-        return await _service.ReplaceTextAsync(findText, replaceText);
-    }
 }
