@@ -19,6 +19,7 @@ public class ReplaceImageAction(ImageFilter filter, string imageSource) : IGoogl
                 MatchCase = false
             },
             ImageUrl = imageUrl,
+            
             PageObjectIds = Filter.SlideName != null ? [Filter.SlideName] : null
         };
 
