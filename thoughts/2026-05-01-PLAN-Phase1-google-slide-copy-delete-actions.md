@@ -199,8 +199,8 @@ private async Task<int> GetSlideCountAsync(GoogleSlidesDocument doc)
 - [x] Integration test `CanCopyAndDeleteSlide` passes: `dotnet test --filter "FullyQualifiedName~CanCopyAndDeleteSlide"`
 
 #### Manual Verification:
-- [ ] After running the test, verify in Google Slides that no extra slides remain (slide count unchanged)
-- [ ] Confirm the test output shows successful copy and delete operations
+- [x] After running the test, verify in Google Slides that no extra slides remain (slide count unchanged)
+- [x] Confirm the test output shows successful copy and delete operations
 
 **Implementation Notes**: 
 - This phase is only complete if all automated verification passes
