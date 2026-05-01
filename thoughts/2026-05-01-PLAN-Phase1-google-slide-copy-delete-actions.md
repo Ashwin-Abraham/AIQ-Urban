@@ -193,10 +193,10 @@ private async Task<int> GetSlideCountAsync(GoogleSlidesDocument doc)
 ### Success Criteria:
 
 #### Automated Verification:
-- [ ] `AIQ.Exports` builds: `dotnet build AIQ.Exports/AIQ.Exports.csproj`
-- [ ] `AIQ.Exports.Tests` builds: `dotnet build AIQ.Exports.Tests/AIQ.Exports.Tests.csproj`
-- [ ] New action classes exist: `CopySlideAction.cs`, `DeleteSlideAction.cs`
-- [ ] Integration test `CanCopyAndDeleteSlide` passes: `dotnet test --filter "FullyQualifiedName~CanCopyAndDeleteSlide"`
+- [x] `AIQ.Exports` builds: `dotnet build AIQ.Exports/AIQ.Exports.csproj`
+- [x] `AIQ.Exports.Tests` builds: `dotnet build AIQ.Exports.Tests/AIQ.Exports.Tests.csproj`
+- [x] New action classes exist: `CopySlideAction.cs`, `DeleteSlideAction.cs`
+- [x] Integration test `CanCopyAndDeleteSlide` passes: `dotnet test --filter "FullyQualifiedName~CanCopyAndDeleteSlide"`
 
 #### Manual Verification:
 - [ ] After running the test, verify in Google Slides that no extra slides remain (slide count unchanged)

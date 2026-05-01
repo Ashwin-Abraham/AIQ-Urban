@@ -1,4 +1,5 @@
 using AIQ.Exports.GoogleSlides;
+using Google.Apis.Slides.v1.Data;
 
 namespace AIQ.Exports.Tests.GoogleSlides;
 
