@@ -1,5 +1,6 @@
 using AIQ.Exports.GoogleSlides;
 using AIQ.Exports.GoogleSlides.Actions;
+using AIQ.Exports.GoogleSlides.Filters;
 
 namespace AIQ.Exports.Tests.GoogleSlides.Actions;
 
@@ -51,5 +52,49 @@ public class CopyAndDeleteSlideActionTests
         // Verify slide count restored
         presentation = await doc.GetPresentationAsync();
         Assert.Equal(initialSlideCount, presentation.Slides.Count);
+    }
+
+    [Fact]
+    public async Task CanReplaceTextOnCopiedSlide()
+    {
+        // Arrange
+        var presentationId = GoogleSlidesConfig.PresentationId;
+        var doc = new GoogleSlidesDocument(presentationId, GoogleSlidesConfig.ServiceAccountPath);
+
+        // Copy slide 1
+        var presentation = await doc.GetPresentationAsync();
+        var firstSlideId = presentation.Slides.First().ObjectId;
+
+        doc.AddAction(new CopySlideAction(firstSlideId));
+        var copyResponse = await doc.ExecuteWithResponseAsync();
+        var copiedSlideId = copyResponse.Replies?.FirstOrDefault()?.DuplicateObject?.ObjectId;
+        Assert.NotNull(copiedSlideId);
+
+        try
+        {
+            // Replace "placeholder" with "TEST_REPLACED" on the copied slide only
+            var filter = new TextFilter(copiedSlideId, "placeholder", TextMatchOption.DontMatchCase);
+            doc.AddAction(new ReplaceTextAction(filter, "placeholder", "TEST_REPLACED"));
+            var occurrencesChanged = await doc.ExecuteAsync();
+
+            // Assert that at least one replacement occurred
+            Assert.True(occurrencesChanged > 0);
+
+#if DEBUG
+            // PAUSE FOR MANUAL VERIFICATION
+            Console.WriteLine("=== MANUAL VERIFICATION REQUIRED ===");
+            Console.WriteLine($"Copied Slide ID: {copiedSlideId}");
+            Console.WriteLine("Please verify in Google Slides that text was replaced to 'TEST_REPLACED'");
+            Console.WriteLine($"Presentation: https://docs.google.com/presentation/d/{presentationId}/edit");
+            Console.WriteLine("Test will pause for 30 seconds for manual verification...");
+            await Task.Delay(30000);
+#endif
+        }
+        finally
+        {
+            // Cleanup: delete the copied slide
+            doc.AddAction(new DeleteSlideAction(copiedSlideId!));
+            await doc.ExecuteAsync();
+        }
     }
 }

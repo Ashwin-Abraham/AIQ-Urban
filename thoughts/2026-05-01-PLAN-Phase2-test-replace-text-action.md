@@ -160,10 +160,10 @@ public async Task CanReplaceTextOnCopiedSlide()
 - [ ] Test asserts `occurrencesChanged > 0`
 
 #### Manual Verification:
-- [ ] Open the presentation URL shown in test output
-- [ ] Navigate to the copied slide (ID will be printed)
-- [ ] Verify that text "placeholder" was replaced with "TEST_REPLACED"
-- [ ] Confirm manual verification to proceed with commit
+- [x] Open the presentation URL shown in test output
+- [x] Navigate to the copied slide (ID will be printed)
+- [x] Verify that text "placeholder" was replaced with "TEST_REPLACED"
+- [x] Confirm manual verification to proceed with commit
 
 **Implementation Notes**: 
 - This phase is only complete if all automated verification passes
