@@ -9,6 +9,7 @@ public class CopyAndDeleteSlideActionTests
     [Fact]
     public async Task CanCopySlide()
     {
+        // Arrange
         var serviceAccountPath = GoogleSlidesConfig.ServiceAccountPath;
         var presentationId = GoogleSlidesConfig.PresentationId;
         var doc = new GoogleSlidesDocument(presentationId, serviceAccountPath);
@@ -18,6 +19,7 @@ public class CopyAndDeleteSlideActionTests
         var initialSlideCount = presentation.Slides.Count;
         var firstSlideId = presentation.Slides.First().ObjectId;
 
+        // Act and Assert
         // Copy slide 1
         doc.AddAction(new CopySlideAction(firstSlideId));
         var response = await doc.ExecuteWithResponseAsync();
