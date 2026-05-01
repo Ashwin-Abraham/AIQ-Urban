@@ -56,4 +56,22 @@ public class GoogleSlidesService
             (r.ReplaceAllText?.OccurrencesChanged ?? 0) +
             (r.ReplaceAllShapesWithImage?.OccurrencesChanged ?? 0)) ?? 0;
     }
+
+    public async Task<BatchUpdatePresentationResponse> ExecuteBatchWithResponseAsync(
+        List<IGoogleSlidesAction> actions,
+        CancellationToken cancellationToken = default)
+    {
+        if (actions.Count == 0) return new BatchUpdatePresentationResponse();
+
+        var requests = actions.Select(action => action.ToRequest(_presentationId)).ToList();
+        var batchRequest = new BatchUpdatePresentationRequest { Requests = requests };
+
+        return await _service.Presentations.BatchUpdate(batchRequest, _presentationId)
+            .ExecuteAsync(cancellationToken);
+    }
+
+    public async Task<Presentation> GetPresentationAsync(CancellationToken cancellationToken = default)
+    {
+        return await _service.Presentations.Get(_presentationId).ExecuteAsync(cancellationToken);
+    }
 }

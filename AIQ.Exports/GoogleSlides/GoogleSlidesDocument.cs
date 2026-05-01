@@ -1,4 +1,5 @@
 using AIQ.Exports.GoogleSlides.Actions;
+using Google.Apis.Slides.v1.Data;
 
 namespace AIQ.Exports.GoogleSlides;
 public class GoogleSlidesDocument(
@@ -30,6 +31,19 @@ public class GoogleSlidesDocument(
         var count = await _service.ExecuteBatchAsync(PendingActions, cancellationToken);
         ClearActions();
         return count;
+    }
+
+    public async Task<BatchUpdatePresentationResponse> ExecuteWithResponseAsync(
+        CancellationToken cancellationToken = default)
+    {
+        var response = await _service.ExecuteBatchWithResponseAsync(PendingActions, cancellationToken);
+        ClearActions();
+        return response;
+    }
+
+    public async Task<Presentation> GetPresentationAsync(CancellationToken cancellationToken = default)
+    {
+        return await _service.GetPresentationAsync(cancellationToken);
     }
 
 }
