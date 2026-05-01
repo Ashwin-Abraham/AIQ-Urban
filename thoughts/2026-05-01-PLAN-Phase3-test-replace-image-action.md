@@ -177,6 +177,8 @@ public async Task CanReplaceImageOnCopiedSlide()
 - [ ] Verify that an image was replaced with `TestMasterplan.jpg`
 - [ ] Confirm manual verification to proceed with commit
 
+**Note**: Manual verification skipped by user request. Automated test passes.
+
 **Implementation Notes**: 
 - This phase is only complete if all automated verification passes
 - Pause here for manual confirmation from the human that the manual testing was successful

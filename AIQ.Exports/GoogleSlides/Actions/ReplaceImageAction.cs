@@ -18,7 +18,8 @@ public class ReplaceImageAction(ImageFilter filter, string imageSource) : IGoogl
                 Text = Filter.ImageElementName,
                 MatchCase = false
             },
-            ImageUrl = imageUrl
+            ImageUrl = imageUrl,
+            PageObjectIds = Filter.SlideName != null ? [Filter.SlideName] : null
         };
 
         return new Request { ReplaceAllShapesWithImage = replaceRequest };
