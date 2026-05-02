@@ -19,6 +19,7 @@
     <PackageReference Include="ClosedXML" Version="0.105.0" />
     <!-- Base package for Google APIs -->
     <PackageReference Include="Google.Apis.Slides.v1" Version="1.69.0.3701" />
+    <PackageReference Include="Google.Apis.Drive.v3" Version="1.69.0.3790" />
     <PackageReference Include="ShapeCrawler" Version="0.75.2" />
   </ItemGroup>
 

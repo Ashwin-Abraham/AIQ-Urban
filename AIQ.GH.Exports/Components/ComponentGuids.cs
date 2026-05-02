@@ -23,4 +23,5 @@ public static class ComponentGuids
     public static Guid SetChartDataAction => new("c4a7d2e9-6b18-4f3c-a9d5-7e2b1c8f6a45");
     public static Guid BatchExecute => new("9b3e6f1a-4c27-4d8b-8a1f-2e7c5d9a6b56");
     public static Guid AddAction => new("2c8d5a7e-1f49-4b6c-9e3a-8d1f7b2c6a67");
+    public static Guid CopyPresentation => new("35794e22-e679-4177-9cd6-051a1eb71b78");
 }

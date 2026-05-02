@@ -1,25 +1,37 @@
+using AIQ.Exports.GoogleSlides.Actions;
+using Google.Apis.Auth.OAuth2;
+using Google.Apis.Drive.v3;
+using Google.Apis.Services;
 using Google.Apis.Slides.v1;
 using Google.Apis.Slides.v1.Data;
-using Google.Apis.Auth.OAuth2;
-using Google.Apis.Services;
-using AIQ.Exports.GoogleSlides.Actions;
+using DriveData = Google.Apis.Drive.v3.Data;
+using static AIQ.Exports.GoogleSlides.GoogleSlidesConstants;
 
 namespace AIQ.Exports.GoogleSlides;
 public class GoogleSlidesService
 {
-    private readonly SlidesService _service;
+    private readonly SlidesService _slidesService;
+    private readonly DriveService _driveService;
     private readonly string _presentationId;
-    private const string _scope = "https://www.googleapis.com/auth/presentations";
+     private const string _slidesScope = SlidesScope;
+     private const string _driveScope = DriveScope;
 
     public GoogleSlidesService(string serviceAccountJsonPath, string presentationId)
     {
         string json = File.ReadAllText(serviceAccountJsonPath);
-        var credential = GoogleCredential.FromJson(json).CreateScoped(_scope);
+        var credential = GoogleCredential.FromJson(json)
+            .CreateScoped([_slidesScope, _driveScope]);
 
-        _service = new SlidesService(new BaseClientService.Initializer
+        _slidesService = new SlidesService(new BaseClientService.Initializer
         {
             HttpClientInitializer = credential,
-            ApplicationName = "AIQ.Exports"
+             ApplicationName = ApplicationName
+         });
+
+        _driveService = new DriveService(new BaseClientService.Initializer
+        {
+            HttpClientInitializer = credential,
+            ApplicationName = ApplicationName
         });
 
         _presentationId = presentationId;
@@ -30,7 +42,7 @@ public class GoogleSlidesService
     {
         try
         {
-            var presentation = await _service.Presentations.Get(_presentationId).ExecuteAsync(cancellationToken);
+            var presentation = await _slidesService.Presentations.Get(_presentationId).ExecuteAsync(cancellationToken);
             return presentation != null;
         }
         catch (OperationCanceledException)
@@ -50,7 +62,7 @@ public class GoogleSlidesService
         var requests = actions.Select(action => action.ToRequest(_presentationId)).ToList();
         var batchRequest = new BatchUpdatePresentationRequest { Requests = requests };
 
-        var response = await _service.Presentations.BatchUpdate(batchRequest, _presentationId).ExecuteAsync(cancellationToken);
+        var response = await _slidesService.Presentations.BatchUpdate(batchRequest, _presentationId).ExecuteAsync(cancellationToken);
 
         return response.Replies?.Sum(r =>
             (r.ReplaceAllText?.OccurrencesChanged ?? 0) +
@@ -66,12 +78,25 @@ public class GoogleSlidesService
         var requests = actions.Select(action => action.ToRequest(_presentationId)).ToList();
         var batchRequest = new BatchUpdatePresentationRequest { Requests = requests };
 
-        return await _service.Presentations.BatchUpdate(batchRequest, _presentationId)
+        return await _slidesService.Presentations.BatchUpdate(batchRequest, _presentationId)
             .ExecuteAsync(cancellationToken);
     }
 
     public async Task<Presentation> GetPresentationAsync(CancellationToken cancellationToken = default)
     {
-        return await _service.Presentations.Get(_presentationId).ExecuteAsync(cancellationToken);
+        return await _slidesService.Presentations.Get(_presentationId).ExecuteAsync(cancellationToken);
+    }
+
+    public async Task<string> CopyPresentationAsync(string? name = null, CancellationToken cancellationToken = default)
+    {
+        var fileBody = new DriveData.File();
+        if (!string.IsNullOrWhiteSpace(name))
+        {
+            fileBody.Name = name;
+        }
+
+        var copyRequest = _driveService.Files.Copy(fileBody, _presentationId);
+        var file = await copyRequest.ExecuteAsync(cancellationToken);
+        return file.Id;
     }
 }

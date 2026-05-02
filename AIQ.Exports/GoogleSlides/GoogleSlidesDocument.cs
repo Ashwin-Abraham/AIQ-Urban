@@ -7,6 +7,7 @@ public class GoogleSlidesDocument(
     string serviceAccountJsonPath) : IGoogleSlidesDocument
 {
     private readonly GoogleSlidesService _service = new(serviceAccountJsonPath, presentationId);
+    private readonly string _serviceAccountJsonPath = serviceAccountJsonPath;
 
     public string PresentationId { get; } = presentationId;
     public List<IGoogleSlidesAction> PendingActions { get; } = [];
@@ -44,6 +45,12 @@ public class GoogleSlidesDocument(
     public async Task<Presentation> GetPresentationAsync(CancellationToken cancellationToken = default)
     {
         return await _service.GetPresentationAsync(cancellationToken);
+    }
+
+    public async Task<GoogleSlidesDocument> CopyPresentationAsync(string? name = null, CancellationToken cancellationToken = default)
+    {
+        var newId = await _service.CopyPresentationAsync(name, cancellationToken);
+        return new GoogleSlidesDocument(newId, _serviceAccountJsonPath);
     }
 
 }
