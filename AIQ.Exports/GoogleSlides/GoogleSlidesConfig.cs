@@ -6,6 +6,6 @@ public static class GoogleSlidesConfig
     [Obsolete("For test use only")]
     public static string ServiceAccountPath => @"C:\Users\AshwinAbraham\Downloads\aiq-siteanalysis-5ebc035f0da2.json";
 
-    public static string OAuthClientId => "YOUR_CLIENT_ID_HERE";
-    public static string OAuthClientSecret => "YOUR_CLIENT_SECRET_HERE";
+    public static string OAuthClientId => "769099019281-3d9npelre1rvdar9ps1u24vfivk0745e.apps.googleusercontent.com";
+    public static string OAuthClientSecret => "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";
 }
