@@ -2,7 +2,6 @@ using Grasshopper;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Data;
 using Grasshopper.Kernel.Types;
-using AIQ.GH.Exports.Helpers;
 using AIQ.GH.Exports.Types;
 using Rhino;
 using System;
@@ -10,6 +9,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using AIQ.GH.Exports.Extensions;
 using System.Linq;
+using AIQ.GH.Exports.Utils;
 
 
 namespace AIQ.GH.Exports.Components.Layouts;

@@ -1,12 +1,12 @@
 using Grasshopper;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Types;
-using AIQ.GH.Exports.Helpers;
 using AIQ.GH.Exports.Types;
 using AIQ.Exports.GoogleSlides;
 using System;
 using System.Drawing;
 using AIQ.Exports.GoogleSlides.Filters;
+using AIQ.GH.Exports.Utils;
 
 namespace AIQ.GH.Exports.Components.GoogleSlides;
 public class ImageFilterComponent : GH_Component

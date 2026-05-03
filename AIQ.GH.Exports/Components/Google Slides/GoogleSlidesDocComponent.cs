@@ -1,11 +1,9 @@
-using Grasshopper;
-using Grasshopper.Kernel;
-using Grasshopper.Kernel.Types;
-using AIQ.GH.Exports.Helpers;
-using AIQ.GH.Exports.Types;
-using AIQ.Exports.GoogleSlides;
 using System;
 using System.Drawing;
+using AIQ.Exports.GoogleSlides;
+using AIQ.GH.Exports.Types;
+using AIQ.GH.Exports.Utils;
+using Grasshopper.Kernel;
 
 namespace AIQ.GH.Exports.Components.GoogleSlides;
 public class GoogleSlidesDocComponent : GH_Component
@@ -68,7 +66,7 @@ public class GoogleSlidesDocComponent : GH_Component
 
         var doc = new GoogleSlidesDocument(cleanedId, serviceAccountJson);
 
-        var valid = doc.ValidateAsync().Result;
+        var valid = AsyncHelper.RunSync(ct => doc.ValidateAsync(ct), Constants.CommonToken);
         if (!valid)
         {
             AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Failed to access presentation. Check ID and credentials.");

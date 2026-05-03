@@ -1,11 +1,11 @@
 using Grasshopper;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Types;
-using AIQ.GH.Exports.Helpers;
 using AIQ.GH.Exports.Types;
 using AIQ.Exports.GoogleSlides;
 using System;
 using System.Drawing;
+using AIQ.GH.Exports.Utils;
 
 namespace AIQ.GH.Exports.Components.GoogleSlides;
 public class CopyPresentationComponent : GH_Component
@@ -49,7 +49,7 @@ public class CopyPresentationComponent : GH_Component
 
         try
         {
-            var newDoc = docGoo.Value.CopyPresentationAsync(name).GetAwaiter().GetResult();
+            var newDoc = AsyncHelper.RunSync(ct => docGoo.Value.CopyPresentationAsync(name, ct), Constants.CommonToken);
             DA.SetData(0, new GoogleSlidesDocumentGoo(newDoc));
         }
         catch (Exception ex)

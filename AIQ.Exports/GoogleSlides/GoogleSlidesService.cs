@@ -42,8 +42,21 @@ public class GoogleSlidesService
     {
         try
         {
-            var presentation = await _slidesService.Presentations.Get(_presentationId).ExecuteAsync(cancellationToken);
-            return presentation != null;
+            var apiTask = _slidesService
+                .Presentations
+                .Get(_presentationId)
+                .ExecuteAsync(); 
+
+            var completed = await Task.WhenAny(
+                apiTask,
+                Task.Delay(Timeout.Infinite, cancellationToken)
+            );
+
+            if (completed != apiTask)
+                // cancellation triggered
+                throw new OperationCanceledException(cancellationToken);
+
+            return await apiTask != null; 
         }
         catch (OperationCanceledException)
         {
@@ -94,6 +107,15 @@ public class GoogleSlidesService
         {
             fileBody.Name = name;
         }
+
+        var aboutRequest = _driveService.About.Get();
+        aboutRequest.Fields = "user, storageQuota";
+
+        var about = await aboutRequest.ExecuteAsync();
+
+        Console.WriteLine($"Email: {about.User.EmailAddress}");
+        Console.WriteLine($"Usage: {about.StorageQuota.Usage}");
+        Console.WriteLine($"Limit: {about.StorageQuota.Limit}");
 
         var copyRequest = _driveService.Files.Copy(fileBody, _presentationId);
         var file = await copyRequest.ExecuteAsync(cancellationToken);
