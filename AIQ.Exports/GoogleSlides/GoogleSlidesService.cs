@@ -108,15 +108,6 @@ public class GoogleSlidesService
             fileBody.Name = name;
         }
 
-        var aboutRequest = _driveService.About.Get();
-        aboutRequest.Fields = "user, storageQuota";
-
-        var about = await aboutRequest.ExecuteAsync();
-
-        Console.WriteLine($"Email: {about.User.EmailAddress}");
-        Console.WriteLine($"Usage: {about.StorageQuota.Usage}");
-        Console.WriteLine($"Limit: {about.StorageQuota.Limit}");
-
         var copyRequest = _driveService.Files.Copy(fileBody, _presentationId);
         var file = await copyRequest.ExecuteAsync(cancellationToken);
         return file.Id;
