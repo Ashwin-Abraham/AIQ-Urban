@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using AIQ.GH.Exports.Extensions;
-using AIQ.GH.Exports.Helpers;
 using AIQ.GH.Exports.Models;
 using AIQ.GH.Exports.Types;
+using AIQ.GH.Exports.Utils;
 using Grasshopper.Kernel;
 using Rhino;
 

@@ -2,7 +2,7 @@
 using System.IO;
 using AIQ.GH.Exports.Models;
 
-namespace AIQ.GH.Exports.Helpers;
+namespace AIQ.GH.Exports.Utils;
 public static class FileHelpers
 {
     public static bool TryGetFilePath(string outputFolder, string fileName, string extension, ref Logger log, out string filePath)

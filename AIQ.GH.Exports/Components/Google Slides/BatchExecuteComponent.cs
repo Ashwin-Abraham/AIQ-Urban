@@ -1,11 +1,11 @@
 using Grasshopper;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Types;
-using AIQ.GH.Exports.Helpers;
 using AIQ.GH.Exports.Types;
 using AIQ.Exports.GoogleSlides;
 using System;
 using System.Drawing;
+using AIQ.GH.Exports.Utils;
 
 namespace AIQ.GH.Exports.Components.GoogleSlides;
 public class BatchExecuteComponent : GH_Component
@@ -60,7 +60,7 @@ public class BatchExecuteComponent : GH_Component
         
         try
         {
-            var count = doc.ExecuteAsync().GetAwaiter().GetResult();
+            var count = AsyncHelper.RunSync(ct => doc.ExecuteAsync(ct), Constants.CommonToken);
             DA.SetData(0, true);
             DA.SetData(1, count);
             DA.SetData(0, new GoogleSlidesDocumentGoo(doc));

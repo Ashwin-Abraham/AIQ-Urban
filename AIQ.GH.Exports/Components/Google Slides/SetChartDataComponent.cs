@@ -2,13 +2,13 @@ using Grasshopper;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Data;
 using Grasshopper.Kernel.Types;
-using AIQ.GH.Exports.Helpers;
 using AIQ.GH.Exports.Types;
 using AIQ.Exports.GoogleSlides;
 using System;
 using System.Drawing;
 using System.Collections.Generic;
 using AIQ.Exports.GoogleSlides.Actions;
+using AIQ.GH.Exports.Utils;
 
 namespace AIQ.GH.Exports.Components.GoogleSlides;
 public class SetChartDataComponent : GH_Component

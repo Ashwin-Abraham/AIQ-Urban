@@ -42,8 +42,21 @@ public class GoogleSlidesService
     {
         try
         {
-            var presentation = await _slidesService.Presentations.Get(_presentationId).ExecuteAsync(cancellationToken);
-            return presentation != null;
+            var apiTask = _slidesService
+                .Presentations
+                .Get(_presentationId)
+                .ExecuteAsync(); 
+
+            var completed = await Task.WhenAny(
+                apiTask,
+                Task.Delay(Timeout.Infinite, cancellationToken)
+            );
+
+            if (completed != apiTask)
+                // cancellation triggered
+                throw new OperationCanceledException(cancellationToken);
+
+            return await apiTask != null; 
         }
         catch (OperationCanceledException)
         {

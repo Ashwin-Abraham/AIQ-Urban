@@ -1,7 +1,7 @@
 using System.Drawing;
 using System.Reflection;
 
-namespace AIQ.GH.Exports.Helpers;
+namespace AIQ.GH.Exports.Utils;
 
 public static class IconLoader
 {

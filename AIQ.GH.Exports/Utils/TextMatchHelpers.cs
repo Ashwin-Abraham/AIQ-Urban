@@ -1,7 +1,7 @@
 using System;
 using AIQ.GH.Exports.Enums;
 
-namespace AIQ.GH.Exports.Helpers;
+namespace AIQ.GH.Exports.Utils;
 
 public static class TextMatchHelpers
 {

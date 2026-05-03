@@ -9,7 +9,7 @@ using Rhino;
 using Rhino.Display;
 using Rhino.FileIO;
 
-namespace AIQ.GH.Exports.Helpers;
+namespace AIQ.GH.Exports.Utils;
 
 public static class PdfHelpers
 {

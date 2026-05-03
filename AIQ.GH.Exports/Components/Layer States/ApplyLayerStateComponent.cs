@@ -1,8 +1,8 @@
 using System;
 using System.Drawing;
 using System.Linq;
-using AIQ.GH.Exports.Helpers;
 using AIQ.GH.Exports.Types;
+using AIQ.GH.Exports.Utils;
 using ArchSitePlan.RhinoInterface.Helpers;
 using Grasshopper.Kernel;
 using Rhino;

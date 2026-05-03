@@ -3,7 +3,7 @@ using System.Drawing;
 using System.Linq;
 using AIQ.GH.Exports.Enums;
 using AIQ.GH.Exports.Extensions;
-using AIQ.GH.Exports.Helpers;
+using AIQ.GH.Exports.Utils;
 using Grasshopper.Kernel;
 using Rhino;
 

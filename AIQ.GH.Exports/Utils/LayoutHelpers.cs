@@ -9,7 +9,7 @@ using Rhino.DocObjects;
 using Rhino.Geometry;
 
 
-namespace AIQ.GH.Exports.Helpers;
+namespace AIQ.GH.Exports.Utils;
 
 public static class LayoutHelpers
 {

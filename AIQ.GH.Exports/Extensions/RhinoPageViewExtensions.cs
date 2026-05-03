@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using AIQ.GH.Exports.Enums;
-using AIQ.GH.Exports.Helpers;
+using AIQ.GH.Exports.Utils;
 using Rhino;
 using Rhino.Display;
 using Rhino.DocObjects;
