@@ -8,11 +8,11 @@ public enum TextMatchOption
 }
 
 public class TextFilter(
-    string? slideName,
+    int? slideNumber,
     string textElementName,
     TextMatchOption matchOption)
 {
-    public string? SlideName { get; } = slideName;
+    public int? SlideNumber { get; } = slideNumber;
     public string TextElementName { get; } = textElementName;
     public TextMatchOption MatchOption { get; } = matchOption;
 

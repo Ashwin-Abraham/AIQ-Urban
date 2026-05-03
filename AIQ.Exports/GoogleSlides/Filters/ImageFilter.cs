@@ -1,8 +1,8 @@
 namespace AIQ.Exports.GoogleSlides.Filters;
 public class ImageFilter(
-    string? slideName,
+    int? slideNumber,
     string imageElementName)
 {
-    public string? SlideName { get; } = slideName;
+    public int? SlideNumber { get; } = slideNumber;
     public string ImageElementName { get; } = imageElementName;
 }

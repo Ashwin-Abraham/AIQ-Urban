@@ -23,7 +23,7 @@ public class TextFilterComponent : GH_Component
 
     protected override void RegisterInputParams(GH_InputParamManager pManager)
     {
-        pManager.AddTextParameter("Slide Name", "S", "Name of the slide to filter (empty for all slides)", GH_ParamAccess.item);
+        pManager.AddIntegerParameter("Slide Number", "S", "Slide number (1-based, 0 or empty for all slides)", GH_ParamAccess.item, 0);
         pManager.AddTextParameter("Text Element Name", "T", "Name of the text box element to find", GH_ParamAccess.item);
         pManager.AddBooleanParameter("Match Case", "M", "True for case-sensitive matching", GH_ParamAccess.item, false);
     }
@@ -35,11 +35,11 @@ public class TextFilterComponent : GH_Component
 
     protected override void SolveInstance(IGH_DataAccess DA)
     {
-        string? slideName = null;
+        int slideNumber = 0;
         string? textElementName = null;
         bool matchCase = false;
 
-        DA.GetData(0, ref slideName);
+        DA.GetData(0, ref slideNumber);
         if (!DA.GetData(1, ref textElementName)) return;
         DA.GetData(2, ref matchCase);
 
@@ -50,7 +50,7 @@ public class TextFilterComponent : GH_Component
         }
 
         var filter = new TextFilter(
-            string.IsNullOrWhiteSpace(slideName) ? null : slideName,
+            slideNumber <= 0 ? null : slideNumber,
             textElementName,
             matchCase ? TextMatchOption.MatchCase : TextMatchOption.DontMatchCase);
 
