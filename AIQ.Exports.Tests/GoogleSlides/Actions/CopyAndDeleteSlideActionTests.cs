@@ -1,17 +1,25 @@
 using AIQ.Exports.GoogleSlides;
 using AIQ.Exports.GoogleSlides.Actions;
+using Google.Apis.Auth.OAuth2;
+using Google.Apis.Http;
 
 namespace AIQ.Exports.Tests.GoogleSlides.Actions;
 
 [Collection("GoogleSlidesIntegration")]
 public class CopyAndDeleteSlideActionTests
 {
+    private static IConfigurableHttpClientInitializer CreateTestCredential()
+    {
+        string json = File.ReadAllText(GoogleSlidesConfig.ServiceAccountPath);
+        return GoogleCredential.FromJson(json)
+            .CreateScoped(GoogleSlidesConstants.SlidesScope, GoogleSlidesConstants.DriveScope);
+    }
+
     [Fact]
     public async Task CanCopySlide()
     {
-        var serviceAccountPath = GoogleSlidesConfig.ServiceAccountPath;
         var presentationId = GoogleSlidesConfig.PresentationId;
-        var doc = new GoogleSlidesDocument(presentationId, serviceAccountPath);
+        var doc = new GoogleSlidesDocument(presentationId, CreateTestCredential());
 
         var presentation = await doc.GetPresentationAsync();
         var initialSlideCount = presentation.Slides.Count;

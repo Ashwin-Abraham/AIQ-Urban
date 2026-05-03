@@ -1,6 +1,7 @@
 using AIQ.Exports.GoogleSlides;
 using AIQ.Exports.GoogleSlides.Actions;
 using AIQ.Exports.GoogleSlides.Filters;
+using Google.Apis.Http;
 
 namespace AIQ.Exports.Tests.GoogleSlides.Actions;
 
@@ -11,7 +12,7 @@ public class ReplaceImageActionTests
     public async Task CanReplaceImageOnCopiedSlide()
     {
         await ActionTestPipeline
-            .Create(GoogleSlidesConfig.PresentationId, GoogleSlidesConfig.ServiceAccountPath)
+            .Create(GoogleSlidesConfig.PresentationId, ActionTestPipeline.CreateCredentialFromServiceAccount(GoogleSlidesConfig.ServiceAccountPath))
             .WithTest(async (doc, copiedSlideId) =>
             {
                 var imageUrl = "https://picsum.photos/200/100";

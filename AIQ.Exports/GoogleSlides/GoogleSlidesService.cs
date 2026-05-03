@@ -1,6 +1,7 @@
 using AIQ.Exports.GoogleSlides.Actions;
 using Google.Apis.Auth.OAuth2;
 using Google.Apis.Drive.v3;
+using Google.Apis.Http;
 using Google.Apis.Services;
 using Google.Apis.Slides.v1;
 using Google.Apis.Slides.v1.Data;
@@ -16,12 +17,8 @@ public class GoogleSlidesService
      private const string _slidesScope = SlidesScope;
      private const string _driveScope = DriveScope;
 
-    public GoogleSlidesService(string serviceAccountJsonPath, string presentationId)
+    public GoogleSlidesService(IConfigurableHttpClientInitializer credential, string presentationId)
     {
-        string json = File.ReadAllText(serviceAccountJsonPath);
-        var credential = GoogleCredential.FromJson(json)
-            .CreateScoped([_slidesScope, _driveScope]);
-
         _slidesService = new SlidesService(new BaseClientService.Initializer
         {
             HttpClientInitializer = credential,

@@ -24,4 +24,5 @@ public static class ComponentGuids
     public static Guid BatchExecute => new("9b3e6f1a-4c27-4d8b-8a1f-2e7c5d9a6b56");
     public static Guid AddAction => new("2c8d5a7e-1f49-4b6c-9e3a-8d1f7b2c6a67");
     public static Guid CopyPresentation => new("35794e22-e679-4177-9cd6-051a1eb71b78");
+    public static Guid GoogleSlidesSignIn => new("7c3d8e5a-1f42-4b6c-9a2d-8e5f1a7c3b01");
 }

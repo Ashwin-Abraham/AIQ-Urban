@@ -1,13 +1,13 @@
 using AIQ.Exports.GoogleSlides.Actions;
+using Google.Apis.Http;
 using Google.Apis.Slides.v1.Data;
 
 namespace AIQ.Exports.GoogleSlides;
 public class GoogleSlidesDocument(
     string presentationId,
-    string serviceAccountJsonPath) : IGoogleSlidesDocument
+    IConfigurableHttpClientInitializer credential) : IGoogleSlidesDocument
 {
-    private readonly GoogleSlidesService _service = new(serviceAccountJsonPath, presentationId);
-    private readonly string _serviceAccountJsonPath = serviceAccountJsonPath;
+    private readonly GoogleSlidesService _service = new(credential, presentationId);
 
     public string PresentationId { get; } = presentationId;
     public List<IGoogleSlidesAction> PendingActions { get; } = [];
@@ -50,7 +50,7 @@ public class GoogleSlidesDocument(
     public async Task<GoogleSlidesDocument> CopyPresentationAsync(string? name = null, CancellationToken cancellationToken = default)
     {
         var newId = await _service.CopyPresentationAsync(name, cancellationToken);
-        return new GoogleSlidesDocument(newId, _serviceAccountJsonPath);
+        return new GoogleSlidesDocument(newId, credential);
     }
 
 }
