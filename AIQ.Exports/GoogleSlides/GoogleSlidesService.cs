@@ -14,8 +14,6 @@ public class GoogleSlidesService
     private readonly SlidesService _slidesService;
     private readonly DriveService _driveService;
     private readonly string _presentationId;
-     private const string _slidesScope = SlidesScope;
-     private const string _driveScope = DriveScope;
 
     public GoogleSlidesService(IConfigurableHttpClientInitializer credential, string presentationId)
     {

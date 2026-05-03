@@ -29,7 +29,10 @@ public class GoogleSlidesIntegrationTests
     public async Task CanCopyPresentation()
     {
         var presentationId = GoogleSlidesConfig.PresentationId;
-        var service = new GoogleSlidesDocument(presentationId, CreateTestCredential());
+
+        var userCachedCredential = await GoogleSlidesAuth.SignInAsync(CancellationToken.None);
+
+        var service = new GoogleSlidesDocument(presentationId, userCachedCredential);
         var commonToken = new CancellationTokenSource(TimeSpan.FromSeconds(10)).Token;
 
         var success = await service.CopyPresentationAsync("test copy", commonToken);
