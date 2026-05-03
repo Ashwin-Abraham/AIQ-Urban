@@ -24,7 +24,7 @@ public class ImageFilterComponent : GH_Component
 
     protected override void RegisterInputParams(GH_InputParamManager pManager)
     {
-        pManager.AddTextParameter("Slide Name", "S", "Name of the slide to filter (empty for all slides)", GH_ParamAccess.item);
+        pManager.AddIntegerParameter("Slide Number", "S", "Slide number (1-based, 0 or empty for all slides)", GH_ParamAccess.item, 0);
         pManager.AddTextParameter("Image Element Name", "I", "Name of the image element to find", GH_ParamAccess.item);
     }
 
@@ -35,10 +35,10 @@ public class ImageFilterComponent : GH_Component
 
     protected override void SolveInstance(IGH_DataAccess DA)
     {
-        string? slideName = null;
+        int slideNumber = 0;
         string? imageElementName = null;
 
-        DA.GetData(0, ref slideName);
+        DA.GetData(0, ref slideNumber);
         if (!DA.GetData(1, ref imageElementName)) return;
 
         if (string.IsNullOrWhiteSpace(imageElementName))
@@ -48,7 +48,7 @@ public class ImageFilterComponent : GH_Component
         }
 
         var filter = new ImageFilter(
-            string.IsNullOrWhiteSpace(slideName) ? null : slideName,
+            slideNumber <= 0 ? null : slideNumber,
             imageElementName);
 
         DA.SetData(0, new ImageFilterGoo(filter));

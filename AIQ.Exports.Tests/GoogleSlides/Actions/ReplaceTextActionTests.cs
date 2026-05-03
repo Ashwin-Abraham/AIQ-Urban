@@ -13,9 +13,9 @@ public class ReplaceTextActionTests
     {
         await ActionTestPipeline
             .Create(GoogleSlidesConfig.PresentationId, ActionTestPipeline.CreateCredentialFromServiceAccount(GoogleSlidesConfig.ServiceAccountPath))
-            .WithTest(async (doc, copiedSlideId) =>
+            .WithTest(async (doc, copiedSlideNumber) =>
             {
-                var filter = new TextFilter(copiedSlideId, "placeholder", TextMatchOption.DontMatchCase);
+                var filter = new TextFilter(copiedSlideNumber, "placeholder", TextMatchOption.DontMatchCase);
                 doc.AddAction(new ReplaceTextAction(filter, "placeholder", "TEST_REPLACED"));
                 var occurrencesChanged = await doc.ExecuteAsync();
                 Assert.True(occurrencesChanged > 0);

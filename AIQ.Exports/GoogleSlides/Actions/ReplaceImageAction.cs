@@ -7,7 +7,7 @@ public class ReplaceImageAction(ImageFilter filter, string imageSource) : IGoogl
     public ImageFilter Filter { get; } = filter;
     public string ImageSource { get; } = imageSource;
 
-    public Request ToRequest(string presentationId)
+    public Request ToRequest(string presentationId, Dictionary<int, string> slideNumberToId)
     {
         var imageUrl = GetImageUrl();
         
@@ -20,7 +20,10 @@ public class ReplaceImageAction(ImageFilter filter, string imageSource) : IGoogl
             },
             ImageUrl = imageUrl,
             
-            PageObjectIds = Filter.SlideName != null ? [Filter.SlideName] : null
+            PageObjectIds = Filter.SlideNumber.HasValue && 
+                           slideNumberToId.TryGetValue(Filter.SlideNumber.Value, out var id) 
+                               ? [id] 
+                               : null
         };
 
         return new Request { ReplaceAllShapesWithImage = replaceRequest };

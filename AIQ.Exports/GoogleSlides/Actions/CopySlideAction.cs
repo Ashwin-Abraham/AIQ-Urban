@@ -6,7 +6,7 @@ public class CopySlideAction(string slideId) : IGoogleSlidesAction
 {
     public string SlideId { get; } = slideId;
 
-    public Request ToRequest(string presentationId)
+    public Request ToRequest(string presentationId, Dictionary<int, string> slideNumberToId)
     {
         return new Request
         {
