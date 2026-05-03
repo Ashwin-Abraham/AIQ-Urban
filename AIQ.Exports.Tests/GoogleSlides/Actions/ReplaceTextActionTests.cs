@@ -1,6 +1,7 @@
 using AIQ.Exports.GoogleSlides;
 using AIQ.Exports.GoogleSlides.Actions;
 using AIQ.Exports.GoogleSlides.Filters;
+using Google.Apis.Http;
 
 namespace AIQ.Exports.Tests.GoogleSlides.Actions;
 
@@ -11,7 +12,7 @@ public class ReplaceTextActionTests
     public async Task CanReplaceTextOnCopiedSlide()
     {
         await ActionTestPipeline
-            .Create(GoogleSlidesConfig.PresentationId, GoogleSlidesConfig.ServiceAccountPath)
+            .Create(GoogleSlidesConfig.PresentationId, ActionTestPipeline.CreateCredentialFromServiceAccount(GoogleSlidesConfig.ServiceAccountPath))
             .WithTest(async (doc, copiedSlideId) =>
             {
                 var filter = new TextFilter(copiedSlideId, "placeholder", TextMatchOption.DontMatchCase);

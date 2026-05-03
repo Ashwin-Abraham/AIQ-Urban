@@ -3,6 +3,7 @@ using System.Drawing;
 using AIQ.Exports.GoogleSlides;
 using AIQ.GH.Exports.Types;
 using AIQ.GH.Exports.Utils;
+using Google.Apis.Http;
 using Grasshopper.Kernel;
 
 namespace AIQ.GH.Exports.Components.GoogleSlides;
@@ -22,7 +23,7 @@ public class GoogleSlidesDocComponent : GH_Component
     protected override void RegisterInputParams(GH_InputParamManager pManager)
     {
         pManager.AddTextParameter("Presentation ID", "ID", "Google Slides presentation ID or URL", GH_ParamAccess.item);
-        pManager.AddTextParameter("Service Account JSON", "Auth", "Google service account JSON credentials", GH_ParamAccess.item);
+        pManager.AddGenericParameter("Credential", "Cred", "Google Slides credential from sign-in component", GH_ParamAccess.item);
     }
 
     protected override void RegisterOutputParams(GH_OutputParamManager pManager)
@@ -33,10 +34,10 @@ public class GoogleSlidesDocComponent : GH_Component
     protected override void SolveInstance(IGH_DataAccess DA)
     {
         string? presentationId = null;
-        string? serviceAccountJson = null;
+        GoogleSlidesCredentialGoo? credentialGoo = null;
 
         if (!DA.GetData(0, ref presentationId)) return;
-        if (!DA.GetData(1, ref serviceAccountJson)) return;
+        if (!DA.GetData(1, ref credentialGoo)) return;
 
         if (string.IsNullOrWhiteSpace(presentationId))
         {
@@ -44,9 +45,9 @@ public class GoogleSlidesDocComponent : GH_Component
             return;
         }
 
-        if (string.IsNullOrWhiteSpace(serviceAccountJson))
+        if (credentialGoo?.Value is null)
         {
-            AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Service account JSON cannot be empty");
+            AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Credential is null");
             return;
         }
 
@@ -64,7 +65,7 @@ public class GoogleSlidesDocComponent : GH_Component
             }
         }
 
-        var doc = new GoogleSlidesDocument(cleanedId, serviceAccountJson);
+        var doc = new GoogleSlidesDocument(cleanedId, credentialGoo.Value);
 
         var valid = AsyncHelper.RunSync(ct => doc.ValidateAsync(ct), Constants.CommonToken);
         if (!valid)
