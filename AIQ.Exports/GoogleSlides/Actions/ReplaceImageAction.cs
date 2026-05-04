@@ -1,16 +1,112 @@
 using AIQ.Exports.GoogleSlides.Filters;
+using Google.Apis.Drive.v3;
 using Google.Apis.Slides.v1.Data;
 
 namespace AIQ.Exports.GoogleSlides.Actions;
-public class ReplaceImageAction(ImageFilter filter, string imageSource) : IGoogleSlidesAction
+/// <summary>
+/// Replaces image placeholders in Google Slides with an image from a URL or local file path.
+/// </summary>
+public class ReplaceImageAction : IGoogleSlidesAction
 {
-    public ImageFilter Filter { get; } = filter;
-    public string ImageSource { get; } = imageSource;
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ReplaceImageAction"/> class.
+    /// </summary>
+    /// <param name="filter">The filter to identify the image placeholder to replace.</param>
+    /// <param name="imagePath">The image path, either a public URL or a local file path.</param>
+    public ReplaceImageAction(ImageFilter filter, string imagePath)
+    {
+        Filter = filter;
+        ImagePath = imagePath;
+        _publicImageUrl = imagePath.StartsWith("http://") || imagePath.StartsWith("https://") ? imagePath : null;
+    }
+
+    public ImageFilter Filter { get; }
+    public string ImagePath { get; }
+
+    private string? _publicImageUrl;
+    private string? _driveFileId;
+
+    /// <summary>
+    /// Asynchronously uploads local image material to Google Drive if the image path is a local file.
+    /// </summary>
+    /// <param name="driveService">The Google Drive service instance to use for upload.</param>
+    public async Task UploadRequestMaterialAsync(DriveService driveService)
+    {
+        if (ImagePath.StartsWith("http://") || ImagePath.StartsWith("https://"))
+        {
+            return;
+        }
+
+        var fileInfo = new FileInfo(ImagePath);
+        if (!fileInfo.Exists)
+        {
+            throw new FileNotFoundException($"Image file not found: {ImagePath}");
+        }
+
+        var mimeType = fileInfo.Extension.ToLowerInvariant() switch
+        {
+            ".png" => "image/png",
+            ".jpg" or ".jpeg" => "image/jpeg",
+            ".gif" => "image/gif",
+            _ => "image/png"
+        };
+
+        var fileMetadata = new Google.Apis.Drive.v3.Data.File
+        {
+            Name = fileInfo.Name,
+            MimeType = mimeType
+        };
+
+        using var fileStream = fileInfo.OpenRead();
+        var uploadRequest = driveService.Files.Create(fileMetadata, fileStream, mimeType);
+        uploadRequest.Fields = "id";
+        var uploadResult = await uploadRequest.UploadAsync();
+
+        if (uploadResult.Status != Google.Apis.Upload.UploadStatus.Completed)
+        {
+            throw new Exception($"Failed to upload image to Google Drive: {uploadResult.Exception?.Message}");
+        }
+
+        _driveFileId = uploadRequest.ResponseBody.Id;
+
+        var permission = new Google.Apis.Drive.v3.Data.Permission
+        {
+            Type = "anyone",
+            Role = "reader"
+        };
+        await driveService.Permissions.Create(permission, _driveFileId).ExecuteAsync();
+
+        _publicImageUrl = $"https://drive.google.com/uc?export=view&id={_driveFileId}";
+    }
+
+    /// <summary>
+    /// Asynchronously deletes the uploaded image from Google Drive if it was uploaded.
+    /// </summary>
+    /// <param name="driveService">The Google Drive service instance to use for deletion.</param>
+    public async Task DeleteRequestMaterialAsync(DriveService driveService)
+    {
+        if (string.IsNullOrEmpty(_driveFileId))
+        {
+            return;
+        }
+
+        try
+        {
+            await driveService.Files.Delete(_driveFileId).ExecuteAsync();
+        }
+        catch
+        {
+            // Suppress cleanup errors
+        }
+    }
 
     public Request ToRequest(string presentationId, Dictionary<int, string> slideNumberToId)
     {
-        var imageUrl = GetImageUrl();
-        
+        if (string.IsNullOrEmpty(_publicImageUrl))
+        {
+            throw new InvalidOperationException("Image URL is not available. Ensure UploadRequestMaterialAsync has been called for local image paths.");
+        }
+
         var replaceRequest = new ReplaceAllShapesWithImageRequest
         {
             ContainsText = new SubstringMatchCriteria
@@ -18,7 +114,7 @@ public class ReplaceImageAction(ImageFilter filter, string imageSource) : IGoogl
                 Text = Filter.ImageElementName,
                 MatchCase = false
             },
-            ImageUrl = imageUrl,
+            ImageUrl = _publicImageUrl,
             
             PageObjectIds = Filter.SlideNumber.HasValue && 
                            slideNumberToId.TryGetValue(Filter.SlideNumber.Value, out var id) 
@@ -27,31 +123,5 @@ public class ReplaceImageAction(ImageFilter filter, string imageSource) : IGoogl
         };
 
         return new Request { ReplaceAllShapesWithImage = replaceRequest };
-    }
-
-    private string GetImageUrl()
-    {
-        if (ImageSource.StartsWith("http://") || ImageSource.StartsWith("https://"))
-        {
-            return ImageSource;
-        }
-
-        var fileInfo = new FileInfo(ImageSource);
-        if (!fileInfo.Exists)
-        {
-            throw new FileNotFoundException($"Image file not found: {ImageSource}");
-        }
-
-        var imageBytes = File.ReadAllBytes(ImageSource);
-        var base64 = Convert.ToBase64String(imageBytes);
-        var mimeType = fileInfo.Extension.ToLowerInvariant() switch
-        {
-            ".png" => "image/png",
-            ".jpg" or ".jpeg" => "image/jpeg",
-            ".gif" => "image/gif",
-            _ => "image/png"
-        };
-        
-        return $"data:{mimeType};base64,{base64}";
     }
 }

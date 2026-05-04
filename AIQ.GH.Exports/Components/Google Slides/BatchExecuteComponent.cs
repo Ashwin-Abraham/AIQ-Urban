@@ -63,7 +63,6 @@ public class BatchExecuteComponent : GH_Component
             var count = AsyncHelper.RunSync(ct => doc.ExecuteAsync(ct), Constants.CommonToken);
             DA.SetData(0, true);
             DA.SetData(1, count);
-            DA.SetData(0, new GoogleSlidesDocumentGoo(doc));
         }
         catch (Exception ex)
         {

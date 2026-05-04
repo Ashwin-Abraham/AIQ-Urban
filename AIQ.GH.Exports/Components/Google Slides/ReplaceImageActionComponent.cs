@@ -25,7 +25,7 @@ public class ReplaceImageActionComponent : GH_Component
     protected override void RegisterInputParams(GH_InputParamManager pManager)
     {
         pManager.AddGenericParameter("Image Filter", "F", "Image filter", GH_ParamAccess.item);
-        pManager.AddTextParameter("Image Source", "I", "Image source (URL or local file path)", GH_ParamAccess.item);
+        pManager.AddTextParameter("Image Path", "I", "Image path (URL or local file path)", GH_ParamAccess.item);
     }
 
     protected override void RegisterOutputParams(GH_OutputParamManager pManager)
@@ -36,10 +36,10 @@ public class ReplaceImageActionComponent : GH_Component
     protected override void SolveInstance(IGH_DataAccess DA)
     {
         ImageFilterGoo? filterGoo = null;
-        string? imageSource = null;
+        string? imagePath = null;
 
         if (!DA.GetData(0, ref filterGoo)) return;
-        if (!DA.GetData(1, ref imageSource)) return;
+        if (!DA.GetData(1, ref imagePath)) return;
 
         if (filterGoo?.Value is null)
         {
@@ -47,13 +47,13 @@ public class ReplaceImageActionComponent : GH_Component
             return;
         }
 
-        if (string.IsNullOrWhiteSpace(imageSource))
+        if (string.IsNullOrWhiteSpace(imagePath))
         {
-            AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Image source cannot be empty");
+            AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Image path cannot be empty");
             return;
         }
 
-        var action = new ReplaceImageAction(filterGoo.Value, imageSource);
+        var action = new ReplaceImageAction(filterGoo.Value, imagePath);
         DA.SetData(0, new ReplaceImageActionGoo(action));
     }
 }
