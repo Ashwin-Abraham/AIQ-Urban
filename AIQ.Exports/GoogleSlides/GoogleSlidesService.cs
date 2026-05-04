@@ -68,14 +68,30 @@ public class GoogleSlidesService
         if (actions.Count == 0) return 0;
 
         var slideNumberToId = await GetSlideNumberToIdMapping(cancellationToken);
-        var requests = actions.Select(action => action.ToRequest(_presentationId, slideNumberToId)).ToList();
-        var batchRequest = new BatchUpdatePresentationRequest { Requests = requests };
 
-        var response = await _slidesService.Presentations.BatchUpdate(batchRequest, _presentationId).ExecuteAsync();
+        // Pre-upload material
+        await Task.WhenAll(actions.Select(a => a.UploadRequestMaterialAsync(_driveService)));
 
-        return response.Replies?.Sum(r =>
-            (r.ReplaceAllText?.OccurrencesChanged ?? 0) +
-            (r.ReplaceAllShapesWithImage?.OccurrencesChanged ?? 0)) ?? 0;
+        try
+        {
+            var requests = actions.Select(action => action.ToRequest(_presentationId, slideNumberToId)).ToList();
+            var batchRequest = new BatchUpdatePresentationRequest { Requests = requests };
+
+            var response = await _slidesService.Presentations.BatchUpdate(batchRequest, _presentationId).ExecuteAsync(cancellationToken);
+
+            return response.Replies?.Sum(r =>
+                (r.ReplaceAllText?.OccurrencesChanged ?? 0) +
+                (r.ReplaceAllShapesWithImage?.OccurrencesChanged ?? 0)) ?? 0;
+        }
+        catch (Exception)
+        {
+            throw;
+        }
+        finally
+        {
+            // Cleanup material
+            await Task.WhenAll(actions.Select(a => a.DeleteRequestMaterialAsync(_driveService)));
+        }
     }
 
     public async Task<BatchUpdatePresentationResponse> ExecuteBatchWithResponseAsync(
@@ -85,11 +101,23 @@ public class GoogleSlidesService
         if (actions.Count == 0) return new BatchUpdatePresentationResponse();
 
         var slideNumberToId = await GetSlideNumberToIdMapping(cancellationToken);
-        var requests = actions.Select(action => action.ToRequest(_presentationId, slideNumberToId)).ToList();
-        var batchRequest = new BatchUpdatePresentationRequest { Requests = requests };
 
-        return await _slidesService.Presentations.BatchUpdate(batchRequest, _presentationId)
-            .ExecuteAsync(cancellationToken);
+        // Pre-upload material
+        await Task.WhenAll(actions.Select(a => a.UploadRequestMaterialAsync(_driveService)));
+
+        try
+        {
+            var requests = actions.Select(action => action.ToRequest(_presentationId, slideNumberToId)).ToList();
+            var batchRequest = new BatchUpdatePresentationRequest { Requests = requests };
+
+            return await _slidesService.Presentations.BatchUpdate(batchRequest, _presentationId)
+                .ExecuteAsync(cancellationToken);
+        }
+        finally
+        {
+            // Cleanup material
+            await Task.WhenAll(actions.Select(a => a.DeleteRequestMaterialAsync(_driveService)));
+        }
     }
 
     private async Task<Dictionary<int, string>> GetSlideNumberToIdMapping(CancellationToken cancellationToken = default)

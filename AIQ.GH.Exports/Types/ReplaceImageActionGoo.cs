@@ -17,5 +17,5 @@ public class ReplaceImageActionGoo : GH_Goo<ReplaceImageAction>
 
     public override IGH_Goo Duplicate() => new ReplaceImageActionGoo(Value);
 
-    public override string ToString() => Value is null ? "null" : $"ReplaceImageAction ({Value.ImageSource})";
+    public override string ToString() => Value is null ? "null" : $"ReplaceImageAction ({Value.ImagePath})";
 }
