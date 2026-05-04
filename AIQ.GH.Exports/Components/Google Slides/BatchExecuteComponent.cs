@@ -31,6 +31,7 @@ public class BatchExecuteComponent : GH_Component
     {
         pManager.AddBooleanParameter("Success", "S", "True if execution succeeded", GH_ParamAccess.item);
         pManager.AddIntegerParameter("Modified Count", "M", "Number of items modified", GH_ParamAccess.item);
+        pManager.AddGenericParameter("Document", "Doc", "Google Slides document", GH_ParamAccess.item);
     }
 
     protected override void SolveInstance(IGH_DataAccess DA)
@@ -41,22 +42,20 @@ public class BatchExecuteComponent : GH_Component
         if (!DA.GetData(0, ref docGoo)) return;
         DA.GetData(1, ref execute);
 
-        if (docGoo?.Value is null)
+        bool docIsNull = docGoo?.Value is null;
+
+        if (docIsNull || !execute)
         {
-            AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Document is null");
+            if (docIsNull)
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Document is null");
+
             DA.SetData(0, false);
             DA.SetData(1, 0);
+            DA.SetData(2, docGoo);
             return;
         }
 
-        if (!execute)
-        {
-            DA.SetData(0, true);
-            DA.SetData(1, 0);
-            return;
-        }
-
-        var doc = docGoo.Value;
+        var doc = docGoo!.Value.Clone();
         
         try
         {
@@ -69,6 +68,11 @@ public class BatchExecuteComponent : GH_Component
             AddRuntimeMessage(GH_RuntimeMessageLevel.Error, $"Execution failed: {ex.Message}");
             DA.SetData(0, false);
             DA.SetData(1, 0);
+        }
+        finally
+        {
+            doc.ClearActions();
+            DA.SetData(2, new GoogleSlidesDocumentGoo(doc));
         }
     }
 }

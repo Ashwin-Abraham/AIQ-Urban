@@ -66,7 +66,8 @@ public class AddActionComponent : GH_Component
             return;
         }
 
-        docGoo.Value.AddAction(action);
-        DA.SetData(0, new GoogleSlidesDocumentGoo(docGoo.Value));
+        var clonedDoc = docGoo.Value.Clone();
+        clonedDoc.AddAction(action);
+        DA.SetData(0, new GoogleSlidesDocumentGoo(clonedDoc));
     }
 }

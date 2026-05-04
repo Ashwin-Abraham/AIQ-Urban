@@ -15,7 +15,10 @@ public class GoogleSlidesDocumentGoo : GH_Goo<GoogleSlidesDocument>
     public override bool IsValid => Value != null;
     public override string IsValidWhyNot => Value == null ? "GoogleSlidesDocument is null" : "";
 
-    public override IGH_Goo Duplicate() => new GoogleSlidesDocumentGoo(Value);
+    public override IGH_Goo Duplicate() =>
+        Value is null ? 
+        new GoogleSlidesDocumentGoo()
+        : new GoogleSlidesDocumentGoo(Value.Clone());
 
     public override string ToString() => Value is null ? "null" : $"GoogleSlidesDocument ({Value.PendingActions.Count} actions)";
 }
