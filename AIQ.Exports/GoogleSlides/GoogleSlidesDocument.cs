@@ -17,8 +17,6 @@ public class GoogleSlidesDocument(
         PendingActions.AddRange(action);
     }
 
-    void IGoogleSlidesDocument.AddAction(IGoogleSlidesAction action) => AddAction(action);
-
     public void ClearActions()
     {
         PendingActions.Clear();

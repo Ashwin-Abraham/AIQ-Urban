@@ -1,6 +1,6 @@
 using AIQ.Exports.GoogleSlides;
 using AIQ.Exports.GoogleSlides.Actions;
-using AIQ.Exports.GoogleSlides.Filters;
+using AIQ.Exports.GoogleSlides.Utils;
 using Google.Apis.Http;
 
 namespace AIQ.Exports.Tests.GoogleSlides.Actions;
@@ -15,8 +15,7 @@ public class ReplaceTextActionTests
             .Create(GoogleSlidesConfig.PresentationId, ActionTestPipeline.CreateCredentialFromServiceAccount(GoogleSlidesConfig.ServiceAccountPath))
             .WithTest(async (doc, copiedSlideNumber) =>
             {
-                var filter = new TextFilter(copiedSlideNumber, "placeholder", TextMatchOption.DontMatchCase);
-                doc.AddAction(new ReplaceTextAction(filter, "placeholder", "TEST_REPLACED"));
+                doc.AddAction(new ReplaceTextAction(copiedSlideNumber, TextMatchOption.DontMatchCase, "placeholder", "TEST_REPLACED"));
                 var occurrencesChanged = await doc.ExecuteAsync();
                 Assert.True(occurrencesChanged > 0);
             })

@@ -1,10 +1,15 @@
-using AIQ.Exports.GoogleSlides.Filters;
+using AIQ.Exports.GoogleSlides.Utils;
 using Google.Apis.Slides.v1.Data;
 
 namespace AIQ.Exports.GoogleSlides.Actions;
-public class ReplaceTextAction(TextFilter filter, string findText, string replacementText) : IGoogleSlidesAction
+public class ReplaceTextAction(
+    int? slideNumber,
+    TextMatchOption matchOption,
+    string findText,
+    string replacementText) : IGoogleSlidesAction
 {
-    public TextFilter Filter { get; } = filter;
+    public int? SlideNumber { get; } = slideNumber;
+    public TextMatchOption MatchOption { get; } = matchOption;
     public string FindText { get; } = findText;
     public string ReplacementText { get; } = replacementText;
 
@@ -12,10 +17,14 @@ public class ReplaceTextAction(TextFilter filter, string findText, string replac
     {
         var replaceRequest = new ReplaceAllTextRequest
         {
-            ContainsText = Filter.ToSubstringMatchCriteria(FindText),
+            ContainsText = new SubstringMatchCriteria
+            {
+                Text = FindText,
+                MatchCase = MatchOption == TextMatchOption.MatchCase
+            },
             ReplaceText = ReplacementText,
-            PageObjectIds = Filter.SlideNumber.HasValue && 
-                           slideNumberToId.TryGetValue(Filter.SlideNumber.Value, out var id) 
+            PageObjectIds = SlideNumber.HasValue && 
+                           slideNumberToId.TryGetValue(SlideNumber.Value, out var id) 
                                ? [id] 
                                : null
         };
