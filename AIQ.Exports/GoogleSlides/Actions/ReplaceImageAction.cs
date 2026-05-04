@@ -1,4 +1,3 @@
-using AIQ.Exports.GoogleSlides.Filters;
 using Google.Apis.Drive.v3;
 using Google.Apis.Slides.v1.Data;
 
@@ -11,16 +10,19 @@ public class ReplaceImageAction : IGoogleSlidesAction
     /// <summary>
     /// Initializes a new instance of the <see cref="ReplaceImageAction"/> class.
     /// </summary>
-    /// <param name="filter">The filter to identify the image placeholder to replace.</param>
+    /// <param name="slideNumber">The slide number (1-based, null for all slides).</param>
+    /// <param name="imageElementName">The name of the image element to replace.</param>
     /// <param name="imagePath">The image path, either a public URL or a local file path.</param>
-    public ReplaceImageAction(ImageFilter filter, string imagePath)
+    public ReplaceImageAction(int? slideNumber, string imageElementName, string imagePath)
     {
-        Filter = filter;
+        SlideNumber = slideNumber;
+        ImageElementName = imageElementName;
         ImagePath = imagePath;
         _publicImageUrl = imagePath.StartsWith("http://") || imagePath.StartsWith("https://") ? imagePath : null;
     }
 
-    public ImageFilter Filter { get; }
+    public int? SlideNumber { get; }
+    public string ImageElementName { get; }
     public string ImagePath { get; }
 
     private string? _publicImageUrl;
@@ -111,13 +113,13 @@ public class ReplaceImageAction : IGoogleSlidesAction
         {
             ContainsText = new SubstringMatchCriteria
             {
-                Text = Filter.ImageElementName,
+                Text = ImageElementName,
                 MatchCase = false
             },
             ImageUrl = _publicImageUrl,
             
-            PageObjectIds = Filter.SlideNumber.HasValue && 
-                           slideNumberToId.TryGetValue(Filter.SlideNumber.Value, out var id) 
+            PageObjectIds = SlideNumber.HasValue && 
+                           slideNumberToId.TryGetValue(SlideNumber.Value, out var id) 
                                ? [id] 
                                : null
         };

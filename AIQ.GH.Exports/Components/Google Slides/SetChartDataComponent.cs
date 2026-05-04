@@ -8,6 +8,7 @@ using System;
 using System.Drawing;
 using System.Collections.Generic;
 using AIQ.Exports.GoogleSlides.Actions;
+using AIQ.Exports.GoogleSlides.Utils;
 using AIQ.GH.Exports.Utils;
 
 namespace AIQ.GH.Exports.Components.GoogleSlides;
@@ -26,7 +27,9 @@ public class SetChartDataComponent : GH_Component
 
     protected override void RegisterInputParams(GH_InputParamManager pManager)
     {
-        pManager.AddGenericParameter("Text Filter", "F", "Text filter for chart element", GH_ParamAccess.item);
+        pManager.AddIntegerParameter("Slide Number", "S", "Slide number (1-based, 0 or empty for all slides)", GH_ParamAccess.item, 0);
+        pManager.AddTextParameter("Text Element Name", "T", "Name of the text box element to find", GH_ParamAccess.item);
+        pManager.AddBooleanParameter("Match Case", "M", "True for case-sensitive matching", GH_ParamAccess.item, false);
         pManager.AddGenericParameter("Series Data", "D", "Series data values", GH_ParamAccess.list);
     }
 
@@ -37,21 +40,29 @@ public class SetChartDataComponent : GH_Component
 
     protected override void SolveInstance(IGH_DataAccess DA)
     {
-        TextFilterGoo? filterGoo = null;
+        int slideNumber = 0;
+        string? textElementName = null;
+        bool matchCase = false;
         var seriesData = new List<string>();
 
-        if (!DA.GetData(0, ref filterGoo)) return;
-        DA.GetDataList(1, seriesData);
+        DA.GetData(0, ref slideNumber);
+        if (!DA.GetData(1, ref textElementName)) return;
+        DA.GetData(2, ref matchCase);
+        DA.GetDataList(3, seriesData);
 
-        if (filterGoo?.Value is null)
+        if (string.IsNullOrWhiteSpace(textElementName))
         {
-            AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Text filter is null");
+            AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Text element name cannot be empty");
             return;
         }
 
         AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Set Chart Data is a placeholder - actual chart data modification requires Google Sheets API integration");
 
-        var action = new SetChartDataAction(filterGoo.Value, seriesData);
+        var action = new SetChartDataAction(
+            slideNumber <= 0 ? null : slideNumber,
+            textElementName,
+            matchCase ? TextMatchOption.MatchCase : TextMatchOption.DontMatchCase,
+            seriesData);
         DA.SetData(0, new SetChartDataActionGoo(action));
     }
 }

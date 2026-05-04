@@ -1,10 +1,16 @@
-using AIQ.Exports.GoogleSlides.Filters;
+using AIQ.Exports.GoogleSlides.Utils;
 using Google.Apis.Slides.v1.Data;
 
 namespace AIQ.Exports.GoogleSlides.Actions;
-public class SetChartDataAction(TextFilter filter, List<string> seriesData) : IGoogleSlidesAction
+public class SetChartDataAction(
+    int? slideNumber,
+    string textElementName,
+    TextMatchOption matchOption,
+    List<string> seriesData) : IGoogleSlidesAction
 {
-    public TextFilter Filter { get; } = filter;
+    public int? SlideNumber { get; } = slideNumber;
+    public string TextElementName { get; } = textElementName;
+    public TextMatchOption MatchOption { get; } = matchOption;
     public List<string> SeriesData { get; } = seriesData;
 
     public Request ToRequest(string presentationId, Dictionary<int, string> slideNumberToId)
