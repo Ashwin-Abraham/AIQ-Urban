@@ -12,10 +12,12 @@ public class GoogleSlidesDocument(
     public string PresentationId { get; } = presentationId;
     public List<IGoogleSlidesAction> PendingActions { get; } = [];
 
-    public void AddAction(IGoogleSlidesAction action)
+    public void AddAction(params IGoogleSlidesAction[] action)
     {
-        PendingActions.Add(action);
+        PendingActions.AddRange(action);
     }
+
+    void IGoogleSlidesDocument.AddAction(IGoogleSlidesAction action) => AddAction(action);
 
     public void ClearActions()
     {
@@ -51,6 +53,14 @@ public class GoogleSlidesDocument(
     {
         var newId = await _service.CopyPresentationAsync(name, cancellationToken);
         return new GoogleSlidesDocument(newId, credential);
+    }
+
+    public GoogleSlidesDocument Clone()
+    {
+        var doc = new GoogleSlidesDocument(PresentationId, credential);
+        doc.PendingActions.AddRange(PendingActions);
+
+        return doc;
     }
 
 }
