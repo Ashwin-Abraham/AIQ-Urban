@@ -4,13 +4,11 @@ using Google.Apis.Slides.v1.Data;
 namespace AIQ.Exports.GoogleSlides.Actions;
 public class ReplaceTextAction(
     int? slideNumber,
-    string textElementName,
     TextMatchOption matchOption,
     string findText,
     string replacementText) : IGoogleSlidesAction
 {
     public int? SlideNumber { get; } = slideNumber;
-    public string TextElementName { get; } = textElementName;
     public TextMatchOption MatchOption { get; } = matchOption;
     public string FindText { get; } = findText;
     public string ReplacementText { get; } = replacementText;

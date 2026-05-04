@@ -8,6 +8,6 @@ public interface IGoogleSlidesDocument
     List<IGoogleSlidesAction> PendingActions { get; }
     Task<bool> ValidateAsync(CancellationToken cancellationToken = default);
     Task<int> ExecuteAsync(CancellationToken cancellationToken = default);
-    void AddAction(IGoogleSlidesAction action);
+    void AddAction(params IGoogleSlidesAction[] action);
     void ClearActions();
 }

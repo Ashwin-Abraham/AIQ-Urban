@@ -26,7 +26,6 @@ public class ReplaceTextActionComponent : GH_Component
     protected override void RegisterInputParams(GH_InputParamManager pManager)
     {
         pManager.AddIntegerParameter("Slide Number", "S", "Slide number (1-based, 0 or empty for all slides)", GH_ParamAccess.item, 0);
-        pManager.AddTextParameter("Text Element Name", "T", "Name of the text box element to find", GH_ParamAccess.item);
         pManager.AddBooleanParameter("Match Case", "M", "True for case-sensitive matching", GH_ParamAccess.item, false);
         pManager.AddTextParameter("Find Text", "Find", "Text to find", GH_ParamAccess.item);
         pManager.AddTextParameter("Replace With", "Replace", "Replacement text", GH_ParamAccess.item);
@@ -40,22 +39,14 @@ public class ReplaceTextActionComponent : GH_Component
     protected override void SolveInstance(IGH_DataAccess DA)
     {
         int slideNumber = 0;
-        string? textElementName = null;
         bool matchCase = false;
         string? findText = null;
         string? replaceText = null;
 
         DA.GetData(0, ref slideNumber);
-        if (!DA.GetData(1, ref textElementName)) return;
-        DA.GetData(2, ref matchCase);
-        if (!DA.GetData(3, ref findText)) return;
-        if (!DA.GetData(4, ref replaceText)) return;
-
-        if (string.IsNullOrWhiteSpace(textElementName))
-        {
-            AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Text element name cannot be empty");
-            return;
-        }
+        DA.GetData(1, ref matchCase);
+        if (!DA.GetData(2, ref findText)) return;
+        if (!DA.GetData(3, ref replaceText)) return;
 
         if (string.IsNullOrWhiteSpace(findText))
         {
@@ -65,7 +56,6 @@ public class ReplaceTextActionComponent : GH_Component
 
         var action = new ReplaceTextAction(
             slideNumber <= 0 ? null : slideNumber,
-            textElementName,
             matchCase ? TextMatchOption.MatchCase : TextMatchOption.DontMatchCase,
             findText,
             replaceText ?? "");

@@ -28,7 +28,6 @@ public class SetChartDataComponent : GH_Component
     protected override void RegisterInputParams(GH_InputParamManager pManager)
     {
         pManager.AddIntegerParameter("Slide Number", "S", "Slide number (1-based, 0 or empty for all slides)", GH_ParamAccess.item, 0);
-        pManager.AddTextParameter("Text Element Name", "T", "Name of the text box element to find", GH_ParamAccess.item);
         pManager.AddBooleanParameter("Match Case", "M", "True for case-sensitive matching", GH_ParamAccess.item, false);
         pManager.AddGenericParameter("Series Data", "D", "Series data values", GH_ParamAccess.list);
     }
@@ -41,26 +40,17 @@ public class SetChartDataComponent : GH_Component
     protected override void SolveInstance(IGH_DataAccess DA)
     {
         int slideNumber = 0;
-        string? textElementName = null;
         bool matchCase = false;
         var seriesData = new List<string>();
 
         DA.GetData(0, ref slideNumber);
-        if (!DA.GetData(1, ref textElementName)) return;
-        DA.GetData(2, ref matchCase);
-        DA.GetDataList(3, seriesData);
-
-        if (string.IsNullOrWhiteSpace(textElementName))
-        {
-            AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Text element name cannot be empty");
-            return;
-        }
+        DA.GetData(1, ref matchCase);
+        DA.GetDataList(2, seriesData);
 
         AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Set Chart Data is a placeholder - actual chart data modification requires Google Sheets API integration");
 
         var action = new SetChartDataAction(
             slideNumber <= 0 ? null : slideNumber,
-            textElementName,
             matchCase ? TextMatchOption.MatchCase : TextMatchOption.DontMatchCase,
             seriesData);
         DA.SetData(0, new SetChartDataActionGoo(action));
