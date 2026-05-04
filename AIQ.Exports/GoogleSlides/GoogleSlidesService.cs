@@ -67,14 +67,14 @@ public class GoogleSlidesService
     {
         if (actions.Count == 0) return 0;
 
-        var slideNumberToId = await GetSlideNumberToIdMapping(cancellationToken);
+        var presentation = await GetPresentationAsync(cancellationToken);
 
         // Pre-upload material
         await Task.WhenAll(actions.Select(a => a.UploadRequestMaterialAsync(_driveService)));
 
         try
         {
-            var requests = actions.Select(action => action.ToRequest(_presentationId, slideNumberToId)).ToList();
+            var requests = actions.Select(action => action.ToRequest(presentation)).ToList();
             var batchRequest = new BatchUpdatePresentationRequest { Requests = requests };
 
             var response = await _slidesService.Presentations.BatchUpdate(batchRequest, _presentationId).ExecuteAsync(cancellationToken);
@@ -100,14 +100,14 @@ public class GoogleSlidesService
     {
         if (actions.Count == 0) return new BatchUpdatePresentationResponse();
 
-        var slideNumberToId = await GetSlideNumberToIdMapping(cancellationToken);
+        var presentation = await GetPresentationAsync(cancellationToken);
 
         // Pre-upload material
         await Task.WhenAll(actions.Select(a => a.UploadRequestMaterialAsync(_driveService)));
 
         try
         {
-            var requests = actions.Select(action => action.ToRequest(_presentationId, slideNumberToId)).ToList();
+            var requests = actions.Select(action => action.ToRequest(presentation)).ToList();
             var batchRequest = new BatchUpdatePresentationRequest { Requests = requests };
 
             return await _slidesService.Presentations.BatchUpdate(batchRequest, _presentationId)
@@ -118,22 +118,6 @@ public class GoogleSlidesService
             // Cleanup material
             await Task.WhenAll(actions.Select(a => a.DeleteRequestMaterialAsync(_driveService)));
         }
-    }
-
-    private async Task<Dictionary<int, string>> GetSlideNumberToIdMapping(CancellationToken cancellationToken = default)
-    {
-        var presentation = await GetPresentationAsync(cancellationToken);
-        var mapping = new Dictionary<int, string>();
-        
-        if (presentation.Slides != null)
-        {
-            for (int i = 0; i < presentation.Slides.Count; i++)
-            {
-                mapping[i + 1] = presentation.Slides[i].ObjectId;
-            }
-        }
-        
-        return mapping;
     }
 
     public async Task<Presentation> GetPresentationAsync(CancellationToken cancellationToken = default)

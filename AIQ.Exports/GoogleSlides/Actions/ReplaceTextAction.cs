@@ -13,8 +13,17 @@ public class ReplaceTextAction(
     public string FindText { get; } = findText;
     public string ReplacementText { get; } = replacementText;
 
-    public Request ToRequest(string presentationId, Dictionary<int, string> slideNumberToId)
+    public Request ToRequest(Presentation presentation)
     {
+        var slideNumberToId = presentation.Slides?
+            .Select((slide, i) => new { slide.ObjectId, Index = i + 1 })
+            .ToDictionary(x => x.Index, x => x.ObjectId) ?? [];
+
+        string[]? pageObjectIds = SlideNumber.HasValue &&
+                                  slideNumberToId.TryGetValue(SlideNumber.Value, out var id)
+                                      ? [id]
+                                      : null;
+
         var replaceRequest = new ReplaceAllTextRequest
         {
             ContainsText = new SubstringMatchCriteria
@@ -23,10 +32,7 @@ public class ReplaceTextAction(
                 MatchCase = MatchOption == TextMatchOption.MatchCase
             },
             ReplaceText = ReplacementText,
-            PageObjectIds = SlideNumber.HasValue && 
-                           slideNumberToId.TryGetValue(SlideNumber.Value, out var id) 
-                               ? [id] 
-                               : null
+            PageObjectIds = pageObjectIds
         };
 
         return new Request { ReplaceAllText = replaceRequest };
