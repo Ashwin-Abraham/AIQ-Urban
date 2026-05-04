@@ -102,12 +102,21 @@ public class ReplaceImageAction : IGoogleSlidesAction
         }
     }
 
-    public Request ToRequest(string presentationId, Dictionary<int, string> slideNumberToId)
+    public Request ToRequest(Presentation presentation)
     {
         if (string.IsNullOrEmpty(_publicImageUrl))
         {
             throw new InvalidOperationException("Image URL is not available. Ensure UploadRequestMaterialAsync has been called for local image paths.");
         }
+
+        var slideNumberToId = presentation.Slides?
+            .Select((slide, i) => new { slide.ObjectId, Index = i + 1 })
+            .ToDictionary(x => x.Index, x => x.ObjectId) ?? [];
+
+        string[]? pageObjectIds = SlideNumber.HasValue &&
+                                  slideNumberToId.TryGetValue(SlideNumber.Value, out var id)
+                                      ? [id]
+                                      : null;
 
         var replaceRequest = new ReplaceAllShapesWithImageRequest
         {
@@ -117,11 +126,8 @@ public class ReplaceImageAction : IGoogleSlidesAction
                 MatchCase = false
             },
             ImageUrl = _publicImageUrl,
-            
-            PageObjectIds = SlideNumber.HasValue && 
-                           slideNumberToId.TryGetValue(SlideNumber.Value, out var id) 
-                               ? [id] 
-                               : null
+
+            PageObjectIds = pageObjectIds
         };
 
         return new Request { ReplaceAllShapesWithImage = replaceRequest };

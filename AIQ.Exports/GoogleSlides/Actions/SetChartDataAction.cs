@@ -11,7 +11,7 @@ public class SetChartDataAction(
     public TextMatchOption MatchOption { get; } = matchOption;
     public List<string> SeriesData { get; } = seriesData;
 
-    public Request ToRequest(string presentationId, Dictionary<int, string> slideNumberToId)
+    public Request ToRequest(Presentation presentation)
     {
         return new Request();
     }
