@@ -2,6 +2,7 @@ using AIQ.Exports.GoogleSlides;
 using AIQ.Exports.GoogleSlides.Actions;
 using Google.Apis.Auth.OAuth2;
 using Google.Apis.Http;
+using Google.Apis.Slides.v1.Data;
 
 namespace AIQ.Exports.Tests.GoogleSlides.Actions;
 
@@ -39,37 +40,38 @@ public class ActionTestPipeline
     public async Task Run()
     {
         var doc = new GoogleSlidesDocument(_presentationId, _credential);
+        int slideToCopy = 0;
 
-        var presentation = await doc.GetPresentationAsync();
-        var firstSlideId = presentation.Slides.First().ObjectId;
-
-        doc.AddAction(new CopySlideAction(firstSlideId));
-        var response = await doc.ExecuteWithResponseAsync();
-        var copiedSlideId = response.Replies?.FirstOrDefault()?.DuplicateObject?.ObjectId;
-        if (copiedSlideId == null) throw new InvalidOperationException("Failed to copy slide");
+        // Copy Slide 1
+        var copiedSlideId = await CopySlide(doc, slideToCopy);
 
         // Get updated presentation to find the copied slide's number
         var updatedPresentation = await doc.GetPresentationAsync();
-        int? copiedSlideNumber = null;
-        for (int i = 0; i < updatedPresentation.Slides.Count; i++)
-        {
-            if (updatedPresentation.Slides[i].ObjectId == copiedSlideId)
-            {
-                copiedSlideNumber = i + 1;
-                break;
-            }
-        }
-        if (copiedSlideNumber == null) throw new InvalidOperationException("Failed to find copied slide in presentation");
-
+        var copiedSlideIndex = slideToCopy + 1;
+        
         try
         {
             if (_testAction == null) throw new InvalidOperationException("Test action not configured");
-            await _testAction(doc, copiedSlideNumber.Value);
+            await _testAction(doc, copiedSlideIndex);
         }
         finally
         {
             doc.AddAction(new DeleteSlideAction(copiedSlideId));
             await doc.ExecuteAsync();
         }
+    }
+
+    private static async Task<string?> CopySlide(GoogleSlidesDocument doc, int number = 0)
+    {
+        var presentation = await doc.GetPresentationAsync();
+
+        var slideId = presentation.Slides.ElementAtOrDefault(number)?.ObjectId;
+
+        doc.AddAction(new CopySlideAction(slideId));
+        var response = await doc.ExecuteWithResponseAsync();
+
+        var copiedSlideId = response.Replies?.FirstOrDefault()?.DuplicateObject?.ObjectId;
+
+        return copiedSlideId;
     }
 }

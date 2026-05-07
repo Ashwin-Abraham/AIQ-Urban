@@ -2,18 +2,39 @@ using Google.Apis.Slides.v1.Data;
 
 namespace AIQ.Exports.GoogleSlides.Actions;
 
-public class DeleteSlideAction(string slideId) : IGoogleSlidesAction
+public class DeleteSlideAction : IGoogleSlidesAction
 {
-    public string SlideId { get; } = slideId;
+    private readonly int? _slideIndex;
+    private readonly string? _slideId;
 
-    public Request ToRequest(Presentation presentation)
+    public DeleteSlideAction(string slideId)
     {
-        return new Request
-        {
-            DeleteObject = new DeleteObjectRequest
-            {
-                ObjectId = SlideId
-            }
-        };
+        _slideId = slideId;
+    }
+
+    public DeleteSlideAction(int slideIndex)
+    {
+        _slideIndex = slideIndex;
+    }
+
+    public IEnumerable<Request> ToRequest(Presentation presentation)
+    {
+        var slide = _slideIndex != null?
+            presentation.Slides.ElementAtOrDefault(_slideIndex!.Value)
+            : presentation.Slides.FirstOrDefault(x => x.ObjectId == _slideId);
+
+        if (slide == null)
+            return [];
+
+        return 
+            [
+                new Request
+                {
+                    DeleteObject = new DeleteObjectRequest
+                    {
+                        ObjectId = slide.ObjectId
+                    }
+                }
+            ];
     }
 }

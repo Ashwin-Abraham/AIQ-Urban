@@ -6,6 +6,8 @@ namespace AIQ.Exports.GoogleSlides;
 
 public static class GoogleSlidesAuth
 {
+    public static FileDataStore DataStore => new FileDataStore("AIQ.Exports.GoogleSlides");
+
     public static async Task<UserCredential> SignInAsync(CancellationToken cancellationToken = default)
     {
         var clientSecrets = new ClientSecrets
@@ -19,6 +21,6 @@ public static class GoogleSlidesAuth
             [SlidesScope, DriveScope],
             "default",
             cancellationToken,
-            new FileDataStore("AIQ.Exports.GoogleSlides"));
+            DataStore);
     }
 }

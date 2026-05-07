@@ -13,7 +13,7 @@ public class ReplaceTextAction(
     public string FindText { get; } = findText;
     public string ReplacementText { get; } = replacementText;
 
-    public Request ToRequest(Presentation presentation)
+    public IEnumerable<Request> ToRequest(Presentation presentation)
     {
         var slideNumberToId = presentation.Slides?
             .Select((slide, i) => new { slide.ObjectId, Index = i + 1 })
@@ -35,6 +35,6 @@ public class ReplaceTextAction(
             PageObjectIds = pageObjectIds
         };
 
-        return new Request { ReplaceAllText = replaceRequest };
+        yield return new Request { ReplaceAllText = replaceRequest };
     }
 }

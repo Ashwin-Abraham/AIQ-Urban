@@ -102,7 +102,7 @@ public class ReplaceImageAction : IGoogleSlidesAction
         }
     }
 
-    public Request ToRequest(Presentation presentation)
+    public IEnumerable<Request> ToRequest(Presentation presentation)
     {
         if (string.IsNullOrEmpty(_publicImageUrl))
         {
@@ -130,6 +130,6 @@ public class ReplaceImageAction : IGoogleSlidesAction
             PageObjectIds = pageObjectIds
         };
 
-        return new Request { ReplaceAllShapesWithImage = replaceRequest };
+        yield return new Request { ReplaceAllShapesWithImage = replaceRequest };
     }
 }

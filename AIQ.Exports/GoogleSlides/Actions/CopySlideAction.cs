@@ -6,9 +6,9 @@ public class CopySlideAction(string slideId) : IGoogleSlidesAction
 {
     public string SlideId { get; } = slideId;
 
-    public Request ToRequest(Presentation presentation)
+    public IEnumerable<Request> ToRequest(Presentation presentation)
     {
-        return new Request
+        yield return new Request
         {
             DuplicateObject = new DuplicateObjectRequest
             {
