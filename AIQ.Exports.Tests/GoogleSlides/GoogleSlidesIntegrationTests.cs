@@ -14,7 +14,7 @@ public class GoogleSlidesIntegrationTests
     }
 
     [Fact]
-    public async Task CanGetSlide()
+    public async Task PresentationIsValid()
     {
         var presentationId = GoogleSlidesConfig.PresentationId;
         var service = new GoogleSlidesDocument(presentationId, CreateTestCredential());
@@ -23,6 +23,18 @@ public class GoogleSlidesIntegrationTests
         var success = await service.ValidateAsync(commonToken);
 
         Assert.True(success);
+    }
+
+    [Fact]
+    public async Task CanGetPresentation()
+    {
+        var presentationId = GoogleSlidesConfig.PresentationId;
+        var service = new GoogleSlidesDocument(presentationId, CreateTestCredential());
+        var commonToken = new CancellationTokenSource(TimeSpan.FromSeconds(10)).Token;
+
+        var presentation = await service.GetPresentationAsync(commonToken);
+
+        Assert.NotNull(presentation);
     }
 
     [Fact]
