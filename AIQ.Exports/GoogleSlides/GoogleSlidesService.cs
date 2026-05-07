@@ -74,7 +74,7 @@ public class GoogleSlidesService
 
         try
         {
-            var requests = actions.Select(action => action.ToRequest(presentation)).ToList();
+            var requests = actions.SelectMany(action => action.ToRequest(presentation)).ToList();
             var batchRequest = new BatchUpdatePresentationRequest { Requests = requests };
 
             var response = await _slidesService.Presentations.BatchUpdate(batchRequest, _presentationId).ExecuteAsync(cancellationToken);
@@ -107,7 +107,7 @@ public class GoogleSlidesService
 
         try
         {
-            var requests = actions.Select(action => action.ToRequest(presentation)).ToList();
+            var requests = actions.SelectMany(action => action.ToRequest(presentation)).ToList();
             var batchRequest = new BatchUpdatePresentationRequest { Requests = requests };
 
             return await _slidesService.Presentations.BatchUpdate(batchRequest, _presentationId)
