@@ -1,0 +1,11 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+	  <TargetFrameworks>net8.0</TargetFrameworks>
+	  <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+	  <LangVersion>12.0</LangVersion>
+	  <Configurations>Debug;Release;Debug_NoViz</Configurations>
+  </PropertyGroup>
+
+</Project>
