@@ -7,7 +7,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{02EA681E
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{FEE079C2-35BC-400E-99D2-29EBD2F492FA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AIQ.Urban.Rhino", "src\AIQ.Urban.Rhino\AIQ.Urban.Rhino.csproj", "{757987B9-6A25-2F0B-7351-92E44B62A88E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AIQ.Urban.RhinoPlugin", "src\AIQ.Urban.Rhino\AIQ.Urban.RhinoPlugin.csproj", "{757987B9-6A25-2F0B-7351-92E44B62A88E}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AIQ.Urban.Core", "src\AIQ.Urban.Core\AIQ.Urban.Core.csproj", "{E05DA1B2-3C01-B3F6-DCFD-D53E640C2C93}"
 EndProject

@@ -1,0 +1,26 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFrameworks>net8.0</TargetFrameworks>
+		<EnableDynamicLoading>true</EnableDynamicLoading>
+		<TargetExt>.rhp</TargetExt>
+		<NoWarn>NU1701</NoWarn>
+	</PropertyGroup>
+  
+  <PropertyGroup>
+    <!-- Specifies information for Assembly and Yak -->
+    <Version>1.0</Version>
+    <Title>AIQ.Urban.RhinoPlugin</Title>
+    <Company>AIQ.Urban.RhinoPlugin Authors</Company>
+    <Description>Description of AIQ.Urban.RhinoPlugin</Description>
+	  <LangVersion>12</LangVersion>
+  </PropertyGroup>
+  
+  <ItemGroup>
+    <PackageReference Include="RhinoCommon" Version="8.31.26126.13431-rc" ExcludeAssets="runtime" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\AIQ.Urban.Core\AIQ.Urban.Core.csproj" />
+  </ItemGroup>
+  
+</Project>
