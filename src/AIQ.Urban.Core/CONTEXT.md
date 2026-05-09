@@ -3,6 +3,13 @@
 ## Purpose
 Pure city-modelling domain logic. Models buildings, transit networks, parcels, zones, topography, and vegetation for architectural site-planning in Rhino.
 
+## Implementation Order (First Command)
+1. `Models/ModelElement.cs` — base class with `Guid Id`
+2. `Models/Transit.cs` — Transit subclass, Outline calculated eagerly in constructor
+3. `UrbanModel.cs` — singleton with `Instance`, typed `List<Transit> Transits`, `AddTransit(Transit): void`
+4. `Geometry/` (if needed) — any extracted geometry helpers for Outline calculation
+5. Rhino command `AddTransit_AIQUrban` — user interaction + Core call + layer baking
+
 ## Design Constraints
 
 ### Dependency Rule
@@ -12,16 +19,26 @@ Pure city-modelling domain logic. Models buildings, transit networks, parcels, z
 
 ### Model State
 - `UrbanModel` is a singleton in AIQ.Urban.Core holding all `ModelElement`s and `ModelGroup`s. It is the single source of truth for the in-memory model. Rhino doc serialization is a future concern.
+- Access pattern: static `UrbanModel.Instance` property with lazy initialization.
+- Operation methods live directly on `UrbanModel` (e.g. `urbanModel.AddTransit(transit)`).
+- Elements are stored in typed lists: `List<Transit> Transits { get; }`, `List<Building> Buildings { get; }`, etc.
 
 ### Pipeline
 - Eager execution: when a command adds/modifies an element, the pipeline automatically recalculates all dependent elements.
 - Example: `AddTransit` adds a road → parcels intersecting that road are automatically split/recalculated.
 - RhinoPlugin commands collect user input, convert Rhino types → Core types, call into `UrbanModel`/pipeline, then read back from `UrbanModel` to display.
+- **CommandOrchestratorPipeline deferred.** For the first command, baking Rhino geometry into the Rhino doc is handled locally. A shared `CommandOrchestratorPipeline` in the Rhino layer will be extracted later when common cross-command sync behaviours emerge.
+- **No `ModelOrchestratorPipeline` class for now.** Operation methods live directly on `UrbanModel` (e.g. `urbanModel.AddTransit(...)`). A separate pipeline class can be introduced later when complex multi-step actions or dependency chains justify it.
 
 ### ModelElement Hierarchy
-- `ModelElement` is the base type for all urban elements: Building, Transit, Parcel2D, Parcel3D, Vegetation, TopoMesh, etc.
+- `ModelElement` is the base type for all urban elements. Properties: `Guid Id` (generated in constructor). Subclasses: Building, Transit, Parcel2D, Parcel3D, Vegetation, TopoMesh, etc.
 - `ModelGroup` (aliased as `Group`) — Zone, Parcel, Site — contains `List<ModelElement> Elements` but is **not** itself a ModelElement (no composite nesting)
 - `Metrics` subtypes (ZoneMetrics, AreaMetrics, etc.) reference a ModelGroup but are also **not** ModelElements
+
+### Folder Structure
+- `Models/` — ModelElement, Transit, and future model types
+- `Geometry/` — geometry helper utilities
+- Project root — UrbanModel and top-level orchestration
 
 ### Geometry Approach
 - `Profile2D` is a new custom class guaranteed to operate in XY only (no Z dimension). Used for FloorPlate profiles and Parcel2D outlines.
@@ -43,9 +60,9 @@ A single storey of a Building. Defined by a `Profile2D`, a `double ZHeight`, and
 Enum: `Road`, `Railway`, `CyclePath`, `Pedestrian`, `Waterway`.
 
 ### Transit
-A linear transportation corridor of a given `TransitType`. Properties:
-- `Curve Centerline` — path along the corridor
-- `Brep Outline` — extruded surface representing the full right-of-way
+A linear transportation corridor of a given `TransitType`. `Outline` is calculated eagerly in the constructor via a private method. Properties:
+- `Curve Centerline` — path along the corridor (must be planar at a consistent Z)
+- `Curve Outline` — closed boundary curve formed by offsetting centerline ±width/2 with straight-line end caps representing the full right-of-way
 - `double Width`
 - `bool IsOnGround`
 - `List<TransitNode> OrderedNodes`
