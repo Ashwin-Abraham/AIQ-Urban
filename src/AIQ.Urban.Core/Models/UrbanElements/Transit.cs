@@ -1,21 +1,27 @@
 using Rhino.Geometry;
 using AIQ.Urban.Core.Enums;
+using AIQ.Urban.Core.Models.GeometryElements;
 
-namespace AIQ.Urban.Core.Models;
+namespace AIQ.Urban.Core.Models.UrbanElements;
 
 /// <summary>A linear transportation corridor of a given <see cref="Enums.TransitType"/>.</summary>
-public class Transit : ModelElement
+public class Transit : UrbanElement
 {
     /// <summary>Path along the corridor (must be planar at a consistent Z).</summary>
-    public Curve Centerline { get; }
+    public CurveElement Centerline { get; }
+
     /// <summary>Closed boundary curve representing the full right-of-way.</summary>
-    public Curve Outline { get; }
+    public CurveElement Outline { get; }
+
     /// <summary>Right-of-way width.</summary>
     public double Width { get; }
+
     /// <summary>Type of transit corridor.</summary>
-    public Enums.TransitType TransitType { get; }
+    public TransitType TransitType { get; }
+
     /// <summary>Whether the corridor sits on ground level.</summary>
     public bool IsOnGround { get; }
+
     /// <summary>Ordered junction nodes along the corridor.</summary>
     public List<TransitNode> OrderedNodes { get; }
 
@@ -27,11 +33,11 @@ public class Transit : ModelElement
     public Transit(
         Curve centerline,
         double width,
-        Enums.TransitType transitType,
+        TransitType transitType,
         bool isOnGround = true,
         double tolerance = 0.001)
     {
-        Centerline = centerline;
+        Centerline = new CurveElement(centerline, Guid.NewGuid());
         Width = width;
         TransitType = transitType;
         IsOnGround = isOnGround;
@@ -39,13 +45,18 @@ public class Transit : ModelElement
         Outline = CalculateOutline(centerline, width, tolerance);
     }
 
-    private static Curve CalculateOutline(Curve centerline, double width, double tolerance)
+    private static CurveElement CalculateOutline(Curve centerline, double width, double tolerance)
     {
         if (!centerline.TryGetPlane(out var plane))
             throw new InvalidOperationException("Centerline must be planar.");
 
-        var halfWidth = width / 2.0;
+        var outline = CalculateOffset(centerline, width, plane, tolerance);
+        return new CurveElement(outline, Guid.NewGuid());
+    }
 
+    private static Curve CalculateOffset(Curve centerline, double width, Plane plane, double tolerance)
+    {
+        var halfWidth = width / 2.0;
         var offsetCurves1 = centerline.Offset(plane, halfWidth, tolerance, CurveOffsetCornerStyle.Sharp);
         if (offsetCurves1 is not { Length: > 0 })
             throw new InvalidOperationException("Failed to offset centerline positively.");

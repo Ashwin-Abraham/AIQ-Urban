@@ -1,8 +1,8 @@
-using AIQ.Urban.Core.Models;
+using AIQ.Urban.Core.Models.UrbanElements;
 
 namespace AIQ.Urban.Core;
 
-/// <summary>Singleton holding all <see cref="ModelElement"/>s and <see cref="ModelGroup"/>s. Single source of truth for the in-memory model.</summary>
+/// <summary>Singleton holding all <see cref="UrbanElement"/>s and <see cref="ModelGroup"/>s. Single source of truth for the in-memory model.</summary>
 public class UrbanModel
 {
     private static readonly Lazy<UrbanModel> _instance = new(() => new UrbanModel());
