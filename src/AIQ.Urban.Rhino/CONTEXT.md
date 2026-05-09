@@ -35,10 +35,20 @@ All baked geometry follows a consistent nested layer hierarchy:
 ```
 AIQ Urban
   ├── Transit
+  │   ├── Road
+  │   │   ├── Centerline
+  │   │   └── Outline
+  │   └── ...
   ├── Building
+  │   ├── Envelope
+  │   └── FloorPlates
+  │       ├── Residential   (one per distinct Use)
+  │       └── ...
   ├── Parcel
   ├── Vegetation
   └── Topography
 ```
 Each element type bakes into its corresponding child layer under `AIQ Urban`.
 Layers are created on first use if they don't exist.
+
+Floor plate outlines group by Use across all buildings — all "Residential" plates from all buildings share one sublayer.
