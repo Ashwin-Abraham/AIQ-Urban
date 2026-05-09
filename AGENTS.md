@@ -236,3 +236,14 @@ All projects use `Microsoft.NET.Sdk` — no legacy `.csproj` format.
 - Projects marked with `Debug_NoViz` configuration skip visualization-heavy dependencies for faster builds
 - `AIQ.GH.Exports` targets both `net7.0` and `net48` for Grasshopper compatibility
 - Debug visualization helpers are only available in DEBUG builds
+
+## Agent skills
+
+### Issue tracker
+Issues tracked on GitHub. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+Default set (`needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`). See `docs/agents/triage-labels.md`.
+
+### Domain docs
+Multi-context — `src/AIQ.Urban.Core/CONTEXT.md` and `src/AIQ.Urban.Rhino/CONTEXT.md`. See `docs/agents/domain.md`.
