@@ -1,8 +1,8 @@
 using AIQ.Urban.Core.Models.GeometryElements;
 
-namespace AIQ.Urban.Core.Models;
+namespace AIQ.Urban.Core.Models.UrbanElements;
 
-public class FloorPlate
+public class FloorPlate:IUrbanElement
 {
     public Profile2D Outline { get; }
     public Use Use { get; }
@@ -11,5 +11,10 @@ public class FloorPlate
     {
         Outline = outline;
         Use = use;
+    }
+
+    public List<Guid> GetGeometryIds()
+    {
+        return [Outline.Id];
     }
 }

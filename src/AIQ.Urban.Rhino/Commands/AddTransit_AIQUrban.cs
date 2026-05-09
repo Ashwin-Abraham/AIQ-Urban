@@ -12,6 +12,7 @@ using System;
 using System.Linq;
 using Rhino.DocObjects;
 using AIQ.Urban.Core.Models.UrbanElements;
+using AIQ.Urban.Core.Models.GeometryElements;
 
 namespace AIQ.Urban.RhinoPlugin;
 
@@ -57,23 +58,24 @@ public class AddTransit_AIQUrban : Command
         var width = widthOption.CurrentValue;
         var transitType = (TransitType)typeOption.CurrentValue;
         var centerlineRefs = go.Objects();
-        var centerlines = centerlineRefs
-            .Select(x => x.Curve())
-            .OfType<Curve>()
+        var rhinoObjs = centerlineRefs
+            .Select(x => x.Object())
             .ToList();
 
         List<Transit> newTransit = [];
 
-        for (int i = 0; i < centerlines.Count; i++)
+        for (int i = 0; i < rhinoObjs.Count; i++)
         {
-            var centerline = centerlines[i];
-            if (!TryValidateCenterline(centerline, tolerance, out var error))
+            var centerline = TryValidateCenterline(rhinoObjs[i], tolerance, out var error);
+
+            if(centerline is null)
             {
                 RhinoApp.WriteLine("Skipping curve {0}: {1}", i + 1, error);
                 continue;
             }
 
-            var transit = new Transit(centerline, width, transitType, tolerance: tolerance);
+            var curveElement = new CurveElement(centerline, rhinoObjs[i].Id);
+            var transit = new Transit(curveElement, width, transitType, tolerance: tolerance);
             UrbanModel.Instance.AddTransit(transit);
 
             newTransit.Add(transit);
@@ -111,28 +113,34 @@ public class AddTransit_AIQUrban : Command
         }
     }
 
-    private static bool TryValidateCenterline(Curve curve, double tolerance, out string error)
+    private static Curve? TryValidateCenterline(RhinoObject rhinoObj, double tolerance, out string error)
     {
+        if(rhinoObj.Geometry is not Curve curve)
+        {
+            error = "Object must be curve";
+            return null;
+        }
+
         if (!curve.TryGetPlane(out var plane))
         {
             error = "Curve must be planar.";
-            return false;
+            return null;
         }
 
         if (!curve.IsPlanar(tolerance))
         {
             error = "Curve is not planar within tolerance.";
-            return false;
+            return null;
         }
 
         var bbox = curve.GetBoundingBox(plane);
         if (System.Math.Abs(bbox.Max.Z - bbox.Min.Z) > tolerance)
         {
             error = string.Format("Z variation ({0}) exceeds tolerance.", System.Math.Abs(bbox.Max.Z - bbox.Min.Z));
-            return false;
+            return null;
         }
 
-        error = null;
-        return true;
+        error = "";
+        return curve;
     }
 }
