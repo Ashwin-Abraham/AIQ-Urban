@@ -5,9 +5,13 @@ using Rhino.Input;
 using Rhino.Input.Custom;
 using AIQ.Urban.Core;
 using AIQ.Urban.Core.Enums;
-using AIQ.Urban.Core.Models;
 using AIQ.Urban.RhinoPlugin.Utils;
 using AIQ.Urban.RhinoPlugin.Extensions;
+using System.Collections.Generic;
+using System;
+using System.Linq;
+using Rhino.DocObjects;
+using AIQ.Urban.Core.Models.UrbanElements;
 
 namespace AIQ.Urban.RhinoPlugin;
 
@@ -37,11 +41,12 @@ public class AddTransit_AIQUrban : Command
         var widthOption = new OptionDouble(7.0, 0.001, double.MaxValue);
         var typeOption = new OptionInteger(0, 0, 4);
         go.AddOptionDouble("Width", ref widthOption);
-        go.AddOptionInteger("Type", ref typeOption);
+        go.AddOptionEnumList("Type", TransitType.Road);
 
         while (true)
         {
-            var rc = go.GetMultiple(1, 0);
+            var rc = go.GetMultiple(1, (int)1e5);
+            
             if (rc == GetResult.Option)
                 continue;
             if (rc != GetResult.Object)
@@ -51,15 +56,17 @@ public class AddTransit_AIQUrban : Command
 
         var width = widthOption.CurrentValue;
         var transitType = (TransitType)typeOption.CurrentValue;
-        int added = 0;
+        var centerlineRefs = go.Objects();
+        var centerlines = centerlineRefs
+            .Select(x => x.Curve())
+            .OfType<Curve>()
+            .ToList();
 
-        for (int i = 0; i < go.ObjectCount; i++)
+        List<Transit> newTransit = [];
+
+        for (int i = 0; i < centerlines.Count; i++)
         {
-            var curveRef = go.Object(i);
-            var centerline = curveRef.Curve();
-            if (centerline is null)
-                continue;
-
+            var centerline = centerlines[i];
             if (!TryValidateCenterline(centerline, tolerance, out var error))
             {
                 RhinoApp.WriteLine("Skipping curve {0}: {1}", i + 1, error);
@@ -69,15 +76,39 @@ public class AddTransit_AIQUrban : Command
             var transit = new Transit(centerline, width, transitType, tolerance: tolerance);
             UrbanModel.Instance.AddTransit(transit);
 
-            var layerIndex = doc.Layers.EnsureLayerExists(LayerConstants.Transit).Index;
-            var attributes = new Rhino.DocObjects.ObjectAttributes() { LayerIndex = layerIndex };
-            doc.Objects.AddCurve(transit.Outline, attributes);
-            added++;
+            newTransit.Add(transit);
         }
 
+        DeleteInputCurves(doc, centerlineRefs);
+        BakeNewTransit(doc, newTransit);
+
         doc.Views.Redraw();
-        RhinoApp.WriteLine("Added {0} transit corridor(s), width={1}, type={2}.", added, width, transitType);
+        RhinoApp.WriteLine("Added {0} transit corridor(s), width={1}, type={2}.", newTransit.Count, width, transitType);
         return Result.Success;
+    }
+
+    private static void DeleteInputCurves(RhinoDoc doc, IEnumerable<ObjRef> centerlines)
+    {
+        var ids = centerlines.Select(x => x.ObjectId);
+        doc.Objects.Delete(ids, true);
+    }
+
+    private void BakeNewTransit(RhinoDoc doc, List<Transit> newTransit)
+    {
+        foreach(var transit in newTransit)
+        {
+            var clLayer = LayerConstants.TransitCenterline(transit.TransitType, transit.Width);
+            var outlineLayer = LayerConstants.TransitOutline(transit.TransitType, transit.Width);
+
+            var clLayerIndex = doc.Layers.EnsureLayerExists(clLayer).Index;
+            var outlineLayerIndex = doc.Layers.EnsureLayerExists(outlineLayer).Index;
+
+            var clAttributes = new ObjectAttributes() { LayerIndex = clLayerIndex };
+            var outlineAttributes = new ObjectAttributes() { LayerIndex = outlineLayerIndex };
+
+            doc.Objects.AddCurve(transit.Centerline, clAttributes);
+            doc.Objects.AddCurve(transit.Outline, outlineAttributes);
+        }
     }
 
     private static bool TryValidateCenterline(Curve curve, double tolerance, out string error)
