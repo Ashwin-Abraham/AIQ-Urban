@@ -106,8 +106,8 @@ public class AddTransit_AIQUrban : Command
             var clAttributes = new ObjectAttributes() { LayerIndex = clLayerIndex };
             var outlineAttributes = new ObjectAttributes() { LayerIndex = outlineLayerIndex };
 
-            doc.Objects.AddCurve(transit.Centerline, clAttributes);
-            doc.Objects.AddCurve(transit.Outline, outlineAttributes);
+            doc.Objects.AddCurve(transit.Centerline.Geometry, clAttributes);
+            doc.Objects.AddCurve(transit.Outline.Geometry, outlineAttributes);
         }
     }
 

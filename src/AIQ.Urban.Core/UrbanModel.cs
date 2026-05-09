@@ -1,3 +1,4 @@
+using AIQ.Urban.Core.Models;
 using AIQ.Urban.Core.Models.UrbanElements;
 
 namespace AIQ.Urban.Core;
@@ -13,11 +14,20 @@ public class UrbanModel
     /// <summary>All transit corridors in the model.</summary>
     public List<Transit> Transits { get; } = [];
 
+    /// <summary>All buildings in the model.</summary>
+    public List<Building> Buildings { get; } = [];
+
     private UrbanModel() { }
 
     /// <summary>Add a transit corridor to the model and trigger dependent recalculations.</summary>
     public void AddTransit(Transit transit)
     {
         Transits.Add(transit);
+    }
+
+    /// <summary>Add a building to the model.</summary>
+    public void AddBuilding(Building building)
+    {
+        Buildings.Add(building);
     }
 }

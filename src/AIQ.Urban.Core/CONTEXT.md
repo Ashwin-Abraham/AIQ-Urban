@@ -3,12 +3,15 @@
 ## Purpose
 Pure city-modelling domain logic. Models buildings, transit networks, parcels, zones, topography, and vegetation for architectural site-planning in Rhino.
 
-## Implementation Order (First Command)
-1. `Models/ModelElement.cs` — base class with `Guid Id`
-2. `Models/Transit.cs` — Transit subclass, Outline calculated eagerly in constructor
-3. `UrbanModel.cs` — singleton with `Instance`, typed `List<Transit> Transits`, `AddTransit(Transit): void`
-4. `Geometry/` (if needed) — any extracted geometry helpers for Outline calculation
-5. Rhino command `AddTransit_AIQUrban` — user interaction + Core call + layer baking
+## Implemented
+1. `Models/UrbanElements/UrbanElement.cs` — base class with `Guid Id`
+2. `Models/UrbanElements/Transit.cs` — Transit subclass, Outline calculated eagerly
+3. `UrbanModel.cs` — singleton, `List<Transit> Transits`, `AddTransit()`, `List<Building> Buildings`, `AddBuilding()`
+4. `Rhino/Commands/AddTransit_AIQUrban.cs` — transit command
+5. `Models/GeometryElements/Profile2D.cs` — planar curve wrapper, XY-validated
+6. `Models/Use.cs` — `record` with `string Name` + `Color`
+7. `Models/FloorPlate.cs` — `Profile2D Outline` + `Use`, per-storey footprint
+8. `Models/UrbanElements/Building.cs` — constructor takes `(Curve footprint, double typicalFloorHeight, int floorCount, Use use)`, eagerly computes envelope (solid Brep extrusion) and floor plates (duplicated + translated). Footprint validated by `ValidateFootprint()`: checks planar, reverses if normal points down.
 
 ## Design Constraints
 
@@ -18,7 +21,7 @@ Pure city-modelling domain logic. Models buildings, transit networks, parcels, z
 - Core depends on **no** other solution projects (especially not the old `ArchSitePlan.*` or `BHoM.*` projects)
 
 ### Model State
-- `UrbanModel` is a singleton in AIQ.Urban.Core holding all `ModelElement`s and `ModelGroup`s. It is the single source of truth for the in-memory model. Rhino doc serialization is a future concern.
+- `UrbanModel` is a singleton in AIQ.Urban.Core holding all `UrbanElement`s and `ModelGroup`s. It is the single source of truth for the in-memory model. Rhino doc serialization is a future concern.
 - Access pattern: static `UrbanModel.Instance` property with lazy initialization.
 - Operation methods live directly on `UrbanModel` (e.g. `urbanModel.AddTransit(transit)`).
 - Elements are stored in typed lists: `List<Transit> Transits { get; }`, `List<Building> Buildings { get; }`, etc.
@@ -30,31 +33,33 @@ Pure city-modelling domain logic. Models buildings, transit networks, parcels, z
 - **CommandOrchestratorPipeline deferred.** For the first command, baking Rhino geometry into the Rhino doc is handled locally. A shared `CommandOrchestratorPipeline` in the Rhino layer will be extracted later when common cross-command sync behaviours emerge.
 - **No `ModelOrchestratorPipeline` class for now.** Operation methods live directly on `UrbanModel` (e.g. `urbanModel.AddTransit(...)`). A separate pipeline class can be introduced later when complex multi-step actions or dependency chains justify it.
 
-### ModelElement Hierarchy
-- `ModelElement` is the base type for all urban elements. Properties: `Guid Id` (generated in constructor). Subclasses: Building, Transit, Parcel2D, Parcel3D, Vegetation, TopoMesh, etc.
-- `ModelGroup` (aliased as `Group`) — Zone, Parcel, Site — contains `List<ModelElement> Elements` but is **not** itself a ModelElement (no composite nesting)
-- `Metrics` subtypes (ZoneMetrics, AreaMetrics, etc.) reference a ModelGroup but are also **not** ModelElements
+### UrbanElement Hierarchy
+- `UrbanElement` is the base type for all urban elements. Properties: `Guid Id` (generated in constructor). Subclasses: Building, Transit, Parcel2D, Parcel3D, Vegetation, TopoMesh, etc.
+- `ModelGroup` (aliased as `Group`) — Zone, Parcel, Site — contains `List<UrbanElement> Elements` but is **not** itself an UrbanElement (no composite nesting)
+- `Metrics` subtypes (ZoneMetrics, AreaMetrics, etc.) reference a ModelGroup but are also **not** UrbanElements
 
 ### Folder Structure
-- `Models/` — ModelElement, Transit, and future model types
+- `Models/` — UrbanElement, Transit, Use, and future model types
+- `Models/UrbanElements/` — concrete UrbanElement subclasses
+- `Models/GeometryElements/` — geometry wrappers (CurveElement, Profile2D)
 - `Geometry/` — geometry helper utilities
 - Project root — UrbanModel and top-level orchestration
 
 ### Geometry Approach
-- `Profile2D` is a new custom class guaranteed to operate in XY only (no Z dimension). Used for FloorPlate profiles and Parcel2D outlines.
+- `Profile2D : IGeometryElement<Curve>` — wraps a Rhino Curve, enforces planar at consistent Z (no Z variation). Used for FloorPlate outlines and Parcel2D outlines.
 - `Node` is a new custom class for graph nodes. Future consideration: replace with topologyNet when TransitGraph is fully designed.
 - RhinoCommon types (Curve, Brep, Mesh, Point3d, Transform) used for all 3D geometry.
 
 ## Domain Glossary
 
 ### Use
-A semantic label with visual feedback. `string Name` + `Color` (System.Drawing.Color). Not an enum — instances are created at runtime (e.g. "Residential", "Commercial", "Retail", "Industrial", "MixedUse", "Public", "Park", "Parking", "Utility").
+A semantic label with visual feedback. `string Name` + `Color` (System.Drawing.Color). Stored as a `record` in `Models/Use.cs`. Not an enum — instances are created at runtime (e.g. "Residential", "Commercial", "Retail", "Industrial", "MixedUse", "Public", "Park", "Parking", "Utility").
 
 ### Building
-A constructed structure. Has a collection of `FloorPlate`s and a `Brep Envelope` representing the outer shell.
+A constructed structure. Has a collection of `FloorPlate`s and a `Brep Envelope` representing the outer shell. Added via `UrbanModel.AddBuilding(Building)`.
 
 ### FloorPlate
-A single storey of a Building. Defined by a `Profile2D`, a `double ZHeight`, and a `Use`.
+A single storey of a Building. Defined by a `Profile2D Outline` and a `Use`. Each storey has its own footprint shape. Floor elevation is determined by the Profile2D curve's plane Z.
 
 ### TransitType
 Enum: `Road`, `Railway`, `CyclePath`, `Pedestrian`, `Waterway`.
