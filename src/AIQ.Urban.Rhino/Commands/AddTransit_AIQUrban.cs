@@ -65,12 +65,14 @@ public class AddTransit_AIQUrban : Command
         var addTransitStep = new AddTransitStep(transitData);
         var removeExistingTransitStep = new RemoveTransitStep(centerlineIds);
         var transitUnioner = new TransitSurfaceUnioner();
+        var recalculateParcelsStep = new RecalculateParcelsStep();
         
         new RhinoUrbanModelPipeline(doc, UrbanModel.Instance)
             .WithRhinoObjectDeletion(centerlineIds)
             .WithUrbanElementDeletion(removeExistingTransitStep)
             .WithUrbanElementAddition(addTransitStep)
             .WithUrbanElementAddition(transitUnioner)
+            .WithUrbanElementAddition(recalculateParcelsStep)
             .Run();
 
         doc.Views.Redraw();

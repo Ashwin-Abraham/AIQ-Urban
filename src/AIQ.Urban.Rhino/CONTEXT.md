@@ -12,7 +12,7 @@ Rhino 8 plugin providing native commands for urban site modelling. Acts as the b
 - Multi-step sync between Rhino doc and UrbanModel flows through `RhinoUrbanModelPipeline` in `Pipeline/`
 
 ## RhinoUrbanModelPipeline
-Fluent pipeline in `Pipeline/RhinoUrbanModelPipeline.cs`. Step-based, with three operation categories:
+Fluent pipeline in `Pipeline/RhinoUrbanModelPipeline.cs`. Step-based, with a single ordered step list:
 
 ```
 new RhinoUrbanModelPipeline(doc, UrbanModel.Instance)
@@ -23,22 +23,23 @@ new RhinoUrbanModelPipeline(doc, UrbanModel.Instance)
 ```
 
 - **WithRhinoObjectDeletion**: Registers Rhino ObjectIds to delete from the doc. Independent of UrbanModel state — used for input curves consumed during command execution.
-- **WithUrbanElementDeletion**: Runs `IDeleteUrbanElementsStep` which removes elements from UrbanModel and returns their baked geometry IDs for Rhino doc cleanup.
-- **WithUrbanElementAddition**: Runs `IAddUrbanElementsStep` which creates domain elements, adds them to UrbanModel, and returns their geometry IDs for baking.
-- **Run()**: Executes in order: Delete → (model edits) → Add, then batch-deletes Rhino objects and bakes new geometry.
+- **WithUrbanElementDeletion**: Appends `IDeleteUrbanElementsStep` to the single step list.
+- **WithUrbanElementAddition**: Appends `IAddUrbanElementsStep` to the single step list.
+- **Run()**: Iterates the step list in configuration order, calling each `Run(UrbanModel)`. Each step's returned GUIDs are routed to the delete, edit, or add bucket based on which marker interfaces the step implements (a step may implement multiple interfaces, e.g. `RecalculateParcelsStep` implements both `IAdd` and `IDelete` to return old parcel GUIDs for cleanup and new parcel GUIDs for baking). Then batch-deletes Rhino objects and bakes new geometry.
 
-Element type output is automatic — `OutputTransits()` and `OutputBuildings()` are called by the pipeline for any added elements of those types.
+Element type output is automatic — `OutputTransits()`, `OutputBuildings()`, and `OutputParcels(addedIds)` are called by the pipeline for any added elements of those types.
 
 ## Command Surface
 
 ### `AddTransit_AIQUrban`
 - User picks curves as centerlines (planar, Z variation validated and rejected)
 - Prompts: `GetDouble` for width (default 7.0), `GetInteger` for TransitType (0=Road…)
-- Pipeline: `.WithRhinoObjectDeletion(centerlineIds).WithUrbanElementDeletion(removeExisting).WithUrbanElementAddition(addTransitStep).WithUrbanElementAddition(transitUnioner).Run()`
+- Pipeline: `.WithRhinoObjectDeletion(centerlineIds).WithUrbanElementDeletion(removeExisting).WithUrbanElementAddition(addTransitStep).WithUrbanElementAddition(transitUnioner).WithUrbanElementAddition(recalculateParcelsStep).Run()`
 - `TransitSurfaceUnioner` is registered as an `IAddUrbanElementsStep` — unions all transit outlines per type into `UrbanModel.TransitSurfaces`
+- `RecalculateParcelsStep` runs after `TransitSurfaceUnioner` — reads `UrbanModel.TransitSurfaces` holes to create parcels
 - Only the `Outline` and `Surface` are baked; input curves are deleted by `WithRhinoObjectDeletion`
 - Duplicate detection via `RemoveTransitStep`: if same centerline ObjectId was previously used, old Transit is removed from UrbanModel and baked outline deleted from Rhino doc
-- **Known gap**: When transit is deleted/modified, previously baked unioned `Surface` geometry remains as orphans in the Rhino doc — no cleanup yet.
+- **Known gap**: When transit is deleted/modified, previously baked unioned `Surface` geometry remains as orphans in the Rhino doc — no cleanup yet. Parcel geometry for old parcels is correctly cleaned up since `RecalculateParcelsStep` returns old parcel GUIDs as `IDeleteUrbanElementsStep` output.
 
 ### `AddBuilding_AIQUrban`
 - Collects: footprint curve, floor height, floor count, Use dropdown
