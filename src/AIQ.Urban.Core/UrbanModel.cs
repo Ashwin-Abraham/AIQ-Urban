@@ -19,10 +19,21 @@ public class UrbanModel
 
     private UrbanModel() { }
 
-    /// <summary>Add a transit corridor to the model and trigger dependent recalculations.</summary>
-    public void AddTransit(Transit transit)
+    public List<IUrbanElement> GetUrbanElements()
     {
-        Transits.Add(transit);
+        var list = new List<IUrbanElement>();
+
+        list.AddRange(Transits);
+        list.AddRange(Buildings);
+
+        return list;
+    }
+
+
+    /// <summary>Add a transit corridor to the model and trigger dependent recalculations.</summary>
+    public void AddTransit(IEnumerable<Transit> transits)
+    {
+        Transits.AddRange(transits);
     }
 
     /// <summary>Add a building to the model.</summary>
@@ -30,4 +41,5 @@ public class UrbanModel
     {
         Buildings.Add(building);
     }
+
 }

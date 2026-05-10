@@ -13,6 +13,7 @@ using System.Linq;
 using Rhino.DocObjects;
 using AIQ.Urban.Core.Models.UrbanElements;
 using AIQ.Urban.Core.Models.GeometryElements;
+using AIQ.Urban.RhinoPlugin.Pipeline.ModelActions;
 
 namespace AIQ.Urban.RhinoPlugin;
 
@@ -62,8 +63,7 @@ public class AddTransit_AIQUrban : Command
             .Select(x => x.Object())
             .ToList();
 
-        var selectedIds = centerlineRefs.Select(x => x.ObjectId).ToList();
-        List<Transit> newTransits = [];
+        List<TransitData> transitData = [];
 
         for (int i = 0; i < rhinoObjs.Count; i++)
         {
@@ -76,18 +76,21 @@ public class AddTransit_AIQUrban : Command
             }
 
             var curveElement = new CurveElement(centerline, rhinoObjs[i].Id);
-            var transit = new Transit(curveElement, width, transitType, tolerance: tolerance);
-            newTransits.Add(transit);
+            var data = new TransitData(curveElement, width, transitType);
+            transitData.Add(data);
         }
 
-        new RhinoUrbanModelPipeline(doc)
-            .RemoveMatchingElements(selectedIds, selectedIds)
-            .ChangeInputCurvesLayer(selectedIds, transitType, width)
-            .AddTransit(newTransits)
-            .BakeNewUrbanElements();
+        var centerlineIds = centerlineRefs.Select(x => x.ObjectId).ToList();
+        var addTransitStep = new AddTransitStep(transitData);
+        var removeExistingTransitStep = new RemoveTransitStep(centerlineIds);
+
+        new RhinoUrbanModelPipeline(doc, UrbanModel.Instance)
+            .WithUrbanElementDeletion(removeExistingTransitStep)
+            .WithUrbanElementAddition(addTransitStep)
+            .Run();
 
         doc.Views.Redraw();
-        RhinoApp.WriteLine("Added {0} transit corridor(s), width={1}, type={2}.", newTransits.Count, width, transitType);
+        RhinoApp.WriteLine("Added {0} transit corridor(s), width={1}, type={2}.", transitData.Count, width, transitType);
         return Result.Success;
     }
 
