@@ -53,7 +53,7 @@ public class AddBuilding_AIQUrban : Command
             return Result.Failure;
         }
 
-        Profile2D profile= new Profile2D(footprint);
+        Polygon2D profile= new Polygon2D(footprint);
         var buildingData = new BuildingData(profile, floorHeight, floorCount, selectedUse);
         var addBuildingStep = new AddBuildingStep([buildingData]);
 

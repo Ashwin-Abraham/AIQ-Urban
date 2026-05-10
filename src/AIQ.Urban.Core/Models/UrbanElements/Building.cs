@@ -10,9 +10,9 @@ public class Building : IUrbanElement
     public Use Use { get; }
     public double TypicalFloorHeight { get; }
     public int FloorCount { get; }
-    public Profile2D Footprint { get; }
+    public Polygon2D Footprint { get; }
 
-    public Building(Profile2D footprint, double typicalFloorHeight, int floorCount, Use use)
+    public Building(Polygon2D footprint, double typicalFloorHeight, int floorCount, Use use)
     {
         ArgumentNullException.ThrowIfNull(footprint);
 
@@ -48,7 +48,7 @@ public class Building : IUrbanElement
             var curve = footprint.DuplicateCurve();
             var translate = Transform.Translation(0, 0, i * floorHeight);
             curve.Transform(translate);
-            var profile = new Profile2D(curve);
+            var profile = new Polygon2D(curve);
             plates.Add(new FloorPlate(profile, use));
         }
 

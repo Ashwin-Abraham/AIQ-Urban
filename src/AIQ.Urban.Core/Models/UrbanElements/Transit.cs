@@ -11,7 +11,7 @@ public class Transit : IUrbanElement
     public Curve2D Centerline { get; }
 
     /// <summary>Closed boundary curve representing the full right-of-way.</summary>
-    public Profile2D Outline { get; }
+    public Polygon2D Outline { get; }
 
     /// <summary>Right-of-way width.</summary>
     public double Width { get; }
@@ -45,13 +45,13 @@ public class Transit : IUrbanElement
         Outline = CalculateOutline(centerline.Geometry, width, tolerance);
     }
 
-    private static Profile2D CalculateOutline(Curve centerline, double width, double tolerance)
+    private static Polygon2D CalculateOutline(Curve centerline, double width, double tolerance)
     {
         if (!centerline.TryGetPlane(out var plane))
             throw new InvalidOperationException("Centerline must be planar.");
 
         var outline = CalculateOffset(centerline, width, plane, tolerance);
-        return new Profile2D(outline);
+        return new Polygon2D(outline);
     }
 
     private static Curve CalculateOffset(Curve centerline, double width, Plane plane, double tolerance)
@@ -69,7 +69,7 @@ public class Transit : IUrbanElement
         var offset2 = offsetCurves2[0];
 
         var startCap = new Line(offset1.PointAtStart, offset2.PointAtStart).ToNurbsCurve();
-        var endCap = new Line(offset1.PointAtEnd, offset2.PointAtEnd).ToNurbsCurve();
+        var endCap = new Line(offset2.PointAtEnd, offset1.PointAtEnd).ToNurbsCurve();
 
         var offset2Reversed = offset2.DuplicateCurve();
         offset2Reversed.Reverse();

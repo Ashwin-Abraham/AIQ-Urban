@@ -21,7 +21,7 @@ public class AddBuildingStep(List<BuildingData> _buildingData) : IAddUrbanElemen
 }
 
 public record BuildingData(
-    Profile2D Footprint,
+    Polygon2D Footprint,
     double TypicalFloorHeight,
     int FloorCount,
     Use Use)
