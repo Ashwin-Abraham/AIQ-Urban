@@ -13,6 +13,7 @@ internal static class LayerConstants
     public static string Vegetation => "AIQ Urban::Vegetation";
     public static string Topography => "AIQ Urban::Topography";
     public static string Transit => "AIQ Urban::Transit";
+    public static string ZoneRoot => "AIQ Urban::Zone";
     
     public static string TransitOutline(TransitType type, double width)
     {
@@ -37,6 +38,11 @@ internal static class LayerConstants
     public static string ParcelLayer(Use use)
     {
         return $"{Parcel}::{use.Name}";
+    }
+
+    public static string ZoneLayer(string name)
+    {
+        return $"{ZoneRoot}::{name}";
     }
 
 }

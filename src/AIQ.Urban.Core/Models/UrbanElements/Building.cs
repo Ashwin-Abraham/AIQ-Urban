@@ -55,6 +55,12 @@ public class Building : IUrbanElement
         return plates;
     }
 
+    public Point3d GetRepresentativeCenter()
+    {
+        var lowestPlate = FloorPlates[0].Outline.Geometry;
+        return AreaMassProperties.Compute(lowestPlate)!.Centroid;
+    }
+
     public List<Guid> GetGeometryIds()
     {
         return FloorPlates

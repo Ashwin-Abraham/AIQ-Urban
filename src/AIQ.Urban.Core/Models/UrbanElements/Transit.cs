@@ -68,6 +68,11 @@ public class Transit : IUrbanElement
         return new Profile2D(perimeter, holes);
     }
 
+    public Point3d GetRepresentativeCenter()
+    {
+        return Centerline.Geometry.PointAtNormalizedLength(0.5);
+    }
+
     public List<Guid> GetGeometryIds()
     {
         return [Centerline.Id, Outline.Id];

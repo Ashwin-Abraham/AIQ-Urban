@@ -20,5 +20,5 @@ public static class DefaultUses
         Public, Park, Parking, Utility
     ];
 
-    public static readonly string[] Names = All.Select(u => u.Name).ToArray();
+    public static string[] Names { get; } = All.Select(u => u.Name).ToArray();
 }

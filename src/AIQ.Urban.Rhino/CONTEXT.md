@@ -27,7 +27,7 @@ new RhinoUrbanModelPipeline(doc, UrbanModel.Instance)
 - **WithUrbanElementAddition**: Appends `IAddUrbanElementsStep` to the single step list.
 - **Run()**: Iterates the step list in configuration order, calling each `Run(UrbanModel)`. Each step's returned GUIDs are routed to the delete, edit, or add bucket based on which marker interfaces the step implements (a step may implement multiple interfaces, e.g. `RecalculateParcelsStep` implements both `IAdd` and `IDelete` to return old parcel GUIDs for cleanup and new parcel GUIDs for baking). Then batch-deletes Rhino objects and bakes new geometry.
 
-Element type output is automatic — `OutputTransits()`, `OutputBuildings()`, and `OutputParcels(addedIds)` are called by the pipeline for any added elements of those types.
+Element type output is automatic — `OutputTransits()`, `OutputBuildings()`, `OutputParcels(addedIds)`, and `OutputZones(addedIds)` are called by the pipeline for any added elements of those types.
 
 ## Command Surface
 
@@ -49,12 +49,18 @@ Element type output is automatic — `OutputTransits()`, `OutputBuildings()`, an
 - No duplicate detection for now (input curve is destroyed, same ObjectId can never match again)
 - Only footprint+height+count+use variant; Brep/parcel variants deferred
 
+### `AddZone_AIQUrban`
+- User picks a closed planar curve as the zone boundary, then enters a zone name via text prompt
+- Validates: curve is closed and planar, name does not contain `::`, name is not already taken by an existing zone
+- Pipeline: `.WithRhinoObjectDeletion([boundaryId]).WithUrbanElementAddition(addZoneStep).Run()`
+- Input curve is deleted by `WithRhinoObjectDeletion`
+- Duplicate detection: if a zone with the same name exists, warns user and aborts
+
 ### Future Commands (non-exhaustive, deferred)
 - `AddBuildingFromBrep(Brep Envelope, double FloorHeight)`
 - `AddBuildingOnParcel(Brep Envelope, double FloorHeight)`
 - `AddBuildingOnParcelEdge(Brep Envelope, double FloorHeight)`
 - `ChangeUse(Group | Parcel2D Parcel, Use Use)`
-- `AddZone(Curve Boundary, string Name)`
 
 ## Relationship to Core
 Commands collect user input, then delegate to `RhinoUrbanModelPipeline` which calls into Core's domain logic. Core owns all model state and computation. The RhinoPlugin is a thin presenter/controller layer on top.
@@ -76,6 +82,9 @@ AIQ Urban
   │   └── FloorPlates
   │       ├── Residential   (one per distinct Use)
   │       └── ...
+  ├── Zone
+  │   ├── Downtown          (one per distinct zone name)
+  │   └── Park
   ├── Parcel
   ├── Vegetation
   └── Topography
