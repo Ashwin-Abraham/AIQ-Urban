@@ -1,19 +1,15 @@
+using System.Collections.Generic;
+using System.Linq;
+using AIQ.Urban.Core;
+using AIQ.Urban.Core.Enums;
+using AIQ.Urban.Core.Models.GeometryElements;
+using AIQ.Urban.RhinoPlugin.Pipeline.ModelActions;
 using Rhino;
 using Rhino.Commands;
+using Rhino.DocObjects;
 using Rhino.Geometry;
 using Rhino.Input;
 using Rhino.Input.Custom;
-using AIQ.Urban.Core;
-using AIQ.Urban.Core.Enums;
-using AIQ.Urban.RhinoPlugin.Utils;
-using AIQ.Urban.RhinoPlugin.Extensions;
-using System.Collections.Generic;
-using System;
-using System.Linq;
-using Rhino.DocObjects;
-using AIQ.Urban.Core.Models.UrbanElements;
-using AIQ.Urban.Core.Models.GeometryElements;
-using AIQ.Urban.RhinoPlugin.Pipeline.ModelActions;
 
 namespace AIQ.Urban.RhinoPlugin;
 
@@ -85,6 +81,7 @@ public class AddTransit_AIQUrban : Command
         var removeExistingTransitStep = new RemoveTransitStep(centerlineIds);
 
         new RhinoUrbanModelPipeline(doc, UrbanModel.Instance)
+            .WithRhinoObjectDeletion(centerlineIds)
             .WithUrbanElementDeletion(removeExistingTransitStep)
             .WithUrbanElementAddition(addTransitStep)
             .Run();
