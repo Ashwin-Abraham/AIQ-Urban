@@ -19,7 +19,7 @@ public class UrbanModel
     /// <summary>All buildings in the model.</summary>
     public List<Building> Buildings { get; } = [];
 
-    public List<(SurfaceElement, TransitType)> TransitSurfaces { get; } = [];
+    public List<(Profile2D Profile, TransitType Type)> TransitSurfaces { get; } = [];
 
     private UrbanModel() { }
 

@@ -20,4 +20,5 @@ public class Polygon2D : IGeometryElement<Curve>
 
         Geometry = geometry;
     }
+
 }
