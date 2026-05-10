@@ -1,5 +1,6 @@
 using Rhino.Geometry;
 using AIQ.Urban.Core.Enums;
+using AIQ.Urban.Core.Extensions;
 using AIQ.Urban.Core.Models.GeometryElements;
 
 namespace AIQ.Urban.Core.Models.UrbanElements;
@@ -11,7 +12,7 @@ public class Transit : IUrbanElement
     public Curve2D Centerline { get; }
 
     /// <summary>Closed boundary curve representing the full right-of-way.</summary>
-    public Polygon2D Outline { get; }
+    public Profile2D Outline { get; }
 
     /// <summary>Right-of-way width.</summary>
     public double Width { get; }
@@ -45,42 +46,26 @@ public class Transit : IUrbanElement
         Outline = CalculateOutline(centerline.Geometry, width, tolerance);
     }
 
-    private static Polygon2D CalculateOutline(Curve centerline, double width, double tolerance)
+    private static Profile2D CalculateOutline(Curve centerline, double width, double tolerance)
     {
         if (!centerline.TryGetPlane(out var plane))
             throw new InvalidOperationException("Centerline must be planar.");
 
-        var outline = CalculateOffset(centerline, width, plane, tolerance);
-        return new Polygon2D(outline);
+        var outlines = centerline.OffsetBothWays(width, plane, tolerance);
+
+        return ToProfile2d(outlines);
     }
 
-    private static Curve CalculateOffset(Curve centerline, double width, Plane plane, double tolerance)
+    private static Profile2D ToProfile2d(List<Curve> outlines)
     {
-        var halfWidth = width / 2.0;
-        var offsetCurves1 = centerline.Offset(plane, halfWidth, tolerance, CurveOffsetCornerStyle.Sharp);
-        if (offsetCurves1 is not { Length: > 0 })
-            throw new InvalidOperationException("Failed to offset centerline positively.");
+        outlines = outlines.OrderByDescending(x => x.GetLength()).ToList();
 
-        var offsetCurves2 = centerline.Offset(plane, -halfWidth, tolerance, CurveOffsetCornerStyle.Sharp);
-        if (offsetCurves2 is not { Length: > 0 })
-            throw new InvalidOperationException("Failed to offset centerline negatively.");
+        var perimeter = new Polygon2D(outlines[0]);
+        var holes = outlines.Except([outlines[0]])
+            .Select(x => new Polygon2D(x))
+            .ToList();
 
-        var offset1 = offsetCurves1[0];
-        var offset2 = offsetCurves2[0];
-
-        var startCap = new Line(offset1.PointAtStart, offset2.PointAtStart).ToNurbsCurve();
-        var endCap = new Line(offset2.PointAtEnd, offset1.PointAtEnd).ToNurbsCurve();
-
-        var offset2Reversed = offset2.DuplicateCurve();
-        offset2Reversed.Reverse();
-
-        var segments = new Curve[] { offset1, endCap, offset2Reversed, startCap };
-        var joined = Curve.JoinCurves(segments, tolerance);
-
-        if (joined is not { Length: > 0 })
-            throw new InvalidOperationException("Failed to join transit outline curves.");
-
-        return joined[0];
+        return new Profile2D(perimeter, holes);
     }
 
     public List<Guid> GetGeometryIds()

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using AIQ.Urban.Core;
 using AIQ.Urban.Core.Enums;
+using AIQ.Urban.Core.Models.GeometryElements;
 using AIQ.Urban.Core.Models.UrbanElements;
 using AIQ.Urban.RhinoPlugin.Extensions;
 using AIQ.Urban.RhinoPlugin.Pipeline.ModelActions;
@@ -193,13 +194,31 @@ public class RhinoUrbanModelPipeline(RhinoDoc _rhinoDoc, UrbanModel _urbanModel)
             var outlineLayer = LayerConstants.TransitOutline(transit.TransitType, transit.Width);
             var outlineLayerIndex = _rhinoDoc.Layers.EnsureLayerExists(outlineLayer).Index;
             var outlineAttributes = new ObjectAttributes { LayerIndex = outlineLayerIndex };
-            transit.Outline.Id = _rhinoDoc.Objects.AddCurve(transit.Outline.Geometry, outlineAttributes);
+            OutputGeometry(transit.Outline, outlineAttributes);
 
             var centerlineLayer = LayerConstants.TransitOutline(transit.TransitType, transit.Width);
             var centerlineLayerIndex = _rhinoDoc.Layers.EnsureLayerExists(centerlineLayer).Index;
             var centerlineAttributes = new ObjectAttributes { LayerIndex = centerlineLayerIndex };
-            transit.Centerline.Id = _rhinoDoc.Objects.AddCurve(transit.Centerline.Geometry, centerlineAttributes); 
+            OutputGeometry(transit.Centerline, centerlineAttributes);
         }
+    }
+
+    private void OutputGeometry(Curve2D geometry, ObjectAttributes attributes)
+    {
+        geometry.Id = _rhinoDoc.Objects.AddCurve(geometry.Geometry, attributes);
+    }
+
+    private void OutputGeometry(Profile2D geometry, ObjectAttributes attributes)
+    {
+        OutputGeometry(geometry.Outline, attributes);
+
+        foreach (var hole in geometry.Holes)
+            OutputGeometry(hole, attributes);
+    }
+
+    private void OutputGeometry(Polygon2D geometry, ObjectAttributes attributes)
+    {
+        geometry.Id = _rhinoDoc.Objects.AddCurve(geometry.Geometry, attributes);
     }
 
     private void DeleteRhinoObjects(List<Guid> idsToDelete)

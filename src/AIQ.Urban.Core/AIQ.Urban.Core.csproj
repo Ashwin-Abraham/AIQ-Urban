@@ -15,4 +15,8 @@
     <ProjectReference Include="..\AIQ.Primitives\AIQ.Primitives.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Comparers\" />
+  </ItemGroup>
+
 </Project>
