@@ -5,7 +5,7 @@ using AIQ.Urban.Core.Models.GeometryElements;
 namespace AIQ.Urban.Core.Models.UrbanElements;
 
 /// <summary>A linear transportation corridor of a given <see cref="Enums.TransitType"/>.</summary>
-public class Transit : UrbanElement
+public class Transit : IUrbanElement
 {
     /// <summary>Path along the corridor (must be planar at a consistent Z).</summary>
     public CurveElement Centerline { get; }
@@ -31,18 +31,18 @@ public class Transit : UrbanElement
     /// <param name="isOnGround">True if ground-level.</param>
     /// <param name="tolerance">Fitting tolerance for geometry operations.</param>
     public Transit(
-        Curve centerline,
+        CurveElement centerline,
         double width,
         TransitType transitType,
         bool isOnGround = true,
         double tolerance = 0.001)
     {
-        Centerline = new CurveElement(centerline, Guid.NewGuid());
+        Centerline = centerline;
         Width = width;
         TransitType = transitType;
         IsOnGround = isOnGround;
         OrderedNodes = [];
-        Outline = CalculateOutline(centerline, width, tolerance);
+        Outline = CalculateOutline(centerline.Geometry, width, tolerance);
     }
 
     private static CurveElement CalculateOutline(Curve centerline, double width, double tolerance)
@@ -81,5 +81,10 @@ public class Transit : UrbanElement
             throw new InvalidOperationException("Failed to join transit outline curves.");
 
         return joined[0];
+    }
+
+    public List<Guid> GetGeometryIds()
+    {
+        return [Centerline.Id, Outline.Id];
     }
 }

@@ -27,11 +27,9 @@ Pure city-modelling domain logic. Models buildings, transit networks, parcels, z
 - Elements are stored in typed lists: `List<Transit> Transits { get; }`, `List<Building> Buildings { get; }`, etc.
 
 ### Pipeline
-- Eager execution: when a command adds/modifies an element, the pipeline automatically recalculates all dependent elements.
-- Example: `AddTransit` adds a road → parcels intersecting that road are automatically split/recalculated.
-- RhinoPlugin commands collect user input, convert Rhino types → Core types, call into `UrbanModel`/pipeline, then read back from `UrbanModel` to display.
-- **CommandOrchestratorPipeline deferred.** For the first command, baking Rhino geometry into the Rhino doc is handled locally. A shared `CommandOrchestratorPipeline` in the Rhino layer will be extracted later when common cross-command sync behaviours emerge.
-- **No `ModelOrchestratorPipeline` class for now.** Operation methods live directly on `UrbanModel` (e.g. `urbanModel.AddTransit(...)`). A separate pipeline class can be introduced later when complex multi-step actions or dependency chains justify it.
+- **RhinoUrbanModelPipeline** in `src/AIQ.Urban.Rhino/Pipeline/` orchestrates multi-step sync between the Rhino doc and UrbanModel. Steps: RemoveMatchingElements → ChangeInputCurvesLayer → AddTransit → BakeNewUrbanElements.
+- Eager execution: when a command adds/modifies an element, the pipeline automatically recalculates all dependent elements. (Dependent recalculation deferred for later.)
+- RhinoPlugin commands collect user input, convert Rhino types → Core types, call into the pipeline, then read back from `UrbanModel` to display.
 
 ### UrbanElement Hierarchy
 - `UrbanElement` is the base type for all urban elements. Properties: `Guid Id` (generated in constructor). Subclasses: Building, Transit, Parcel2D, Parcel3D, Vegetation, TopoMesh, etc.
@@ -47,6 +45,7 @@ Pure city-modelling domain logic. Models buildings, transit networks, parcels, z
 
 ### Geometry Approach
 - `Profile2D : IGeometryElement<Curve>` — wraps a Rhino Curve, enforces planar at consistent Z (no Z variation). Used for FloorPlate outlines and Parcel2D outlines.
+- `IGeometryElement<T>.Id` is settable — the Rhino layer overwrites placeholder IDs with real Rhino ObjectIds after baking (see `RhinoUrbanModelPipeline.BakeNewUrbanElements`).
 - `Node` is a new custom class for graph nodes. Future consideration: replace with topologyNet when TransitGraph is fully designed.
 - RhinoCommon types (Curve, Brep, Mesh, Point3d, Transform) used for all 3D geometry.
 

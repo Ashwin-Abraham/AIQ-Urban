@@ -12,6 +12,7 @@ using System;
 using System.Linq;
 using Rhino.DocObjects;
 using AIQ.Urban.Core.Models.UrbanElements;
+using AIQ.Urban.Core.Models.GeometryElements;
 
 namespace AIQ.Urban.RhinoPlugin;
 
@@ -29,7 +30,7 @@ public class AddTransit_AIQUrban : Command
     /// <summary>Command name as it appears on the Rhino command line.</summary>
     public override string EnglishName => "AddTransit_AIQUrban";
 
-    /// <summary>Runs the command: user sees default width/type on command line, selects curves, outlines baked.</summary>
+    /// <summary>Runs the command: user selects curves, pipes through RhinoUrbanModelPipeline.</summary>
     protected override Result RunCommand(RhinoDoc doc, RunMode mode)
     {
         var tolerance = doc.ModelAbsoluteTolerance;
@@ -46,7 +47,7 @@ public class AddTransit_AIQUrban : Command
         while (true)
         {
             var rc = go.GetMultiple(1, (int)1e5);
-            
+
             if (rc == GetResult.Option)
                 continue;
             if (rc != GetResult.Object)
@@ -57,82 +58,67 @@ public class AddTransit_AIQUrban : Command
         var width = widthOption.CurrentValue;
         var transitType = (TransitType)typeOption.CurrentValue;
         var centerlineRefs = go.Objects();
-        var centerlines = centerlineRefs
-            .Select(x => x.Curve())
-            .OfType<Curve>()
+        var rhinoObjs = centerlineRefs
+            .Select(x => x.Object())
             .ToList();
 
-        List<Transit> newTransit = [];
+        var selectedIds = centerlineRefs.Select(x => x.ObjectId).ToList();
+        List<Transit> newTransits = [];
 
-        for (int i = 0; i < centerlines.Count; i++)
+        for (int i = 0; i < rhinoObjs.Count; i++)
         {
-            var centerline = centerlines[i];
-            if (!TryValidateCenterline(centerline, tolerance, out var error))
+            var centerline = TryValidateCenterline(rhinoObjs[i], tolerance, out var error);
+
+            if (centerline is null)
             {
                 RhinoApp.WriteLine("Skipping curve {0}: {1}", i + 1, error);
                 continue;
             }
 
-            var transit = new Transit(centerline, width, transitType, tolerance: tolerance);
-            UrbanModel.Instance.AddTransit(transit);
-
-            newTransit.Add(transit);
+            var curveElement = new CurveElement(centerline, rhinoObjs[i].Id);
+            var transit = new Transit(curveElement, width, transitType, tolerance: tolerance);
+            newTransits.Add(transit);
         }
 
-        DeleteInputCurves(doc, centerlineRefs);
-        BakeNewTransit(doc, newTransit);
+        new RhinoUrbanModelPipeline(doc)
+            .RemoveMatchingElements(selectedIds, selectedIds)
+            .ChangeInputCurvesLayer(selectedIds, transitType, width)
+            .AddTransit(newTransits)
+            .BakeNewUrbanElements();
 
         doc.Views.Redraw();
-        RhinoApp.WriteLine("Added {0} transit corridor(s), width={1}, type={2}.", newTransit.Count, width, transitType);
+        RhinoApp.WriteLine("Added {0} transit corridor(s), width={1}, type={2}.", newTransits.Count, width, transitType);
         return Result.Success;
     }
 
-    private static void DeleteInputCurves(RhinoDoc doc, IEnumerable<ObjRef> centerlines)
+    private static Curve? TryValidateCenterline(RhinoObject rhinoObj, double tolerance, out string error)
     {
-        var ids = centerlines.Select(x => x.ObjectId);
-        doc.Objects.Delete(ids, true);
-    }
-
-    private void BakeNewTransit(RhinoDoc doc, List<Transit> newTransit)
-    {
-        foreach(var transit in newTransit)
+        if(rhinoObj.Geometry is not Curve curve)
         {
-            var clLayer = LayerConstants.TransitCenterline(transit.TransitType, transit.Width);
-            var outlineLayer = LayerConstants.TransitOutline(transit.TransitType, transit.Width);
-
-            var clLayerIndex = doc.Layers.EnsureLayerExists(clLayer).Index;
-            var outlineLayerIndex = doc.Layers.EnsureLayerExists(outlineLayer).Index;
-
-            var clAttributes = new ObjectAttributes() { LayerIndex = clLayerIndex };
-            var outlineAttributes = new ObjectAttributes() { LayerIndex = outlineLayerIndex };
-
-            doc.Objects.AddCurve(transit.Centerline.Geometry, clAttributes);
-            doc.Objects.AddCurve(transit.Outline.Geometry, outlineAttributes);
+            error = "Object must be curve";
+            return null;
         }
-    }
 
-    private static bool TryValidateCenterline(Curve curve, double tolerance, out string error)
-    {
         if (!curve.TryGetPlane(out var plane))
         {
             error = "Curve must be planar.";
-            return false;
+            return null;
         }
 
         if (!curve.IsPlanar(tolerance))
         {
             error = "Curve is not planar within tolerance.";
-            return false;
+            return null;
         }
 
         var bbox = curve.GetBoundingBox(plane);
         if (System.Math.Abs(bbox.Max.Z - bbox.Min.Z) > tolerance)
         {
             error = string.Format("Z variation ({0}) exceeds tolerance.", System.Math.Abs(bbox.Max.Z - bbox.Min.Z));
-            return false;
+            return null;
         }
 
-        error = null;
-        return true;
+        error = "";
+        return curve;
     }
 }

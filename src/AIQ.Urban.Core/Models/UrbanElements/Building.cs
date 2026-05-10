@@ -3,9 +3,9 @@ using AIQ.Urban.Core.Models.GeometryElements;
 
 namespace AIQ.Urban.Core.Models.UrbanElements;
 
-public class Building : UrbanElement
+public class Building : IUrbanElement
 {
-    public Brep Envelope { get; }
+    public BrepElement Envelope { get; }
     public List<FloorPlate> FloorPlates { get; }
     public Use Use { get; }
     public double TypicalFloorHeight { get; }
@@ -33,10 +33,10 @@ public class Building : UrbanElement
         return validated;
     }
 
-    private static Brep ComputeEnvelope(Curve footprint, double height)
+    private static BrepElement ComputeEnvelope(Curve footprint, double height)
     {
         var extrusion = Extrusion.CreateExtrusion(footprint, new Vector3d(0, 0, height));
-        return extrusion.ToBrep();
+        return new BrepElement(extrusion.ToBrep(), Guid.Empty);
     }
 
     private static List<FloorPlate> ComputeFloorPlates(Curve footprint, double floorHeight, int floorCount, Use use)
@@ -53,5 +53,13 @@ public class Building : UrbanElement
         }
 
         return plates;
+    }
+
+    public List<Guid> GetGeometryIds()
+    {
+        return FloorPlates
+            .SelectMany(x => x.GetGeometryIds())
+            .Append(Envelope.Id)
+            .ToList();
     }
 }

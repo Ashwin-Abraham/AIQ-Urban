@@ -5,7 +5,7 @@ namespace AIQ.Urban.Core.Models.GeometryElements;
 public class Profile2D : IGeometryElement<Curve>
 {
     public Curve Geometry { get; }
-    public Guid Id { get; } = Guid.NewGuid();
+    public Guid Id { get; set; } = Guid.NewGuid();
 
     public Profile2D(Curve geometry)
     {
