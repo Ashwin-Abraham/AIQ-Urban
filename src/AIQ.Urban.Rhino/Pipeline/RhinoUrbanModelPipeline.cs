@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using AIQ.Urban.Core;
-using AIQ.Urban.Core.Enums;
 using AIQ.Urban.Core.Models.GeometryElements;
 using AIQ.Urban.Core.Models.UrbanElements;
 using AIQ.Urban.RhinoPlugin.Extensions;
@@ -15,84 +14,6 @@ namespace AIQ.Urban.RhinoPlugin;
 
 public class RhinoUrbanModelPipeline(RhinoDoc _rhinoDoc, UrbanModel _urbanModel)
 {
-    //private readonly List<Transit> _pendingTransits = [];
-
-    //public RhinoUrbanModelPipeline RemoveMatchingElements(
-    //    List<Guid> matchIds,
-    //    List<Guid> exemptFromRhinoDelete)
-    //{
-    //    var toRemove = new List<IUrbanElement>();
-
-    //    toRemove.AddRange(UrbanModel.Instance.Transits
-    //        .Where(t => t.GetGeometryIds().Any(id => matchIds.Contains(id))));
-    //    toRemove.AddRange(UrbanModel.Instance.Buildings
-    //        .Where(b => b.GetGeometryIds().Any(id => matchIds.Contains(id))));
-
-    //    foreach (var element in toRemove)
-    //    {
-    //        var deleteIds = element.GetGeometryIds()
-    //            .Where(id => !exemptFromRhinoDelete.Contains(id))
-    //            .ToList();
-    //        _rhinoDoc.Objects.Delete(deleteIds, true);
-
-    //        if (element is Transit transit)
-    //            UrbanModel.Instance.Transits.Remove(transit);
-    //        else if (element is Building building)
-    //            UrbanModel.Instance.Buildings.Remove(building);
-    //    }
-
-    //    return this;
-    //}
-
-    //public RhinoUrbanModelPipeline ChangeInputCurvesLayer(
-    //    List<Guid> curveIds,
-    //    TransitType transitType,
-    //    double width)
-    //{
-    //    var layerPath = LayerConstants.TransitCenterline(transitType, width);
-    //    var layer = _rhinoDoc.Layers.EnsureLayerExists(layerPath);
-    //    var layerIndex = layer.Index;
-
-    //    foreach (var id in curveIds)
-    //    {
-    //        var rhinoObj = _rhinoDoc.Objects.Find(id);
-    //        if (rhinoObj == null) continue;
-
-    //        var attrs = rhinoObj.Attributes.Duplicate() as ObjectAttributes
-    //            ?? new ObjectAttributes();
-    //        attrs.LayerIndex = layerIndex;
-    //        _rhinoDoc.Objects.ModifyAttributes(rhinoObj, attrs, quiet: true);
-    //    }
-
-    //    return this;
-    //}
-
-    //public RhinoUrbanModelPipeline AddTransit(List<Transit> transits)
-    //{
-    //    foreach (var transit in transits)
-    //    {
-    //        UrbanModel.Instance.AddTransit(transit);
-    //        _pendingTransits.Add(transit);
-    //    }
-
-    //    return this;
-    //}
-
-    //public void BakeNewUrbanElements()
-    //{
-    //    foreach (var transit in _pendingTransits)
-    //    {
-    //        var outlineLayer = LayerConstants.TransitOutline(transit.TransitType, transit.Width);
-    //        var outlineLayerIndex = _rhinoDoc.Layers.EnsureLayerExists(outlineLayer).Index;
-    //        var outlineAttributes = new ObjectAttributes { LayerIndex = outlineLayerIndex };
-
-    //        var outlineId = _rhinoDoc.Objects.AddCurve(transit.Outline.Geometry, outlineAttributes);
-    //        transit.Outline.Id = outlineId;
-    //    }
-
-    //    _pendingTransits.Clear();
-    //}
-
     private readonly List<IUrbanModelStep> _steps = [];
     private readonly List<Guid> _directDeleteIds = [];
 
@@ -154,16 +75,19 @@ public class RhinoUrbanModelPipeline(RhinoDoc _rhinoDoc, UrbanModel _urbanModel)
         OutputBuildings(buildings);
         OutputTransitSurfaces();
         OutputParcels(addedIds);
+        OutputZones(addedIds);
+    }
+
+    private ObjectAttributes MakeAttributes(string layerPath)
+    {
+        var layerIndex = _rhinoDoc.Layers.EnsureLayerExists(layerPath).Index;
+        return new ObjectAttributes { LayerIndex = layerIndex };
     }
 
     private void OutputTransitSurfaces()
     {
         foreach (var (profile, type) in _urbanModel.TransitSurfaces)
-        {
-            var surfaceLayer = _rhinoDoc.Layers.EnsureLayerExists(LayerConstants.TransitSurface(type)).Index;
-            var surfaceAttributes = new ObjectAttributes { LayerIndex = surfaceLayer };
-            OutputGeometry(profile, surfaceAttributes);
-        }
+            OutputGeometry(profile, MakeAttributes(LayerConstants.TransitSurface(type)));
     }
 
     private void OutputParcels(List<Guid> addedIds)
@@ -173,10 +97,18 @@ public class RhinoUrbanModelPipeline(RhinoDoc _rhinoDoc, UrbanModel _urbanModel)
             if (!addedIds.Contains(parcel.Outline.Id))
                 continue;
 
-            var layer = LayerConstants.ParcelLayer(parcel.Use);
-            var layerIndex = _rhinoDoc.Layers.EnsureLayerExists(layer).Index;
-            var attributes = new ObjectAttributes { LayerIndex = layerIndex };
-            OutputGeometry(parcel.Outline, attributes);
+            OutputGeometry(parcel.Outline, MakeAttributes(LayerConstants.ParcelLayer(parcel.Use)));
+        }
+    }
+
+    private void OutputZones(List<Guid> addedIds)
+    {
+        foreach (var zone in _urbanModel.Zones)
+        {
+            if (!addedIds.Contains(zone.Boundary.Id))
+                continue;
+
+            OutputGeometry(zone.Boundary, MakeAttributes(LayerConstants.ZoneLayer(zone.Name)));
         }
     }
 
@@ -200,39 +132,28 @@ public class RhinoUrbanModelPipeline(RhinoDoc _rhinoDoc, UrbanModel _urbanModel)
 
     private void OutputBuildings(List<Building> buildings)
     {
-        var envelopeLayer = _rhinoDoc.Layers.EnsureLayerExists(LayerConstants.BuildingEnvelope).Index;
+        var envelopeAttributes = MakeAttributes(LayerConstants.BuildingEnvelope);
 
         foreach (var building in buildings)
         {
-            var envelopeAttributes = new ObjectAttributes { LayerIndex = envelopeLayer };
             var newEnvelopeId = _rhinoDoc.Objects.AddBrep(building.Envelope.Geometry, envelopeAttributes);
             building.Envelope.Id = newEnvelopeId;
 
             foreach (var plate in building.FloorPlates)
             {
-                var plateLayer = _rhinoDoc.Layers.EnsureLayerExists(LayerConstants.BuildingFloorPlate(plate.Use)).Index;
-                var plateAttributes = new ObjectAttributes { LayerIndex = plateLayer };
+                var plateAttributes = MakeAttributes(LayerConstants.BuildingFloorPlate(plate.Use));
                 var newId = _rhinoDoc.Objects.AddCurve(plate.Outline.Geometry, plateAttributes);
-
                 plate.Outline.Id = newId;
             }
         }
-        
     }
 
     private void OutputTransits(List<Transit> transits)
     {
         foreach (var transit in transits)
         {
-            var outlineLayer = LayerConstants.TransitOutline(transit.TransitType, transit.Width);
-            var outlineLayerIndex = _rhinoDoc.Layers.EnsureLayerExists(outlineLayer).Index;
-            var outlineAttributes = new ObjectAttributes { LayerIndex = outlineLayerIndex };
-            OutputGeometry(transit.Outline, outlineAttributes);
-
-            var centerlineLayer = LayerConstants.TransitCenterline(transit.TransitType, transit.Width);
-            var centerlineLayerIndex = _rhinoDoc.Layers.EnsureLayerExists(centerlineLayer).Index;
-            var centerlineAttributes = new ObjectAttributes { LayerIndex = centerlineLayerIndex };
-            OutputGeometry(transit.Centerline, centerlineAttributes);
+            OutputGeometry(transit.Outline, MakeAttributes(LayerConstants.TransitOutline(transit.TransitType, transit.Width)));
+            OutputGeometry(transit.Centerline, MakeAttributes(LayerConstants.TransitCenterline(transit.TransitType, transit.Width)));
         }
     }
 
