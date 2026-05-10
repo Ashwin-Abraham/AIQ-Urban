@@ -1,4 +1,6 @@
+using AIQ.Urban.Core.Enums;
 using AIQ.Urban.Core.Models;
+using AIQ.Urban.Core.Models.GeometryElements;
 using AIQ.Urban.Core.Models.UrbanElements;
 
 namespace AIQ.Urban.Core;
@@ -16,6 +18,8 @@ public class UrbanModel
 
     /// <summary>All buildings in the model.</summary>
     public List<Building> Buildings { get; } = [];
+
+    public List<(SurfaceElement, TransitType)> TransitSurfaces { get; } = [];
 
     private UrbanModel() { }
 
