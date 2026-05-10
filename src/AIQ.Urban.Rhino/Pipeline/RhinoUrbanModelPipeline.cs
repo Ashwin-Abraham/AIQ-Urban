@@ -6,7 +6,6 @@ using AIQ.Urban.Core.Enums;
 using AIQ.Urban.Core.Models.UrbanElements;
 using AIQ.Urban.RhinoPlugin.Extensions;
 using AIQ.Urban.RhinoPlugin.Pipeline.ModelActions;
-using AIQ.Urban.RhinoPlugin.Pipeline.RhinoDocActions;
 using AIQ.Urban.RhinoPlugin.Utils;
 using Rhino;
 using Rhino.DocObjects;
@@ -93,14 +92,14 @@ public class RhinoUrbanModelPipeline(RhinoDoc _rhinoDoc, UrbanModel _urbanModel)
     //    _pendingTransits.Clear();
     //}
 
-    private readonly List<IRhinoDocStep> _rhinoSteps = [];
     private readonly List<IAddUrbanElementsStep> _addUrbanElementSteps = [];
     private readonly List<IDeleteUrbanElementsStep> _deleteUrbanElementsSteps = [];
     private readonly List<IEditUrbanElementsStep> _editUrbanElementsSteps = [];
+    private readonly List<Guid> _directDeleteIds = [];
 
-    internal RhinoUrbanModelPipeline WithRhinoDocStep(IRhinoDocStep step)
+    internal RhinoUrbanModelPipeline WithRhinoObjectDeletion(List<Guid> ids)
     {
-        _rhinoSteps.Add(step);
+        _directDeleteIds.AddRange(ids);
         return this;
     }
 
@@ -118,16 +117,17 @@ public class RhinoUrbanModelPipeline(RhinoDoc _rhinoDoc, UrbanModel _urbanModel)
 
     internal void Run()
     {
-        // Delete from Urban Model
         var deletedIds = _deleteUrbanElementsSteps.SelectMany(x => x.Run(_urbanModel));
 
-        // Edit Urban Model Elements
         var editedIds = _editUrbanElementsSteps.SelectMany(x => x.Run(_urbanModel));
 
-        // Add to Urban Model
         var addedIds = _addUrbanElementSteps.SelectMany(x => x.Run(_urbanModel)).ToList();
 
-        var idsToDelete = editedIds.Concat(deletedIds).ToList();
+        var idsToDelete = editedIds
+            .Concat(deletedIds)
+            .Concat(_directDeleteIds)
+            .ToList();
+
         var idsToAdd = editedIds.Concat(addedIds).ToList();
 
         DeleteRhinoObjects(idsToDelete);

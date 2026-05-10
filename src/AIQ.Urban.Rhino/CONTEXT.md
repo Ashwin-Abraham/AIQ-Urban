@@ -11,32 +11,41 @@ Rhino 8 plugin providing native commands for urban site modelling. Acts as the b
 - Multi-step sync between Rhino doc and UrbanModel flows through `RhinoUrbanModelPipeline` in `Pipeline/`
 
 ## RhinoUrbanModelPipeline
-Fluent pipeline in `Pipeline/RhinoUrbanModelPipeline.cs`. Steps execute immediately on each call (not deferred), with `BakeNewUrbanElements` as the terminal step:
+Fluent pipeline in `Pipeline/RhinoUrbanModelPipeline.cs`. Step-based, with three operation categories:
 
 ```
-new RhinoUrbanModelPipeline(doc)
-  .RemoveMatchingElements(matchIds, exemptFromRhinoDelete)
-  .ChangeInputCurvesLayer(curveIds, transitType, width)
-  .AddTransit(newTransits)
-  .BakeNewUrbanElements()
+new RhinoUrbanModelPipeline(doc, UrbanModel.Instance)
+    .WithRhinoObjectDeletion(inputCurveIds)      // deletes Rhino doc objects directly
+    .WithUrbanElementDeletion(deleteStep)         // removes from UrbanModel, returns IDs for Rhino cleanup
+    .WithUrbanElementAddition(addStep)            // adds to UrbanModel, returns geometry IDs for baking
+    .Run();
 ```
 
-- **RemoveMatchingElements**: Finds `IUrbanElement`s in UrbanModel whose `GetGeometryIds()` intersect `matchIds`. Deletes their non-exempt Rhino objects from the doc, then removes them from UrbanModel.
-- **ChangeInputCurvesLayer**: Moves the original input curves to the centerline layer for the given TransitType/width.
-- **AddTransit**: Adds to UrbanModel and queues outlines for baking.
-- **BakeNewUrbanElements**: Bakes queued outlines to the Rhino doc and overwrites `CurveElement.Id` with the real Rhino ObjectId.
+- **WithRhinoObjectDeletion**: Registers Rhino ObjectIds to delete from the doc. Independent of UrbanModel state — used for input curves consumed during command execution.
+- **WithUrbanElementDeletion**: Runs `IDeleteUrbanElementsStep` which removes elements from UrbanModel and returns their baked geometry IDs for Rhino doc cleanup.
+- **WithUrbanElementAddition**: Runs `IAddUrbanElementsStep` which creates domain elements, adds them to UrbanModel, and returns their geometry IDs for baking.
+- **Run()**: Executes in order: Delete → (model edits) → Add, then batch-deletes Rhino objects and bakes new geometry.
+
+Element type output is automatic — `OutputTransits()` and `OutputBuildings()` are called by the pipeline for any added elements of those types.
 
 ## Command Surface
 
 ### `AddTransit_AIQUrban`
-- User picks a planar curve at consistent Z as centerline (Z variation validated in command and rejected with error)
+- User picks curves as centerlines (planar, Z variation validated and rejected)
 - Prompts: `GetDouble` for width (default 7.0), `GetInteger` for TransitType (0=Road…)
-- No longer deletes input curves — they are re-layered to the transit centerline layer
-- Only the `Outline` is baked (centerline is the original re-layered curve)
-- Duplicate detection: if the selected curve was previously used as a centerline, the old Transit is removed from UrbanModel and its baked outline deleted from Rhino doc before the new one is created
+- Pipeline: `.WithRhinoObjectDeletion(centerlineIds).WithUrbanElementDeletion(removeExisting).WithUrbanElementAddition(addTransitStep).Run()`
+- Only the `Outline` is baked; input curves are deleted by `WithRhinoObjectDeletion`
+- Duplicate detection via `RemoveTransitStep`: if same centerline ObjectId was previously used, old Transit is removed from UrbanModel and baked outline deleted from Rhino doc
 
-### Future Commands (non-exhaustive)
-- `AddBuildingFromFootprint(Curve Footprint, double FloorHeight, int FloorCount)`
+### `AddBuilding_AIQUrban`
+- Collects: footprint curve, floor height, floor count, Use dropdown
+- Validates footprint is planar
+- Pipeline: `.WithRhinoObjectDeletion([footprintId]).WithUrbanElementAddition(addBuildingStep).Run()`
+- Input curve is deleted by `WithRhinoObjectDeletion` (not preserved in the doc)
+- No duplicate detection for now (input curve is destroyed, same ObjectId can never match again)
+- Only footprint+height+count+use variant; Brep/parcel variants deferred
+
+### Future Commands (non-exhaustive, deferred)
 - `AddBuildingFromBrep(Brep Envelope, double FloorHeight)`
 - `AddBuildingOnParcel(Brep Envelope, double FloorHeight)`
 - `AddBuildingOnParcelEdge(Brep Envelope, double FloorHeight)`

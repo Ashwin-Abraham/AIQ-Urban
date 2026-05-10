@@ -5,11 +5,8 @@ using Rhino.Input;
 using Rhino.Input.Custom;
 using AIQ.Urban.Core;
 using AIQ.Urban.Core.Models;
-using AIQ.Urban.Core.Models.UrbanElements;
-using AIQ.Urban.RhinoPlugin.Utils;
-using AIQ.Urban.RhinoPlugin.Extensions;
+using AIQ.Urban.RhinoPlugin.Pipeline.ModelActions;
 using System.Linq;
-using Rhino.DocObjects;
 
 namespace AIQ.Urban.RhinoPlugin;
 
@@ -54,11 +51,19 @@ public class AddBuilding_AIQUrban : Command
             return Result.Failure;
         }
 
-        var building = new Building(footprint, floorHeight, floorCount, selectedUse);
-        UrbanModel.Instance.AddBuilding(building);
+        if (!TryValidateFootprint(footprint, out var error))
+        {
+            RhinoApp.WriteLine(error);
+            return Result.Failure;
+        }
 
-        DeleteInputCurve(doc, curveRef);
-        BakeNewBuilding(doc, building);
+        var buildingData = new BuildingData(footprint, floorHeight, floorCount, selectedUse);
+        var addBuildingStep = new AddBuildingStep([buildingData]);
+
+        new RhinoUrbanModelPipeline(doc, UrbanModel.Instance)
+            .WithRhinoObjectDeletion([curveRef.ObjectId])
+            .WithUrbanElementAddition(addBuildingStep)
+            .Run();
 
         doc.Views.Redraw();
         RhinoApp.WriteLine("Added building: {0} storeys, total height={1}, use={2}.",
@@ -88,22 +93,15 @@ public class AddBuilding_AIQUrban : Command
         return true;
     }
 
-    private static void DeleteInputCurve(RhinoDoc doc, ObjRef curveRef)
+    private static bool TryValidateFootprint(Curve curve, out string? error)
     {
-        doc.Objects.Delete(curveRef.ObjectId, true);
-    }
-
-    private void BakeNewBuilding(RhinoDoc doc, Building building)
-    {
-        var envelopeLayer = doc.Layers.EnsureLayerExists(LayerConstants.BuildingEnvelope).Index;
-        var envelopeAttributes = new ObjectAttributes { LayerIndex = envelopeLayer };
-        doc.Objects.AddBrep(building.Envelope.Geometry, envelopeAttributes);
-
-        foreach (var plate in building.FloorPlates)
+        if (!curve.TryGetPlane(out _))
         {
-            var plateLayer = doc.Layers.EnsureLayerExists(LayerConstants.BuildingFloorPlate(plate.Use)).Index;
-            var plateAttributes = new ObjectAttributes { LayerIndex = plateLayer };
-            doc.Objects.AddCurve(plate.Outline.Geometry, plateAttributes);
+            error = "Footprint curve must be planar.";
+            return false;
         }
+
+        error = null;
+        return true;
     }
 }
