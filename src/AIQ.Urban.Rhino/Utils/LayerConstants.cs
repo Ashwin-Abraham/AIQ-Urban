@@ -24,6 +24,11 @@ internal static class LayerConstants
           return $"{Transit}::{type}::Centerline::{width}";
     }
 
+    public static string TransitSurface(TransitType type)
+    {
+        return $"{Transit}::{type}::Surface";
+    }
+
     public static string BuildingFloorPlate(Use use)
     {
         return $"{BuildingFloorPlates}::{use.Name}";

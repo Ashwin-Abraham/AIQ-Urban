@@ -144,7 +144,17 @@ public class RhinoUrbanModelPipeline(RhinoDoc _rhinoDoc, UrbanModel _urbanModel)
 
         OutputTransits(transit);
         OutputBuildings(buildings);
+        OutputTransitSurfaces();
+    }
 
+    private void OutputTransitSurfaces()
+    {
+        foreach (var (profile, type) in _urbanModel.TransitSurfaces)
+        {
+            var surfaceLayer = _rhinoDoc.Layers.EnsureLayerExists(LayerConstants.TransitSurface(type)).Index;
+            var surfaceAttributes = new ObjectAttributes { LayerIndex = surfaceLayer };
+            OutputGeometry(profile, surfaceAttributes);
+        }
     }
 
     private List<IUrbanElement> FilterElementsToAdd(List<Guid> addedIds)
@@ -196,7 +206,7 @@ public class RhinoUrbanModelPipeline(RhinoDoc _rhinoDoc, UrbanModel _urbanModel)
             var outlineAttributes = new ObjectAttributes { LayerIndex = outlineLayerIndex };
             OutputGeometry(transit.Outline, outlineAttributes);
 
-            var centerlineLayer = LayerConstants.TransitOutline(transit.TransitType, transit.Width);
+            var centerlineLayer = LayerConstants.TransitCenterline(transit.TransitType, transit.Width);
             var centerlineLayerIndex = _rhinoDoc.Layers.EnsureLayerExists(centerlineLayer).Index;
             var centerlineAttributes = new ObjectAttributes { LayerIndex = centerlineLayerIndex };
             OutputGeometry(transit.Centerline, centerlineAttributes);

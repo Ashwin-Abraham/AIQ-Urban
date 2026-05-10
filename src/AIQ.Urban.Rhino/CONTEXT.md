@@ -4,6 +4,7 @@
 Rhino 8 plugin providing native commands for urban site modelling. Acts as the bridge between Rhino's document/interaction model and the domain in `AIQ.Urban.Core`.
 
 ## Design Constraints
+- **Nullable reference types enabled** — `?` marks values that can legitimately be null; unadorned types are assumed non-null and need not be checked.
 - References `AIQ.Urban.Core` for all domain logic and geometry kernel
 - References `RhinoCommon` directly for Rhino UI (doc, views, selection)
 - All initial interaction is via native Rhino commands (no UI yet)
@@ -33,9 +34,11 @@ Element type output is automatic — `OutputTransits()` and `OutputBuildings()` 
 ### `AddTransit_AIQUrban`
 - User picks curves as centerlines (planar, Z variation validated and rejected)
 - Prompts: `GetDouble` for width (default 7.0), `GetInteger` for TransitType (0=Road…)
-- Pipeline: `.WithRhinoObjectDeletion(centerlineIds).WithUrbanElementDeletion(removeExisting).WithUrbanElementAddition(addTransitStep).Run()`
-- Only the `Outline` is baked; input curves are deleted by `WithRhinoObjectDeletion`
+- Pipeline: `.WithRhinoObjectDeletion(centerlineIds).WithUrbanElementDeletion(removeExisting).WithUrbanElementAddition(addTransitStep).WithUrbanElementAddition(transitUnioner).Run()`
+- `TransitSurfaceUnioner` is registered as an `IAddUrbanElementsStep` — unions all transit outlines per type into `UrbanModel.TransitSurfaces`
+- Only the `Outline` and `Surface` are baked; input curves are deleted by `WithRhinoObjectDeletion`
 - Duplicate detection via `RemoveTransitStep`: if same centerline ObjectId was previously used, old Transit is removed from UrbanModel and baked outline deleted from Rhino doc
+- **Known gap**: When transit is deleted/modified, previously baked unioned `Surface` geometry remains as orphans in the Rhino doc — no cleanup yet.
 
 ### `AddBuilding_AIQUrban`
 - Collects: footprint curve, floor height, floor count, Use dropdown
@@ -64,7 +67,8 @@ AIQ Urban
   ├── Transit
   │   ├── Road
   │   │   ├── Centerline
-  │   │   └── Outline
+  │   │   ├── Outline
+  │   │   └── Surface        (unioned per-type, not per-width)
   │   └── ...
   ├── Building
   │   ├── Envelope

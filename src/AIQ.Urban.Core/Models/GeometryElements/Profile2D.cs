@@ -35,4 +35,24 @@ public class Profile2D : IGeometryElement<Brep>
             }
         }
     }
+
+
+    public static Profile2D? Create(BrepFace face)
+    {
+        Polygon2D? outline = null;
+        var holes = new List<Polygon2D>();
+
+        foreach (var loop in face.Loops)
+        {
+            if (loop.LoopType == BrepLoopType.Outer)
+                outline = new Polygon2D(loop.To2dCurve());
+            else if (loop.LoopType == BrepLoopType.Inner)
+                holes.Add(new Polygon2D(loop.To2dCurve()));
+        }
+
+        if (outline == null)
+            return null;
+
+        return new Profile2D(outline, holes);
+    }
 }

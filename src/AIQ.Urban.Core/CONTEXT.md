@@ -15,6 +15,9 @@ Pure city-modelling domain logic. Models buildings, transit networks, parcels, z
 
 ## Design Constraints
 
+### Nullable Reference Types
+- All AIQ.Urban projects have `<Nullable>enable</Nullable>`. Use `?` to mark types that can legitimately be null (return values, parameters). If something lacks `?`, assume it is not null — skip null checks.
+
 ### Dependency Rule
 - **AIQ.Urban.Core** references RhinoCommon as its geometry kernel (Curve, Brep, Mesh, Point3d, Transform, etc.)
 - **AIQ.Urban.RhinoPlugin** references AIQ.Urban.Core + RhinoCommon separately for the Rhino interface
@@ -24,7 +27,7 @@ Pure city-modelling domain logic. Models buildings, transit networks, parcels, z
 - `UrbanModel` is a singleton in AIQ.Urban.Core holding all `UrbanElement`s and `ModelGroup`s. It is the single source of truth for the in-memory model. Rhino doc serialization is a future concern.
 - Access pattern: static `UrbanModel.Instance` property with lazy initialization.
 - Operation methods live directly on `UrbanModel` (e.g. `urbanModel.AddTransit(transit)`).
-- Elements are stored in typed lists: `List<Transit> Transits { get; }`, `List<Building> Buildings { get; }`, etc.
+- Derived geometry (computed from elements, not directly added by commands) is stored separately: `List<(Profile2D Profile, TransitType Type)> TransitSurfaces { get; }` — populated by `TransitSurfaceUnioner` after each transit mutation.
 
 ### Pipeline
 - **RhinoUrbanModelPipeline** in `src/AIQ.Urban.Rhino/Pipeline/` orchestrates multi-step sync between the Rhino doc and UrbanModel. Steps: RemoveMatchingElements → ChangeInputCurvesLayer → AddTransit → BakeNewUrbanElements.
@@ -70,6 +73,12 @@ A linear transportation corridor of a given `TransitType`. `Outline` is calculat
 - `double Width`
 - `bool IsOnGround`
 - `List<TransitNode> OrderedNodes`
+
+### TransitSurface
+A unioned planar Brep (`Profile2D`) representing the merged right-of-way of all `Transit` elements of the same `TransitType`, irrespective of individual widths. Stored in `UrbanModel.TransitSurfaces` as `List<(Profile2D Profile, TransitType Type)>`. Produced by `TransitSurfaceUnioner` in the RhinoPlugin pipeline. Used for clean merged geometry (presentation, area calcs).
+- **Geometry**: Uses `Brep.CreateBooleanUnion(outlineBreps, tolerance)` to merge all per-type outlines, then wraps result boundary into a `Profile2D`.
+- **Scope**: Recomputes all transits of each type from scratch on every pipeline run.
+- **Known gap**: When transits are deleted/modified, previously baked unioned surfaces remain as orphans in the Rhino doc — no cleanup logic yet.
 
 ### TransitGraph
 Collection of `TransitNode`s forming a connected network.
