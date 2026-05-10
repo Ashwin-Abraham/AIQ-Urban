@@ -4,7 +4,7 @@ using System.Linq;
 using AIQ.Urban.Core;
 using AIQ.Urban.Core.Models;
 using AIQ.Urban.Core.Models.UrbanElements;
-using Rhino.Geometry;
+using AIQ.Urban.Core.Models.GeometryElements;
 
 namespace AIQ.Urban.RhinoPlugin.Pipeline.ModelActions;
 
@@ -21,7 +21,7 @@ public class AddBuildingStep(List<BuildingData> _buildingData) : IAddUrbanElemen
 }
 
 public record BuildingData(
-    Curve Footprint,
+    Profile2D Footprint,
     double TypicalFloorHeight,
     int FloorCount,
     Use Use)

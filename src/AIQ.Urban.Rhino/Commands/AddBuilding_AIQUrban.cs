@@ -1,3 +1,4 @@
+using System;
 using Rhino;
 using Rhino.Commands;
 using Rhino.Geometry;
@@ -5,6 +6,7 @@ using Rhino.Input;
 using Rhino.Input.Custom;
 using AIQ.Urban.Core;
 using AIQ.Urban.Core.Models;
+using AIQ.Urban.Core.Models.GeometryElements;
 using AIQ.Urban.RhinoPlugin.Pipeline.ModelActions;
 using System.Linq;
 
@@ -51,13 +53,8 @@ public class AddBuilding_AIQUrban : Command
             return Result.Failure;
         }
 
-        if (!TryValidateFootprint(footprint, out var error))
-        {
-            RhinoApp.WriteLine(error);
-            return Result.Failure;
-        }
-
-        var buildingData = new BuildingData(footprint, floorHeight, floorCount, selectedUse);
+        Profile2D profile= new Profile2D(footprint);
+        var buildingData = new BuildingData(profile, floorHeight, floorCount, selectedUse);
         var addBuildingStep = new AddBuildingStep([buildingData]);
 
         new RhinoUrbanModelPipeline(doc, UrbanModel.Instance)
@@ -90,18 +87,6 @@ public class AddBuilding_AIQUrban : Command
             break;
         }
 
-        return true;
-    }
-
-    private static bool TryValidateFootprint(Curve curve, out string? error)
-    {
-        if (!curve.TryGetPlane(out _))
-        {
-            error = "Footprint curve must be planar.";
-            return false;
-        }
-
-        error = null;
         return true;
     }
 }

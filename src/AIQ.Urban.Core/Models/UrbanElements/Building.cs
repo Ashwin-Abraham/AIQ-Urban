@@ -10,27 +10,27 @@ public class Building : IUrbanElement
     public Use Use { get; }
     public double TypicalFloorHeight { get; }
     public int FloorCount { get; }
+    public Profile2D Footprint { get; }
 
-    public Building(Curve footprint, double typicalFloorHeight, int floorCount, Use use)
+    public Building(Profile2D footprint, double typicalFloorHeight, int floorCount, Use use)
     {
+        ArgumentNullException.ThrowIfNull(footprint);
+
         Use = use;
         TypicalFloorHeight = typicalFloorHeight;
         FloorCount = floorCount;
+        Footprint = footprint;
 
-        footprint = ValidateFootprint(footprint);
-
-        Envelope = ComputeEnvelope(footprint, typicalFloorHeight * floorCount);
-        FloorPlates = ComputeFloorPlates(footprint, typicalFloorHeight, floorCount, use);
-    }
-
-    private static Curve ValidateFootprint(Curve footprint)
-    {
-        var validated = footprint.DuplicateCurve();
-        if (!validated.TryGetPlane(out var plane))
-            throw new InvalidOperationException("Footprint must be planar.");
+        var curve = footprint.Geometry;
+        curve.TryGetPlane(out var plane);
         if (plane.Normal.Z < 0)
-            validated.Reverse();
-        return validated;
+        {
+            curve = curve.DuplicateCurve();
+            curve.Reverse();
+        }
+
+        Envelope = ComputeEnvelope(curve, typicalFloorHeight * floorCount);
+        FloorPlates = ComputeFloorPlates(curve, typicalFloorHeight, floorCount, use);
     }
 
     private static BrepElement ComputeEnvelope(Curve footprint, double height)

@@ -59,22 +59,7 @@ public class AddTransit_AIQUrban : Command
             .Select(x => x.Object())
             .ToList();
 
-        List<TransitData> transitData = [];
-
-        for (int i = 0; i < rhinoObjs.Count; i++)
-        {
-            var centerline = TryValidateCenterline(rhinoObjs[i], tolerance, out var error);
-
-            if (centerline is null)
-            {
-                RhinoApp.WriteLine("Skipping curve {0}: {1}", i + 1, error);
-                continue;
-            }
-
-            var curveElement = new CurveElement(centerline, rhinoObjs[i].Id);
-            var data = new TransitData(curveElement, width, transitType);
-            transitData.Add(data);
-        }
+        List<TransitData> transitData = BuildTransitData(rhinoObjs, width, transitType, tolerance);
 
         var centerlineIds = centerlineRefs.Select(x => x.ObjectId).ToList();
         var addTransitStep = new AddTransitStep(transitData);
@@ -91,7 +76,28 @@ public class AddTransit_AIQUrban : Command
         return Result.Success;
     }
 
-    private static Curve? TryValidateCenterline(RhinoObject rhinoObj, double tolerance, out string error)
+    private static List<TransitData> BuildTransitData(List<RhinoObject> rhinoObjs, double width, TransitType transitType, double tolerance)
+    {
+        List<TransitData> transitData = [];
+
+        for (int i = 0; i < rhinoObjs.Count; i++)
+        {
+            var curve2D = TryValidateCenterline(rhinoObjs[i], tolerance, out var error);
+
+            if (curve2D is null)
+            {
+                RhinoApp.WriteLine("Skipping curve {0}: {1}", i + 1, error);
+                continue;
+            }
+
+            var data = new TransitData(curve2D, width, transitType);
+            transitData.Add(data);
+        }
+
+        return transitData;
+    }
+
+    private static Curve2D? TryValidateCenterline(RhinoObject rhinoObj, double tolerance, out string error)
     {
         if(rhinoObj.Geometry is not Curve curve)
         {
@@ -99,26 +105,7 @@ public class AddTransit_AIQUrban : Command
             return null;
         }
 
-        if (!curve.TryGetPlane(out var plane))
-        {
-            error = "Curve must be planar.";
-            return null;
-        }
-
-        if (!curve.IsPlanar(tolerance))
-        {
-            error = "Curve is not planar within tolerance.";
-            return null;
-        }
-
-        var bbox = curve.GetBoundingBox(plane);
-        if (System.Math.Abs(bbox.Max.Z - bbox.Min.Z) > tolerance)
-        {
-            error = string.Format("Z variation ({0}) exceeds tolerance.", System.Math.Abs(bbox.Max.Z - bbox.Min.Z));
-            return null;
-        }
-
         error = "";
-        return curve;
+        return new Curve2D(curve, rhinoObj.Id);
     }
 }
