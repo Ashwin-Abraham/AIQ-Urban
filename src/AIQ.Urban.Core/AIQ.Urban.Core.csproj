@@ -11,4 +11,8 @@
     <PackageReference Include="RhinoCommon" Version="8.31.26126.13431-rc" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\AIQ.Primitives\AIQ.Primitives.csproj" />
+  </ItemGroup>
+
 </Project>

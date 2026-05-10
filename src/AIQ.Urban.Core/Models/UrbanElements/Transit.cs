@@ -7,11 +7,11 @@ namespace AIQ.Urban.Core.Models.UrbanElements;
 /// <summary>A linear transportation corridor of a given <see cref="Enums.TransitType"/>.</summary>
 public class Transit : IUrbanElement
 {
-    /// <summary>Path along the corridor (must be planar at a consistent Z).</summary>
-    public CurveElement Centerline { get; }
+    /// <summary>Path along the corridor (planar at consistent Z).</summary>
+    public Curve2D Centerline { get; }
 
     /// <summary>Closed boundary curve representing the full right-of-way.</summary>
-    public CurveElement Outline { get; }
+    public Profile2D Outline { get; }
 
     /// <summary>Right-of-way width.</summary>
     public double Width { get; }
@@ -31,7 +31,7 @@ public class Transit : IUrbanElement
     /// <param name="isOnGround">True if ground-level.</param>
     /// <param name="tolerance">Fitting tolerance for geometry operations.</param>
     public Transit(
-        CurveElement centerline,
+        Curve2D centerline,
         double width,
         TransitType transitType,
         bool isOnGround = true,
@@ -45,13 +45,13 @@ public class Transit : IUrbanElement
         Outline = CalculateOutline(centerline.Geometry, width, tolerance);
     }
 
-    private static CurveElement CalculateOutline(Curve centerline, double width, double tolerance)
+    private static Profile2D CalculateOutline(Curve centerline, double width, double tolerance)
     {
         if (!centerline.TryGetPlane(out var plane))
             throw new InvalidOperationException("Centerline must be planar.");
 
         var outline = CalculateOffset(centerline, width, plane, tolerance);
-        return new CurveElement(outline, Guid.NewGuid());
+        return new Profile2D(outline);
     }
 
     private static Curve CalculateOffset(Curve centerline, double width, Plane plane, double tolerance)

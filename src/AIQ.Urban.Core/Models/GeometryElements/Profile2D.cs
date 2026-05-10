@@ -1,4 +1,5 @@
 using Rhino.Geometry;
+using AIQ.Urban.Core.Extensions;
 
 namespace AIQ.Urban.Core.Models.GeometryElements;
 
@@ -11,28 +12,12 @@ public class Profile2D : IGeometryElement<Curve>
     {
         ArgumentNullException.ThrowIfNull(geometry);
 
-        if (!TryValidatePlanar(geometry, out var error))
-            throw new ArgumentException(error, nameof(geometry));
+        if (!geometry.IsPlanarInXY())
+            throw new ArgumentException("Profile2D requires a curve in an XY plane.", nameof(geometry));
+
+        if (!geometry.IsClosed)
+            throw new ArgumentException("Profile2D requires a closed curve.", nameof(geometry));
 
         Geometry = geometry;
-    }
-
-    private static bool TryValidatePlanar(Curve curve, out string? error)
-    {
-        if (!curve.TryGetPlane(out var plane))
-        {
-            error = "Curve must be planar.";
-            return false;
-        }
-
-        var bbox = curve.GetBoundingBox(plane);
-        if (Math.Abs(bbox.Max.Z - bbox.Min.Z) > 0.001)
-        {
-            error = "Curve has Z variation; Profile2D requires zero Z variation.";
-            return false;
-        }
-
-        error = null;
-        return true;
     }
 }

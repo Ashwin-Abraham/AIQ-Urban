@@ -26,7 +26,7 @@ public class AddTransitStep : IAddUrbanElementsStep
 }
 
 public record TransitData(
-     CurveElement Centerline,
+     Curve2D Centerline,
      double Width,
      TransitType TransitType)
 {

@@ -1,10 +1,14 @@
-﻿using Rhino.Geometry;
+﻿using AIQ.Primitives.Extensions;
+using Rhino.Geometry;
 
 namespace AIQ.Urban.Core.Extensions;
 public static class CurveExtensions
 {
-    public static Curve OffsetCapped(Curve curve)
+    public static bool IsPlanarInXY(this Curve curve)
     {
-        return curve;
+        var xyPlane = new Plane(curve.PointAtStart, Vector3d.ZAxis);
+        var bbox = curve.GetBoundingBox(xyPlane);
+
+        return bbox.Min.Z.AlmostEquals(bbox.Max.Z);
     }
 }
