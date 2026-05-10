@@ -8,14 +8,32 @@ Rhino 8 plugin providing native commands for urban site modelling. Acts as the b
 - References `RhinoCommon` directly for Rhino UI (doc, views, selection)
 - All initial interaction is via native Rhino commands (no UI yet)
 - Vue UI via websocket/HTTPS is a future concern
+- Multi-step sync between Rhino doc and UrbanModel flows through `RhinoUrbanModelPipeline` in `Pipeline/`
+
+## RhinoUrbanModelPipeline
+Fluent pipeline in `Pipeline/RhinoUrbanModelPipeline.cs`. Steps execute immediately on each call (not deferred), with `BakeNewUrbanElements` as the terminal step:
+
+```
+new RhinoUrbanModelPipeline(doc)
+  .RemoveMatchingElements(matchIds, exemptFromRhinoDelete)
+  .ChangeInputCurvesLayer(curveIds, transitType, width)
+  .AddTransit(newTransits)
+  .BakeNewUrbanElements()
+```
+
+- **RemoveMatchingElements**: Finds `IUrbanElement`s in UrbanModel whose `GetGeometryIds()` intersect `matchIds`. Deletes their non-exempt Rhino objects from the doc, then removes them from UrbanModel.
+- **ChangeInputCurvesLayer**: Moves the original input curves to the centerline layer for the given TransitType/width.
+- **AddTransit**: Adds to UrbanModel and queues outlines for baking.
+- **BakeNewUrbanElements**: Bakes queued outlines to the Rhino doc and overwrites `CurveElement.Id` with the real Rhino ObjectId.
 
 ## Command Surface
 
-### First Command: `AddTransit_AIQUrban`
+### `AddTransit_AIQUrban`
 - User picks a planar curve at consistent Z as centerline (Z variation validated in command and rejected with error)
 - Prompts: `GetDouble` for width (default 7.0), `GetInteger` for TransitType (0=Road…)
-- Calls `UrbanModel.Instance.AddTransit(transit)` which returns void
-- Reads `Transit.Outline` and bakes to Rhino doc on layer `AIQ Urban::Transit`
+- No longer deletes input curves — they are re-layered to the transit centerline layer
+- Only the `Outline` is baked (centerline is the original re-layered curve)
+- Duplicate detection: if the selected curve was previously used as a centerline, the old Transit is removed from UrbanModel and its baked outline deleted from Rhino doc before the new one is created
 
 ### Future Commands (non-exhaustive)
 - `AddBuildingFromFootprint(Curve Footprint, double FloorHeight, int FloorCount)`
@@ -26,7 +44,7 @@ Rhino 8 plugin providing native commands for urban site modelling. Acts as the b
 - `AddZone(Curve Boundary, string Name)`
 
 ## Relationship to Core
-Commands call into Core's domain logic; Core owns all model state and computation. The RhinoPlugin is a thin presenter/controller layer on top.
+Commands collect user input, then delegate to `RhinoUrbanModelPipeline` which calls into Core's domain logic. Core owns all model state and computation. The RhinoPlugin is a thin presenter/controller layer on top.
 
 ## Rhino Output Conventions
 

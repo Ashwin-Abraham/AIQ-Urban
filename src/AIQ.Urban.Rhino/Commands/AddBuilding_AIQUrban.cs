@@ -97,7 +97,7 @@ public class AddBuilding_AIQUrban : Command
     {
         var envelopeLayer = doc.Layers.EnsureLayerExists(LayerConstants.BuildingEnvelope).Index;
         var envelopeAttributes = new ObjectAttributes { LayerIndex = envelopeLayer };
-        doc.Objects.AddBrep(building.Envelope, envelopeAttributes);
+        doc.Objects.AddBrep(building.Envelope.Geometry, envelopeAttributes);
 
         foreach (var plate in building.FloorPlates)
         {

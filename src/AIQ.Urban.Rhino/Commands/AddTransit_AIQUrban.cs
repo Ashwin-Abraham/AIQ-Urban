@@ -30,7 +30,7 @@ public class AddTransit_AIQUrban : Command
     /// <summary>Command name as it appears on the Rhino command line.</summary>
     public override string EnglishName => "AddTransit_AIQUrban";
 
-    /// <summary>Runs the command: user sees default width/type on command line, selects curves, outlines baked.</summary>
+    /// <summary>Runs the command: user selects curves, pipes through RhinoUrbanModelPipeline.</summary>
     protected override Result RunCommand(RhinoDoc doc, RunMode mode)
     {
         var tolerance = doc.ModelAbsoluteTolerance;
@@ -47,7 +47,7 @@ public class AddTransit_AIQUrban : Command
         while (true)
         {
             var rc = go.GetMultiple(1, (int)1e5);
-            
+
             if (rc == GetResult.Option)
                 continue;
             if (rc != GetResult.Object)
@@ -62,13 +62,14 @@ public class AddTransit_AIQUrban : Command
             .Select(x => x.Object())
             .ToList();
 
-        List<Transit> newTransit = [];
+        var selectedIds = centerlineRefs.Select(x => x.ObjectId).ToList();
+        List<Transit> newTransits = [];
 
         for (int i = 0; i < rhinoObjs.Count; i++)
         {
             var centerline = TryValidateCenterline(rhinoObjs[i], tolerance, out var error);
 
-            if(centerline is null)
+            if (centerline is null)
             {
                 RhinoApp.WriteLine("Skipping curve {0}: {1}", i + 1, error);
                 continue;
@@ -76,41 +77,18 @@ public class AddTransit_AIQUrban : Command
 
             var curveElement = new CurveElement(centerline, rhinoObjs[i].Id);
             var transit = new Transit(curveElement, width, transitType, tolerance: tolerance);
-            UrbanModel.Instance.AddTransit(transit);
-
-            newTransit.Add(transit);
+            newTransits.Add(transit);
         }
 
-        DeleteInputCurves(doc, centerlineRefs);
-        BakeNewTransit(doc, newTransit);
+        new RhinoUrbanModelPipeline(doc)
+            .RemoveMatchingElements(selectedIds, selectedIds)
+            .ChangeInputCurvesLayer(selectedIds, transitType, width)
+            .AddTransit(newTransits)
+            .BakeNewUrbanElements();
 
         doc.Views.Redraw();
-        RhinoApp.WriteLine("Added {0} transit corridor(s), width={1}, type={2}.", newTransit.Count, width, transitType);
+        RhinoApp.WriteLine("Added {0} transit corridor(s), width={1}, type={2}.", newTransits.Count, width, transitType);
         return Result.Success;
-    }
-
-    private static void DeleteInputCurves(RhinoDoc doc, IEnumerable<ObjRef> centerlines)
-    {
-        var ids = centerlines.Select(x => x.ObjectId);
-        doc.Objects.Delete(ids, true);
-    }
-
-    private void BakeNewTransit(RhinoDoc doc, List<Transit> newTransit)
-    {
-        foreach(var transit in newTransit)
-        {
-            var clLayer = LayerConstants.TransitCenterline(transit.TransitType, transit.Width);
-            var outlineLayer = LayerConstants.TransitOutline(transit.TransitType, transit.Width);
-
-            var clLayerIndex = doc.Layers.EnsureLayerExists(clLayer).Index;
-            var outlineLayerIndex = doc.Layers.EnsureLayerExists(outlineLayer).Index;
-
-            var clAttributes = new ObjectAttributes() { LayerIndex = clLayerIndex };
-            var outlineAttributes = new ObjectAttributes() { LayerIndex = outlineLayerIndex };
-
-            doc.Objects.AddCurve(transit.Centerline.Geometry, clAttributes);
-            doc.Objects.AddCurve(transit.Outline.Geometry, outlineAttributes);
-        }
     }
 
     private static Curve? TryValidateCenterline(RhinoObject rhinoObj, double tolerance, out string error)
