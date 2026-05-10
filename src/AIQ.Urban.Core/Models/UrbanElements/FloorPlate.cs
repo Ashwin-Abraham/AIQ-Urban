@@ -4,10 +4,10 @@ namespace AIQ.Urban.Core.Models.UrbanElements;
 
 public class FloorPlate:IUrbanElement
 {
-    public Profile2D Outline { get; }
+    public Polygon2D Outline { get; }
     public Use Use { get; }
 
-    public FloorPlate(Profile2D outline, Use use)
+    public FloorPlate(Polygon2D outline, Use use)
     {
         Outline = outline;
         Use = use;

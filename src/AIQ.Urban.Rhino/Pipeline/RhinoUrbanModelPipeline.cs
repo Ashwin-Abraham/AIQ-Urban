@@ -117,9 +117,9 @@ public class RhinoUrbanModelPipeline(RhinoDoc _rhinoDoc, UrbanModel _urbanModel)
 
     internal void Run()
     {
-        var deletedIds = _deleteUrbanElementsSteps.SelectMany(x => x.Run(_urbanModel));
+        var deletedIds = _deleteUrbanElementsSteps.SelectMany(x => x.Run(_urbanModel)).ToList();
 
-        var editedIds = _editUrbanElementsSteps.SelectMany(x => x.Run(_urbanModel));
+        var editedIds = _editUrbanElementsSteps.SelectMany(x => x.Run(_urbanModel)).ToList();
 
         var addedIds = _addUrbanElementSteps.SelectMany(x => x.Run(_urbanModel)).ToList();
 
@@ -193,9 +193,12 @@ public class RhinoUrbanModelPipeline(RhinoDoc _rhinoDoc, UrbanModel _urbanModel)
             var outlineLayer = LayerConstants.TransitOutline(transit.TransitType, transit.Width);
             var outlineLayerIndex = _rhinoDoc.Layers.EnsureLayerExists(outlineLayer).Index;
             var outlineAttributes = new ObjectAttributes { LayerIndex = outlineLayerIndex };
+            transit.Outline.Id = _rhinoDoc.Objects.AddCurve(transit.Outline.Geometry, outlineAttributes);
 
-            var outlineId = _rhinoDoc.Objects.AddCurve(transit.Outline.Geometry, outlineAttributes);
-            transit.Outline.Id = outlineId;
+            var centerlineLayer = LayerConstants.TransitOutline(transit.TransitType, transit.Width);
+            var centerlineLayerIndex = _rhinoDoc.Layers.EnsureLayerExists(centerlineLayer).Index;
+            var centerlineAttributes = new ObjectAttributes { LayerIndex = centerlineLayerIndex };
+            transit.Centerline.Id = _rhinoDoc.Objects.AddCurve(transit.Centerline.Geometry, centerlineAttributes); 
         }
     }
 
