@@ -93,9 +93,7 @@ public class RhinoUrbanModelPipeline(RhinoDoc _rhinoDoc, UrbanModel _urbanModel)
     //    _pendingTransits.Clear();
     //}
 
-    private readonly List<IAddUrbanElementsStep> _addUrbanElementSteps = [];
-    private readonly List<IDeleteUrbanElementsStep> _deleteUrbanElementsSteps = [];
-    private readonly List<IEditUrbanElementsStep> _editUrbanElementsSteps = [];
+    private readonly List<IUrbanModelStep> _steps = [];
     private readonly List<Guid> _directDeleteIds = [];
 
     internal RhinoUrbanModelPipeline WithRhinoObjectDeletion(List<Guid> ids)
@@ -106,23 +104,33 @@ public class RhinoUrbanModelPipeline(RhinoDoc _rhinoDoc, UrbanModel _urbanModel)
 
     internal RhinoUrbanModelPipeline WithUrbanElementAddition(IAddUrbanElementsStep step)
     {
-        _addUrbanElementSteps.Add(step);
+        _steps.Add(step);
         return this;
     }
 
     internal RhinoUrbanModelPipeline WithUrbanElementDeletion(IDeleteUrbanElementsStep step)
     {
-        _deleteUrbanElementsSteps.Add(step);
+        _steps.Add(step);
         return this;
     }
 
     internal void Run()
     {
-        var deletedIds = _deleteUrbanElementsSteps.SelectMany(x => x.Run(_urbanModel)).ToList();
+        var deletedIds = new List<Guid>();
+        var editedIds = new List<Guid>();
+        var addedIds = new List<Guid>();
 
-        var editedIds = _editUrbanElementsSteps.SelectMany(x => x.Run(_urbanModel)).ToList();
+        foreach (var step in _steps)
+        {
+            var result = step.Run(_urbanModel);
 
-        var addedIds = _addUrbanElementSteps.SelectMany(x => x.Run(_urbanModel)).ToList();
+            if (step is IDeleteUrbanElementsStep)
+                deletedIds.AddRange(result);
+            if (step is IEditUrbanElementsStep)
+                editedIds.AddRange(result);
+            if (step is IAddUrbanElementsStep)
+                addedIds.AddRange(result);
+        }
 
         var idsToDelete = editedIds
             .Concat(deletedIds)
@@ -145,6 +153,7 @@ public class RhinoUrbanModelPipeline(RhinoDoc _rhinoDoc, UrbanModel _urbanModel)
         OutputTransits(transit);
         OutputBuildings(buildings);
         OutputTransitSurfaces();
+        OutputParcels(addedIds);
     }
 
     private void OutputTransitSurfaces()
@@ -154,6 +163,20 @@ public class RhinoUrbanModelPipeline(RhinoDoc _rhinoDoc, UrbanModel _urbanModel)
             var surfaceLayer = _rhinoDoc.Layers.EnsureLayerExists(LayerConstants.TransitSurface(type)).Index;
             var surfaceAttributes = new ObjectAttributes { LayerIndex = surfaceLayer };
             OutputGeometry(profile, surfaceAttributes);
+        }
+    }
+
+    private void OutputParcels(List<Guid> addedIds)
+    {
+        foreach (var parcel in _urbanModel.Parcels)
+        {
+            if (!addedIds.Contains(parcel.Outline.Id))
+                continue;
+
+            var layer = LayerConstants.ParcelLayer(parcel.Use);
+            var layerIndex = _rhinoDoc.Layers.EnsureLayerExists(layer).Index;
+            var attributes = new ObjectAttributes { LayerIndex = layerIndex };
+            OutputGeometry(parcel.Outline, attributes);
         }
     }
 

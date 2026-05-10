@@ -34,4 +34,9 @@ internal static class LayerConstants
         return $"{BuildingFloorPlates}::{use.Name}";
     }
 
+    public static string ParcelLayer(Use use)
+    {
+        return $"{Parcel}::{use.Name}";
+    }
+
 }
