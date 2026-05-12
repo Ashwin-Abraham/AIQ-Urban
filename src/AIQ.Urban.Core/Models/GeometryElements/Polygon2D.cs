@@ -21,4 +21,13 @@ public class Polygon2D : IGeometryElement<Curve>
         Geometry = geometry;
     }
 
+    internal double Area()
+    {
+        return AreaMassProperties.Compute(Geometry)!.Area;
+    }
+
+    internal double Perimeter()
+    {
+        return Geometry.GetLength();
+    }
 }

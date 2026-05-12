@@ -23,4 +23,14 @@ public class FloorPlate : IUrbanElement
     {
         return [Outline.Id];
     }
+
+    internal double Area()
+    {
+        return Outline.Area();
+    }
+
+    internal double Z()
+    {
+        return Outline.Geometry.PointAtStart.Z;
+    }
 }
