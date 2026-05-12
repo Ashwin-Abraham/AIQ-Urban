@@ -16,6 +16,7 @@ public class RhinoUrbanModelPipeline(RhinoDoc _rhinoDoc, UrbanModel _urbanModel)
 {
     private readonly List<IUrbanModelStep> _steps = [];
     private readonly List<Guid> _directDeleteIds = [];
+    private readonly List<Action<UrbanModel>> _postActions = [];
 
     internal RhinoUrbanModelPipeline WithRhinoObjectDeletion(List<Guid> ids)
     {
@@ -32,6 +33,13 @@ public class RhinoUrbanModelPipeline(RhinoDoc _rhinoDoc, UrbanModel _urbanModel)
     internal RhinoUrbanModelPipeline WithUrbanElementDeletion(IDeleteUrbanElementsStep step)
     {
         _steps.Add(step);
+        return this;
+    }
+
+    /// <summary>Register an action to execute after all steps, deletions, and baking complete.</summary>
+    internal RhinoUrbanModelPipeline WithUrbanModelAction(Action<UrbanModel> action)
+    {
+        _postActions.Add(action);
         return this;
     }
 
@@ -62,6 +70,9 @@ public class RhinoUrbanModelPipeline(RhinoDoc _rhinoDoc, UrbanModel _urbanModel)
 
         DeleteRhinoObjects(idsToDelete);
         AddRhinoObjects(idsToAdd);
+
+        foreach (var action in _postActions)
+            action(_urbanModel);
     }
 
     private void AddRhinoObjects(List<Guid> addedIds)

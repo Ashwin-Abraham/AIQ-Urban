@@ -110,6 +110,12 @@ A `ModelGroup` — top-level container for the entire project. No extra properti
 ### ModelGroup
 *(deferred — not yet implemented)* Base grouping container. `List<ModelElement> Elements` + `string Name`.
 
+### ProjectMetrics
+Aggregate metrics for the entire urban model. Contains `List<BuildingMetrics>`, `List<ParcelMetrics>`, and computed roll-ups (`TotalBuiltUpArea`, `TotalLandArea`, `OverallFAR`, `OverallCoverageRatio`, `BuildingCount`, `ParcelCount`, `AreaPerUse` by use name). Stored on `UrbanModel.ProjectMetrics` — set by `ProjectMetricsCalculator` after pipeline runs. Defined in `Models/Metrics/ProjectMetrics.cs`.
+
+### ProjectMetricsCalculator
+Static utility in `Models/Metrics/ProjectMetricsCalculator.cs`. Reads `UrbanModel.Buildings` and `UrbanModel.Parcels`, computes `BuildingMetrics` for each building, determines building-to-parcel containment via spatial query (point-in-polygon on XY plane), computes `ParcelMetrics`, and stores the result on `UrbanModel.ProjectMetrics`.
+
 ### TopoMesh
 A terrain mesh. Wraps a Rhino `Mesh`.
 

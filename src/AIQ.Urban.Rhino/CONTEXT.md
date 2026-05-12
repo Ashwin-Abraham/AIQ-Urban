@@ -7,6 +7,7 @@ Rhino 8 plugin providing native commands for urban site modelling. Acts as the b
 - **Nullable reference types enabled** — `?` marks values that can legitimately be null; unadorned types are assumed non-null and need not be checked.
 - References `AIQ.Urban.Core` for all domain logic and geometry kernel
 - References `RhinoCommon` directly for Rhino UI (doc, views, selection)
+- Pipeline supports post-actions via `.WithUrbanModelAction(Action<UrbanModel>)` — registered actions execute after all steps, deletions and baking complete. Used for model-only side effects such as metrics calculation and serialization.
 - All initial interaction is via native Rhino commands (no UI yet)
 - Vue UI via websocket/HTTPS is a future concern
 - Multi-step sync between Rhino doc and UrbanModel flows through `RhinoUrbanModelPipeline` in `Pipeline/`
@@ -61,6 +62,9 @@ Element type output is automatic — `OutputTransits()`, `OutputBuildings()`, `O
 - `AddBuildingOnParcel(Brep Envelope, double FloorHeight)`
 - `AddBuildingOnParcelEdge(Brep Envelope, double FloorHeight)`
 - `ChangeUse(Group | Parcel2D Parcel, Use Use)`
+
+### ProjectMetricsJsonSerializer
+Serializer in `Pipeline/ModelActions/ProjectMetricsJsonSerializer.cs`. Reads `UrbanModel.ProjectMetrics` and writes it as indented JSON to `%USERPROFILE%\Documents\AIQ Urban\{RhinoDocName}-project-metrics.json`. Invoked as a `WithUrbanModelAction` step after the pipeline computes metrics. Uses `System.Text.Json` (no additional dependencies).
 
 ## Relationship to Core
 Commands collect user input, then delegate to `RhinoUrbanModelPipeline` which calls into Core's domain logic. Core owns all model state and computation. The RhinoPlugin is a thin presenter/controller layer on top.

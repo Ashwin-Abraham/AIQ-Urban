@@ -1,6 +1,7 @@
 using AIQ.Urban.Core.Enums;
 using AIQ.Urban.Core.Models;
 using AIQ.Urban.Core.Models.GeometryElements;
+using AIQ.Urban.Core.Models.Metrics;
 using AIQ.Urban.Core.Models.UrbanElements;
 
 namespace AIQ.Urban.Core;
@@ -26,6 +27,9 @@ public class UrbanModel
     public List<Zone> Zones { get; } = [];
 
     public List<(Profile2D Profile, TransitType Type)> TransitSurfaces { get; } = [];
+
+    /// <summary>Latest project-level metrics snapshot. Set by <c>ProjectMetricsCalculator</c> after pipeline runs.</summary>
+    public ProjectMetrics? ProjectMetrics { get; set; }
 
     private UrbanModel() { }
 

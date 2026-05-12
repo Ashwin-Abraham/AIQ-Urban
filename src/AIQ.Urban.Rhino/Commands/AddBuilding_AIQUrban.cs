@@ -7,7 +7,9 @@ using Rhino.Input.Custom;
 using AIQ.Urban.Core;
 using AIQ.Urban.Core.Models;
 using AIQ.Urban.Core.Models.GeometryElements;
+using AIQ.Urban.Core.Models.Metrics;
 using AIQ.Urban.RhinoPlugin.Pipeline.ModelActions;
+using AIQ.Urban.RhinoPlugin.Utils;
 using System.Linq;
 
 namespace AIQ.Urban.RhinoPlugin;
@@ -60,6 +62,8 @@ public class AddBuilding_AIQUrban : Command
         new RhinoUrbanModelPipeline(doc, UrbanModel.Instance)
             .WithRhinoObjectDeletion([curveRef.ObjectId])
             .WithUrbanElementAddition(addBuildingStep)
+            .WithUrbanModelAction(um => ProjectMetricsCalculator.CalculateAndStore(um, doc.ModelAbsoluteTolerance))
+            .WithUrbanModelAction(um => ProjectMetricsJsonSerializer.Save(um.ProjectMetrics!, PathConstants.ProjectMetricsFilePath(doc)))
             .Run();
 
         doc.Views.Redraw();

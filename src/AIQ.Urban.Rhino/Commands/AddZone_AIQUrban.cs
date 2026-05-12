@@ -8,7 +8,9 @@ using Rhino.Input.Custom;
 using AIQ.Urban.Core;
 using AIQ.Urban.Core.Models;
 using AIQ.Urban.Core.Models.GeometryElements;
+using AIQ.Urban.Core.Models.Metrics;
 using AIQ.Urban.RhinoPlugin.Pipeline.ModelActions;
+using AIQ.Urban.RhinoPlugin.Utils;
 
 namespace AIQ.Urban.RhinoPlugin;
 
@@ -61,6 +63,8 @@ public class AddZone_AIQUrban : Command
         new RhinoUrbanModelPipeline(doc, UrbanModel.Instance)
             .WithRhinoObjectDeletion([curveRef.ObjectId])
             .WithUrbanElementAddition(addZoneStep)
+            .WithUrbanModelAction(um => ProjectMetricsCalculator.CalculateAndStore(um, doc.ModelAbsoluteTolerance))
+            .WithUrbanModelAction(um => ProjectMetricsJsonSerializer.Save(um.ProjectMetrics!, PathConstants.ProjectMetricsFilePath(doc)))
             .Run();
 
         doc.Views.Redraw();
