@@ -11,4 +11,14 @@ public class BrepElement: IGeometryElement<Brep>
         Geometry = geometry; 
         Id = id;
     }
+
+    internal double Area()
+    {
+        return AreaMassProperties.Compute(Geometry)!.Area;
+    }
+
+    internal double Volume()
+    {
+        return AreaMassProperties.Compute(Geometry)!.Area;
+    }
 }

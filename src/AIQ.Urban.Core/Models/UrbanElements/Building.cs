@@ -6,7 +6,7 @@ namespace AIQ.Urban.Core.Models.UrbanElements;
 public class Building : IUrbanElement
 {
     public BrepElement Envelope { get; }
-    public List<FloorPlate> FloorPlates { get; }
+    public IReadOnlyList<FloorPlate> FloorPlates { get; }
     public Use Use { get; }
     public double TypicalFloorHeight { get; }
     public int FloorCount { get; }
@@ -30,7 +30,7 @@ public class Building : IUrbanElement
         }
 
         Envelope = ComputeEnvelope(curve, typicalFloorHeight * floorCount);
-        FloorPlates = ComputeFloorPlates(curve, typicalFloorHeight, floorCount, use);
+        FloorPlates = ComputeOrderedFloorPlates(curve, typicalFloorHeight, floorCount, use);
     }
 
     private static BrepElement ComputeEnvelope(Curve footprint, double height)
@@ -39,7 +39,7 @@ public class Building : IUrbanElement
         return new BrepElement(extrusion.ToBrep(), Guid.Empty);
     }
 
-    private static List<FloorPlate> ComputeFloorPlates(Curve footprint, double floorHeight, int floorCount, Use use)
+    private static List<FloorPlate> ComputeOrderedFloorPlates(Curve footprint, double floorHeight, int floorCount, Use use)
     {
         var plates = new List<FloorPlate>(floorCount);
 
@@ -51,6 +51,8 @@ public class Building : IUrbanElement
             var profile = new Polygon2D(curve);
             plates.Add(new FloorPlate(profile, use));
         }
+
+        plates = plates.OrderBy(x => x.Outline.Geometry.PointAtStart.Z).ToList();
 
         return plates;
     }
@@ -67,5 +69,15 @@ public class Building : IUrbanElement
             .SelectMany(x => x.GetGeometryIds())
             .Append(Envelope.Id)
             .ToList();
+    }
+
+    internal FloorPlate GroundFloor()
+    {
+        return FloorPlates[0];
+    }
+
+    internal double Height()
+    {
+        return FloorPlates[0].Z() - FloorPlates[^1].Z();
     }
 }
