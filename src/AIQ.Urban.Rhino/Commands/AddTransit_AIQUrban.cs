@@ -3,7 +3,9 @@ using System.Linq;
 using AIQ.Urban.Core;
 using AIQ.Urban.Core.Enums;
 using AIQ.Urban.Core.Models.GeometryElements;
+using AIQ.Urban.Core.Models.Metrics;
 using AIQ.Urban.RhinoPlugin.Pipeline.ModelActions;
+using AIQ.Urban.RhinoPlugin.Utils;
 using Rhino;
 using Rhino.Commands;
 using Rhino.DocObjects;
@@ -73,6 +75,8 @@ public class AddTransit_AIQUrban : Command
             .WithUrbanElementAddition(addTransitStep)
             .WithUrbanElementAddition(transitUnioner)
             .WithUrbanElementAddition(recalculateParcelsStep)
+            .WithUrbanModelAction(um => ProjectMetricsCalculator.CalculateAndStore(um, doc.ModelAbsoluteTolerance))
+            .WithUrbanModelAction(um => ProjectMetricsJsonSerializer.Save(um.ProjectMetrics!, PathConstants.ProjectMetricsFilePath(doc)))
             .Run();
 
         doc.Views.Redraw();
