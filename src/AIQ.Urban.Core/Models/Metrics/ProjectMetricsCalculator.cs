@@ -19,7 +19,15 @@ public static class ProjectMetricsCalculator
             .Select(p => new ParcelMetrics(p, FindBuildingsOnParcel(p, urbanModel, buildingMetrics, containmentTolerance)))
             .ToList();
 
-        urbanModel.ProjectMetrics = new ProjectMetrics(buildingMetrics, parcelMetrics);
+        var transitMetrics = urbanModel.Transits
+            .GroupBy(t => (t.TransitType, t.Width))
+            .Select(group => new TransitMetrics(
+                group.Key.TransitType,
+                group.Key.Width,
+                group))
+            .ToList();
+
+        urbanModel.ProjectMetrics = new ProjectMetrics(buildingMetrics, parcelMetrics, transitMetrics);
     }
 
     /// <summary>Find which <see cref="BuildingMetrics"/> instances sit inside a given parcel's outline.</summary>
