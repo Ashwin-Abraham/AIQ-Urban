@@ -14,6 +14,10 @@ public class ProjectMetrics
     [JsonIgnore]
     public List<ParcelMetrics> ParcelMetrics { get; }
 
+    /// <summary>Aggregated transit metrics grouped by (Type, Width).</summary>
+    [JsonPropertyName("transitMetrics")]
+    public List<TransitMetrics> TransitMetrics { get; }
+
     /// <summary>Sum of all building built-up areas.</summary>
     [JsonPropertyName("totalBuiltUpArea")]
     public double TotalBuiltUpArea { get; }
@@ -38,6 +42,14 @@ public class ProjectMetrics
     [JsonPropertyName("parcelCount")]
     public int ParcelCount { get; }
 
+    /// <summary>Sum of all transit running lengths.</summary>
+    [JsonPropertyName("totalTransitLength")]
+    public double TotalTransitLength { get; }
+
+    /// <summary>Sum of all transit right-of-way areas.</summary>
+    [JsonPropertyName("totalTransitArea")]
+    public double TotalTransitArea { get; }
+
     /// <summary>Total built-up area grouped by use name.</summary>
     [JsonPropertyName("areaPerUse")]
     public Dictionary<string, double> AreaPerUse { get; }
@@ -46,9 +58,19 @@ public class ProjectMetrics
     public ProjectMetrics(
         List<BuildingMetrics> buildingMetrics,
         List<ParcelMetrics> parcelMetrics)
+        : this(buildingMetrics, parcelMetrics, [])
+    {
+    }
+
+    /// <summary>Construct a snapshot from pre-computed per-element metrics, including transit.</summary>
+    public ProjectMetrics(
+        List<BuildingMetrics> buildingMetrics,
+        List<ParcelMetrics> parcelMetrics,
+        List<TransitMetrics> transitMetrics)
     {
         BuildingMetrics = buildingMetrics;
         ParcelMetrics = parcelMetrics;
+        TransitMetrics = transitMetrics;
 
         BuildingCount = buildingMetrics.Count;
         ParcelCount = parcelMetrics.Count;
@@ -63,5 +85,8 @@ public class ProjectMetrics
             .SelectMany(b => b.AreaPerUse)
             .GroupBy(kvp => kvp.Key.Name)
             .ToDictionary(g => g.Key, g => g.Sum(kvp => kvp.Value), StringComparer.Ordinal);
+
+        TotalTransitLength = transitMetrics.Sum(t => t.RunningLength);
+        TotalTransitArea = transitMetrics.Sum(t => t.Area);
     }
 }

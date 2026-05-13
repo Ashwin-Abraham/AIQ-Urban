@@ -111,16 +111,19 @@ A `ModelGroup` — top-level container for the entire project. No extra properti
 *(deferred — not yet implemented)* Base grouping container. `List<ModelElement> Elements` + `string Name`.
 
 ### ProjectMetrics
-Aggregate metrics for the entire urban model. Contains `List<BuildingMetrics>`, `List<ParcelMetrics>`, and computed roll-ups (`TotalBuiltUpArea`, `TotalLandArea`, `OverallFAR`, `OverallCoverageRatio`, `BuildingCount`, `ParcelCount`, `AreaPerUse` by use name). Stored on `UrbanModel.ProjectMetrics` — set by `ProjectMetricsCalculator` after pipeline runs. Defined in `Models/Metrics/ProjectMetrics.cs`.
+Aggregate metrics for the entire urban model. Contains `List<BuildingMetrics>`, `List<ParcelMetrics>`, `List<TransitMetrics>`, and computed roll-ups (`TotalBuiltUpArea`, `TotalLandArea`, `OverallFAR`, `OverallCoverageRatio`, `BuildingCount`, `ParcelCount`, `AreaPerUse` by use name, `TotalTransitLength`, `TotalTransitArea`). Stored on `UrbanModel.ProjectMetrics` — set by `ProjectMetricsCalculator` after pipeline runs. Defined in `Models/Metrics/ProjectMetrics.cs`.
 
 ### ProjectMetricsCalculator
-Static utility in `Models/Metrics/ProjectMetricsCalculator.cs`. Reads `UrbanModel.Buildings` and `UrbanModel.Parcels`, computes `BuildingMetrics` for each building, determines building-to-parcel containment via spatial query (point-in-polygon on XY plane), computes `ParcelMetrics`, and stores the result on `UrbanModel.ProjectMetrics`.
+Static utility in `Models/Metrics/ProjectMetricsCalculator.cs`. Reads `UrbanModel.Buildings`, `UrbanModel.Parcels`, and `UrbanModel.Transits`; computes `BuildingMetrics` for each building, determines building-to-parcel containment via spatial query (point-in-polygon on XY plane), computes `ParcelMetrics`, groups transits by `(TransitType, Width)` and computes `TransitMetrics` per group, and stores the result on `UrbanModel.ProjectMetrics`.
 
 ### TopoMesh
 A terrain mesh. Wraps a Rhino `Mesh`.
 
 ### Vegetation
 A `PointObject` with `Transform Base` and `Geometry GeometryAtOrigin`. A placed plant/object repeated from a template.
+
+### TransitMetrics
+Aggregate metrics for a group of transits sharing the same `TransitType` and `Width`. Fields: `TransitType Type`, `double Width`, `double RunningLength` (sum of centerline lengths), `double Area` (= RunningLength × Width), `int Count`. Implements `IMetrics`. Defined in `Models/Metrics/TransitMetrics.cs`.
 
 ### Metrics
 Abstract base for computed analytics on a `ModelGroup`. Concrete subtypes:
