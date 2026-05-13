@@ -21,19 +21,38 @@ public class TransitMetrics : IMetrics
     /// <summary>Number of transit elements in this group.</summary>
     public int Count { get; }
 
-    /// <param name="type">Transit type for the group.</param>
-    /// <param name="width">Common right-of-way width.</param>
-    /// <param name="transits">All transits in this (Type, Width) group.</param>
-    public TransitMetrics(
+    /// <summary>Create per-transit metrics from a single transit element.</summary>
+    public TransitMetrics(Transit transit)
+    {
+        Type = transit.TransitType;
+        Width = transit.Width;
+        RunningLength = transit.Centerline.Geometry.GetLength();
+        Area = RunningLength * transit.Width;
+        Count = 1;
+    }
+
+    private TransitMetrics(
         TransitType type,
         double width,
-        IEnumerable<Transit> transits)
+        double runningLength,
+        int count)
     {
         Type = type;
         Width = width;
-        var transitList = transits.ToList();
-        RunningLength = transitList.Sum(t => t.Centerline.Geometry.GetLength());
-        Area = RunningLength * width;
-        Count = transitList.Count;
+        RunningLength = runningLength;
+        Area = runningLength * width;
+        Count = count;
+    }
+
+    /// <summary>Aggregate a group of per-transit metrics into a single group metric by summing RunningLength and Count.</summary>
+    public static TransitMetrics Sum(IEnumerable<TransitMetrics> metrics)
+    {
+        var list = metrics.ToList();
+        var first = list[0];
+        return new TransitMetrics(
+            first.Type,
+            first.Width,
+            list.Sum(m => m.RunningLength),
+            list.Sum(m => m.Count));
     }
 }
