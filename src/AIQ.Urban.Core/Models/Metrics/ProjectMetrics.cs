@@ -18,6 +18,10 @@ public class ProjectMetrics
     [JsonPropertyName("transitMetrics")]
     public List<TransitMetrics> TransitMetrics { get; }
 
+    /// <summary>Metrics per zone in the model.</summary>
+    [JsonPropertyName("zoneMetrics")]
+    public List<ZoneMetrics> ZoneMetrics { get; }
+
     /// <summary>Sum of all building built-up areas.</summary>
     [JsonPropertyName("totalBuiltUpArea")]
     public double TotalBuiltUpArea { get; }
@@ -58,19 +62,30 @@ public class ProjectMetrics
     public ProjectMetrics(
         List<BuildingMetrics> buildingMetrics,
         List<ParcelMetrics> parcelMetrics)
-        : this(buildingMetrics, parcelMetrics, [])
+        : this(buildingMetrics, parcelMetrics, [], [])
     {
     }
 
-    /// <summary>Construct a snapshot from pre-computed per-element metrics, including transit.</summary>
+    /// <summary>Construct a snapshot from pre-computed per-element metrics.</summary>
     public ProjectMetrics(
         List<BuildingMetrics> buildingMetrics,
         List<ParcelMetrics> parcelMetrics,
         List<TransitMetrics> transitMetrics)
+        : this(buildingMetrics, parcelMetrics, transitMetrics, [])
+    {
+    }
+
+    /// <summary>Construct a snapshot from pre-computed per-element metrics.</summary>
+    public ProjectMetrics(
+        List<BuildingMetrics> buildingMetrics,
+        List<ParcelMetrics> parcelMetrics,
+        List<TransitMetrics> transitMetrics,
+        List<ZoneMetrics> zoneMetrics)
     {
         BuildingMetrics = buildingMetrics;
         ParcelMetrics = parcelMetrics;
         TransitMetrics = transitMetrics;
+        ZoneMetrics = zoneMetrics;
 
         BuildingCount = buildingMetrics.Count;
         ParcelCount = parcelMetrics.Count;

@@ -15,19 +15,62 @@ public static class ProjectMetricsCalculator
             .Select(b => new BuildingMetrics(b))
             .ToList();
 
+        var buildingMetricsDict = urbanModel.Buildings
+            .Zip(buildingMetrics, (b, m) => (b, m))
+            .ToDictionary(x => x.b, x => x.m);
+
         var parcelMetrics = urbanModel.Parcels
             .Select(p => new ParcelMetrics(p, FindBuildingsOnParcel(p, urbanModel, buildingMetrics, containmentTolerance)))
             .ToList();
 
-        var transitMetrics = urbanModel.Transits
-            .GroupBy(t => (t.TransitType, t.Width))
-            .Select(group => new TransitMetrics(
-                group.Key.TransitType,
-                group.Key.Width,
-                group))
+        var parcelMetricsDict = urbanModel.Parcels
+            .Zip(parcelMetrics, (p, m) => (p, m))
+            .ToDictionary(x => x.p, x => x.m);
+
+        var perTransitMetrics = urbanModel.Transits
+            .Select(t => new TransitMetrics(t))
             .ToList();
 
-        urbanModel.ProjectMetrics = new ProjectMetrics(buildingMetrics, parcelMetrics, transitMetrics);
+        var transitMetrics = perTransitMetrics
+            .GroupBy(t => (t.Type, t.Width))
+            .Select(g => TransitMetrics.Sum(g))
+            .ToList();
+
+        var zoneMetrics = ComputeZoneMetrics(
+            urbanModel, buildingMetricsDict, parcelMetricsDict);
+
+        urbanModel.ProjectMetrics = new ProjectMetrics(buildingMetrics, parcelMetrics, transitMetrics, zoneMetrics);
+    }
+
+    /// <summary>Compute per-zone metrics using pre-computed metric dictionaries.</summary>
+    private static List<ZoneMetrics> ComputeZoneMetrics(
+        UrbanModel urbanModel,
+        Dictionary<Building, BuildingMetrics> buildingMetricsDict,
+        Dictionary<Parcel, ParcelMetrics> parcelMetricsDict)
+    {
+        return urbanModel.Zones
+            .Select(zone =>
+            {
+                var contained = zone.GetContainedElements(urbanModel);
+                var zoneBuildingMetrics = contained
+                    .OfType<Building>()
+                    .Select(b => buildingMetricsDict[b])
+                    .ToList();
+                var zoneParcelMetrics = contained
+                    .OfType<Parcel>()
+                    .Select(p => parcelMetricsDict[p])
+                    .ToList();
+                var containedTransits = contained
+                    .OfType<Transit>()
+                    .ToList();
+
+                return new ZoneMetrics(
+                    zone.Name,
+                    zoneBuildingMetrics,
+                    zoneParcelMetrics,
+                    containedTransits);
+            })
+            .ToList();
     }
 
     /// <summary>Find which <see cref="BuildingMetrics"/> instances sit inside a given parcel's outline.</summary>
