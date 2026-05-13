@@ -31,10 +31,6 @@ public static class ProjectMetricsCalculator
             .Select(t => new TransitMetrics(t))
             .ToList();
 
-        var perTransitMetricsDict = urbanModel.Transits
-            .Zip(perTransitMetrics, (t, m) => (t, m))
-            .ToDictionary(x => x.t, x => x.m);
-
         var transitMetrics = perTransitMetrics
             .GroupBy(t => (t.Type, t.Width))
             .Select(g => TransitMetrics.Sum(g))
