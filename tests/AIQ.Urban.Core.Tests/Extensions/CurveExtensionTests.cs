@@ -12,7 +12,8 @@ public class CurveExtensionTests
 {
 
     [Test]
-    [TestCase("Test 1")]
+    [TestCase("Line")]
+    [TestCase("Square")]
 
     public void CanOffsetCurve(string testName)
     {
@@ -20,7 +21,7 @@ public class CurveExtensionTests
         var testData = _offsetTestData.Single(x => x.CaseName == testName);
 
         //// Act
-        var offsetCurves = testData.Curve.OffsetBothWays(4, Plane.WorldXY, 1e-5);
+        var offsetCurves = testData.Curve.OffsetBothWays(testData.OffsetSize, Plane.WorldXY, 1e-5);
         
         // Preview
         var curvePoints = offsetCurves
@@ -42,12 +43,14 @@ public class CurveExtensionTests
 
     private record OffsetTestData(
         string CaseName,
+        double OffsetSize,
         Curve Curve,
         List<Curve> Expected);
 
     private readonly List<OffsetTestData> _offsetTestData = [
         new OffsetTestData(
-            CaseName: "Test 1",
+            CaseName: "Line",
+            OffsetSize: 4,
             Curve: new LineCurve(Point3d.Origin, new Point3d(5,0,0)),
             Expected: [
                 new PolylineCurve([
@@ -58,6 +61,36 @@ public class CurveExtensionTests
                     new Point3d(0,2,0),
                     ])
                 ]
-            )
+            ),
+
+        new OffsetTestData(
+                CaseName: "Square",
+                OffsetSize: 2,
+                Curve: new PolylineCurve(new List<Point3d>()
+                {
+                    new Point3d(1,1,0),
+                    new Point3d(5,1,0),
+                    new Point3d(5,5,0),
+                    new Point3d(1,5,0),
+                    new Point3d(1,1,0),
+                }),
+                Expected: [
+                   new PolylineCurve(new List<Point3d>()
+                {
+                    new Point3d(0,0,0),
+                    new Point3d(6,0,0),
+                    new Point3d(6,6,0),
+                    new Point3d(0,6,0),
+                    new Point3d(0,0,0),
+                }),
+                new PolylineCurve(new List<Point3d>()
+                {
+                    new Point3d(2,2,0),
+                    new Point3d(4,2,0),
+                    new Point3d(4,4,0),
+                    new Point3d(2,4,0),
+                    new Point3d(2,2,0),
+                })
+                ])
         ];
 }

@@ -1,16 +1,14 @@
-using System;
 using System.Linq;
+using AIQ.Urban.Core;
+using AIQ.Urban.Core.ModelActions;
+using AIQ.Urban.Core.Models.GeometryElements;
+using AIQ.Urban.Core.Models.Metrics;
+using AIQ.Urban.RhinoPlugin.Utils;
 using Rhino;
 using Rhino.Commands;
 using Rhino.Geometry;
 using Rhino.Input;
 using Rhino.Input.Custom;
-using AIQ.Urban.Core;
-using AIQ.Urban.Core.Models;
-using AIQ.Urban.Core.Models.GeometryElements;
-using AIQ.Urban.Core.Models.Metrics;
-using AIQ.Urban.RhinoPlugin.Pipeline.ModelActions;
-using AIQ.Urban.RhinoPlugin.Utils;
 
 namespace AIQ.Urban.RhinoPlugin;
 

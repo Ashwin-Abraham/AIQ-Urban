@@ -5,7 +5,7 @@ using AIQ.Urban.Core;
 using AIQ.Urban.Core.Models;
 using AIQ.Urban.Core.Models.GeometryElements;
 
-namespace AIQ.Urban.RhinoPlugin.Pipeline.ModelActions;
+namespace AIQ.Urban.Core.ModelActions;
 
 public class AddZoneStep(List<ZoneData> _zoneData) : IAddUrbanElementsStep
 {

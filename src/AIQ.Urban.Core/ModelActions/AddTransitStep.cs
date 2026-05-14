@@ -6,7 +6,7 @@ using AIQ.Urban.Core.Enums;
 using AIQ.Urban.Core.Models.GeometryElements;
 using AIQ.Urban.Core.Models.UrbanElements;
 
-namespace AIQ.Urban.RhinoPlugin.Pipeline.ModelActions;
+namespace AIQ.Urban.Core.ModelActions;
 public class AddTransitStep : IAddUrbanElementsStep
 {
     private readonly List<TransitData> _transitData;
