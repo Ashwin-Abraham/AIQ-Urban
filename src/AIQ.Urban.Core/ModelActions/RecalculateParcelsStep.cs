@@ -1,13 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using AIQ.Urban.Core;
-using AIQ.Urban.Core.Models;
+﻿using AIQ.Urban.Core.Models;
 using AIQ.Urban.Core.Models.GeometryElements;
 using AIQ.Urban.Core.Models.UrbanElements;
 using Rhino.Geometry;
 
-namespace AIQ.Urban.RhinoPlugin.Pipeline.ModelActions;
+namespace AIQ.Urban.Core.ModelActions;
 
 /// <summary>
 /// Clears all existing parcels from the model and regenerates them from
@@ -20,7 +16,7 @@ namespace AIQ.Urban.RhinoPlugin.Pipeline.ModelActions;
 /// NOTE: If multiple transit types produce overlapping holes in the same
 /// physical area, duplicate parcels will be created. No dedup is performed.
 /// </summary>
-internal class RecalculateParcelsStep : IDeleteUrbanElementsStep, IAddUrbanElementsStep
+public class RecalculateParcelsStep : IDeleteUrbanElementsStep, IAddUrbanElementsStep
 {
     List<Guid> IUrbanModelStep.Run(UrbanModel model)
     {

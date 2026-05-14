@@ -33,6 +33,17 @@ public class UrbanModel
 
     private UrbanModel() { }
 
+    /// <summary>Clears all collections and resets state. Used by tests for isolation.</summary>
+    public void Reset()
+    {
+        Transits.Clear();
+        Buildings.Clear();
+        Parcels.Clear();
+        Zones.Clear();
+        TransitSurfaces.Clear();
+        ProjectMetrics = null;
+    }
+
     public List<IUrbanElement> GetUrbanElements()
     {
         var list = new List<IUrbanElement>();

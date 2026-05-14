@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using AIQ.Urban.Core;
-using AIQ.Urban.Core.Models.GeometryElements;
+﻿using AIQ.Urban.Core.Models.GeometryElements;
 using Rhino.Geometry;
 
-namespace AIQ.Urban.RhinoPlugin.Pipeline.ModelActions;
-internal class TransitSurfaceUnioner(double _tolerance = 0.001) : IAddUrbanElementsStep
+namespace AIQ.Urban.Core.ModelActions;
+public class TransitSurfaceUnioner(double _tolerance = 0.001) : IAddUrbanElementsStep
 {
     List<Guid> IUrbanModelStep.Run(UrbanModel model)
     {
