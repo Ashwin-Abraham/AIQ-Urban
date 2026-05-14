@@ -19,7 +19,6 @@ public class Building : IUrbanElement
         Use = use;
         TypicalFloorHeight = typicalFloorHeight;
         FloorCount = floorCount;
-        Footprint = footprint;
 
         var curve = footprint.Geometry;
         curve.TryGetPlane(out var plane);
@@ -29,6 +28,7 @@ public class Building : IUrbanElement
             curve.Reverse();
         }
 
+        Footprint = new Polygon2D(curve);
         Envelope = ComputeEnvelope(curve, typicalFloorHeight * floorCount);
         FloorPlates = ComputeOrderedFloorPlates(curve, typicalFloorHeight, floorCount, use);
     }
@@ -36,7 +36,7 @@ public class Building : IUrbanElement
     private static BrepElement ComputeEnvelope(Curve footprint, double height)
     {
         var extrusion = Extrusion.CreateExtrusion(footprint, new Vector3d(0, 0, height));
-        return new BrepElement(extrusion.ToBrep(), Guid.Empty);
+        return new BrepElement(extrusion.ToBrep(), Guid.NewGuid());
     }
 
     private static List<FloorPlate> ComputeOrderedFloorPlates(Curve footprint, double floorHeight, int floorCount, Use use)
@@ -78,6 +78,6 @@ public class Building : IUrbanElement
 
     internal double Height()
     {
-        return FloorPlates[0].Z() - FloorPlates[^1].Z();
+        return FloorPlates[^1].Z() - FloorPlates[0].Z();
     }
 }

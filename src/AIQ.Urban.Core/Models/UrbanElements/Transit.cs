@@ -65,7 +65,7 @@ public class Transit : IUrbanElement
             .Select(x => new Polygon2D(x))
             .ToList();
 
-        return new Profile2D(perimeter, holes);
+        return Profile2D.Create(perimeter, holes);
     }
 
     public Point3d GetRepresentativeCenter()

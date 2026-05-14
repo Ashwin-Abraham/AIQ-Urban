@@ -6,7 +6,6 @@ public class BuildingMetrics : IMetrics
 {
     public double BuiltUpArea { get; }
     public double Volume { get; }
-    public double FacadeArea { get; }
     public double FootprintArea { get; }
     public double Height { get; }
 
@@ -16,7 +15,6 @@ public class BuildingMetrics : IMetrics
     {
         var groundFloor = building.GroundFloor();
         FootprintArea = groundFloor.Outline.Area();
-        FacadeArea = building.Envelope.Area() - FootprintArea;
         Volume = building.Envelope.Volume();
         Height = building.Height();
         AreaPerUse = ConstructAreaPerUse(building.FloorPlates);

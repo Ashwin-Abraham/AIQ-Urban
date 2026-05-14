@@ -33,12 +33,7 @@ internal class TransitSurfaceUnioner(double _tolerance = 0.001) : IAddUrbanEleme
 
             foreach (var brep in unionResult)
             {
-                var face = brep.Faces[0];
-
-                if (face is null)
-                    continue;
-
-                var profile = Profile2D.Create(face);
+                var profile = Profile2D.Create(brep);
                 if (profile is null)
                     continue;
 

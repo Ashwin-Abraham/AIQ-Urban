@@ -86,6 +86,12 @@ public class AddZone_AIQUrban : Command
             return null;
         }
 
+        if(!curve.IsPlanar())
+        {
+            RhinoApp.WriteLine("Non planar curves not allowed.");
+            return null;
+        }
+
         curve.TryGetPlane(out var plane);
         if (plane.Normal.Z < 0)
         {

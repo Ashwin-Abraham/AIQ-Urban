@@ -13,10 +13,10 @@ public class Polygon2D : IGeometryElement<Curve>
         ArgumentNullException.ThrowIfNull(geometry);
 
         if (!geometry.IsPlanarInXY())
-            throw new ArgumentException("Profile2D requires a curve in an XY plane.", nameof(geometry));
+            throw new ArgumentException("Polygon2D requires a curve in an XY plane.", nameof(geometry));
 
         if (!geometry.IsClosed)
-            throw new ArgumentException("Profile2D requires a closed curve.", nameof(geometry));
+            throw new ArgumentException("Polygon2D requires a closed curve.", nameof(geometry));
 
         Geometry = geometry;
     }
