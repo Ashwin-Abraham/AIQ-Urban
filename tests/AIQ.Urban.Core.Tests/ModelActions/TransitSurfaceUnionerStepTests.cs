@@ -30,12 +30,20 @@ public class TransitSurfaceUnionerStepTests
     {
         var testData = _testData.Single(x => x.CaseName == testName);
 
+        // Arrange
         IUrbanModelStep addStep = new AddTransitStep(testData.TransitInputs);
         addStep.Run(UrbanModel.Instance);
 
+        // Act
         IUrbanModelStep step = new TransitSurfaceUnioner();
         var result = step.Run(UrbanModel.Instance);
 
+        // Visualise
+#if DEBUG
+        UrbanModel.Instance.VisualizeTransitSurfaces();
+#endif
+
+        // Assert
         Assert.That(UrbanModel.Instance.TransitSurfaces, Has.Count.EqualTo(testData.ExpectedSurfaceCount));
         Assert.That(result, Has.Count.EqualTo(testData.ExpectedSurfaceCount));
 
@@ -45,10 +53,6 @@ public class TransitSurfaceUnionerStepTests
             var area = AreaMassProperties.Compute(profile.Geometry)!.Area;
             Assert.That(area, Is.GreaterThan(0));
         }
-
-#if DEBUG
-        UrbanModel.Instance.VisualizeTransitSurfaces();
-#endif
     }
 
     private record TransitSurfaceTestData(

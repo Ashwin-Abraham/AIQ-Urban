@@ -28,10 +28,18 @@ public class AddTransitStepTests
     {
         var testData = _testData.Single(x => x.CaseName == testName);
 
+        // Arrange
         IUrbanModelStep step = new AddTransitStep(testData.Input);
 
+        // Act
         var result = step.Run(UrbanModel.Instance);
 
+        // Visualise
+#if DEBUG
+        UrbanModel.Instance.VisualizeTransits();
+#endif
+
+        // Assert
         Assert.That(UrbanModel.Instance.Transits, Has.Count.EqualTo(testData.ExpectedCount));
         Assert.That(result, Has.Count.EqualTo(testData.ExpectedGeometryIdCount));
 
@@ -44,10 +52,6 @@ public class AddTransitStepTests
             var returnedIds = result.OrderBy(x => x).ToList();
             Assert.That(returnedIds, Is.EqualTo(allGeometryIds));
         }
-
-#if DEBUG
-        UrbanModel.Instance.VisualizeTransits();
-#endif
     }
 
     private record AddTransitTestData(

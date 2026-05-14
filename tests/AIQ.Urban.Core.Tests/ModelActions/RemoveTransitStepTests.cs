@@ -30,7 +30,7 @@ public class RemoveTransitStepTests
     {
         var testData = _testData.Single(x => x.CaseName == testName);
 
-        // Arrange: add transits to model first
+        // Arrange
         IUrbanModelStep addStep = new AddTransitStep(testData.InitialTransits);
         addStep.Run(UrbanModel.Instance);
 
@@ -40,22 +40,22 @@ public class RemoveTransitStepTests
         IUrbanModelStep removeStep = new RemoveTransitStep(testData.CenterlineIds);
         var removedIds = removeStep.Run(UrbanModel.Instance);
 
+        // Visualise
+#if DEBUG
+        UrbanModel.Instance.VisualizeTransits();
+#endif
+
         // Assert
         Assert.That(UrbanModel.Instance.Transits, Has.Count.EqualTo(testData.ExpectedRemainingCount));
         Assert.That(removedIds, Has.Count.EqualTo(testData.ExpectedRemovedIdCount));
 
         if (testData.CenterlineIds.Count > 0 && testData.ExpectedRemainingCount < initialCount)
         {
-            // verify removed transits are actually gone
             var remainingIds = UrbanModel.Instance.Transits
                 .SelectMany(t => t.GetGeometryIds())
                 .ToHashSet();
             Assert.That(removedIds.Any(id => remainingIds.Contains(id)), Is.False);
         }
-
-#if DEBUG
-        UrbanModel.Instance.VisualizeTransits();
-#endif
     }
 
     private record RemoveTransitTestData(

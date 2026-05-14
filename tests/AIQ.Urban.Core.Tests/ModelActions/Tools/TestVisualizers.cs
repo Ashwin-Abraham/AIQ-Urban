@@ -88,7 +88,8 @@ public static class UrbanModelVisualizers
             ExportLayers = true,
             MapZToY = true,
             ExportMaterials = true,
-            UseDisplayColorForUnsetMaterials = true
+            UseDisplayColorForUnsetMaterials = true,
+            CullBackfaces = false,
         };
 
         FileGltf.Write(path, doc, options);
@@ -219,7 +220,12 @@ public static class UrbanModelVisualizers
 
     private static Color ColorFromString(string name)
     {
-        var hash = name.GetHashCode();
+        uint hash = 2166136261;
+        foreach (char c in name)
+        {
+            hash ^= c;
+            hash *= 16777619;
+        }
         var r = (byte)((hash & 0xFF) % 200 + 55);
         var g = (byte)(((hash >> 8) & 0xFF) % 200 + 55);
         var b = (byte)(((hash >> 16) & 0xFF) % 200 + 55);

@@ -28,10 +28,18 @@ public class AddZoneStepTests
     {
         var testData = _testData.Single(x => x.CaseName == testName);
 
+        // Arrange
         IUrbanModelStep step = new AddZoneStep(testData.Input);
 
+        // Act
         var result = step.Run(UrbanModel.Instance);
 
+        // Visualise
+#if DEBUG
+        UrbanModel.Instance.VisualizeZones();
+#endif
+
+        // Assert
         Assert.That(UrbanModel.Instance.Zones, Has.Count.EqualTo(testData.ExpectedCount));
         Assert.That(result, Has.Count.EqualTo(testData.ExpectedGeometryIdCount));
 
@@ -44,10 +52,6 @@ public class AddZoneStepTests
             var returnedIds = result.OrderBy(x => x).ToList();
             Assert.That(returnedIds, Is.EqualTo(allGeometryIds));
         }
-
-#if DEBUG
-        UrbanModel.Instance.VisualizeZones();
-#endif
     }
 
     private record AddZoneTestData(

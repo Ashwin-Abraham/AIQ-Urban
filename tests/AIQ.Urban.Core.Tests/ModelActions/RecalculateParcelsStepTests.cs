@@ -33,15 +33,23 @@ public class RecalculateParcelsStepTests
     {
         var testData = _testData.Single(x => x.CaseName == testName);
 
+        // Arrange
         foreach (var (profile, type) in testData.InitialSurfaces)
             UrbanModel.Instance.TransitSurfaces.Add((profile, type));
 
         foreach (var parcel in testData.InitialParcels)
             UrbanModel.Instance.Parcels.Add(parcel);
 
+        // Act
         IUrbanModelStep step = new RecalculateParcelsStep();
         var result = step.Run(UrbanModel.Instance);
 
+        // Visualise
+#if DEBUG
+        UrbanModel.Instance.VisualizeParcels();
+#endif
+
+        // Assert
         Assert.That(UrbanModel.Instance.Parcels, Has.Count.EqualTo(testData.ExpectedParcelCount));
         Assert.That(result, Has.Count.EqualTo(testData.ExpectedReturnedIdCount));
 
@@ -50,10 +58,6 @@ public class RecalculateParcelsStepTests
             Assert.That(UrbanModel.Instance.Parcels[i].Use, Is.EqualTo(testData.ExpectedUses[i]));
             Assert.That(UrbanModel.Instance.Parcels[i].GetGeometryIds(), Has.Count.EqualTo(1));
         }
-
-#if DEBUG
-        UrbanModel.Instance.VisualizeParcels();
-#endif
     }
 
     private record RecalculateParcelsTestData(
