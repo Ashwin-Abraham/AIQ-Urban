@@ -5,54 +5,62 @@ public class Profile2D : IGeometryElement<Brep>
 {
     public Guid Id { get; set; }
     public Brep Geometry { get; }
+    
+    //TODO: Use Polygon not Polygon2D because we dont want to track the ID
     public Polygon2D Outline { get; }
     public List<Polygon2D> Holes { get; }
 
-    public Profile2D(Polygon2D outline, List<Polygon2D> holes, double tolerance = 1e-5)
+    public Profile2D(Brep geometry, Polygon2D outline, List<Polygon2D> holes, double tolerance = 1e-5)
+    {
+        Geometry = geometry;
+        Outline = outline;
+        Holes = holes;
+        Outline = outline;
+        Id = Guid.NewGuid();
+    }
+
+    public static Profile2D? Create(Polygon2D outline, List<Polygon2D> holes, double tolerance = 1e-5)
     {
         var curves = holes.Select(x => x.Geometry).Append(outline.Geometry).ToList();
 
         var profileBreps = Brep.CreatePlanarBreps(curves, tolerance);
-        
-        if (profileBreps.Length != 1)
+
+        if (profileBreps.Length != 1 || profileBreps[0].Faces.Count != 1)
             throw new ArgumentException("Invalid Profile2D");
 
         var profileBrep = profileBreps[0];
-        Geometry = profileBrep;
-        Holes = [];
-        Outline = null!;
+
+        return Create(profileBrep);
+    }
+
+    public static Profile2D? Create(Brep profileBrep)
+    {
+        Polygon2D? outline = null;
+        var holes = new List<Polygon2D>();
+
+        profileBrep.Faces[0].TryGetPlane(out var plane);
+        var faceTransform = Transform.PlaneToPlane(Plane.WorldXY, plane);
 
         foreach (var loop in profileBrep.Faces[0].Loops)
         {
             if (loop.LoopType == BrepLoopType.Outer)
             {
-                Outline = new(loop.To2dCurve());
+                var curve = loop.To2dCurve();
+                curve.Transform(faceTransform);
+                outline = new(curve);
             }
 
             if (loop.LoopType == BrepLoopType.Inner)
             {
-                Holes.Add(new(loop.To2dCurve()));
+                var curve = loop.To2dCurve();
+                curve.Transform(faceTransform);
+                holes.Add(new(loop.To2dCurve()));
             }
-        }
-    }
-
-
-    public static Profile2D? Create(BrepFace face)
-    {
-        Polygon2D? outline = null;
-        var holes = new List<Polygon2D>();
-
-        foreach (var loop in face.Loops)
-        {
-            if (loop.LoopType == BrepLoopType.Outer)
-                outline = new Polygon2D(loop.To2dCurve());
-            else if (loop.LoopType == BrepLoopType.Inner)
-                holes.Add(new Polygon2D(loop.To2dCurve()));
         }
 
         if (outline == null)
             return null;
 
-        return new Profile2D(outline, holes);
+        return new Profile2D(profileBrep, outline, holes);
     }
 }

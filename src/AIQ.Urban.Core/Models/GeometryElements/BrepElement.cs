@@ -19,6 +19,6 @@ public class BrepElement: IGeometryElement<Brep>
 
     internal double Volume()
     {
-        return AreaMassProperties.Compute(Geometry)!.Area;
+        return Geometry.GetVolume();
     }
 }

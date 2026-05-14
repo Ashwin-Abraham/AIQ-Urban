@@ -39,23 +39,26 @@ public class AddTransit_AIQUrban : Command
         go.GeometryFilter = Rhino.DocObjects.ObjectType.Curve;
 
         var widthOption = new OptionDouble(7.0, 0.001, double.MaxValue);
-        var typeOption = new OptionInteger(0, 0, 4);
         go.AddOptionDouble("Width", ref widthOption);
-        go.AddOptionEnumList("Type", TransitType.Road);
+        var typeOptionIndex = go.AddOptionEnumList("Type", TransitType.Road);
+        var transitType = TransitType.Road;
 
         while (true)
         {
             var rc = go.GetMultiple(1, (int)1e5);
 
             if (rc == GetResult.Option)
+            {
+                if (go.Option().Index == typeOptionIndex)
+                    transitType = (TransitType)go.Option().CurrentListOptionIndex;
                 continue;
+            }
             if (rc != GetResult.Object)
                 return go.CommandResult();
             break;
         }
 
         var width = widthOption.CurrentValue;
-        var transitType = (TransitType)typeOption.CurrentValue;
         var centerlineRefs = go.Objects();
         var rhinoObjs = centerlineRefs
             .Select(x => x.Object())

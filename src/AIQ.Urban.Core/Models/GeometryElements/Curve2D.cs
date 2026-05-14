@@ -1,5 +1,4 @@
 using Rhino.Geometry;
-using AIQ.Urban.Core.Extensions;
 
 namespace AIQ.Urban.Core.Models.GeometryElements;
 
