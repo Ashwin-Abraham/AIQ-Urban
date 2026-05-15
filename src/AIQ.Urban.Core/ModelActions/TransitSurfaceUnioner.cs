@@ -22,8 +22,8 @@ public class TransitSurfaceUnioner(double _tolerance = 0.001) : IAddUrbanElement
             if (outlines.Count == 0)
                 continue;
 
-            var unionResult = Brep.CreateBooleanUnion(outlines, _tolerance);
-
+            var unionResult = Brep.CreatePlanarUnion(outlines, model.Plane, _tolerance);
+            
             if (unionResult is null || unionResult.Length == 0)
                 continue;
 
