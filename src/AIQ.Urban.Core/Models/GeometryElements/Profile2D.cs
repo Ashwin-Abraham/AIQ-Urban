@@ -23,7 +23,8 @@ public class Profile2D : IGeometryElement<Brep>
     {
         var curves = holes.Select(x => x.Geometry).Append(outline.Geometry).ToList();
 
-        var profileBreps = Brep.CreatePlanarBreps(curves, tolerance);
+        var curveBreps = curves.SelectMany(x => Brep.CreatePlanarBreps(x, tolerance)).ToList();
+        var profileBreps = Brep.CreateBooleanUnion(curveBreps, tolerance);
 
         if (profileBreps.Length != 1 || profileBreps[0].Faces.Count != 1)
             throw new ArgumentException("Invalid Profile2D");
