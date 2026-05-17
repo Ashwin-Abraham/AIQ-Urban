@@ -1,7 +1,7 @@
 using System.Drawing;
 using Rhino;
 
-namespace AIQ.Urban.Core.Tests.ModelActions.Tools;
+namespace AIQ.Urban.Core.Tests.Tools;
 
 public static class RhinoHelper
 {
