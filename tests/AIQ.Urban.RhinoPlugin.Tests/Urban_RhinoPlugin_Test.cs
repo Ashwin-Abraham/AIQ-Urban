@@ -9,7 +9,7 @@ using Rhino.Geometry;
 using Rhino.Testing;
 using Rhino.Testing.Fixtures;
 
-namespace AIQ.Urban.RhinoPlugin.Tests;
+namespace AIQ.Urban.RhinoInterface.Tests;
 [RhinoTestFixture]
 public class Urban_RhinoPlugin_Test
 {

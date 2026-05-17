@@ -5,6 +5,7 @@
         Rhino 8 Windows: net48, net7.0-windows, net7.0-windows10.0.22000.0, etc
     -->
     <TargetFrameworks>net8.0-windows</TargetFrameworks>
+	  <LangVersion>12</LangVersion>
   </PropertyGroup>
   
   <PropertyGroup>
@@ -12,7 +13,6 @@
     <Title>AIQ.Urban.RhinoPlugin.Tests</Title>
     <Company>AIQ.Urban.RhinoPlugin.Tests Authors</Company>
     <Description>Description of AIQ.Urban.RhinoPlugin.Tests</Description>
-	  <LangVersion>14</LangVersion>
 
     <NoWarn>NU1701;MSB3277</NoWarn>
   </PropertyGroup>
@@ -20,14 +20,14 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.13.0" />
     <PackageReference Include="NUnit3TestAdapter" Version="5.0.0" />
-    <PackageReference Include="NUnit" Version="4.3.2" />
+    <PackageReference Include="NUnit" Version="3.14.0" />
     <PackageReference Include="Rhino.Testing" Version="8.0.28-beta" />
 
-    <PackageReference Include="RhinoCommon" Version="8.31.26126.13431-rc" ExcludeAssets="runtime" />
+    <PackageReference Include="RhinoCommon" Version="8.32.26131.18001-rc" ExcludeAssets="runtime" />
   </ItemGroup>
   
   <ItemGroup>
-    <ProjectReference Include="..\..\src\AIQ.Urban.Rhino\AIQ.Urban.RhinoPlugin.csproj" />
+    <ProjectReference Include="..\..\src\AIQ.Urban.RhinoInterface\AIQ.Urban.RhinoInterface.csproj" />
   </ItemGroup>
 
   <ItemGroup>

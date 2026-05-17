@@ -39,11 +39,13 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AIQ.Exports", "src\AIQ.Expo
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AIQ.Urban.Core.Tests", "tests\AIQ.Urban.Core.Tests\AIQ.Urban.Core.Tests.csproj", "{487DB75F-1181-4EB9-BDFF-780351C10963}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AIQ.Urban.RhinoPlugin.Tests", "tests\AIQ.Urban.RhinoPlugin.Tests\AIQ.Urban.RhinoPlugin.Tests.csproj", "{AB610162-F90B-4828-A717-CDCB1625A6ED}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AIQ.Urban.RhinoInterface.Tests", "tests\AIQ.Urban.RhinoPlugin.Tests\AIQ.Urban.RhinoInterface.Tests.csproj", "{AB610162-F90B-4828-A717-CDCB1625A6ED}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tools", "tools", "{3AD67391-2E61-48B8-AF6D-4ADFE7297F57}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AIQ.Urban.DebugViz", "tools\AIQ.Urban.DebugViz\AIQ.Urban.DebugViz.csproj", "{3129927F-0700-52DD-9B92-05EE8C17D89C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AIQ.Urban.RhinoInterface", "src\AIQ.Urban.RhinoInterface\AIQ.Urban.RhinoInterface.csproj", "{F0D4B3C3-882C-4761-8D5A-8A7361A81515}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -271,6 +273,18 @@ Global
 		{3129927F-0700-52DD-9B92-05EE8C17D89C}.Release|Any CPU.Build.0 = Release|Any CPU
 		{3129927F-0700-52DD-9B92-05EE8C17D89C}.Release|x64.ActiveCfg = Release|Any CPU
 		{3129927F-0700-52DD-9B92-05EE8C17D89C}.Release|x64.Build.0 = Release|Any CPU
+		{F0D4B3C3-882C-4761-8D5A-8A7361A81515}.Debug_NoViz|Any CPU.ActiveCfg = Debug|Any CPU
+		{F0D4B3C3-882C-4761-8D5A-8A7361A81515}.Debug_NoViz|Any CPU.Build.0 = Debug|Any CPU
+		{F0D4B3C3-882C-4761-8D5A-8A7361A81515}.Debug_NoViz|x64.ActiveCfg = Debug|Any CPU
+		{F0D4B3C3-882C-4761-8D5A-8A7361A81515}.Debug_NoViz|x64.Build.0 = Debug|Any CPU
+		{F0D4B3C3-882C-4761-8D5A-8A7361A81515}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F0D4B3C3-882C-4761-8D5A-8A7361A81515}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F0D4B3C3-882C-4761-8D5A-8A7361A81515}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{F0D4B3C3-882C-4761-8D5A-8A7361A81515}.Debug|x64.Build.0 = Debug|Any CPU
+		{F0D4B3C3-882C-4761-8D5A-8A7361A81515}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F0D4B3C3-882C-4761-8D5A-8A7361A81515}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F0D4B3C3-882C-4761-8D5A-8A7361A81515}.Release|x64.ActiveCfg = Release|Any CPU
+		{F0D4B3C3-882C-4761-8D5A-8A7361A81515}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -294,6 +308,7 @@ Global
 		{487DB75F-1181-4EB9-BDFF-780351C10963} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 		{AB610162-F90B-4828-A717-CDCB1625A6ED} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 		{3129927F-0700-52DD-9B92-05EE8C17D89C} = {3AD67391-2E61-48B8-AF6D-4ADFE7297F57}
+		{F0D4B3C3-882C-4761-8D5A-8A7361A81515} = {FEE079C2-35BC-400E-99D2-29EBD2F492FA}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {01F5ED00-627C-4FE9-9BB0-6F079BEA3E65}

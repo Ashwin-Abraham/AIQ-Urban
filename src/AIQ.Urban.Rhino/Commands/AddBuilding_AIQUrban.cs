@@ -2,14 +2,14 @@ using AIQ.Urban.Core;
 using AIQ.Urban.Core.ModelActions;
 using AIQ.Urban.Core.Models;
 using AIQ.Urban.Core.Models.GeometryElements;
-using AIQ.Urban.Core.Models.Metrics;
-using AIQ.Urban.RhinoPlugin.Utils;
+using AIQ.Urban.RhinoInterface;
+using AIQ.Urban.RhinoInterface.Pipeline.Configs;
 using Rhino;
 using Rhino.Commands;
 using Rhino.Input;
 using Rhino.Input.Custom;
 
-namespace AIQ.Urban.RhinoPlugin;
+namespace AIQ.Urban.RhinoInterface;
 
 public class AddBuilding_AIQUrban : Command
 {
@@ -54,14 +54,13 @@ public class AddBuilding_AIQUrban : Command
 
         Polygon2D profile= new Polygon2D(footprint);
         var buildingData = new BuildingData(profile, floorHeight, floorCount, selectedUse);
-        var addBuildingStep = new AddBuildingStep([buildingData]);
+        var config = new BuildingPipelineConfiguration([buildingData], [curveRef.ObjectId]);
 
-        new RhinoUrbanModelPipeline(doc, UrbanModel.Instance)
-            .WithRhinoObjectDeletion([curveRef.ObjectId])
-            .WithUrbanElementAddition(addBuildingStep)
-            .WithUrbanModelAction(um => ProjectMetricsCalculator.CalculateAndStore(um, doc.ModelAbsoluteTolerance))
-            .WithUrbanModelAction(um => ProjectMetricsJsonSerializer.Save(um.ProjectMetrics!, PathConstants.ProjectMetricsFilePath(doc)))
-            .Run();
+        var pipeline = new RhinoUrbanModelPipeline(doc, UrbanModel.Instance);
+        new PipelineConfigurations(pipeline)
+            .WithBuildingAdditionSteps(config)
+            .WithMetricsCalculation(saveToFile: true, tolerance: doc.ModelAbsoluteTolerance, docName: doc.Name);
+        pipeline.Run();
 
         doc.Views.Redraw();
         RhinoApp.WriteLine("Added building: {0} storeys, total height={1}, use={2}.",

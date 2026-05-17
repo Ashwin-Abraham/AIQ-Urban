@@ -4,8 +4,8 @@ using AIQ.Urban.Core;
 using AIQ.Urban.Core.Enums;
 using AIQ.Urban.Core.ModelActions;
 using AIQ.Urban.Core.Models.GeometryElements;
-using AIQ.Urban.Core.Models.Metrics;
-using AIQ.Urban.RhinoPlugin.Utils;
+using AIQ.Urban.RhinoInterface;
+using AIQ.Urban.RhinoInterface.Pipeline.Configs;
 using Rhino;
 using Rhino.Commands;
 using Rhino.DocObjects;
@@ -13,7 +13,7 @@ using Rhino.Geometry;
 using Rhino.Input;
 using Rhino.Input.Custom;
 
-namespace AIQ.Urban.RhinoPlugin;
+namespace AIQ.Urban.RhinoInterface;
 
 /// <summary>Rhino command: pick centerline curves → width + transit type on command line → bake outlines.</summary>
 public class AddTransit_AIQUrban : Command
@@ -67,20 +67,13 @@ public class AddTransit_AIQUrban : Command
         List<TransitData> transitData = BuildTransitData(rhinoObjs, width, transitType, tolerance);
 
         var centerlineIds = centerlineRefs.Select(x => x.ObjectId).ToList();
-        var addTransitStep = new AddTransitStep(transitData);
-        var removeExistingTransitStep = new RemoveTransitStep(centerlineIds);
-        var transitUnioner = new TransitSurfaceUnioner();
-        var recalculateParcelsStep = new RecalculateParcelsStep();
-        
-        new RhinoUrbanModelPipeline(doc, UrbanModel.Instance)
-            .WithRhinoObjectDeletion(centerlineIds)
-            .WithUrbanElementDeletion(removeExistingTransitStep)
-            .WithUrbanElementAddition(addTransitStep)
-            .WithUrbanElementAddition(transitUnioner)
-            .WithUrbanElementAddition(recalculateParcelsStep)
-            .WithUrbanModelAction(um => ProjectMetricsCalculator.CalculateAndStore(um, doc.ModelAbsoluteTolerance))
-            .WithUrbanModelAction(um => ProjectMetricsJsonSerializer.Save(um.ProjectMetrics!, PathConstants.ProjectMetricsFilePath(doc)))
-            .Run();
+        var config = new TransitPipelineConfiguration(transitData, centerlineIds);
+
+        var pipeline = new RhinoUrbanModelPipeline(doc, UrbanModel.Instance);
+        new PipelineConfigurations(pipeline)
+            .WithTransitAdditionSteps(config)
+            .WithMetricsCalculation(saveToFile: true, tolerance: doc.ModelAbsoluteTolerance, docName: doc.Name);
+        pipeline.Run();
 
         doc.Views.Redraw();
         RhinoApp.WriteLine("Added {0} transit corridor(s), width={1}, type={2}.", transitData.Count, width, transitType);

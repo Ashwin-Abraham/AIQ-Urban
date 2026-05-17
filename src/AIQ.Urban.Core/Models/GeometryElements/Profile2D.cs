@@ -15,7 +15,6 @@ public class Profile2D : IGeometryElement<Brep>
         Geometry = geometry;
         Outline = outline;
         Holes = holes;
-        Outline = outline;
         Id = Guid.NewGuid();
     }
 
