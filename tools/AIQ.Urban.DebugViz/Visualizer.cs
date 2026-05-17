@@ -1,10 +1,8 @@
-using System;
 using System.Diagnostics;
-using System.IO;
 using Rhino;
 using Rhino.FileIO;
 
-namespace AIQ.Urban.Core.Tests.Tools;
+namespace AIQ.Urban.DebugViz;
 
 public static class Visualizer
 {

@@ -5,7 +5,6 @@
         Rhino 8 Windows: net48, net7.0-windows, net7.0-windows10.0.22000.0, etc
     -->
     <TargetFrameworks>net8.0-windows</TargetFrameworks>
-    <LangVersion>11</LangVersion>
   </PropertyGroup>
   
   <PropertyGroup>
@@ -13,6 +12,7 @@
     <Title>AIQ.Urban.RhinoPlugin.Tests</Title>
     <Company>AIQ.Urban.RhinoPlugin.Tests Authors</Company>
     <Description>Description of AIQ.Urban.RhinoPlugin.Tests</Description>
+	  <LangVersion>14</LangVersion>
 
     <NoWarn>NU1701;MSB3277</NoWarn>
   </PropertyGroup>

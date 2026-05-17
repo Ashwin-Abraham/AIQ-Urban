@@ -1,7 +1,4 @@
-using System;
-using System.Collections.Generic;
 using System.Drawing;
-using System.Linq;
 using AIQ.Urban.Core.Enums;
 using AIQ.Urban.Core.Models;
 using AIQ.Urban.Core.Models.GeometryElements;
@@ -10,7 +7,7 @@ using Rhino;
 using Rhino.DocObjects;
 using Rhino.Geometry;
 
-namespace AIQ.Urban.Core.Tests.Tools;
+namespace AIQ.Urban.DebugViz;
 
 public class UrbanSceneBuilder
 {

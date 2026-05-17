@@ -1,7 +1,8 @@
 using System.Linq;
+using AIQ.Urban.Core;
 using AIQ.Urban.Core.Models.UrbanElements;
 
-namespace AIQ.Urban.Core.Tests.Tools;
+namespace AIQ.Urban.DebugViz;
 
 public static class UrbanModelVisualizers
 {

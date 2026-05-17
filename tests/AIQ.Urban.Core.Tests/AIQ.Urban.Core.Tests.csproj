@@ -13,7 +13,7 @@
     <Title>AIQ.Urban.Core.Tests</Title>
     <Company>AIQ.Urban.Core.Tests Authors</Company>
     <Description>Description of AIQ.Urban.Core.Tests</Description>
-
+	<LangVersion>14</LangVersion>
     <NoWarn>NU1701;MSB3277</NoWarn>
   </PropertyGroup>
 
@@ -27,6 +27,7 @@
   
   <ItemGroup>
     <ProjectReference Include="..\..\src\AIQ.Urban.Core\AIQ.Urban.Core.csproj" />
+    <ProjectReference Include="..\..\tools\AIQ.Urban.DebugViz\AIQ.Urban.DebugViz.csproj" />
   </ItemGroup>
 
   <ItemGroup>
