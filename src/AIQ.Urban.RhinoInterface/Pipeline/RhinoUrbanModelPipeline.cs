@@ -1,16 +1,13 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using AIQ.Urban.Core;
 using AIQ.Urban.Core.ModelActions;
 using AIQ.Urban.Core.Models.GeometryElements;
 using AIQ.Urban.Core.Models.UrbanElements;
-using AIQ.Urban.RhinoPlugin.Extensions;
-using AIQ.Urban.RhinoPlugin.Utils;
+using AIQ.Urban.RhinoInterface.Extensions;
+using AIQ.Urban.RhinoInterface.Utils;
 using Rhino;
 using Rhino.DocObjects;
 
-namespace AIQ.Urban.RhinoPlugin;
+namespace AIQ.Urban.RhinoInterface;
 
 public class RhinoUrbanModelPipeline(RhinoDoc _rhinoDoc, UrbanModel _urbanModel)
 {
@@ -18,32 +15,32 @@ public class RhinoUrbanModelPipeline(RhinoDoc _rhinoDoc, UrbanModel _urbanModel)
     private readonly List<Guid> _directDeleteIds = [];
     private readonly List<Action<UrbanModel>> _postActions = [];
 
-    internal RhinoUrbanModelPipeline WithRhinoObjectDeletion(List<Guid> ids)
+    public RhinoUrbanModelPipeline WithRhinoObjectDeletion(List<Guid> ids)
     {
         _directDeleteIds.AddRange(ids);
         return this;
     }
 
-    internal RhinoUrbanModelPipeline WithUrbanElementAddition(IAddUrbanElementsStep step)
+    public RhinoUrbanModelPipeline WithUrbanElementAddition(IAddUrbanElementsStep step)
     {
         _steps.Add(step);
         return this;
     }
 
-    internal RhinoUrbanModelPipeline WithUrbanElementDeletion(IDeleteUrbanElementsStep step)
+    public RhinoUrbanModelPipeline WithUrbanElementDeletion(IDeleteUrbanElementsStep step)
     {
         _steps.Add(step);
         return this;
     }
 
     /// <summary>Register an action to execute after all steps, deletions, and baking complete.</summary>
-    internal RhinoUrbanModelPipeline WithUrbanModelAction(Action<UrbanModel> action)
+    public RhinoUrbanModelPipeline WithUrbanModelAction(Action<UrbanModel> action)
     {
         _postActions.Add(action);
         return this;
     }
 
-    internal void Run()
+    public void Run()
     {
         var deletedIds = new List<Guid>();
         var editedIds = new List<Guid>();

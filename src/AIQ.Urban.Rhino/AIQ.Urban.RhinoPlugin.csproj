@@ -18,10 +18,11 @@
   </PropertyGroup>
   
   <ItemGroup>
-    <PackageReference Include="RhinoCommon" Version="8.31.26126.13431-rc" ExcludeAssets="runtime" />
+    <PackageReference Include="RhinoCommon" Version="8.32.26131.18001-rc" ExcludeAssets="runtime" />
   </ItemGroup>
+  
   <ItemGroup>
-    <ProjectReference Include="..\AIQ.Urban.Core\AIQ.Urban.Core.csproj" />
+    <ProjectReference Include="..\AIQ.Urban.RhinoInterface\AIQ.Urban.RhinoInterface.csproj" />
   </ItemGroup>
   
 </Project>

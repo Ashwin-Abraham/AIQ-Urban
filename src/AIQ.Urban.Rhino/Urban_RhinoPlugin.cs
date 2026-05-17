@@ -1,4 +1,4 @@
-﻿namespace AIQ.Urban.RhinoPlugin;
+﻿namespace AIQ.Urban.RhinoInterface;
 ///<summary>
 /// <para>Every RhinoCommon .rhp assembly must have one and only one PlugIn-derived
 /// class. DO NOT create instances of this class yourself. It is the

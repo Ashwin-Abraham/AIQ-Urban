@@ -2,15 +2,15 @@ using System.Linq;
 using AIQ.Urban.Core;
 using AIQ.Urban.Core.ModelActions;
 using AIQ.Urban.Core.Models.GeometryElements;
-using AIQ.Urban.Core.Models.Metrics;
-using AIQ.Urban.RhinoPlugin.Utils;
+using AIQ.Urban.RhinoInterface;
+using AIQ.Urban.RhinoInterface.Pipeline.Configs;
 using Rhino;
 using Rhino.Commands;
 using Rhino.Geometry;
 using Rhino.Input;
 using Rhino.Input.Custom;
 
-namespace AIQ.Urban.RhinoPlugin;
+namespace AIQ.Urban.RhinoInterface;
 
 public class AddZone_AIQUrban : Command
 {
@@ -56,14 +56,13 @@ public class AddZone_AIQUrban : Command
 
         var boundary = new Polygon2D(curve);
         var zoneData = new ZoneData(boundary, zoneName);
-        var addZoneStep = new AddZoneStep([zoneData]);
+        var config = new ZonePipelineConfiguration([zoneData], [curveRef.ObjectId]);
 
-        new RhinoUrbanModelPipeline(doc, UrbanModel.Instance)
-            .WithRhinoObjectDeletion([curveRef.ObjectId])
-            .WithUrbanElementAddition(addZoneStep)
-            .WithUrbanModelAction(um => ProjectMetricsCalculator.CalculateAndStore(um, doc.ModelAbsoluteTolerance))
-            .WithUrbanModelAction(um => ProjectMetricsJsonSerializer.Save(um.ProjectMetrics!, PathConstants.ProjectMetricsFilePath(doc)))
-            .Run();
+        var pipeline = new RhinoUrbanModelPipeline(doc, UrbanModel.Instance);
+        new PipelineConfigurations(pipeline)
+            .WithZoneAdditionSteps(config)
+            .WithMetricsCalculation(saveToFile: true, tolerance: doc.ModelAbsoluteTolerance, docName: doc.Name);
+        pipeline.Run();
 
         doc.Views.Redraw();
         RhinoApp.WriteLine("Added zone: {0}", zoneName);

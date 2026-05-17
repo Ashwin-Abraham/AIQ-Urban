@@ -2,7 +2,7 @@ using System;
 using System.IO;
 using Rhino;
 
-namespace AIQ.Urban.RhinoPlugin.Utils;
+namespace AIQ.Urban.RhinoInterface.Utils;
 
 /// <summary>Well-known file paths used across the plugin.</summary>
 internal static class PathConstants

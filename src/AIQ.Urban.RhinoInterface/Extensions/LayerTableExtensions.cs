@@ -1,7 +1,7 @@
 using Rhino.DocObjects;
 using Rhino.DocObjects.Tables;
 
-namespace AIQ.Urban.RhinoPlugin.Extensions;
+namespace AIQ.Urban.RhinoInterface.Extensions;
 
 /// <summary>Extension methods for Rhino <see cref="LayerTable"/>.</summary>
 internal static class LayerTableExtensions

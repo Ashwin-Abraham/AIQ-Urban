@@ -1,7 +1,7 @@
 using AIQ.Urban.Core.Enums;
 using AIQ.Urban.Core.Models;
 
-namespace AIQ.Urban.RhinoPlugin.Utils;
+namespace AIQ.Urban.RhinoInterface.Utils;
 
 internal static class LayerConstants
 {

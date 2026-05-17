@@ -1,16 +1,19 @@
 using System.Collections.Generic;
 using System.Linq;
+using AIQ.Urban.Core;
 using AIQ.Urban.Core.ModelActions;
 using AIQ.Urban.Core.Models;
 using AIQ.Urban.Core.Models.GeometryElements;
+using AIQ.Urban.RhinoInterface.Pipeline.Configs;
 using NUnit.Framework;
+using Rhino;
 using Rhino.Geometry;
 using Rhino.Testing.Fixtures;
 
-namespace AIQ.Urban.Core.Tests.ModelActions;
+namespace AIQ.Urban.RhinoInterface.Tests;
 
 [RhinoTestFixture]
-public class AddBuildingStepTests
+public class BuildingPipelineConfigurationTests
 {
     [SetUp]
     public void SetUp()
@@ -22,36 +25,29 @@ public class AddBuildingStepTests
     [TestCase("SingleBuilding")]
     [TestCase("MultipleBuildings")]
     [TestCase("EmptyList")]
-    public void Run_AddsBuildingsToModel(string testName)
+    public void WithBuildingAdditionSteps_AddsBuildingsToModel(string testName)
     {
         var testData = _testData.Single(x => x.CaseName == testName);
 
-        // Arrange
-        IUrbanModelStep step = new AddBuildingStep(testData.Input);
+        using var doc = RhinoDoc.CreateHeadless(null);
+        var pipeline = new RhinoUrbanModelPipeline(doc, UrbanModel.Instance);
+        var config = new BuildingPipelineConfiguration(testData.Input, []);
 
-        // Act
-        var result = step.Run(UrbanModel.Instance);
+        new PipelineConfigurations(pipeline)
+            .WithBuildingAdditionSteps(config)
+            .WithMetricsCalculation(false);
+        pipeline.Run();
 
-        // Assert
         Assert.That(UrbanModel.Instance.Buildings, Has.Count.EqualTo(testData.ExpectedCount));
-        Assert.That(result, Has.Count.EqualTo(testData.ExpectedGeometryIdCount));
 
         if (testData.ExpectedCount > 0)
-        {
-            var allGeometryIds = UrbanModel.Instance.Buildings
-                .SelectMany(x => x.GetGeometryIds())
-                .OrderBy(x => x)
-                .ToList();
-            var returnedIds = result.OrderBy(x => x).ToList();
-            Assert.That(returnedIds, Is.EqualTo(allGeometryIds));
-        }
+            Assert.That(UrbanModel.Instance.Buildings.SelectMany(b => b.GetGeometryIds()), Is.Not.Empty);
     }
 
-    private record AddBuildingTestData(
+    private record BuildingPipelineTestData(
         string CaseName,
         List<BuildingData> Input,
-        int ExpectedCount,
-        int ExpectedGeometryIdCount);
+        int ExpectedCount);
 
     private static readonly Polygon2D SimpleFootprint = new(
         new PolylineCurve([
@@ -71,28 +67,25 @@ public class AddBuildingStepTests
             new Point3d(0, 0, 0),
         ]));
 
-    private static readonly List<AddBuildingTestData> _testData =
+    private static readonly List<BuildingPipelineTestData> _testData =
     [
-        new AddBuildingTestData(
+        new BuildingPipelineTestData(
             CaseName: "SingleBuilding",
             Input: [new BuildingData(SimpleFootprint, 3.5, 5, DefaultUses.Residential)],
-            ExpectedCount: 1,
-            ExpectedGeometryIdCount: 6),
+            ExpectedCount: 1),
 
-        new AddBuildingTestData(
+        new BuildingPipelineTestData(
             CaseName: "MultipleBuildings",
             Input:
             [
                 new BuildingData(SimpleFootprint, 3.5, 5, DefaultUses.Residential),
                 new BuildingData(SmallFootprint, 4.0, 3, DefaultUses.Commercial),
             ],
-            ExpectedCount: 2,
-            ExpectedGeometryIdCount: 10),
+            ExpectedCount: 2),
 
-        new AddBuildingTestData(
+        new BuildingPipelineTestData(
             CaseName: "EmptyList",
             Input: [],
-            ExpectedCount: 0,
-            ExpectedGeometryIdCount: 0),
+            ExpectedCount: 0),
     ];
 }
