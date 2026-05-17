@@ -3,7 +3,7 @@ using AIQ.Urban.Core.ModelActions;
 using AIQ.Urban.Core.Models;
 using AIQ.Urban.Core.Models.GeometryElements;
 using AIQ.Urban.Core.Models.UrbanElements;
-using AIQ.Urban.Core.Tests.ModelActions.Tools;
+using AIQ.Urban.DebugViz;
 using NUnit.Framework;
 using Rhino.Geometry;
 using Rhino.Testing.Fixtures;
@@ -43,10 +43,11 @@ public class TransitSurfaceAndParcelCalculationTests
 
         // Visualise
 #if DEBUG
-        new Visualiser()
+        var vizDoc = new UrbanSceneBuilder()
             .AddUrbanElements(UrbanModel.Instance.Parcels.Cast<IUrbanElement>().ToList())
             .AddTransitSurfaces(UrbanModel.Instance.TransitSurfaces)
-            .View();
+            .Build();
+        Visualizer.View(vizDoc);
 #endif
 
         // Assert

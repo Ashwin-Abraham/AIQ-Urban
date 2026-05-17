@@ -1,50 +1,57 @@
 using System.Linq;
+using AIQ.Urban.Core;
 using AIQ.Urban.Core.Models.UrbanElements;
 
-namespace AIQ.Urban.Core.Tests.ModelActions.Tools;
+namespace AIQ.Urban.DebugViz;
 
 public static class UrbanModelVisualizers
 {
     public static void VisualizeAll(this UrbanModel model)
     {
-        new Visualiser()
+        var doc = new UrbanSceneBuilder()
             .AddUrbanElements(model.GetUrbanElements())
             .AddTransitSurfaces(model.TransitSurfaces)
-            .View();
+            .Build();
+        Visualizer.View(doc);
     }
 
     public static void VisualizeBuildings(this UrbanModel model)
     {
-        new Visualiser()
+        var doc = new UrbanSceneBuilder()
             .AddUrbanElements(model.Buildings.Cast<IUrbanElement>().ToList())
-            .View();
+            .Build();
+        Visualizer.View(doc);
     }
 
     public static void VisualizeTransits(this UrbanModel model)
     {
-        new Visualiser()
+        var doc = new UrbanSceneBuilder()
             .AddUrbanElements(model.Transits.Cast<IUrbanElement>().ToList())
-            .View();
+            .Build();
+        Visualizer.View(doc);
     }
 
     public static void VisualizeTransitSurfaces(this UrbanModel model)
     {
-        new Visualiser()
+        var doc = new UrbanSceneBuilder()
             .AddTransitSurfaces(model.TransitSurfaces)
-            .View();
+            .Build();
+        Visualizer.View(doc);
     }
 
     public static void VisualizeParcels(this UrbanModel model)
     {
-        new Visualiser()
+        var doc = new UrbanSceneBuilder()
             .AddUrbanElements(model.Parcels.Cast<IUrbanElement>().ToList())
-            .View();
+            .Build();
+        Visualizer.View(doc);
     }
 
     public static void VisualizeZones(this UrbanModel model)
     {
-        new Visualiser()
+        var doc = new UrbanSceneBuilder()
             .AddUrbanElements(model.Zones.Cast<IUrbanElement>().ToList())
-            .View();
+            .Build();
+        Visualizer.View(doc);
     }
 }

@@ -1,29 +1,24 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.Drawing;
-using System.IO;
 using AIQ.Urban.Core.Enums;
 using AIQ.Urban.Core.Models;
 using AIQ.Urban.Core.Models.GeometryElements;
 using AIQ.Urban.Core.Models.UrbanElements;
 using Rhino;
 using Rhino.DocObjects;
-using Rhino.FileIO;
 using Rhino.Geometry;
 
-namespace AIQ.Urban.Core.Tests.ModelActions.Tools;
+namespace AIQ.Urban.DebugViz;
 
-public class Visualiser
+public class UrbanSceneBuilder
 {
     private readonly RhinoDoc _doc;
 
-    public Visualiser()
+    public UrbanSceneBuilder()
     {
         _doc = RhinoDoc.CreateHeadless(null);
     }
 
-    public Visualiser AddUrbanElements(IEnumerable<IUrbanElement> elements)
+    public UrbanSceneBuilder AddUrbanElements(IEnumerable<IUrbanElement> elements)
     {
         foreach (var element in elements)
         {
@@ -46,7 +41,7 @@ public class Visualiser
         return this;
     }
 
-    public Visualiser AddTransitSurfaces(IEnumerable<(Profile2D Profile, TransitType Type)> surfaces)
+    public UrbanSceneBuilder AddTransitSurfaces(IEnumerable<(Profile2D Profile, TransitType Type)> surfaces)
     {
         foreach (var (profile, type) in surfaces)
         {
@@ -62,25 +57,7 @@ public class Visualiser
         return this;
     }
 
-    public string View()
-    {
-        if (_doc.Objects.Count == 0)
-            return string.Empty;
-
-        var path = Path.Combine(Path.GetTempPath(), $"AIQUrban_{Guid.NewGuid():N}.glb");
-        var options = new FileGltfWriteOptions
-        {
-            ExportLayers = true,
-            MapZToY = true,
-            ExportMaterials = true,
-            UseDisplayColorForUnsetMaterials = true,
-            CullBackfaces = false,
-        };
-
-        FileGltf.Write(path, _doc, options);
-        Process.Start(new ProcessStartInfo(path) { UseShellExecute = true });
-        return path;
-    }
+    public RhinoDoc Build() => _doc;
 
     private void AddBuilding(Building building)
     {

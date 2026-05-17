@@ -1,7 +1,7 @@
 using AIQ.Urban.Core.ModelActions;
 using AIQ.Urban.Core.Models;
 using AIQ.Urban.Core.Models.GeometryElements;
-using AIQ.Urban.Core.Tests.ModelActions.Tools;
+using AIQ.Urban.DebugViz;
 using NUnit.Framework;
 using Rhino.Geometry;
 using Rhino.Testing.Fixtures;
