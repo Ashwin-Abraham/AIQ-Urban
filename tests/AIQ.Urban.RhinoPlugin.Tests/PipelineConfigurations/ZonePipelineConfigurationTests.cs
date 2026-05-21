@@ -3,6 +3,7 @@ using System.Linq;
 using AIQ.Urban.Core;
 using AIQ.Urban.Core.ModelActions;
 using AIQ.Urban.Core.Models.GeometryElements;
+using AIQ.Urban.DebugViz;
 using AIQ.Urban.RhinoInterface;
 using AIQ.Urban.RhinoInterface.Pipeline.Configs;
 using NUnit.Framework;
@@ -27,17 +28,25 @@ public class ZonePipelineConfigurationTests
     [TestCase("EmptyList")]
     public void WithZoneAdditionSteps_AddsZonesToModel(string testName)
     {
+        // Arrange
         var testData = _testData.Single(x => x.CaseName == testName);
 
         using var doc = RhinoDoc.CreateHeadless(null);
         var pipeline = new RhinoUrbanModelPipeline(doc, UrbanModel.Instance);
         var config = new ZonePipelineConfiguration(testData.Input, []);
 
+        // Act
         new PipelineConfigurations(pipeline)
             .WithZoneAdditionSteps(config)
             .WithMetricsCalculation(false);
         pipeline.Run();
 
+        // Visualise
+#if DEBUG
+        UrbanModel.Instance.VisualizeZones();
+#endif
+
+        // Assert
         Assert.That(UrbanModel.Instance.Zones, Has.Count.EqualTo(testData.ExpectedCount));
 
         if (testData.ExpectedCount > 0)

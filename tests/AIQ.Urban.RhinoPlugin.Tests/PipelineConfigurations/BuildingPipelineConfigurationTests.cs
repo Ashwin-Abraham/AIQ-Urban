@@ -4,6 +4,7 @@ using AIQ.Urban.Core;
 using AIQ.Urban.Core.ModelActions;
 using AIQ.Urban.Core.Models;
 using AIQ.Urban.Core.Models.GeometryElements;
+using AIQ.Urban.DebugViz;
 using AIQ.Urban.RhinoInterface.Pipeline.Configs;
 using NUnit.Framework;
 using Rhino;
@@ -27,17 +28,25 @@ public class BuildingPipelineConfigurationTests
     [TestCase("EmptyList")]
     public void WithBuildingAdditionSteps_AddsBuildingsToModel(string testName)
     {
+        // Arrange
         var testData = _testData.Single(x => x.CaseName == testName);
 
         using var doc = RhinoDoc.CreateHeadless(null);
         var pipeline = new RhinoUrbanModelPipeline(doc, UrbanModel.Instance);
         var config = new BuildingPipelineConfiguration(testData.Input, []);
 
+        // Act
         new PipelineConfigurations(pipeline)
             .WithBuildingAdditionSteps(config)
             .WithMetricsCalculation(false);
         pipeline.Run();
 
+        // Visualise
+#if DEBUG
+        UrbanModel.Instance.VisualizeBuildings();
+#endif
+
+        // Assert
         Assert.That(UrbanModel.Instance.Buildings, Has.Count.EqualTo(testData.ExpectedCount));
 
         if (testData.ExpectedCount > 0)
@@ -49,7 +58,7 @@ public class BuildingPipelineConfigurationTests
         List<BuildingData> Input,
         int ExpectedCount);
 
-    private static readonly Polygon2D SimpleFootprint = new(
+    private static readonly Polygon2D Footprint1 = new(
         new PolylineCurve([
             new Point3d(0, 0, 0),
             new Point3d(10, 0, 0),
@@ -58,28 +67,28 @@ public class BuildingPipelineConfigurationTests
             new Point3d(0, 0, 0),
         ]));
 
-    private static readonly Polygon2D SmallFootprint = new(
+    private static readonly Polygon2D Footprint2 = new(
         new PolylineCurve([
-            new Point3d(0, 0, 0),
-            new Point3d(5, 0, 0),
-            new Point3d(5, 5, 0),
-            new Point3d(0, 5, 0),
-            new Point3d(0, 0, 0),
+            new Point3d(13, 13, 0),
+            new Point3d(15, 13, 0),
+            new Point3d(15, 15, 0),
+            new Point3d(13, 15, 0),
+            new Point3d(13, 13, 0),
         ]));
 
     private static readonly List<BuildingPipelineTestData> _testData =
     [
         new BuildingPipelineTestData(
             CaseName: "SingleBuilding",
-            Input: [new BuildingData(SimpleFootprint, 3.5, 5, DefaultUses.Residential)],
+            Input: [new BuildingData(Footprint1, 3.5, 5, DefaultUses.Residential)],
             ExpectedCount: 1),
 
         new BuildingPipelineTestData(
             CaseName: "MultipleBuildings",
             Input:
             [
-                new BuildingData(SimpleFootprint, 3.5, 5, DefaultUses.Residential),
-                new BuildingData(SmallFootprint, 4.0, 3, DefaultUses.Commercial),
+                new BuildingData(Footprint1, 3.5, 5, DefaultUses.Residential),
+                new BuildingData(Footprint2, 4.0, 3, DefaultUses.Commercial),
             ],
             ExpectedCount: 2),
 

@@ -15,7 +15,7 @@ internal static class LayerTableExtensions
         var index = layers.FindByFullPath(fullPath, -1);
         
         if (index == -1)
-            layers.AddPath(fullPath);
+            index = layers.AddPath(fullPath);
         
         return layers[index];
     }
