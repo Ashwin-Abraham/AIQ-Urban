@@ -57,6 +57,14 @@ Element type output is automatic — `OutputTransits()`, `OutputBuildings()`, `O
 - Input curve is deleted by `WithRhinoObjectDeletion`
 - Duplicate detection: if a zone with the same name exists, warns user and aborts
 
+### `ResetUrban_AIQUrban`
+- Destructive command: deletes all baked Rhino geometry and clears the urban model
+- Confirmation prompt: user must type "yes" to proceed
+- Pipeline: `.WithUrbanElementStep(new ResetUrbanElementsStep()).Run()`
+- `ResetUrbanElementsStep` collects all geometry GUIDs from all element types (Transits, Buildings, Parcels, Zones) and `TransitSurfaces`, then calls `UrbanModel.Reset()`
+- No metrics calculation after reset
+- Layers remain in the Rhino doc (only objects are deleted)
+
 ### Future Commands (non-exhaustive, deferred)
 - `AddBuildingFromBrep(Brep Envelope, double FloorHeight)`
 - `AddBuildingOnParcel(Brep Envelope, double FloorHeight)`

@@ -180,9 +180,11 @@ public class RhinoUrbanModelPipeline(RhinoDoc _rhinoDoc, UrbanModel _urbanModel)
         }
     }
 
-    private void OutputGeometry(Polygon2D geometry, ObjectAttributes attributes)
+    private void OutputGeometry(Polygon2D geometry, ObjectAttributes attributes, bool asBrep = false)
     {
-        geometry.Id = _rhinoDoc.Objects.AddCurve(geometry.Geometry, attributes);
+        if (asBrep)
+            geometry.Id = _rhinoDoc.Objects.AddBrep(geometry.Geometry, attributes);
+            geometry.Id = _rhinoDoc.Objects.AddCurve(geometry.Geometry, attributes);
     }
 
     private void DeleteRhinoObjects(List<Guid> idsToDelete)
