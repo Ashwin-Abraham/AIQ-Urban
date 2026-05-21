@@ -6,6 +6,7 @@ using AIQ.Urban.RhinoInterface.Extensions;
 using AIQ.Urban.RhinoInterface.Utils;
 using Rhino;
 using Rhino.DocObjects;
+using Rhino.Geometry;
 
 namespace AIQ.Urban.RhinoInterface;
 
@@ -21,20 +22,14 @@ public class RhinoUrbanModelPipeline(RhinoDoc _rhinoDoc, UrbanModel _urbanModel)
         return this;
     }
 
-    public RhinoUrbanModelPipeline WithUrbanElementAddition(IAddUrbanElementsStep step)
-    {
-        _steps.Add(step);
-        return this;
-    }
-
-    public RhinoUrbanModelPipeline WithUrbanElementDeletion(IDeleteUrbanElementsStep step)
+    public RhinoUrbanModelPipeline WithUrbanElementStep(IUrbanModelStep step)
     {
         _steps.Add(step);
         return this;
     }
 
     /// <summary>Register an action to execute after all steps, deletions, and baking complete.</summary>
-    public RhinoUrbanModelPipeline WithUrbanModelAction(Action<UrbanModel> action)
+    public RhinoUrbanModelPipeline WithUrbanModelPostAction(Action<UrbanModel> action)
     {
         _postActions.Add(action);
         return this;
@@ -95,7 +90,7 @@ public class RhinoUrbanModelPipeline(RhinoDoc _rhinoDoc, UrbanModel _urbanModel)
     private void OutputTransitSurfaces()
     {
         foreach (var (profile, type) in _urbanModel.TransitSurfaces)
-            OutputGeometry(profile, MakeAttributes(LayerConstants.TransitSurface(type)));
+            OutputGeometry(profile, MakeAttributes(LayerConstants.TransitSurface(type)), true);
     }
 
     private void OutputParcels(List<Guid> addedIds)
@@ -160,7 +155,7 @@ public class RhinoUrbanModelPipeline(RhinoDoc _rhinoDoc, UrbanModel _urbanModel)
     {
         foreach (var transit in transits)
         {
-            OutputGeometry(transit.Outline, MakeAttributes(LayerConstants.TransitOutline(transit.TransitType, transit.Width)));
+            OutputGeometry(transit.Outline, MakeAttributes(LayerConstants.TransitOutline(transit.TransitType, transit.Width)), false);
             OutputGeometry(transit.Centerline, MakeAttributes(LayerConstants.TransitCenterline(transit.TransitType, transit.Width)));
         }
     }
@@ -170,12 +165,19 @@ public class RhinoUrbanModelPipeline(RhinoDoc _rhinoDoc, UrbanModel _urbanModel)
         geometry.Id = _rhinoDoc.Objects.AddCurve(geometry.Geometry, attributes);
     }
 
-    private void OutputGeometry(Profile2D geometry, ObjectAttributes attributes)
+    private void OutputGeometry(Profile2D geometry, ObjectAttributes attributes, bool asBrep)
     {
-        OutputGeometry(geometry.Outline, attributes);
+        if (asBrep)
+        {
+            geometry.Id = _rhinoDoc.Objects.AddBrep(geometry.Geometry, attributes);
+        }
+        else
+        {
+            OutputGeometry(geometry.Outline, attributes);
 
-        foreach (var hole in geometry.Holes)
-            OutputGeometry(hole, attributes);
+            foreach (var hole in geometry.Holes)
+                OutputGeometry(hole, attributes);
+        }
     }
 
     private void OutputGeometry(Polygon2D geometry, ObjectAttributes attributes)

@@ -11,7 +11,7 @@ public class PipelineConfigurations(RhinoUrbanModelPipeline pipeline)
         var addBuildingStep = new AddBuildingStep(config.BuildingData);
 
         pipeline.WithRhinoObjectDeletion(config.InputCurveIds)
-            .WithUrbanElementAddition(addBuildingStep);
+            .WithUrbanElementStep(addBuildingStep);
 
         return this;
     }
@@ -24,10 +24,10 @@ public class PipelineConfigurations(RhinoUrbanModelPipeline pipeline)
         var recalculateParcelsStep = new RecalculateParcelsStep();
 
         pipeline.WithRhinoObjectDeletion(config.CenterlineIds)
-            .WithUrbanElementDeletion(removeExistingTransitStep)
-            .WithUrbanElementAddition(addTransitStep)
-            .WithUrbanElementAddition(transitUnioner)
-            .WithUrbanElementAddition(recalculateParcelsStep);
+            .WithUrbanElementStep(removeExistingTransitStep)
+            .WithUrbanElementStep(addTransitStep)
+            .WithUrbanElementStep(transitUnioner)
+            .WithUrbanElementStep(recalculateParcelsStep);
 
         return this;
     }
@@ -37,7 +37,7 @@ public class PipelineConfigurations(RhinoUrbanModelPipeline pipeline)
         var addZoneStep = new AddZoneStep(config.ZoneData);
 
         pipeline.WithRhinoObjectDeletion(config.InputCurveIds)
-            .WithUrbanElementAddition(addZoneStep);
+            .WithUrbanElementStep(addZoneStep);
 
         return this;
     }
@@ -47,12 +47,12 @@ public class PipelineConfigurations(RhinoUrbanModelPipeline pipeline)
         double tolerance = 0.001,
         string? docName = null)
     {
-        pipeline.WithUrbanModelAction(um => ProjectMetricsCalculator.CalculateAndStore(um, tolerance));
+        pipeline.WithUrbanModelPostAction(um => ProjectMetricsCalculator.CalculateAndStore(um, tolerance));
 
         if (saveToFile)
         {
             var path = MakeMetricsFilePath(docName);
-            pipeline.WithUrbanModelAction(um => ProjectMetricsJsonSerializer.Save(um.ProjectMetrics!, path));
+            pipeline.WithUrbanModelPostAction(um => ProjectMetricsJsonSerializer.Save(um.ProjectMetrics!, path));
         }
 
         return this;

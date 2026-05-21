@@ -1,7 +1,7 @@
-# AIQ.Urban.RhinoPlugin — Context
+# AIQ.Urban.RhinoInterface — Context
 
 ## Purpose
-Rhino 8 plugin providing native commands for urban site modelling. Acts as the bridge between Rhino's document/interaction model and the domain in `AIQ.Urban.Core`.
+Rhino 8 interface providing native commands for urban site modelling. Acts as the bridge between Rhino's document/interaction model and the domain in `AIQ.Urban.Core`.
 
 ## Design Constraints
 - **Nullable reference types enabled** — `?` marks values that can legitimately be null; unadorned types are assumed non-null and need not be checked.
@@ -13,7 +13,7 @@ Rhino 8 plugin providing native commands for urban site modelling. Acts as the b
 - Multi-step sync between Rhino doc and UrbanModel flows through `RhinoUrbanModelPipeline` in `Pipeline/`
 
 ## RhinoUrbanModelPipeline
-Fluent pipeline in `Pipeline/RhinoUrbanModelPipeline.cs`. Step-based, with a single ordered step list:
+Fluent pipeline in `Pipeline/RhinoUrbanModelPipeline.cs` under the `AIQ.Urban.RhinoInterface` namespace. Step-based, with a single ordered step list:
 
 ```
 new RhinoUrbanModelPipeline(doc, UrbanModel.Instance)
@@ -70,6 +70,9 @@ Serializer in `Pipeline/ModelActions/ProjectMetricsJsonSerializer.cs`. Reads `Ur
 Commands collect user input, then delegate to `RhinoUrbanModelPipeline` which calls into Core's domain logic. Core owns all model state and computation. The RhinoPlugin is a thin presenter/controller layer on top.
 
 ## Rhino Output Conventions
+
+### Profile2D Bake Modes
+`asBrep` means bake the planar `Profile2D` Brep surface to Rhino. When false, bake its outer outline and hole boundaries as curves. Avoid `solid` for this option because a `Profile2D` is a planar surface, not a closed volumetric solid.
 
 ### Layer Structure
 All baked geometry follows a consistent nested layer hierarchy:

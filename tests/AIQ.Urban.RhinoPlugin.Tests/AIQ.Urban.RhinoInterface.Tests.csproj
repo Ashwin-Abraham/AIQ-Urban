@@ -28,6 +28,7 @@
   
   <ItemGroup>
     <ProjectReference Include="..\..\src\AIQ.Urban.RhinoInterface\AIQ.Urban.RhinoInterface.csproj" />
+    <ProjectReference Include="..\..\tools\AIQ.Urban.DebugViz\AIQ.Urban.DebugViz.csproj" />
   </ItemGroup>
 
   <ItemGroup>

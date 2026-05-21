@@ -18,6 +18,7 @@ public class Urban_RhinoPlugin_Test
     [TestCaseSource(nameof(PointList))]
     public void Test(Point3d point)
     {
+        // Assert
         Assert.That(point.X, Is.GreaterThan(0));
         Assert.That(point.Y, Is.GreaterThan(0));
         Assert.That(point.Z, Is.GreaterThan(0));

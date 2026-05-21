@@ -2,7 +2,7 @@
 using Rhino.Geometry;
 
 namespace AIQ.Urban.Core.ModelActions;
-public class TransitSurfaceUnioner(double _tolerance = 0.001) : IAddUrbanElementsStep
+public class TransitSurfaceUnioner(double _tolerance = 0.001) : IEditUrbanElementsStep
 {
     List<Guid> IUrbanModelStep.Run(UrbanModel model)
     {
