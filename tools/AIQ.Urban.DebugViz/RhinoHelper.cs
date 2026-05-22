@@ -9,7 +9,10 @@ public static class RhinoHelper
     {
         var idx = doc.Layers.FindByFullPath(path, -1);
         if (idx >= 0)
+        {
+            doc.Layers[idx].Color = color;
             return idx;
+        }
         return doc.Layers.AddPath(path, color);
     }
 }

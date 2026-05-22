@@ -61,7 +61,7 @@ public class UrbanSceneBuilder
 
     private void AddBuilding(Building building)
     {
-        var envelopeLayer = RhinoHelper.EnsureLayer(_doc, "Envelopes", Color.FromArgb(89, Color.Gray));
+        var envelopeLayer = RhinoHelper.EnsureLayer(_doc, "Envelopes", Color.FromArgb(15, Color.Gray));
         var envelopeAttribs = new ObjectAttributes { LayerIndex = envelopeLayer };
 
         var meshes = Mesh.CreateFromBrep(building.Envelope.Geometry, MeshingParameters.FastRenderMesh);
