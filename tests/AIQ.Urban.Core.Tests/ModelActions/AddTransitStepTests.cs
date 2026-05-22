@@ -24,6 +24,7 @@ public class AddTransitStepTests
     [TestCase("SingleRoad")]
     [TestCase("MultipleTransitsDifferentTypes")]
     [TestCase("EmptyList")]
+    [TestCase("Closed Polygon")]
     public void Run_AddsTransitsToModel(string testName)
     {
         var testData = _testData.Single(x => x.CaseName == testName);
@@ -60,9 +61,9 @@ public class AddTransitStepTests
         int ExpectedCount,
         int ExpectedGeometryIdCount);
 
-    private static Curve2D MakeCenterline(Point3d from, Point3d to)
+    private static Curve2D MakeCenterline(params Point3d[] points)
     {
-        return new Curve2D(new LineCurve(from, to), Guid.NewGuid());
+        return new Curve2D(new PolylineCurve(points), Guid.NewGuid());
     }
 
     private static readonly List<AddTransitTestData> _testData =
@@ -88,5 +89,14 @@ public class AddTransitStepTests
             Input: [],
             ExpectedCount: 0,
             ExpectedGeometryIdCount: 0),
+
+        new AddTransitTestData(
+            CaseName: "Closed Polygon",
+            Input: [new TransitData(
+                MakeCenterline(new(), new(50, 0, 0), new(50,50,0), new(0,50,0), new()),
+                6,
+                TransitType.Road)],
+            ExpectedCount: 1,
+            ExpectedGeometryIdCount: 2),
     ];
 }

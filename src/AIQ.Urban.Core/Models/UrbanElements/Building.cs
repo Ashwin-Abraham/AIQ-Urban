@@ -33,10 +33,10 @@ public class Building : IUrbanElement
         FloorPlates = ComputeOrderedFloorPlates(curve, typicalFloorHeight, floorCount, use);
     }
 
-    private static BrepElement ComputeEnvelope(Curve footprint, double height)
+    private static BrepElement ComputeEnvelope(Curve footprint, double height, double tolerance = 1e-5)
     {
         var extrusion = Extrusion.CreateExtrusion(footprint, new Vector3d(0, 0, height));
-        return new BrepElement(extrusion.ToBrep(), Guid.NewGuid());
+        return new BrepElement(extrusion.ToBrep().CapPlanarHoles(tolerance), Guid.NewGuid());
     }
 
     private static List<FloorPlate> ComputeOrderedFloorPlates(Curve footprint, double floorHeight, int floorCount, Use use)

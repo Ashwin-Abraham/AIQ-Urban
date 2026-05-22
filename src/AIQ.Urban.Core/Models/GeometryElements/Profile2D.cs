@@ -21,9 +21,9 @@ public class Profile2D : IGeometryElement<Brep>
     public static Profile2D? Create(Polygon2D outline, List<Polygon2D> holes, double tolerance = 1e-5)
     {
         var curves = holes.Select(x => x.Geometry).Append(outline.Geometry).ToList();
+        var profileBreps = Brep.CreatePlanarBreps(curves, tolerance);
 
-        var curveBreps = curves.SelectMany(x => Brep.CreatePlanarBreps(x, tolerance)).ToList();
-        var profileBreps = Brep.CreateBooleanUnion(curveBreps, tolerance);
+        var length = profileBreps.Count();
 
         if (profileBreps.Length != 1 || profileBreps[0].Faces.Count != 1)
             throw new ArgumentException("Invalid Profile2D");
@@ -54,7 +54,7 @@ public class Profile2D : IGeometryElement<Brep>
             {
                 var curve = loop.To2dCurve();
                 curve.Transform(faceTransform);
-                holes.Add(new(loop.To2dCurve()));
+                holes.Add(new(curve));
             }
         }
 

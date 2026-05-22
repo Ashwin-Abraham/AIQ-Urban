@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="RhinoCommon" Version="8.31.26126.13431-rc" />
+    <PackageReference Include="RhinoCommon" Version="8.32.26131.18001-rc" />
   </ItemGroup>
 
   <ItemGroup>

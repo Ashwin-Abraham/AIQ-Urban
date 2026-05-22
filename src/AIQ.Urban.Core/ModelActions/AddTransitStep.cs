@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using AIQ.Urban.Core;
-using AIQ.Urban.Core.Enums;
+﻿using AIQ.Urban.Core.Enums;
 using AIQ.Urban.Core.Models.GeometryElements;
 using AIQ.Urban.Core.Models.UrbanElements;
 

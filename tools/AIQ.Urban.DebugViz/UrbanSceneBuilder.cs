@@ -61,7 +61,7 @@ public class UrbanSceneBuilder
 
     private void AddBuilding(Building building)
     {
-        var envelopeLayer = RhinoHelper.EnsureLayer(_doc, "Envelopes", Color.FromArgb(89, Color.Gray));
+        var envelopeLayer = RhinoHelper.EnsureLayer(_doc, "Envelopes", Color.FromArgb(15, Color.Gray));
         var envelopeAttribs = new ObjectAttributes { LayerIndex = envelopeLayer };
 
         var meshes = Mesh.CreateFromBrep(building.Envelope.Geometry, MeshingParameters.FastRenderMesh);
@@ -95,7 +95,9 @@ public class UrbanSceneBuilder
 
         var outlineLayer = RhinoHelper.EnsureLayer(_doc, "TransitOutlines", Color.Black);
         var outlineAttribs = new ObjectAttributes { LayerIndex = outlineLayer };
-        _doc.Objects.AddCurve(transit.Outline.Outline.Geometry, outlineAttribs);
+        transit.Outline.Holes.Append(transit.Outline.Outline)
+            .ToList()
+            .ForEach(x => _doc.Objects.AddCurve(x.Geometry, outlineAttribs));
     }
 
     private void AddParcel(Parcel parcel)

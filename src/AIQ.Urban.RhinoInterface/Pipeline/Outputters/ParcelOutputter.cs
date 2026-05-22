@@ -10,6 +10,10 @@ public class ParcelOutputter(List<Parcel> parcels) : IUrbanModelRhinoOutputter
     public void Run(UrbanModel model, RhinoDoc doc)
     {
         foreach (var parcel in parcels)
-            RhinoOutputHelper.OutputGeometry(doc, parcel.Outline, RhinoOutputHelper.MakeAttributes(doc, LayerConstants.ParcelLayer(parcel.Use)));
+            RhinoOutputHelper.OutputGeometry(
+                doc, 
+                parcel.Outline,
+                RhinoOutputHelper.MakeAttributes(doc, LayerConstants.ParcelLayer(parcel.Use)),
+                true);
     }
 }
