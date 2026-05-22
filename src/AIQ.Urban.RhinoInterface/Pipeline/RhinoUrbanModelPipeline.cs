@@ -1,12 +1,9 @@
 using AIQ.Urban.Core;
 using AIQ.Urban.Core.ModelActions;
-using AIQ.Urban.Core.Models.GeometryElements;
+using AIQ.Urban.Core.Models;
 using AIQ.Urban.Core.Models.UrbanElements;
-using AIQ.Urban.RhinoInterface.Extensions;
-using AIQ.Urban.RhinoInterface.Utils;
+using AIQ.Urban.RhinoInterface.Pipeline.Outputters;
 using Rhino;
-using Rhino.DocObjects;
-using Rhino.Geometry;
 
 namespace AIQ.Urban.RhinoInterface;
 
@@ -70,49 +67,18 @@ public class RhinoUrbanModelPipeline(RhinoDoc _rhinoDoc, UrbanModel _urbanModel)
     private void AddRhinoObjects(List<Guid> addedIds)
     {
         var elementsToAdd = FilterElementsToAdd(addedIds);
-        
-        var transit = elementsToAdd.OfType<Transit>().ToList();
-        var buildings = elementsToAdd.OfType<Building>().ToList();
 
-        OutputTransits(transit);
-        OutputBuildings(buildings);
-        OutputTransitSurfaces();
-        OutputParcels(addedIds);
-        OutputZones(addedIds);
-    }
-
-    private ObjectAttributes MakeAttributes(string layerPath)
-    {
-        var layerIndex = _rhinoDoc.Layers.EnsureLayerExists(layerPath).Index;
-        return new ObjectAttributes { LayerIndex = layerIndex };
-    }
-
-    private void OutputTransitSurfaces()
-    {
-        foreach (var (profile, type) in _urbanModel.TransitSurfaces)
-            OutputGeometry(profile, MakeAttributes(LayerConstants.TransitSurface(type)), true);
-    }
-
-    private void OutputParcels(List<Guid> addedIds)
-    {
-        foreach (var parcel in _urbanModel.Parcels)
+        var outputters = new List<IUrbanModelRhinoOutputter>
         {
-            if (!addedIds.Contains(parcel.Outline.Id))
-                continue;
+            new TransitOutputter(elementsToAdd.OfType<Transit>().ToList()),
+            new BuildingOutputter(elementsToAdd.OfType<Building>().ToList()),
+            new ParcelOutputter(elementsToAdd.OfType<Parcel>().ToList()),
+            new ZoneOutputter(elementsToAdd.OfType<Zone>().ToList()),
+            new TransitSurfaceOutputter()
+        };
 
-            OutputGeometry(parcel.Outline, MakeAttributes(LayerConstants.ParcelLayer(parcel.Use)));
-        }
-    }
-
-    private void OutputZones(List<Guid> addedIds)
-    {
-        foreach (var zone in _urbanModel.Zones)
-        {
-            if (!addedIds.Contains(zone.Boundary.Id))
-                continue;
-
-            OutputGeometry(zone.Boundary, MakeAttributes(LayerConstants.ZoneLayer(zone.Name)));
-        }
+        foreach (var outputter in outputters)
+            outputter.Run(_urbanModel, _rhinoDoc);
     }
 
     private List<IUrbanElement> FilterElementsToAdd(List<Guid> addedIds)
@@ -120,7 +86,7 @@ public class RhinoUrbanModelPipeline(RhinoDoc _rhinoDoc, UrbanModel _urbanModel)
         var elementsToAdd = new List<IUrbanElement>();
         var allElements = _urbanModel.GetUrbanElements();
 
-        foreach(var element in allElements)
+        foreach (var element in allElements)
         {
             var ids = element.GetGeometryIds();
 
@@ -131,60 +97,6 @@ public class RhinoUrbanModelPipeline(RhinoDoc _rhinoDoc, UrbanModel _urbanModel)
         }
 
         return elementsToAdd;
-    }
-
-    private void OutputBuildings(List<Building> buildings)
-    {
-        var envelopeAttributes = MakeAttributes(LayerConstants.BuildingEnvelope);
-
-        foreach (var building in buildings)
-        {
-            var newEnvelopeId = _rhinoDoc.Objects.AddBrep(building.Envelope.Geometry, envelopeAttributes);
-            building.Envelope.Id = newEnvelopeId;
-
-            foreach (var plate in building.FloorPlates)
-            {
-                var plateAttributes = MakeAttributes(LayerConstants.BuildingFloorPlate(plate.Use));
-                var newId = _rhinoDoc.Objects.AddCurve(plate.Outline.Geometry, plateAttributes);
-                plate.Outline.Id = newId;
-            }
-        }
-    }
-
-    private void OutputTransits(List<Transit> transits)
-    {
-        foreach (var transit in transits)
-        {
-            OutputGeometry(transit.Outline, MakeAttributes(LayerConstants.TransitOutline(transit.TransitType, transit.Width)), false);
-            OutputGeometry(transit.Centerline, MakeAttributes(LayerConstants.TransitCenterline(transit.TransitType, transit.Width)));
-        }
-    }
-
-    private void OutputGeometry(Curve2D geometry, ObjectAttributes attributes)
-    {
-        geometry.Id = _rhinoDoc.Objects.AddCurve(geometry.Geometry, attributes);
-    }
-
-    private void OutputGeometry(Profile2D geometry, ObjectAttributes attributes, bool asBrep)
-    {
-        if (asBrep)
-        {
-            geometry.Id = _rhinoDoc.Objects.AddBrep(geometry.Geometry, attributes);
-        }
-        else
-        {
-            OutputGeometry(geometry.Outline, attributes);
-
-            foreach (var hole in geometry.Holes)
-                OutputGeometry(hole, attributes);
-        }
-    }
-
-    private void OutputGeometry(Polygon2D geometry, ObjectAttributes attributes, bool asBrep = false)
-    {
-        if (asBrep)
-            geometry.Id = _rhinoDoc.Objects.AddBrep(geometry.Geometry, attributes);
-            geometry.Id = _rhinoDoc.Objects.AddCurve(geometry.Geometry, attributes);
     }
 
     private void DeleteRhinoObjects(List<Guid> idsToDelete)
