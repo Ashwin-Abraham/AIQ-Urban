@@ -14,12 +14,12 @@ public static class UrbanModelVisualizers
         Visualizer.View(doc);
     }
 
-    public static void VisualizeBuildings(this UrbanModel model)
+    public static void VisualizeBuildings(this UrbanModel model, bool viewLocal = false)
     {
         var doc = new UrbanSceneBuilder()
             .AddUrbanElements(model.Buildings.Cast<IUrbanElement>().ToList())
             .Build();
-        Visualizer.View(doc);
+        Visualizer.View(doc, viewLocal: viewLocal);
     }
 
     public static void VisualizeTransits(this UrbanModel model)

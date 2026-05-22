@@ -6,6 +6,7 @@ public class TransitSurfaceUnioner(double _tolerance = 0.001) : IEditUrbanElemen
 {
     List<Guid> IUrbanModelStep.Run(UrbanModel model)
     {
+        var oldIds = model.TransitSurfaces.Select(x => x.Profile.Id).ToList();
         model.TransitSurfaces.Clear();
         var surfaceIds = new List<Guid>();
 
@@ -38,6 +39,6 @@ public class TransitSurfaceUnioner(double _tolerance = 0.001) : IEditUrbanElemen
             }
         }
 
-        return surfaceIds;
+        return surfaceIds.Concat(oldIds).ToList();
     }
 }
