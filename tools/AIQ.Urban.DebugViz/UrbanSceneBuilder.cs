@@ -95,7 +95,9 @@ public class UrbanSceneBuilder
 
         var outlineLayer = RhinoHelper.EnsureLayer(_doc, "TransitOutlines", Color.Black);
         var outlineAttribs = new ObjectAttributes { LayerIndex = outlineLayer };
-        _doc.Objects.AddCurve(transit.Outline.Outline.Geometry, outlineAttribs);
+        transit.Outline.Holes.Append(transit.Outline.Outline)
+            .ToList()
+            .ForEach(x => _doc.Objects.AddCurve(x.Geometry, outlineAttribs));
     }
 
     private void AddParcel(Parcel parcel)

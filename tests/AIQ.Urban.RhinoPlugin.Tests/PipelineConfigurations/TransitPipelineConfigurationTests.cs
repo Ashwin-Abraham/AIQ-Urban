@@ -28,6 +28,7 @@ public class TransitPipelineConfigurationTests
     [TestCase("SingleRoad")]
     [TestCase("MultipleTransitsDifferentTypes")]
     [TestCase("EmptyList")]
+    [TestCase("WithInternalParcel")]
     public void WithTransitAdditionSteps_AddsTransitsToModel(string testName)
     {
         // Arrange
@@ -45,7 +46,7 @@ public class TransitPipelineConfigurationTests
 
         // Visualise
 #if DEBUG
-        UrbanModel.Instance.VisualizeTransits();
+        UrbanModel.Instance.VisualizeAll();
 #endif
 
         // Assert
@@ -72,9 +73,13 @@ public class TransitPipelineConfigurationTests
 
     private static List<TransitPipelineTestData> BuildTestData()
     {
-        var (data1, id1) = MakeRoadDataWithId(new(0, 0, 0), new(50, 0, 0), 6, TransitType.Road);
-        var (data2a, id2a) = MakeRoadDataWithId(new(0, 0, 0), new(50, 0, 0), 6, TransitType.Road);
-        var (data2b, id2b) = MakeRoadDataWithId(new(0, 10, 0), new(30, 10, 0), 4, TransitType.CyclePath);
+        var (data1, id1) = MakeRoadDataWithId(6, TransitType.Road, new(0, 0, 0), new(50, 0, 0));
+        var (data2a, id2a) = MakeRoadDataWithId(6, TransitType.Road, new(0, 0, 0), new(50, 0, 0));
+        var (data2b, id2b) = MakeRoadDataWithId(4, TransitType.CyclePath, new(0, 10, 0), new(30, 10, 0));
+        var (uRoadData, uRoadId) = MakeRoadDataWithId(6, TransitType.Road,
+            new(0, 30, 0), new(0, 0, 0), new(30, 0, 0), new(30, 30, 0));
+        var (lineRoadData, lineRoadId) = MakeRoadDataWithId(6, TransitType.Road,
+            new(0, 30, 0), new(30, 30, 0));
 
         return
         [
@@ -113,12 +118,32 @@ public class TransitPipelineConfigurationTests
                 CenterlineIds: [],
                 ExpectedTransitCount: 0,
                 ExpectedParcelCount: 0),
+
+            new TransitPipelineTestData(
+                CaseName: "WithInternalParcel",
+                Input: [uRoadData, lineRoadData],
+                CenterlineIds: [uRoadId, lineRoadId],
+                ExpectedTransitCount: 2,
+                ExpectedParcelCount: 1,
+                ExpectedRhinoLayerCounts: new Dictionary<string, int>
+                {
+                    ["AIQ Urban::Transit::Road::Outline::6"] = 2,
+                    ["AIQ Urban::Transit::Road::Centerline::6"] = 2,
+                    ["AIQ Urban::Transit::Road::Surface"] = 1,
+                    ["AIQ Urban::Parcel::Public"] = 1,
+                }),
         ];
     }
 
-    private static (TransitData Data, Guid Id) MakeRoadDataWithId(Point3d from, Point3d to, double width, TransitType type)
+    private static (TransitData Data, Guid Id) MakeRoadDataWithId(double width, TransitType type, params Point3d[] points)
     {
         var id = Guid.NewGuid();
-        return (new TransitData(new Curve2D(new LineCurve(from, to), id), width, type), id);
+        var curve = points.Length switch
+        {
+            2 => new Curve2D(new LineCurve(points[0], points[1]), id),
+            > 2 => new Curve2D(new PolylineCurve(points), id),
+            _ => throw new ArgumentException("Need at least 2 points", nameof(points))
+        };
+        return (new TransitData(curve, width, type), id);
     }
 }

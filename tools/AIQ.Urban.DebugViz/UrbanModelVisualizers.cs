@@ -1,4 +1,3 @@
-using System.Linq;
 using AIQ.Urban.Core;
 using AIQ.Urban.Core.Models.UrbanElements;
 

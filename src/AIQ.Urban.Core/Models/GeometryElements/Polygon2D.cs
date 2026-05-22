@@ -30,4 +30,9 @@ public class Polygon2D : IGeometryElement<Curve>
     {
         return Geometry.GetLength();
     }
+
+    public Brep ToBrep(double tolerance = 1e-5)
+    {
+        return Brep.CreatePlanarBreps(Geometry, tolerance).FirstOrDefault()!;
+    }
 }

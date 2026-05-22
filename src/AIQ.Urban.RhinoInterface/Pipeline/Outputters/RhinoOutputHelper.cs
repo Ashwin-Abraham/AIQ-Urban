@@ -26,15 +26,21 @@ internal static class RhinoOutputHelper
         }
         else
         {
-            OutputGeometry(doc, geometry.Outline, attributes);
+            OutputGeometry(doc, geometry.Outline, attributes, false);
 
             foreach (var hole in geometry.Holes)
-                OutputGeometry(doc, hole, attributes);
+                OutputGeometry(doc, hole, attributes, false);
         }
     }
 
-    internal static void OutputGeometry(RhinoDoc doc, Polygon2D geometry, ObjectAttributes attributes)
+    internal static void OutputGeometry(RhinoDoc doc, Polygon2D geometry, ObjectAttributes attributes, bool asBrep)
     {
-        geometry.Id = doc.Objects.AddCurve(geometry.Geometry, attributes);
+        if(asBrep)
+        {
+            var brep = geometry.ToBrep();
+            geometry.Id = doc.Objects.AddBrep(brep, attributes);
+        }
+        else
+            geometry.Id = doc.Objects.AddCurve(geometry.Geometry, attributes);
     }
 }
