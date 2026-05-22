@@ -12,10 +12,12 @@ namespace AIQ.Urban.DebugViz;
 public class UrbanSceneBuilder
 {
     private readonly RhinoDoc _doc;
+    private bool _showEnvelope;
 
-    public UrbanSceneBuilder()
+    public UrbanSceneBuilder(bool showEnvelope = false)
     {
         _doc = RhinoDoc.CreateHeadless(null);
+        _showEnvelope = showEnvelope;
     }
 
     public UrbanSceneBuilder AddUrbanElements(IEnumerable<IUrbanElement> elements)
@@ -65,7 +67,8 @@ public class UrbanSceneBuilder
         var envelopeAttribs = new ObjectAttributes { LayerIndex = envelopeLayer };
 
         var meshes = Mesh.CreateFromBrep(building.Envelope.Geometry, MeshingParameters.FastRenderMesh);
-        if (meshes != null)
+       
+        if (meshes != null && _showEnvelope)
             foreach (var m in meshes)
                 _doc.Objects.AddMesh(m, envelopeAttribs);
 

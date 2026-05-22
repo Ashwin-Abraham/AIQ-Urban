@@ -1,4 +1,5 @@
 using AIQ.Urban.Core.ModelActions;
+using AIQ.Urban.Core.Models;
 using AIQ.Urban.Core.Models.Metrics;
 using AIQ.Urban.RhinoInterface.Pipeline.Configs;
 
@@ -28,6 +29,15 @@ public class PipelineConfigurations(RhinoUrbanModelPipeline pipeline)
             .WithUrbanElementStep(addTransitStep)
             .WithUrbanElementStep(transitUnioner)
             .WithUrbanElementStep(recalculateParcelsStep);
+
+        return this;
+    }
+
+    public PipelineConfigurations WithBuildingUseChangeSteps(List<Guid> geometryIds, Use newUse)
+    {
+        var changeStep = new ChangeBuildingUseStep(geometryIds, newUse);
+
+        pipeline.WithUrbanElementStep(changeStep);
 
         return this;
     }

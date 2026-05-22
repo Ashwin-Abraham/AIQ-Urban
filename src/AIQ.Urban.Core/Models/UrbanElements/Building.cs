@@ -7,7 +7,6 @@ public class Building : IUrbanElement
 {
     public BrepElement Envelope { get; }
     public IReadOnlyList<FloorPlate> FloorPlates { get; }
-    public Use Use { get; }
     public double TypicalFloorHeight { get; }
     public int FloorCount { get; }
     public Polygon2D Footprint { get; }
@@ -16,7 +15,6 @@ public class Building : IUrbanElement
     {
         ArgumentNullException.ThrowIfNull(footprint);
 
-        Use = use;
         TypicalFloorHeight = typicalFloorHeight;
         FloorCount = floorCount;
 
