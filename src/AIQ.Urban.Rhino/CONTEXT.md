@@ -57,6 +57,25 @@ Element type output is automatic — `OutputTransits()`, `OutputBuildings()`, `O
 - Input curve is deleted by `WithRhinoObjectDeletion`
 - Duplicate detection: if a zone with the same name exists, warns user and aborts
 
+### `ChangeBuildingUse_AIQUrban`
+- Single command for modifying the use of built elements (buildings and/or individual floor plates)
+- Accepts selection of: building envelope Breps (→ building-wide change) + floor plate outline curves (→ per-plate change)
+- User picks any mix of Breps and curves in a single `GetObject` pass, then selects a new Use from the DefaultUses dropdown
+- The step receives a flat `List<Guid>` and inspects `UrbanModel.Buildings` to resolve each GUID:
+  - Envelope GUID → find owning Building → set all its floor plates (building-wide)
+  - Floor plate outline GUID → find owning Building → set that specific plate (per-plate)
+- Building-wins priority: envelopes processed first; if a Building was already touched, its individual plates are skipped in the per-plate pass
+- Pipeline: `.WithUrbanElementStep(changeStep).WithMetricsCalculation(...).Run()`
+- Re-bakes the entire parent Building whenever any of its floor plates change (envelope + all plates) — no separate `FloorPlateOutputter`
+- `Building.Use` property removed from the domain model; each `FloorPlate` owns its own Use
+
+### `ChangeParcelUse_AIQUrban`
+- Changes the use of one or more parcels selected in the viewport
+- User picks parcel outlines (Polygon2D curves baked to `AIQ Urban::Parcel::{use.Name}` layers), then selects new Use from DefaultUses dropdown
+- Step mutates `Parcel.Use` in-place via `SetUse()`
+- Pipeline: `.WithUrbanElementStep(changeStep).WithMetricsCalculation(...).Run()`
+- See Note on Parcel Use Preservation: explicit use changes may be lost if transits are later modified, because `RecalculateParcelsStep` preserves use by nearest-centroid matching
+
 ### `ResetUrban_AIQUrban`
 - Destructive command: deletes all baked Rhino geometry and clears the urban model
 - Confirmation prompt: user must type "yes" to proceed
@@ -69,7 +88,6 @@ Element type output is automatic — `OutputTransits()`, `OutputBuildings()`, `O
 - `AddBuildingFromBrep(Brep Envelope, double FloorHeight)`
 - `AddBuildingOnParcel(Brep Envelope, double FloorHeight)`
 - `AddBuildingOnParcelEdge(Brep Envelope, double FloorHeight)`
-- `ChangeUse(Group | Parcel2D Parcel, Use Use)`
 
 ### ProjectMetricsJsonSerializer
 Serializer in `Pipeline/ModelActions/ProjectMetricsJsonSerializer.cs`. Reads `UrbanModel.ProjectMetrics` and writes it as indented JSON to `%USERPROFILE%\Documents\AIQ Urban\{RhinoDocName}-project-metrics.json`. Invoked as a `WithUrbanModelAction` step after the pipeline computes metrics. Uses `System.Text.Json` (no additional dependencies).
