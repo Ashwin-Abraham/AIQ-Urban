@@ -13,6 +13,7 @@ Pure city-modelling domain logic. Models buildings, transit networks, parcels, z
 7. `Models/FloorPlate.cs` — `Profile2D Outline` + `Use`, per-storey footprint
 8. `Models/UrbanElements/Building.cs` — constructor takes `(Curve footprint, double typicalFloorHeight, int floorCount, Use use)`, eagerly computes envelope (solid Brep extrusion) and floor plates (duplicated + translated). Footprint validated by `ValidateFootprint()`: checks planar, reverses if normal points down.
 9. `Models/Zone.cs` — `IUrbanElement` with `Polygon2D Boundary` and `string Name` properties. `GetContainedElements(UrbanModel)` returns all `IUrbanElement`s whose `GetRepresentativeCenter()` falls inside the zone boundary. Never returns other Zones.
+10. `Models/UrbanElements/Parcel.cs` — `SetUse(Use use)` for in-place Use mutation. `ChangeParcelUseStep` in `ModelActions/` implements `IEditUrbanElementsStep` to batch-change parcel Uses from a flat list of geometry GUIDs.
 
 ## Design Constraints
 
@@ -64,10 +65,10 @@ Pure city-modelling domain logic. Models buildings, transit networks, parcels, z
 A semantic label with visual feedback. `string Name` + `Color` (System.Drawing.Color). Stored as a `record` in `Models/Use.cs`. Not an enum — instances are created at runtime (e.g. "Residential", "Commercial", "Retail", "Industrial", "MixedUse", "Public", "Park", "Parking", "Utility").
 
 ### Building
-A constructed structure. Has a collection of `FloorPlate`s and a `Brep Envelope` representing the outer shell. Added via `UrbanModel.AddBuilding(Building)`.
+A constructed structure. Has a collection of `FloorPlate`s and a `Brep Envelope` representing the outer shell. Added via `UrbanModel.AddBuilding(Building)`. Does not store a building-level Use — each `FloorPlate` owns its own Use. The constructor accepts a `Use` parameter to initialise all floor plates, but the value is not retained on Building.
 
 ### FloorPlate
-A single storey of a Building. Defined by a `Profile2D Outline` and a `Use`. Each storey has its own footprint shape. Floor elevation is determined by the Profile2D curve's plane Z.
+A single storey of a Building. Defined by a `Profile2D Outline` and a `Use`. Each storey has its own footprint shape. Floor elevation is determined by the Profile2D curve's plane Z. Use is mutable via `SetUse()`.
 
 ### TransitType
 Enum: `Road`, `Railway`, `CyclePath`, `Pedestrian`, `Waterway`.
@@ -93,7 +94,9 @@ Collection of `TransitNode`s forming a connected network.
 A `Node` with `List<Node> Neighbours`. Junction/intersection in a transit network.
 
 ### Parcel2D
-A 2D land parcel with a `Polygon2D Outline` and a `Use`. Stored in `UrbanModel.Parcels` — cleared and regenerated on each transit change by `RecalculateParcelsStep`. Parcels are derived from the holes in each `TransitType`'s unioned surface (`TransitSurfaces`). Default `Use` is `DefaultUses.Public`. No deduplication is performed if multiple transit types produce overlapping holes.
+A 2D land parcel with a `Polygon2D Outline` and a `Use`. Stored in `UrbanModel.Parcels` — cleared and regenerated on each transit change by `RecalculateParcelsStep`. Parcels are derived from the holes in each `TransitType`'s unioned surface (`TransitSurfaces`). Default `Use` is `DefaultUses.Public`. Use is mutable via `SetUse()`. No deduplication is performed if multiple transit types produce overlapping holes.
+
+Use preservation across recalculation uses nearest-centroid matching (`ResolveUse` in `RecalculateParcelsStep`). Explicitly set uses may be lost if transit changes reshape parcels significantly — this is accepted behaviour for now.
 
 ### Parcel3D
 A 3D parcel extruded from a `Parcel2D FlatParcel` plus a `Mesh ProjectedParcel` (e.g. terrain-projected).

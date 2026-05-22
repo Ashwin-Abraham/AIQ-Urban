@@ -6,11 +6,16 @@ namespace AIQ.Urban.Core.Models.UrbanElements;
 public class Parcel : IUrbanElement
 {
     public Polygon2D Outline { get; }
-    public Use Use { get; }
+    public Use Use { get; private set; }
 
     public Parcel(Polygon2D outline, Use use)
     {
         Outline = outline;
+        Use = use;
+    }
+
+    public void SetUse(Use use)
+    {
         Use = use;
     }
 
