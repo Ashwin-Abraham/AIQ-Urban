@@ -106,4 +106,8 @@ public class EventQueue
 public record EventQueueBatch(
     List<Guid> Adds,
     List<Guid> Deletes,
-    List<(Guid OldId, Guid NewId)> Replacements);
+    List<(Guid OldId, Guid NewId)> Replacements)
+{
+    /// <summary>True when all three lists are empty.</summary>
+    public bool IsEmpty => Adds.Count == 0 && Deletes.Count == 0 && Replacements.Count == 0;
+}
