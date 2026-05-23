@@ -1,0 +1,33 @@
+using AIQ.Urban.Core.Models.GeometryElements;
+using AIQ.Urban.Core.Models.UrbanElements;
+using Rhino.Geometry;
+
+namespace AIQ.Urban.Core.ModelActions;
+
+public class UpdateTransitStep(Guid _oldCenterlineId, Curve _newCenterline) : IEditUrbanElementsStep
+{
+    List<Guid> IUrbanModelStep.Run(UrbanModel model)
+    {
+        var oldTransit = model.Transits
+            .FirstOrDefault(t => t.GetGeometryIds().Contains(_oldCenterlineId));
+
+        if (oldTransit is null)
+            return [];
+
+        var oldIds = oldTransit.GetGeometryIds();
+        model.Transits.Remove(oldTransit);
+
+        var newCenterlineId = Guid.NewGuid();
+        var newCurve2D = new Curve2D(_newCenterline, newCenterlineId);
+
+        var newTransit = new Transit(
+            newCurve2D,
+            oldTransit.Width,
+            oldTransit.TransitType,
+            oldTransit.IsOnGround);
+
+        model.Transits.Add(newTransit);
+
+        return oldIds.Concat(newTransit.GetGeometryIds()).ToList();
+    }
+}
