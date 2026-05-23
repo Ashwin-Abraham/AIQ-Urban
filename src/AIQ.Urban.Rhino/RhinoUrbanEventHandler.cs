@@ -131,6 +131,12 @@ public class RhinoUrbanEventHandler : IDisposable
                 case Transit transit:
                     HandleTransitDelete(transit);
                     break;
+                case Building building:
+                    HandleBuildingDelete(building);
+                    break;
+                case Zone zone:
+                    HandleZoneDelete(zone);
+                    break;
             }
         }
 
@@ -154,6 +160,11 @@ public class RhinoUrbanEventHandler : IDisposable
                 case Transit transit:
                     HandleTransitReplace(transit, newId);
                     break;
+                case Zone zone:
+                    HandleZoneReplace(zone, newId);
+                    break;
+                // Building replace is deferred — the envelope is a Brep
+                // and requires more involved update logic.
             }
         }
     }
@@ -195,6 +206,22 @@ public class RhinoUrbanEventHandler : IDisposable
             return UrbanModel.Instance.Transits.FirstOrDefault();
         }
 
+        if (fullPath.Contains("::Building::", StringComparison.OrdinalIgnoreCase))
+        {
+            if (ObjectIdToElement.TryGetValue(objectId, out var existing))
+                return existing;
+
+            return UrbanModel.Instance.Buildings.FirstOrDefault();
+        }
+
+        if (fullPath.Contains("::Zone::", StringComparison.OrdinalIgnoreCase))
+        {
+            if (ObjectIdToElement.TryGetValue(objectId, out var existing))
+                return existing;
+
+            return UrbanModel.Instance.Zones.FirstOrDefault();
+        }
+
         return null;
     }
 
@@ -224,6 +251,49 @@ public class RhinoUrbanEventHandler : IDisposable
         var pipeline = new RhinoUrbanModelPipeline(_doc, UrbanModel.Instance);
         new PipelineConfigurations(pipeline)
             .WithTransitUpdateSteps(oldCenterlineId, newCurve)
+            .WithMetricsCalculation();
+
+        RunPipeline(pipeline);
+    }
+
+    private void HandleBuildingDelete(Building building)
+    {
+        var geometryIds = building.GetGeometryIds();
+
+        var pipeline = new RhinoUrbanModelPipeline(_doc, UrbanModel.Instance);
+        new PipelineConfigurations(pipeline)
+            .WithBuildingDeletionSteps(geometryIds)
+            .WithMetricsCalculation();
+
+        RunPipeline(pipeline);
+    }
+
+    private void HandleZoneDelete(Zone zone)
+    {
+        var geometryIds = zone.GetGeometryIds();
+
+        var pipeline = new RhinoUrbanModelPipeline(_doc, UrbanModel.Instance);
+        new PipelineConfigurations(pipeline)
+            .WithZoneDeletionSteps(geometryIds)
+            .WithMetricsCalculation();
+
+        RunPipeline(pipeline);
+    }
+
+    private void HandleZoneReplace(Zone zone, Guid newBoundaryId)
+    {
+        var newRhinoObject = _doc.Objects.Find(newBoundaryId);
+        if (newRhinoObject == null) return;
+
+        var newCurve = newRhinoObject.Geometry as Curve;
+        if (newCurve == null) return;
+
+        var oldBoundaryId = zone.GetGeometryIds().FirstOrDefault();
+        if (oldBoundaryId == Guid.Empty) return;
+
+        var pipeline = new RhinoUrbanModelPipeline(_doc, UrbanModel.Instance);
+        new PipelineConfigurations(pipeline)
+            .WithZoneUpdateSteps(oldBoundaryId, newCurve)
             .WithMetricsCalculation();
 
         RunPipeline(pipeline);
