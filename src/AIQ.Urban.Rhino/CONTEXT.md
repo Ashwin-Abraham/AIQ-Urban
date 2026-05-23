@@ -1,16 +1,28 @@
-# AIQ.Urban.RhinoInterface — Context
+# AIQ.Urban.RhinoPlugin — Context
 
 ## Purpose
-Rhino 8 interface providing native commands for urban site modelling. Acts as the bridge between Rhino's document/interaction model and the domain in `AIQ.Urban.Core`.
+Rhino 8 plugin (`AIQ.Urban.RhinoPlugin.rhp`) owning the native Rhino commands and the document event handler that bridges Rhino's interaction model with the domain in `AIQ.Urban.Core`.
 
 ## Design Constraints
 - **Nullable reference types enabled** — `?` marks values that can legitimately be null; unadorned types are assumed non-null and need not be checked.
-- References `AIQ.Urban.Core` for all domain logic and geometry kernel
+- References `AIQ.Urban.RhinoInterface` for pipeline orchestration
 - References `RhinoCommon` directly for Rhino UI (doc, views, selection)
-- Pipeline supports post-actions via `.WithUrbanModelAction(Action<UrbanModel>)` — registered actions execute after all steps, deletions and baking complete. Used for model-only side effects such as metrics calculation and serialization.
-- All initial interaction is via native Rhino commands (no UI yet)
+- Pipeline supports post-actions via `.WithUrbanModelAction(Action<UrbanModel>)` — registered actions execute after all steps, deletions and baking complete.
+- **Commands for creation, events for mutation/deletion**: explicit Rhino commands (`AddTransit_AIQUrban`, `AddBuilding_AIQUrban`, etc.) are used to create urban elements. Document events (`ReplaceRhinoObject`, `DeleteRhinoObject`) handle modification and deletion after the fact. A user drawing geometry on a managed layer does NOT automatically create an urban element — that requires an explicit command.
+- **RhinoUrbanEventHandler**: instance class implementing `IDisposable`, owned by `Urban_RhinoPlugin`. Subscribes to RhinoDoc events in its constructor, unsubscribes in `Dispose()`. Lives in `AIQ.Urban.RhinoPlugin` (not `RhinoInterface`) because it manages RhinoDoc interaction lifecycle.
+- **Deferred event processing**: events are queued into lists (add/remove/replace), then processed on `RhinoApp.Idle` to coalesce multiple Rhino events from a single user action. An `EventLock` guard suppresses event capture while the pipeline writes geometry back to Rhino, preventing re-entrant feedback loops.
+- **Events subscribed**: `ReplaceRhinoObject` (modification), `DeleteRhinoObject` (deletion), `BeginOpenDocument` / `EndOpenDocument` (file load lifecycle), `RhinoApp.Idle` (processing trigger). **Not** subscribed: `AddRhinoObject` (objects are only added via explicit commands). `UndeleteRhinoObject` deferred for now.
+- **Reverse-lookup dictionary**: `Dictionary<Guid, IUrbanElement>` maintained alongside `UrbanModel`, keyed by Rhino ObjectId. Updated when the pipeline bakes new geometry or deletes elements. Used by the event handler to correlate a modified/deleted Rhino object to its owning `IUrbanElement`.
+- **Layer filtering**: the event handler checks each object's layer path. Only objects on layers starting with `AIQ Urban::` are processed. Non-urban geometry is ignored.
+- **Reverse-lookup dict lifecycle**: the handler owns the dict and wraps each pipeline run. After `pipeline.Run()` returns, the handler iterates the added/deleted GUIDs to update the dict. On `ReplaceRhinoObject`, the handler swaps old ObjectId → new ObjectId in the dict.
+- **Error on miss**: reverse-lookup miss is silently skipped. The dict is correctly maintained during a session; after file open there's nothing to do (accepted gap).
+- **File open gap**: on `EndOpenDocument`, UrbanModel is empty (in-memory singleton reset). The reverse-lookup dict is also empty. No reconciliation pass yet — user must re-run commands. Accepted gap for v1.
 - Vue UI via websocket/HTTPS is a future concern
-- Multi-step sync between Rhino doc and UrbanModel flows through `RhinoUrbanModelPipeline` in `Pipeline/`
+
+## Event Handler Lifecycle
+- Created in `Urban_RhinoPlugin.OnLoad()` → calls `SubscribeModelEvents()` on the singleton handler
+- Disposed in `Urban_RhinoPlugin.OnUnload()` → calls `Dispose()` which unsubscribes all events
+- `EventLock` guards against event processing during file loads, pipeline output, and bulk operations
 
 ## RhinoUrbanModelPipeline
 Fluent pipeline in `Pipeline/RhinoUrbanModelPipeline.cs` under the `AIQ.Urban.RhinoInterface` namespace. Step-based, with a single ordered step list:
@@ -29,6 +41,46 @@ new RhinoUrbanModelPipeline(doc, UrbanModel.Instance)
 - **Run()**: Iterates the step list in configuration order, calling each `Run(UrbanModel)`. Each step's returned GUIDs are routed to the delete, edit, or add bucket based on which marker interfaces the step implements (a step may implement multiple interfaces, e.g. `RecalculateParcelsStep` implements both `IAdd` and `IDelete` to return old parcel GUIDs for cleanup and new parcel GUIDs for baking). Then batch-deletes Rhino objects and bakes new geometry.
 
 Element type output is automatic — `OutputTransits()`, `OutputBuildings()`, `OutputParcels(addedIds)`, and `OutputZones(addedIds)` are called by the pipeline for any added elements of those types.
+
+## Testing Strategy
+
+The event handler is tested at two levels:
+
+1. **Unit tests** (`AIQ.Urban.Core.Tests`, no Rhino dependency): an extracted `EventQueue` class handles queuing, deduplication, and dispatch routing. Tested with direct method calls — no Rhino doc needed.
+2. **Integration tests** (`tests/AIQ.Urban.RhinoPlugin.Tests`, headless Rhino via `[RhinoTestFixture]`): `RhinoUrbanEventHandler` is wired to a real `RhinoDoc`; programmatic add/delete/replace operations verify end-to-end queuing → pipeline dispatch → UrbanModel state.
+
+Core steps (`RemoveBuildingStep`, etc.) follow the existing step-testing pattern in `AIQ.Urban.Core.Tests`.
+
+## RhinoUrbanEventHandler — Dispatch Logic
+
+The event handler dispatches `DeleteRhinoObject` and `ReplaceRhinoObject` events by element type. Buildings are skipped for Replace (deferred to later stage).
+
+The handler checks the modified object's layer to decide if it's authoritative geometry (Centerline for Transit, Boundary curve for Zone). Objects on derived layers (Outline, Surface, Envelope, FloorPlates) are re-baked on pipeline runs and user modifications are overwritten — that is correct behaviour.
+
+### Pipeline Cascade Matrix
+
+Each event triggers a pipeline configuration with primary steps plus cascading recomputation:
+
+| Event | Primary step(s) | Cascade |
+|---|---|---|
+| Transit Delete | `RemoveTransitStep` → | `TransitSurfaceUnioner` → `RecalculateParcelsStep` → Metrics |
+| Transit Replace | `UpdateTransitStep` → | `TransitSurfaceUnioner` → `RecalculateParcelsStep` → Metrics |
+| Building Delete | `RemoveBuildingStep` → | Metrics |
+| Zone Delete | `RemoveZoneStep` → | Metrics |
+| Zone Replace | `UpdateZoneStep` → | Metrics |
+| Building Replace | *(deferred)* | |
+| Parcel (any) | *(ignored — parcels are derived)* | |
+
+### New Core Steps Needed
+
+| Step | Interface | Role |
+|---|---|---|
+| `RemoveBuildingStep(List<Guid> ids)` | `IDeleteUrbanElementsStep` | Removes Buildings from UrbanModel by geometry ID match |
+| `RemoveZoneStep(List<Guid> ids)` | `IDeleteUrbanElementsStep` | Removes Zones from UrbanModel |
+| `UpdateTransitStep(Guid oldCenterlineId, Curve newCenterline)` | `IEditUrbanElementsStep` | Updates a Transit's centerline in-place, keeps width/type |
+| `UpdateZoneStep(Guid oldBoundaryId, Curve newBoundary)` | `IEditUrbanElementsStep` | Updates a Zone's boundary polygon in-place |
+
+These pipeline configurations are wrapped as reusable methods (not necessarily user-facing commands) so both the event handler and any future explicit command can call them.
 
 ## Command Surface
 
