@@ -2,6 +2,7 @@ using AIQ.Urban.Core.ModelActions;
 using AIQ.Urban.Core.Models;
 using AIQ.Urban.Core.Models.Metrics;
 using AIQ.Urban.RhinoInterface.Pipeline.Configs;
+using Rhino.Geometry;
 
 namespace AIQ.Urban.RhinoInterface;
 
@@ -48,6 +49,59 @@ public class PipelineConfigurations(RhinoUrbanModelPipeline pipeline)
 
         pipeline.WithRhinoObjectDeletion(config.InputCurveIds)
             .WithUrbanElementStep(addZoneStep);
+
+        return this;
+    }
+
+    public PipelineConfigurations WithTransitDeletionSteps(List<Guid> centerlineIds)
+    {
+        var removeStep = new RemoveTransitStep(centerlineIds);
+        var transitUnioner = new TransitSurfaceUnioner();
+        var recalculateParcelsStep = new RecalculateParcelsStep();
+
+        pipeline.WithUrbanElementStep(removeStep)
+            .WithUrbanElementStep(transitUnioner)
+            .WithUrbanElementStep(recalculateParcelsStep);
+
+        return this;
+    }
+
+    public PipelineConfigurations WithTransitUpdateSteps(Guid oldCenterlineId, Curve newCenterline)
+    {
+        var updateStep = new UpdateTransitStep(oldCenterlineId, newCenterline);
+        var transitUnioner = new TransitSurfaceUnioner();
+        var recalculateParcelsStep = new RecalculateParcelsStep();
+
+        pipeline.WithUrbanElementStep(updateStep)
+            .WithUrbanElementStep(transitUnioner)
+            .WithUrbanElementStep(recalculateParcelsStep);
+
+        return this;
+    }
+
+    public PipelineConfigurations WithBuildingDeletionSteps(List<Guid> geometryIds)
+    {
+        var removeStep = new RemoveBuildingStep(geometryIds);
+
+        pipeline.WithUrbanElementStep(removeStep);
+
+        return this;
+    }
+
+    public PipelineConfigurations WithZoneDeletionSteps(List<Guid> geometryIds)
+    {
+        var removeStep = new RemoveZoneStep(geometryIds);
+
+        pipeline.WithUrbanElementStep(removeStep);
+
+        return this;
+    }
+
+    public PipelineConfigurations WithZoneUpdateSteps(Guid oldBoundaryId, Curve newBoundary)
+    {
+        var updateStep = new UpdateZoneStep(oldBoundaryId, newBoundary);
+
+        pipeline.WithUrbanElementStep(updateStep);
 
         return this;
     }
