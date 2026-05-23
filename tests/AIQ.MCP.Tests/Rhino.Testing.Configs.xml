@@ -1,4 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Rhino.Testing>
-  <RuntimeCondition>Headless</RuntimeCondition>
-</Rhino.Testing>
+<Settings>
+  <RhinoSystemDirectory>C:\Program Files\Rhino 8\System</RhinoSystemDirectory>
+</Settings>
