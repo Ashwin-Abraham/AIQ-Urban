@@ -1,15 +1,25 @@
 using System.Diagnostics;
 using System.Net;
 using System.Text.Json;
+using AIQ.MCP.Models;
+using AIQ.Urban.Core;
+using AIQ.Urban.RhinoInterface;
+using AIQ.Urban.RhinoInterface.Pipeline.Configs;
 using ModelContextProtocol;
 using ModelContextProtocol.Protocol;
 using ModelContextProtocol.Server;
-using AIQ.MCP.Models;
+using Rhino;
 
 namespace AIQ.MCP.Services;
 
 public sealed class McpServer : IAsyncDisposable, IDisposable
 {
+    private static readonly JsonSerializerOptions McpJsonOptions = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        PropertyNameCaseInsensitive = true
+    };
+
     private HttpListener? _listener;
     private StreamableHttpServerTransport? _transport;
     private ModelContextProtocol.Server.McpServer? _server;
@@ -25,6 +35,49 @@ public sealed class McpServer : IAsyncDisposable, IDisposable
     {
         _portFilePath = Path.Combine(Path.GetTempPath(), "AIQ.MCP.port");
     }
+
+    private static JsonElement MakeToolSchema(string schemaJson)
+        => JsonSerializer.Deserialize<JsonElement>(schemaJson);
+
+    private static readonly JsonElement EmptySchema = MakeToolSchema("""
+        {
+            "type": "object",
+            "properties": {},
+            "required": []
+        }
+        """);
+
+    private static readonly JsonElement AddBuildingSchema = MakeToolSchema("""
+        {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "footprint": {
+                                "type": "array",
+                                "items": {
+                                    "type": "array",
+                                    "items": { "type": "number" },
+                                    "minItems": 2,
+                                    "maxItems": 2
+                                },
+                                "minItems": 3
+                            },
+                            "typicalFloorHeight": { "type": "number", "exclusiveMinimum": 0 },
+                            "floorCount": { "type": "integer", "exclusiveMinimum": 0 },
+                            "useName": { "type": "string" }
+                        },
+                        "required": ["footprint", "typicalFloorHeight", "floorCount", "useName"]
+                    },
+                    "minItems": 1
+                }
+            },
+            "required": ["items"]
+        }
+        """);
 
     public async Task Start(int preferredPort = 0)
     {
@@ -45,14 +98,6 @@ public sealed class McpServer : IAsyncDisposable, IDisposable
         try
         {
             _transport = new StreamableHttpServerTransport(loggerFactory: null);
-
-            var toolSchema = JsonSerializer.Deserialize<JsonElement>("""
-                {
-                    "type": "object",
-                    "properties": {},
-                    "required": []
-                }
-                """);
 
             var options = new McpServerOptions
             {
@@ -76,7 +121,13 @@ public sealed class McpServer : IAsyncDisposable, IDisposable
                                 {
                                     Name = "list_elements",
                                     Description = "Lists all urban elements (transits, buildings, parcels, zones) in the current model. Returns structured JSON summaries with GUIDs, types, uses, and type-specific details for each element.",
-                                    InputSchema = toolSchema
+                                    InputSchema = EmptySchema
+                                },
+                                new Tool
+                                {
+                                    Name = "add_building",
+                                    Description = "Adds one or more buildings from footprint coordinates. Accepts an array of building items, each with footprint (closed double[][]), typicalFloorHeight, floorCount, and useName. Returns the GUIDs of created geometry. Triggers full pipeline cascade including metrics calculation.",
+                                    InputSchema = AddBuildingSchema
                                 }
                             ]
                         }),
@@ -94,8 +145,14 @@ public sealed class McpServer : IAsyncDisposable, IDisposable
                             });
                         }
 
+                        if (request.Params?.Name == "add_building")
+                        {
+                            return ValueTask.FromResult(HandleAddBuilding(request));
+                        }
+
+                        var available = string.Join(", ", "list_elements", "add_building");
                         throw new McpProtocolException(
-                            $"Unknown tool: '{request.Params?.Name}'. Available tools: list_elements",
+                            $"Unknown tool: '{request.Params?.Name}'. Available tools: {available}",
                             McpErrorCode.InvalidParams);
                     }
                 }
@@ -127,6 +184,53 @@ public sealed class McpServer : IAsyncDisposable, IDisposable
         await File.WriteAllTextAsync(_portFilePath, port.ToString()).ConfigureAwait(false);
 
         _listenTask = AcceptRequestsAsync(_cts.Token);
+    }
+
+    private static CallToolResult HandleAddBuilding(RequestContext<CallToolRequestParams> request)
+    {
+        _ = request ?? throw new ArgumentNullException(nameof(request));
+
+        // Deserialize arguments
+        var argsJson = JsonSerializer.Serialize(request.Params?.Arguments);
+        var addRequest = JsonSerializer.Deserialize<AddBuildingRequest>(argsJson, McpJsonOptions);
+
+        if (addRequest?.Items == null || addRequest.Items.Count == 0)
+        {
+            throw new McpProtocolException(
+                "add_building requires at least one building item with footprint, typicalFloorHeight, floorCount, and useName.",
+                McpErrorCode.InvalidParams);
+        }
+
+        // Create pipeline configuration (validates input — throws on invalid coords, unknown use, etc.)
+        var service = new UrbanModelService();
+        var config = service.CreateBuildingSteps(addRequest);
+
+        // Execute pipeline (requires active Rhino doc)
+        var doc = RhinoDoc.ActiveDoc;
+        if (doc == null)
+        {
+            throw new McpProtocolException(
+                "Active Rhino document is required for add_building. Ensure the MCP server is running within Rhino.",
+                McpErrorCode.InternalError);
+        }
+
+        var pipeline = new RhinoUrbanModelPipeline(doc, UrbanModel.Instance);
+        new PipelineConfigurations(pipeline)
+            .WithBuildingAdditionSteps(config)
+            .WithMetricsCalculation(saveToFile: true, tolerance: doc.ModelAbsoluteTolerance, docName: doc.Name);
+        pipeline.Run();
+
+        doc.Views.Redraw();
+
+        // Build result with created geometry GUIDs
+        var elementGuids = config.InputCurveIds.Select(id => id.ToString()).ToList();
+        var resultJson = JsonSerializer.Serialize(
+            new { elementGuids }, McpJsonOptions);
+
+        return new CallToolResult
+        {
+            Content = [new TextContentBlock { Text = resultJson }]
+        };
     }
 
     public async Task StopAsync()
