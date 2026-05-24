@@ -324,4 +324,110 @@ public class McpServerHttpTests
         Assert.That(body, Does.Contain("\"code\":-32602"));
     }
 
+    [Test]
+    public void ListTools_AfterInitialize_ContainsAddBuilding()
+    {
+        // Arrange
+        UrbanModel.Instance.Reset();
+        _server.Start(0).GetAwaiter().GetResult();
+        var port = _server.Port;
+
+        // First initialize
+        var initRequest = new
+        {
+            jsonrpc = "2.0",
+            id = 1,
+            method = "initialize",
+            @params = new
+            {
+                protocolVersion = "2024-11-05",
+                capabilities = new { },
+                clientInfo = new { name = "test-client", version = "1.0.0" }
+            }
+        };
+
+        using var client = new HttpClient();
+        var initJson = JsonSerializer.Serialize(initRequest);
+        var initResponse = Task.Run(() =>
+            client.PostAsync($"http://localhost:{port}/",
+                new StringContent(initJson, System.Text.Encoding.UTF8, "application/json")))
+            .GetAwaiter().GetResult();
+        Assert.That(initResponse.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+
+        // Act — list tools
+        var listRequest = new
+        {
+            jsonrpc = "2.0",
+            id = 2,
+            method = "tools/list",
+            @params = new { }
+        };
+        var listJson = JsonSerializer.Serialize(listRequest);
+        var listResponse = Task.Run(() =>
+            client.PostAsync($"http://localhost:{port}/",
+                new StringContent(listJson, System.Text.Encoding.UTF8, "application/json")))
+            .GetAwaiter().GetResult();
+
+        // Assert
+        Assert.That(listResponse.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+        var listBody = Task.Run(() => listResponse.Content.ReadAsStringAsync()).GetAwaiter().GetResult();
+        Assert.That(listBody, Does.Contain("add_building"));
+        Assert.That(listBody, Does.Contain("footprint coordinates"));
+    }
+
+    [Test]
+    public void CallTool_AddBuilding_MissingArguments_ReturnsError()
+    {
+        // Arrange
+        UrbanModel.Instance.Reset();
+        _server.Start(0).GetAwaiter().GetResult();
+        var port = _server.Port;
+
+        // Initialize
+        var initRequest = new
+        {
+            jsonrpc = "2.0",
+            id = 1,
+            method = "initialize",
+            @params = new
+            {
+                protocolVersion = "2024-11-05",
+                capabilities = new { },
+                clientInfo = new { name = "test-client", version = "1.0.0" }
+            }
+        };
+
+        using var client = new HttpClient();
+        var initJson = JsonSerializer.Serialize(initRequest);
+        var initResponse = Task.Run(() =>
+            client.PostAsync($"http://localhost:{port}/",
+                new StringContent(initJson, System.Text.Encoding.UTF8, "application/json")))
+            .GetAwaiter().GetResult();
+        Assert.That(initResponse.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+
+        // Act — call add_building with empty arguments
+        var callRequest = new
+        {
+            jsonrpc = "2.0",
+            id = 2,
+            method = "tools/call",
+            @params = new
+            {
+                name = "add_building",
+                arguments = new { }
+            }
+        };
+        var callJson = JsonSerializer.Serialize(callRequest);
+        var callResponse = Task.Run(() =>
+            client.PostAsync($"http://localhost:{port}/",
+                new StringContent(callJson, System.Text.Encoding.UTF8, "application/json")))
+            .GetAwaiter().GetResult();
+
+        // Assert — should receive error because items are required
+        Assert.That(callResponse.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+        var body = Task.Run(() => callResponse.Content.ReadAsStringAsync()).GetAwaiter().GetResult();
+        Assert.That(body, Does.Contain("\"code\":-32602"));
+        Assert.That(body, Does.Contain("requires at least one building"));
+    }
+
 }
