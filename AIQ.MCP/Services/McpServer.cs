@@ -110,6 +110,34 @@ public sealed class McpServer : IAsyncDisposable, IDisposable
         }
         """);
 
+    private static readonly JsonElement ChangeBuildingUseSchema = MakeToolSchema("""
+        {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "buildingGeometryId": {
+                                "type": "string",
+                                "format": "uuid",
+                                "description": "GUID of the building envelope to change"
+                            },
+                            "newUseName": {
+                                "type": "string",
+                                "description": "New use name (e.g. Residential, Commercial)"
+                            }
+                        },
+                        "required": ["buildingGeometryId", "newUseName"]
+                    },
+                    "minItems": 1
+                }
+            },
+            "required": ["items"]
+        }
+        """);
+
     public async Task Start(int preferredPort = 0)
     {
         await StopAsync().ConfigureAwait(false);
@@ -165,6 +193,12 @@ public sealed class McpServer : IAsyncDisposable, IDisposable
                                     Name = "add_transit",
                                     Description = "Adds one or more transit corridors from centerline coordinates. Accepts an array of transit items, each with centerline (double[][]), width, and transitType. Returns the GUIDs of created geometry. Triggers full pipeline cascade including transit surface union, parcel recalculation, and metrics calculation.",
                                     InputSchema = AddTransitSchema
+                                },
+                                new Tool
+                                {
+                                    Name = "change_building_use",
+                                    Description = "Changes the use of one or more buildings. Accepts an array of change items, each with buildingGeometryId (GUID) and newUseName (string). Returns the GUIDs of affected buildings. Triggers metrics recalculation.",
+                                    InputSchema = ChangeBuildingUseSchema
                                 }
                             ]
                         }),
@@ -192,7 +226,12 @@ public sealed class McpServer : IAsyncDisposable, IDisposable
                             return ValueTask.FromResult(HandleAddTransit(request));
                         }
 
-                        var available = string.Join(", ", "list_elements", "add_building", "add_transit");
+                        if (request.Params?.Name == "change_building_use")
+                        {
+                            return ValueTask.FromResult(HandleChangeBuildingUse(request));
+                        }
+
+                        var available = string.Join(", ", "list_elements", "add_building", "add_transit", "change_building_use");
                         throw new McpProtocolException(
                             $"Unknown tool: '{request.Params?.Name}'. Available tools: {available}",
                             McpErrorCode.InvalidParams);
@@ -315,6 +354,59 @@ public sealed class McpServer : IAsyncDisposable, IDisposable
         var elementGuids = config.CenterlineIds.Select(id => id.ToString()).ToList();
         var resultJson = JsonSerializer.Serialize(
             new { elementGuids }, McpJsonOptions);
+
+        return new CallToolResult
+        {
+            Content = [new TextContentBlock { Text = resultJson }]
+        };
+    }
+
+    private static CallToolResult HandleChangeBuildingUse(RequestContext<CallToolRequestParams> request)
+    {
+        _ = request ?? throw new ArgumentNullException(nameof(request));
+
+        // Deserialize arguments
+        var argsJson = JsonSerializer.Serialize(request.Params?.Arguments);
+        var changeRequest = JsonSerializer.Deserialize<ChangeBuildingUseRequest>(argsJson, McpJsonOptions);
+
+        if (changeRequest?.Items == null || changeRequest.Items.Count == 0)
+        {
+            throw new McpProtocolException(
+                "change_building_use requires at least one change item with buildingGeometryId and newUseName.",
+                McpErrorCode.InvalidParams);
+        }
+
+        // Create the change steps (validates input — throws on empty GUID, unknown use, etc.)
+        var service = new UrbanModelService();
+        var steps = service.CreateChangeUseSteps(changeRequest);
+
+        // Execute pipeline (requires active Rhino doc)
+        var doc = RhinoDoc.ActiveDoc;
+        if (doc == null)
+        {
+            throw new McpProtocolException(
+                "Active Rhino document is required for change_building_use. Ensure the MCP server is running within Rhino.",
+                McpErrorCode.InternalError);
+        }
+
+        var pipeline = new RhinoUrbanModelPipeline(doc, UrbanModel.Instance);
+        foreach (var step in steps)
+        {
+            pipeline.WithUrbanElementStep(step);
+        }
+        new PipelineConfigurations(pipeline)
+            .WithMetricsCalculation(saveToFile: true, tolerance: doc.ModelAbsoluteTolerance, docName: doc.Name);
+        pipeline.Run();
+
+        doc.Views.Redraw();
+
+        // Build result with affected building GUIDs
+        var affectedGuids = changeRequest.Items
+            .Select(i => i.BuildingGeometryId.ToString())
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+        var resultJson = JsonSerializer.Serialize(
+            new { affectedGuids }, McpJsonOptions);
 
         return new CallToolResult
         {
