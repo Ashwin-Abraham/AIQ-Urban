@@ -1,8 +1,10 @@
 using System.Diagnostics;
 using System.Net;
 using System.Text.Json;
+using ModelContextProtocol;
 using ModelContextProtocol.Protocol;
 using ModelContextProtocol.Server;
+using AIQ.MCP.Models;
 
 namespace AIQ.MCP.Services;
 
@@ -44,6 +46,14 @@ public sealed class McpServer : IAsyncDisposable, IDisposable
         {
             _transport = new StreamableHttpServerTransport(loggerFactory: null);
 
+            var toolSchema = JsonSerializer.Deserialize<JsonElement>("""
+                {
+                    "type": "object",
+                    "properties": {},
+                    "required": []
+                }
+                """);
+
             var options = new McpServerOptions
             {
                 ServerInfo = new Implementation
@@ -54,6 +64,40 @@ public sealed class McpServer : IAsyncDisposable, IDisposable
                 Capabilities = new ServerCapabilities
                 {
                     Tools = new ToolsCapability()
+                },
+                Handlers = new McpServerHandlers
+                {
+                    ListToolsHandler = (_, _) =>
+                        ValueTask.FromResult(new ListToolsResult
+                        {
+                            Tools =
+                            [
+                                new Tool
+                                {
+                                    Name = "list_elements",
+                                    Description = "Lists all urban elements (transits, buildings, parcels, zones) in the current model. Returns structured JSON summaries with GUIDs, types, uses, and type-specific details for each element.",
+                                    InputSchema = toolSchema
+                                }
+                            ]
+                        }),
+
+                    CallToolHandler = (request, _) =>
+                    {
+                        if (request.Params?.Name == "list_elements")
+                        {
+                            var service = new UrbanModelService();
+                            var elements = service.GetElementSummaries();
+                            var json = ElementSummarySerializer.Serialize(elements);
+                            return ValueTask.FromResult(new CallToolResult
+                            {
+                                Content = [new TextContentBlock { Text = json }]
+                            });
+                        }
+
+                        throw new McpProtocolException(
+                            $"Unknown tool: '{request.Params?.Name}'. Available tools: list_elements",
+                            McpErrorCode.InvalidParams);
+                    }
                 }
             };
 
