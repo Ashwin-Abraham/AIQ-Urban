@@ -1,4 +1,5 @@
 ﻿using System;
+using AIQ.MCP.Services;
 using Rhino;
 
 namespace AIQ.Urban.RhinoInterface;
@@ -14,6 +15,7 @@ namespace AIQ.Urban.RhinoInterface;
 public class Urban_RhinoPlugin : Rhino.PlugIns.PlugIn
 {
     private RhinoUrbanEventHandler? _eventHandler;
+    private McpServer? _mcpServer;
 
     public Urban_RhinoPlugin()
     {
@@ -35,6 +37,17 @@ public class Urban_RhinoPlugin : Rhino.PlugIns.PlugIn
         if (doc != null && _eventHandler == null)
         {
             _eventHandler = new RhinoUrbanEventHandler(doc);
+        }
+
+        try
+        {
+            _mcpServer = new McpServer();
+            _mcpServer.Start(0).GetAwaiter().GetResult();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Failed to start MCP server: {ex.Message}";
+            return Rhino.PlugIns.LoadReturnCode.ErrorShowDialog;
         }
 
         return Rhino.PlugIns.LoadReturnCode.Success;
