@@ -229,8 +229,7 @@ public class RhinoUrbanEventHandler : IDisposable
     {
         var centerlineIds = transit.GetGeometryIds().ToList();
 
-        var pipeline = new RhinoUrbanModelPipeline(_doc, UrbanModel.Instance);
-        new PipelineConfigurations(pipeline)
+        var pipeline = new RhinoUrbanModelPipeline(_doc, UrbanModel.Instance)
             .WithTransitDeletionSteps(centerlineIds)
             .WithMetricsCalculation();
 
@@ -248,8 +247,7 @@ public class RhinoUrbanEventHandler : IDisposable
         var oldCenterlineId = transit.GetGeometryIds().FirstOrDefault();
         if (oldCenterlineId == Guid.Empty) return;
 
-        var pipeline = new RhinoUrbanModelPipeline(_doc, UrbanModel.Instance);
-        new PipelineConfigurations(pipeline)
+        var pipeline = new RhinoUrbanModelPipeline(_doc, UrbanModel.Instance)
             .WithTransitUpdateSteps(oldCenterlineId, newCurve)
             .WithMetricsCalculation();
 
@@ -260,8 +258,7 @@ public class RhinoUrbanEventHandler : IDisposable
     {
         var geometryIds = building.GetGeometryIds();
 
-        var pipeline = new RhinoUrbanModelPipeline(_doc, UrbanModel.Instance);
-        new PipelineConfigurations(pipeline)
+        var pipeline = new RhinoUrbanModelPipeline(_doc, UrbanModel.Instance)
             .WithBuildingDeletionSteps(geometryIds)
             .WithMetricsCalculation();
 
@@ -272,8 +269,7 @@ public class RhinoUrbanEventHandler : IDisposable
     {
         var geometryIds = zone.GetGeometryIds();
 
-        var pipeline = new RhinoUrbanModelPipeline(_doc, UrbanModel.Instance);
-        new PipelineConfigurations(pipeline)
+        var pipeline = new RhinoUrbanModelPipeline(_doc, UrbanModel.Instance)
             .WithZoneDeletionSteps(geometryIds)
             .WithMetricsCalculation();
 
@@ -291,8 +287,7 @@ public class RhinoUrbanEventHandler : IDisposable
         var oldBoundaryId = zone.GetGeometryIds().FirstOrDefault();
         if (oldBoundaryId == Guid.Empty) return;
 
-        var pipeline = new RhinoUrbanModelPipeline(_doc, UrbanModel.Instance);
-        new PipelineConfigurations(pipeline)
+        var pipeline = new RhinoUrbanModelPipeline(_doc, UrbanModel.Instance)
             .WithZoneUpdateSteps(oldBoundaryId, newCurve)
             .WithMetricsCalculation();
 

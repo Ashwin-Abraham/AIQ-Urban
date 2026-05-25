@@ -2,8 +2,6 @@ using AIQ.Urban.Core;
 using AIQ.Urban.Core.ModelActions;
 using AIQ.Urban.Core.Models;
 using AIQ.Urban.Core.Models.GeometryElements;
-using AIQ.Urban.RhinoInterface;
-using AIQ.Urban.RhinoInterface.Pipeline.Configs;
 using Rhino;
 using Rhino.Commands;
 using Rhino.Input;
@@ -54,11 +52,9 @@ public class AddBuilding_AIQUrban : Command
 
         Polygon2D profile= new Polygon2D(footprint);
         var buildingData = new BuildingData(profile, floorHeight, floorCount, selectedUse);
-        var config = new BuildingPipelineConfiguration([buildingData], [curveRef.ObjectId]);
 
-        var pipeline = new RhinoUrbanModelPipeline(doc, UrbanModel.Instance);
-        new PipelineConfigurations(pipeline)
-            .WithBuildingAdditionSteps(config)
+        var pipeline = new RhinoUrbanModelPipeline(doc, UrbanModel.Instance)
+            .WithBuildingAdditionSteps([buildingData], [curveRef.ObjectId])
             .WithMetricsCalculation(saveToFile: true, tolerance: doc.ModelAbsoluteTolerance, docName: doc.Name);
         pipeline.Run();
 

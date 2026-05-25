@@ -2,8 +2,6 @@ using AIQ.Urban.Core;
 using AIQ.Urban.Core.ModelActions;
 using AIQ.Urban.Core.Models;
 using AIQ.Urban.Core.Models.GeometryElements;
-using AIQ.Urban.DebugViz;
-using AIQ.Urban.RhinoInterface.Pipeline.Configs;
 using AIQ.Urban.RhinoInterface.Tests.Helpers;
 using AIQ.Urban.RhinoInterface.Utils;
 using NUnit.Framework;
@@ -34,12 +32,10 @@ public class ResetUrban_AIQUrbanTests
             new Point3d(0, 0, 0),
         ]));
         var buildingData = new BuildingData(footprint, 3.5, 3, DefaultUses.Residential);
-        var config = new BuildingPipelineConfiguration([buildingData], []);
-
-        var pipeline = new RhinoUrbanModelPipeline(doc, UrbanModel.Instance);
-        new PipelineConfigurations(pipeline)
-            .WithBuildingAdditionSteps(config)
+        var pipeline = new RhinoUrbanModelPipeline(doc, UrbanModel.Instance)
+            .WithBuildingAdditionSteps([buildingData], [])
             .WithMetricsCalculation(false);
+
         pipeline.Run();
 
         // Verify model and Rhino doc have the geometry

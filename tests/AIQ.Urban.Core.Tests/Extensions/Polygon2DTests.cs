@@ -50,20 +50,26 @@ public class Polygon2DTests
         Assert.That(ex!.Message, Does.Contain(testData.ExpectedMessageFragment));
     }
 
-    private record TestData(string CaseName, double[][] Input, int ExpectedPointCount);
+    private record TestData(
+        string CaseName,
+        List<(double X, double Y)> Input,
+        int ExpectedPointCount);
 
     private static readonly List<TestData> _validTestData =
     [
-        new("SquareClosed", [[0, 0], [10, 0], [10, 10], [0, 10], [0, 0]], 5),
-        new("TriangleAutoClosed", [[0, 0], [10, 0], [5, 10]], 4),
-        new("PentagonExplicitClosed", [[0, 0], [5, 0], [6, 5], [3, 8], [-2, 4], [0, 0]], 6),
+        new("SquareClosed", [(0, 0), (10, 0), (10, 10), (0, 10), (0, 0)], 5),
+        new("TriangleAutoClosed", [(0, 0), (10, 0), (5, 10)], 4),
+        new("PentagonExplicitClosed", [(0, 0), (5, 0), (6, 5), (3, 8), (-2, 4), (0, 0)], 6),
     ];
 
-    private record InvalidTestData(string CaseName, double[][] Input, string ExpectedMessageFragment);
+    private record InvalidTestData(
+        string CaseName,
+        List<(double X, double Y)> Input,
+        string ExpectedMessageFragment);
 
     private static readonly List<InvalidTestData> _invalidTestData =
     [
-        new("TwoPoints", [[0, 0], [10, 0]], "required"),
+        new("TwoPoints", [(0, 0), (10, 0)], "required"),
         new("EmptyArray", [], "required"),
     ];
 }

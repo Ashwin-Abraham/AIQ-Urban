@@ -21,14 +21,14 @@ public class Polygon2D : IGeometryElement<Curve>
         Geometry = geometry;
     }
 
-    public static Polygon2D Create(double[][] coords)
+    public static Polygon2D Create(List<(double X, double Y)> coordinates)
     {
-        ArgumentNullException.ThrowIfNull(coords);
+        ArgumentNullException.ThrowIfNull(coordinates);
 
-        if (coords.Length < 3)
-            throw new ArgumentException("At least 3 coordinate pairs are required.", nameof(coords));
+        if (coordinates.Count < 3)
+            throw new ArgumentException("At least 3 coordinate pairs are required.", nameof(coordinates));
 
-        var points = coords.Select(c => new Point3d(c[0], c[1], 0)).ToList();
+        var points = coordinates.Select(c => new Point3d(c.X, c.Y, 0)).ToList();
 
         var first = points[0];
         var last = points[^1];

@@ -2,8 +2,6 @@ using System.Linq;
 using AIQ.Urban.Core;
 using AIQ.Urban.Core.ModelActions;
 using AIQ.Urban.Core.Models.GeometryElements;
-using AIQ.Urban.RhinoInterface;
-using AIQ.Urban.RhinoInterface.Pipeline.Configs;
 using Rhino;
 using Rhino.Commands;
 using Rhino.Geometry;
@@ -56,11 +54,9 @@ public class AddZone_AIQUrban : Command
 
         var boundary = new Polygon2D(curve);
         var zoneData = new ZoneData(boundary, zoneName);
-        var config = new ZonePipelineConfiguration([zoneData], [curveRef.ObjectId]);
 
-        var pipeline = new RhinoUrbanModelPipeline(doc, UrbanModel.Instance);
-        new PipelineConfigurations(pipeline)
-            .WithZoneAdditionSteps(config)
+        var pipeline = new RhinoUrbanModelPipeline(doc, UrbanModel.Instance)
+            .WithZoneAdditionSteps([zoneData], [curveRef.ObjectId])
             .WithMetricsCalculation(saveToFile: true, tolerance: doc.ModelAbsoluteTolerance, docName: doc.Name);
         pipeline.Run();
 

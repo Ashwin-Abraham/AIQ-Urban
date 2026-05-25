@@ -50,20 +50,20 @@ public class Curve2DTests
         Assert.That(ex!.Message, Does.Contain(testData.ExpectedMessageFragment));
     }
 
-    private record TestData(string CaseName, double[][] Input, int ExpectedPointCount);
+    private record TestData(string CaseName, List<(double X, double Y)> Input, int ExpectedPointCount);
 
     private static readonly List<TestData> _validTestData =
     [
-        new("TwoPoints", [[0, 0], [10, 0]], 2),
-        new("ThreePoints", [[0, 0], [10, 0], [10, 10]], 3),
-        new("FivePoints", [[0, 0], [5, 0], [5, 5], [10, 5], [10, 10]], 5),
+        new("TwoPoints", [(0, 0), (10, 0)], 2),
+        new("ThreePoints", [(0, 0), (10, 0), (10, 10)], 3),
+        new("FivePoints", [(0, 0), (5, 0), (5, 5), (10, 5), (10, 10)], 5),
     ];
 
-    private record InvalidTestData(string CaseName, double[][] Input, string ExpectedMessageFragment);
+    private record InvalidTestData(string CaseName, List<(double X, double Y)> Input, string ExpectedMessageFragment);
 
     private static readonly List<InvalidTestData> _invalidTestData =
     [
-        new("SinglePoint", [[0, 0]], "required"),
+        new("SinglePoint", [(0, 0)], "required"),
         new("EmptyArray", [], "required"),
     ];
 }

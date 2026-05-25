@@ -20,4 +20,8 @@
     </AssemblyAttribute>
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Pipeline\Configs\" />
+  </ItemGroup>
+
 </Project>

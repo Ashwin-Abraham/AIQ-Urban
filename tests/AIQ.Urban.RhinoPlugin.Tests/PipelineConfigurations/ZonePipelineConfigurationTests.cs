@@ -5,7 +5,6 @@ using AIQ.Urban.Core.ModelActions;
 using AIQ.Urban.Core.Models.GeometryElements;
 using AIQ.Urban.DebugViz;
 using AIQ.Urban.RhinoInterface;
-using AIQ.Urban.RhinoInterface.Pipeline.Configs;
 using NUnit.Framework;
 using Rhino;
 using Rhino.Geometry;
@@ -32,12 +31,10 @@ public class ZonePipelineConfigurationTests
         var testData = _testData.Single(x => x.CaseName == testName);
 
         using var doc = RhinoDoc.CreateHeadless(null);
-        var pipeline = new RhinoUrbanModelPipeline(doc, UrbanModel.Instance);
-        var config = new ZonePipelineConfiguration(testData.Input, []);
 
         // Act
-        new PipelineConfigurations(pipeline)
-            .WithZoneAdditionSteps(config)
+        var pipeline = new RhinoUrbanModelPipeline(doc, UrbanModel.Instance)
+            .WithZoneAdditionSteps(testData.Input, [])
             .WithMetricsCalculation(false);
         pipeline.Run();
 

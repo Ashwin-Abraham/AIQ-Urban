@@ -49,10 +49,10 @@ public class ChangeBuildingUse_AIQUrban : Command
         for (int i = 0; i < go.ObjectCount; i++)
             geometryIds.Add(go.Object(i).ObjectId);
 
-        var pipeline = new RhinoUrbanModelPipeline(doc, UrbanModel.Instance);
-        new PipelineConfigurations(pipeline)
+        var pipeline = new RhinoUrbanModelPipeline(doc, UrbanModel.Instance)
             .WithBuildingUseChangeSteps(geometryIds, selectedUse)
             .WithMetricsCalculation(saveToFile: true, tolerance: doc.ModelAbsoluteTolerance, docName: doc.Name);
+
         pipeline.Run();
 
         doc.Views.Redraw();

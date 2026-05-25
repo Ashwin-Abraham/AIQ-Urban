@@ -18,14 +18,12 @@ public class Curve2D : IGeometryElement<Curve>
         Id = id;
     }
 
-    public static Curve2D Create(double[][] coords)
+    public static Curve2D Create(List<(double X, double Y)> coordinates)
     {
-        ArgumentNullException.ThrowIfNull(coords);
+        if (coordinates.Count < 2)
+            throw new ArgumentException("At least 2 coordinate pairs are required.", nameof(coordinates));
 
-        if (coords.Length < 2)
-            throw new ArgumentException("At least 2 coordinate pairs are required.", nameof(coords));
-
-        var points = coords.Select(c => new Point3d(c[0], c[1], 0)).ToArray();
+        var points = coordinates.Select(coord => new Point3d(coord.X, coord.Y, 0)).ToArray();
         var curve = new PolylineCurve(points);
 
         return new Curve2D(curve, Guid.NewGuid());
