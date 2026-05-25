@@ -6,7 +6,7 @@ namespace AIQ.MCP.Services;
 
 /// <summary>Rhino-backed pipeline executor. Requires an active RhinoDoc.
 /// Used in production inside the Rhino plugin; not suitable for unit tests.</summary>
-public class RhinoPipelineExecutor(RhinoDoc _doc, UrbanModel _urbanModel)
+public static class RhinoPipelineExecutor
 {
     public static bool Run(Action<RhinoUrbanModelPipeline> pipelineAction)
     {
