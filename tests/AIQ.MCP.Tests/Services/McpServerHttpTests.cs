@@ -14,7 +14,7 @@ public class McpServerHttpTests
     [SetUp]
     public void SetUp()
     {
-        _server = new McpServer();
+        _server = new McpServer(new FakePipelineExecutor());
     }
 
     [TearDown]

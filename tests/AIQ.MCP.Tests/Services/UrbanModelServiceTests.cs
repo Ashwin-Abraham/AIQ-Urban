@@ -323,6 +323,105 @@ public class UrbanModelServiceTests
         ]), "Unknown use name"),
     ];
 
+    // --- CreateChangeUseGroups ---
+
+    [Test]
+    public void CreateChangeUseGroups_SingleUse_ReturnsSingleGroup()
+    {
+        var request = new ChangeBuildingUseRequest([
+            new ChangeUseItem(Guid.NewGuid(), "Commercial"),
+        ]);
+
+        var result = _service.CreateChangeUseGroups(request);
+
+        Assert.That(result, Has.Count.EqualTo(1));
+        Assert.That(result[0].GeometryIds, Has.Count.EqualTo(1));
+        Assert.That(result[0].NewUse.Name, Is.EqualTo("Commercial").IgnoreCase);
+    }
+
+    [Test]
+    public void CreateChangeUseGroups_MultipleBuildingsSameUse_ReturnsSingleGroup()
+    {
+        var request = new ChangeBuildingUseRequest([
+            new ChangeUseItem(Guid.NewGuid(), "Commercial"),
+            new ChangeUseItem(Guid.NewGuid(), "Commercial"),
+            new ChangeUseItem(Guid.NewGuid(), "Commercial"),
+        ]);
+
+        var result = _service.CreateChangeUseGroups(request);
+
+        Assert.That(result, Has.Count.EqualTo(1));
+        Assert.That(result[0].GeometryIds, Has.Count.EqualTo(3));
+    }
+
+    [Test]
+    public void CreateChangeUseGroups_MultipleUses_ReturnsMultipleGroups()
+    {
+        var request = new ChangeBuildingUseRequest([
+            new ChangeUseItem(Guid.NewGuid(), "Commercial"),
+            new ChangeUseItem(Guid.NewGuid(), "Residential"),
+        ]);
+
+        var result = _service.CreateChangeUseGroups(request);
+
+        Assert.That(result, Has.Count.EqualTo(2));
+        Assert.That(result.Select(g => g.NewUse.Name),
+            Is.EquivalentTo(new[] { "Commercial", "Residential" }));
+    }
+
+    [Test]
+    public void CreateChangeUseGroups_EmptyGuid_Throws()
+    {
+        var request = new ChangeBuildingUseRequest([
+            new ChangeUseItem(Guid.Empty, "Commercial"),
+        ]);
+
+        var ex = Assert.Throws<ArgumentException>(() =>
+            _service.CreateChangeUseGroups(request));
+        Assert.That(ex!.Message, Does.Contain("cannot be empty"));
+    }
+
+    [Test]
+    public void CreateChangeUseGroups_NullRequest_Throws()
+    {
+        var ex = Assert.Throws<ArgumentNullException>(() =>
+            _service.CreateChangeUseGroups(null!));
+        Assert.That(ex!.Message, Does.Contain("Value cannot be null"));
+    }
+
+    [Test]
+    public void CreateChangeUseGroups_NullItems_Throws()
+    {
+        var ex = Assert.Throws<ArgumentNullException>(() =>
+            _service.CreateChangeUseGroups(new ChangeBuildingUseRequest(null!)));
+        Assert.That(ex!.Message, Does.Contain("Value cannot be null"));
+    }
+
+    [Test]
+    [TestCase("EmptyItems")]
+    [TestCase("UnknownUseName")]
+    public void CreateChangeUseGroups_InvalidInput_Throws(string testName)
+    {
+        var testData = _invalidChangeUseGroupTestData.Single(x => x.CaseName == testName);
+
+        var ex = Assert.Throws<ArgumentException>(() =>
+            _service.CreateChangeUseGroups(testData.Request!));
+        Assert.That(ex!.Message, Does.Contain(testData.ExpectedMessageFragment));
+    }
+
+    private record InvalidChangeUseGroupTestData(
+        string CaseName,
+        ChangeBuildingUseRequest Request,
+        string ExpectedMessageFragment);
+
+    private static readonly List<InvalidChangeUseGroupTestData> _invalidChangeUseGroupTestData =
+    [
+        new("EmptyItems", new ChangeBuildingUseRequest([]), "At least one"),
+        new("UnknownUseName", new ChangeBuildingUseRequest([
+            new ChangeUseItem(Guid.NewGuid(), "InvalidUse")
+        ]), "Unknown use name"),
+    ];
+
     // --- GetElementSummaries ---
 
     [Test]

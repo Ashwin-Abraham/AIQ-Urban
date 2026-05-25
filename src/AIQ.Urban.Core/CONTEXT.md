@@ -58,11 +58,13 @@ Pure city-modelling domain logic. Models buildings, transit networks, parcels, z
 - `IGeometryElement<T>.Id` is settable — the Rhino layer overwrites placeholder IDs with real Rhino ObjectIds after baking (see `RhinoUrbanModelPipeline.BakeNewUrbanElements`).
 - `Node` is a new custom class for graph nodes. Future consideration: replace with topologyNet when TransitGraph is fully designed.
 - RhinoCommon types (Curve, Brep, Mesh, Point3d, Transform) used for all 3D geometry.
+- `Curve2D.Create(double[][])` and `Polygon2D.Create(double[][])` static factories convert raw coordinate arrays into domain geometry. These live in Core so all consumers (MCP, Rhino commands, tests) share one construction path.
+- `string.ParseToTransitType()` extension in `Extensions/StringExtensions.cs` for case-insensitive enum parsing.
 
 ## Domain Glossary
 
 ### Use
-A semantic label with visual feedback. `string Name` + `Color` (System.Drawing.Color). Stored as a `record` in `Models/Use.cs`. Not an enum — instances are created at runtime (e.g. "Residential", "Commercial", "Retail", "Industrial", "MixedUse", "Public", "Park", "Parking", "Utility").
+A semantic label with visual feedback. `string Name` + `Color` (System.Drawing.Color). Stored as a `record` in `Models/Use.cs`. Not an enum — instances are created at runtime (e.g. "Residential", "Commercial", "Retail", "Industrial", "MixedUse", "Public", "Park", "Parking", "Utility"). Lookup by name via `DefaultUses.Resolve(string)` — case-insensitive, throws on unknown.
 
 ### Building
 A constructed structure. Has a collection of `FloorPlate`s and a `Brep Envelope` representing the outer shell. Added via `UrbanModel.AddBuilding(Building)`. Does not store a building-level Use — each `FloorPlate` owns its own Use. The constructor accepts a `Use` parameter to initialise all floor plates, but the value is not retained on Building.

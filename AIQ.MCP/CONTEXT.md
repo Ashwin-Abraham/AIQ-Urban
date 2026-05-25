@@ -22,6 +22,7 @@ Thin interoperability layer that exposes the existing AIQ.Urban.Core urban model
 - The MCP server does **not** access `RhinoDoc` directly.
 - It calls into a data-only **UrbanModelService** that constructs pipeline steps from structured input.
 - The MCP tool handler (caller) owns `RhinoDoc` access and pipeline execution.
+- Geometry construction is delegated to Core static factories (`Curve2D.Create`, `Polygon2D.Create`, `DefaultUses.Resolve`, `string.ParseToTransitType`). No separate `IGeometryFactory` abstraction — the interface and class were removed in favour of domain-owned static methods.
 
 ### Error Handling
 - All service methods throw descriptive exceptions on failure (invalid input, stale GUIDs, empty model).
@@ -66,7 +67,7 @@ Lists all urban elements in the model.
 ### UrbanModelService
 Data-only coordinator that:
 - Accepts structured request records (coordinates, names, enums)
-- Constructs Rhino geometry from coordinate arrays
+- Delegates geometry construction to Core static factories (`Curve2D.Create`, `Polygon2D.Create`, `DefaultUses.Resolve`, `string.ParseToTransitType`)
 - Creates and returns `IUrbanModelStep` objects
 - Does **not** own pipeline execution or RhinoDoc access
 
@@ -89,7 +90,7 @@ AIQ.MCP/
 ├── CONTEXT.md
 ├── AIQ.MCP.csproj          — net8.0, references AIQ.Urban.Core + AIQ.Urban.RhinoInterface
 ├── Services/
-│   └── UrbanModelService.cs — coordinate→step translation
+│   └── UrbanModelService.cs — coordinate→step translation (uses Core static factories)
 ├── Models/
 │   ├── AddTransitRequest.cs
 │   ├── AddBuildingRequest.cs

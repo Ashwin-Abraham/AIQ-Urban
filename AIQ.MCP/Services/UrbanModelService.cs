@@ -1,6 +1,8 @@
 using AIQ.Urban.Core;
+using AIQ.Urban.Core.Extensions;
 using AIQ.Urban.Core.ModelActions;
 using AIQ.Urban.Core.Models;
+using AIQ.Urban.Core.Models.GeometryElements;
 using AIQ.Urban.Core.Models.UrbanElements;
 using AIQ.Urban.RhinoInterface.Pipeline.Configs;
 using AIQ.MCP.Models;
@@ -29,8 +31,8 @@ public class UrbanModelService
             if (item.Width <= 0)
                 throw new ArgumentException($"Transit width must be positive. Got: {item.Width}.");
 
-            var centerline = GeometryFactory.CreateCenterline(item.CenterlineCoords);
-            var transitType = GeometryFactory.ResolveTransitType(item.TransitType);
+            var centerline = Curve2D.Create(item.CenterlineCoords);
+            var transitType = item.TransitType.ParseToTransitType();
 
             centerlineIds.Add(centerline.Id);
             transitData.Add(new TransitData(centerline, item.Width, transitType));
@@ -59,8 +61,8 @@ public class UrbanModelService
             if (item.FloorCount <= 0)
                 throw new ArgumentException($"Building floor count must be positive. Got: {item.FloorCount}.");
 
-            var footprint = GeometryFactory.CreateFootprint(item.FootprintCoords);
-            var use = GeometryFactory.ResolveUse(item.UseName);
+            var footprint = Polygon2D.Create(item.FootprintCoords);
+            var use = DefaultUses.Resolve(item.UseName);
 
             inputCurveIds.Add(footprint.Id);
             buildingData.Add(new BuildingData(footprint, item.TypicalFloorHeight, item.FloorCount, use));
@@ -88,7 +90,7 @@ public class UrbanModelService
 
         foreach (var group in groups)
         {
-            var use = GeometryFactory.ResolveUse(group.Key);
+            var use = DefaultUses.Resolve(group.Key);
             var geometryIds = group.Select(i => i.BuildingGeometryId).ToList();
 
             // Validate GUIDs
@@ -102,6 +104,40 @@ public class UrbanModelService
         }
 
         return steps;
+    }
+
+    /// <summary>Groups change items by new use name and validates GUIDs.
+    /// Returns one BuildingUseChangeGroup per distinct use, for direct consumption
+    /// by PipelineConfigurations.WithBuildingUseChangeSteps.</summary>
+    public List<BuildingUseChangeGroup> CreateChangeUseGroups(ChangeBuildingUseRequest request)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        ArgumentNullException.ThrowIfNull(request.Items);
+
+        if (request.Items.Count == 0)
+            throw new ArgumentException("At least one change item is required.");
+
+        var groups = request.Items
+            .GroupBy(i => i.NewUseName, StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
+        var result = new List<BuildingUseChangeGroup>(groups.Count);
+
+        foreach (var group in groups)
+        {
+            var use = DefaultUses.Resolve(group.Key);
+            var geometryIds = group.Select(i => i.BuildingGeometryId).ToList();
+
+            foreach (var id in geometryIds)
+            {
+                if (id == Guid.Empty)
+                    throw new ArgumentException("Building geometry ID cannot be empty.");
+            }
+
+            result.Add(new BuildingUseChangeGroup(geometryIds, use));
+        }
+
+        return result;
     }
 
     /// <summary>Builds element summaries from the current UrbanModel state.</summary>

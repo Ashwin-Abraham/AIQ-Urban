@@ -41,7 +41,7 @@ public class Urban_RhinoPlugin : Rhino.PlugIns.PlugIn
 
         try
         {
-            _mcpServer = new McpServer();
+            _mcpServer = new McpServer(new RhinoPipelineExecutor());
             _mcpServer.Start(0).GetAwaiter().GetResult();
         }
         catch (Exception ex)

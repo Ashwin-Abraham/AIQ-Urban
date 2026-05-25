@@ -1,140 +1,41 @@
 using System.Diagnostics;
+using System.IO;
 using System.Net;
 using System.Text.Json;
 using AIQ.MCP.Models;
-using AIQ.Urban.Core;
-using AIQ.Urban.RhinoInterface;
-using AIQ.Urban.RhinoInterface.Pipeline.Configs;
+using AIQ.Urban.RhinoInterface.Pipeline;
 using ModelContextProtocol;
 using ModelContextProtocol.Protocol;
 using ModelContextProtocol.Server;
-using Rhino;
 
 namespace AIQ.MCP.Services;
 
-public sealed class McpServer : IAsyncDisposable, IDisposable
+public sealed class McpServer(IPipelineExecutor executor) : IAsyncDisposable, IDisposable
 {
-    private static readonly JsonSerializerOptions McpJsonOptions = new()
+    internal static readonly JsonSerializerOptions McpJsonOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         PropertyNameCaseInsensitive = true
     };
 
+    private readonly IPipelineExecutor _executor = executor;
+    private readonly UrbanModelService _service = new();
     private HttpListener? _listener;
     private StreamableHttpServerTransport? _transport;
     private ModelContextProtocol.Server.McpServer? _server;
     private CancellationTokenSource? _cts;
     private Task? _listenTask;
-    private readonly string _portFilePath;
+    private readonly string _portFilePath = Path.Combine(Path.GetTempPath(), "AIQ.MCP.port");
     private int _port;
 
     public int Port => _port;
     public bool IsRunning => _listener?.IsListening ?? false;
 
-    public McpServer()
-    {
-        _portFilePath = Path.Combine(Path.GetTempPath(), "AIQ.MCP.port");
-    }
-
-    private static JsonElement MakeToolSchema(string schemaJson)
-        => JsonSerializer.Deserialize<JsonElement>(schemaJson);
-
-    private static readonly JsonElement EmptySchema = MakeToolSchema("""
+    private static readonly JsonElement EmptySchema = JsonSerializer.Deserialize<JsonElement>("""
         {
             "type": "object",
             "properties": {},
             "required": []
-        }
-        """);
-
-    private static readonly JsonElement AddBuildingSchema = MakeToolSchema("""
-        {
-            "type": "object",
-            "properties": {
-                "items": {
-                    "type": "array",
-                    "items": {
-                        "type": "object",
-                        "properties": {
-                            "footprint": {
-                                "type": "array",
-                                "items": {
-                                    "type": "array",
-                                    "items": { "type": "number" },
-                                    "minItems": 2,
-                                    "maxItems": 2
-                                },
-                                "minItems": 3
-                            },
-                            "typicalFloorHeight": { "type": "number", "exclusiveMinimum": 0 },
-                            "floorCount": { "type": "integer", "exclusiveMinimum": 0 },
-                            "useName": { "type": "string" }
-                        },
-                        "required": ["footprint", "typicalFloorHeight", "floorCount", "useName"]
-                    },
-                    "minItems": 1
-                }
-            },
-            "required": ["items"]
-        }
-        """);
-
-    private static readonly JsonElement AddTransitSchema = MakeToolSchema("""
-        {
-            "type": "object",
-            "properties": {
-                "items": {
-                    "type": "array",
-                    "items": {
-                        "type": "object",
-                        "properties": {
-                            "centerline": {
-                                "type": "array",
-                                "items": {
-                                    "type": "array",
-                                    "items": { "type": "number" },
-                                    "minItems": 2,
-                                    "maxItems": 2
-                                },
-                                "minItems": 2
-                            },
-                            "width": { "type": "number", "exclusiveMinimum": 0 },
-                            "transitType": { "type": "string" }
-                        },
-                        "required": ["centerline", "width", "transitType"]
-                    },
-                    "minItems": 1
-                }
-            },
-            "required": ["items"]
-        }
-        """);
-
-    private static readonly JsonElement ChangeBuildingUseSchema = MakeToolSchema("""
-        {
-            "type": "object",
-            "properties": {
-                "items": {
-                    "type": "array",
-                    "items": {
-                        "type": "object",
-                        "properties": {
-                            "buildingGeometryId": {
-                                "type": "string",
-                                "format": "uuid",
-                                "description": "GUID of the building envelope to change"
-                            },
-                            "newUseName": {
-                                "type": "string",
-                                "description": "New use name (e.g. Residential, Commercial)"
-                            }
-                        },
-                        "required": ["buildingGeometryId", "newUseName"]
-                    },
-                    "minItems": 1
-                }
-            },
-            "required": ["items"]
         }
         """);
 
@@ -186,19 +87,19 @@ public sealed class McpServer : IAsyncDisposable, IDisposable
                                 {
                                     Name = "add_building",
                                     Description = "Adds one or more buildings from footprint coordinates. Accepts an array of building items, each with footprint (closed double[][]), typicalFloorHeight, floorCount, and useName. Returns the GUIDs of created geometry. Triggers full pipeline cascade including metrics calculation.",
-                                    InputSchema = AddBuildingSchema
+                                    InputSchema = AddBuildingRequest.JsonSchema
                                 },
                                 new Tool
                                 {
                                     Name = "add_transit",
                                     Description = "Adds one or more transit corridors from centerline coordinates. Accepts an array of transit items, each with centerline (double[][]), width, and transitType. Returns the GUIDs of created geometry. Triggers full pipeline cascade including transit surface union, parcel recalculation, and metrics calculation.",
-                                    InputSchema = AddTransitSchema
+                                    InputSchema = AddTransitRequest.JsonSchema
                                 },
                                 new Tool
                                 {
                                     Name = "change_building_use",
                                     Description = "Changes the use of one or more buildings. Accepts an array of change items, each with buildingGeometryId (GUID) and newUseName (string). Returns the GUIDs of affected buildings. Triggers metrics recalculation.",
-                                    InputSchema = ChangeBuildingUseSchema
+                                    InputSchema = ChangeBuildingUseRequest.JsonSchema
                                 }
                             ]
                         }),
@@ -207,8 +108,7 @@ public sealed class McpServer : IAsyncDisposable, IDisposable
                     {
                         if (request.Params?.Name == "list_elements")
                         {
-                            var service = new UrbanModelService();
-                            var elements = service.GetElementSummaries();
+                            var elements = _service.GetElementSummaries();
                             var json = ElementSummarySerializer.Serialize(elements);
                             return ValueTask.FromResult(new CallToolResult
                             {
@@ -267,43 +167,29 @@ public sealed class McpServer : IAsyncDisposable, IDisposable
         _listenTask = AcceptRequestsAsync(_cts.Token);
     }
 
-    private static CallToolResult HandleAddBuilding(RequestContext<CallToolRequestParams> request)
+    private CallToolResult HandleAddBuilding(RequestContext<CallToolRequestParams> request)
     {
         _ = request ?? throw new ArgumentNullException(nameof(request));
 
-        // Deserialize arguments
         var argsJson = JsonSerializer.Serialize(request.Params?.Arguments);
         var addRequest = JsonSerializer.Deserialize<AddBuildingRequest>(argsJson, McpJsonOptions);
 
-        if (addRequest?.Items == null || addRequest.Items.Count == 0)
+        return ExecuteAddBuilding(addRequest);
+    }
+
+    internal CallToolResult ExecuteAddBuilding(AddBuildingRequest? request)
+    {
+        if (request?.Items == null || request.Items.Count == 0)
         {
             throw new McpProtocolException(
                 "add_building requires at least one building item with footprint, typicalFloorHeight, floorCount, and useName.",
                 McpErrorCode.InvalidParams);
         }
 
-        // Create pipeline configuration (validates input — throws on invalid coords, unknown use, etc.)
-        var service = new UrbanModelService();
-        var config = service.CreateBuildingSteps(addRequest);
+        var config = _service.CreateBuildingSteps(request);
 
-        // Execute pipeline (requires active Rhino doc)
-        var doc = RhinoDoc.ActiveDoc;
-        if (doc == null)
-        {
-            throw new McpProtocolException(
-                "Active Rhino document is required for add_building. Ensure the MCP server is running within Rhino.",
-                McpErrorCode.InternalError);
-        }
+        _executor.Execute(p => p.WithBuildingAdditionSteps(config));
 
-        var pipeline = new RhinoUrbanModelPipeline(doc, UrbanModel.Instance);
-        new PipelineConfigurations(pipeline)
-            .WithBuildingAdditionSteps(config)
-            .WithMetricsCalculation(saveToFile: true, tolerance: doc.ModelAbsoluteTolerance, docName: doc.Name);
-        pipeline.Run();
-
-        doc.Views.Redraw();
-
-        // Build result with created geometry GUIDs
         var elementGuids = config.InputCurveIds.Select(id => id.ToString()).ToList();
         var resultJson = JsonSerializer.Serialize(
             new { elementGuids }, McpJsonOptions);
@@ -314,43 +200,29 @@ public sealed class McpServer : IAsyncDisposable, IDisposable
         };
     }
 
-    private static CallToolResult HandleAddTransit(RequestContext<CallToolRequestParams> request)
+    private CallToolResult HandleAddTransit(RequestContext<CallToolRequestParams> request)
     {
         _ = request ?? throw new ArgumentNullException(nameof(request));
 
-        // Deserialize arguments
         var argsJson = JsonSerializer.Serialize(request.Params?.Arguments);
         var addRequest = JsonSerializer.Deserialize<AddTransitRequest>(argsJson, McpJsonOptions);
 
-        if (addRequest?.Items == null || addRequest.Items.Count == 0)
+        return ExecuteAddTransit(addRequest);
+    }
+
+    internal CallToolResult ExecuteAddTransit(AddTransitRequest? request)
+    {
+        if (request?.Items == null || request.Items.Count == 0)
         {
             throw new McpProtocolException(
                 "add_transit requires at least one transit item with centerline, width, and transitType.",
                 McpErrorCode.InvalidParams);
         }
 
-        // Create pipeline configuration (validates input — throws on invalid coords, unknown type, etc.)
-        var service = new UrbanModelService();
-        var config = service.CreateTransitSteps(addRequest);
+        var config = _service.CreateTransitSteps(request);
 
-        // Execute pipeline (requires active Rhino doc)
-        var doc = RhinoDoc.ActiveDoc;
-        if (doc == null)
-        {
-            throw new McpProtocolException(
-                "Active Rhino document is required for add_transit. Ensure the MCP server is running within Rhino.",
-                McpErrorCode.InternalError);
-        }
+        _executor.Execute(p => p.WithTransitAdditionSteps(config));
 
-        var pipeline = new RhinoUrbanModelPipeline(doc, UrbanModel.Instance);
-        new PipelineConfigurations(pipeline)
-            .WithTransitAdditionSteps(config)
-            .WithMetricsCalculation(saveToFile: true, tolerance: doc.ModelAbsoluteTolerance, docName: doc.Name);
-        pipeline.Run();
-
-        doc.Views.Redraw();
-
-        // Build result with created geometry GUIDs
         var elementGuids = config.CenterlineIds.Select(id => id.ToString()).ToList();
         var resultJson = JsonSerializer.Serialize(
             new { elementGuids }, McpJsonOptions);
@@ -361,47 +233,34 @@ public sealed class McpServer : IAsyncDisposable, IDisposable
         };
     }
 
-    private static CallToolResult HandleChangeBuildingUse(RequestContext<CallToolRequestParams> request)
+    private CallToolResult HandleChangeBuildingUse(RequestContext<CallToolRequestParams> request)
     {
         _ = request ?? throw new ArgumentNullException(nameof(request));
 
-        // Deserialize arguments
         var argsJson = JsonSerializer.Serialize(request.Params?.Arguments);
         var changeRequest = JsonSerializer.Deserialize<ChangeBuildingUseRequest>(argsJson, McpJsonOptions);
 
-        if (changeRequest?.Items == null || changeRequest.Items.Count == 0)
+        return ExecuteChangeBuildingUse(changeRequest);
+    }
+
+    internal CallToolResult ExecuteChangeBuildingUse(ChangeBuildingUseRequest? request)
+    {
+        if (request?.Items == null || request.Items.Count == 0)
         {
             throw new McpProtocolException(
                 "change_building_use requires at least one change item with buildingGeometryId and newUseName.",
                 McpErrorCode.InvalidParams);
         }
 
-        // Create the change steps (validates input — throws on empty GUID, unknown use, etc.)
-        var service = new UrbanModelService();
-        var steps = service.CreateChangeUseSteps(changeRequest);
+        var useGroups = _service.CreateChangeUseGroups(request);
 
-        // Execute pipeline (requires active Rhino doc)
-        var doc = RhinoDoc.ActiveDoc;
-        if (doc == null)
+        _executor.Execute(p =>
         {
-            throw new McpProtocolException(
-                "Active Rhino document is required for change_building_use. Ensure the MCP server is running within Rhino.",
-                McpErrorCode.InternalError);
-        }
+            foreach (var g in useGroups)
+                p.WithBuildingUseChangeSteps(g.GeometryIds, g.NewUse);
+        });
 
-        var pipeline = new RhinoUrbanModelPipeline(doc, UrbanModel.Instance);
-        foreach (var step in steps)
-        {
-            pipeline.WithUrbanElementStep(step);
-        }
-        new PipelineConfigurations(pipeline)
-            .WithMetricsCalculation(saveToFile: true, tolerance: doc.ModelAbsoluteTolerance, docName: doc.Name);
-        pipeline.Run();
-
-        doc.Views.Redraw();
-
-        // Build result with affected building GUIDs
-        var affectedGuids = changeRequest.Items
+        var affectedGuids = request.Items
             .Select(i => i.BuildingGeometryId.ToString())
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .ToList();

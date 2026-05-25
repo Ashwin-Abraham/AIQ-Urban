@@ -9,6 +9,8 @@ public class McpServerTests
 {
     private readonly string _portFilePath = Path.Combine(Path.GetTempPath(), "AIQ.MCP.port");
 
+    private static McpServer CreateServer() => new(new FakePipelineExecutor());
+
     [TearDown]
     public void TearDown()
     {
@@ -19,7 +21,7 @@ public class McpServerTests
     [Test]
     public void Start_BindsToDynamicPort()
     {
-        using var server = new McpServer();
+        using var server = CreateServer();
         server.Start(0).GetAwaiter().GetResult();
 
         Assert.That(server.IsRunning, Is.True);
@@ -33,7 +35,7 @@ public class McpServerTests
     {
         try { if (File.Exists(_portFilePath)) File.Delete(_portFilePath); } catch { }
 
-        using var server = new McpServer();
+        using var server = CreateServer();
         server.Start(0).GetAwaiter().GetResult();
 
         Assert.That(File.Exists(_portFilePath), Is.True);
@@ -46,7 +48,7 @@ public class McpServerTests
     [Test]
     public void Stop_DeletesPortFile()
     {
-        using var server = new McpServer();
+        using var server = CreateServer();
         server.Start(0).GetAwaiter().GetResult();
         Assert.That(File.Exists(_portFilePath), Is.True);
 
@@ -59,7 +61,7 @@ public class McpServerTests
     [Test]
     public void Stop_Idempotent()
     {
-        using var server = new McpServer();
+        using var server = CreateServer();
         server.Start(0).GetAwaiter().GetResult();
 
         server.StopAsync().GetAwaiter().GetResult();
@@ -71,7 +73,7 @@ public class McpServerTests
     [Test]
     public void StartStop_Restart_Succeeds()
     {
-        using var server = new McpServer();
+        using var server = CreateServer();
         server.Start(0).GetAwaiter().GetResult();
         var firstPort = server.Port;
         server.StopAsync().GetAwaiter().GetResult();
