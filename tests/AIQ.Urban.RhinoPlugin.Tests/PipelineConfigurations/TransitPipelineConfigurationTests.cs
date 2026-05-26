@@ -6,7 +6,6 @@ using AIQ.Urban.Core.Enums;
 using AIQ.Urban.Core.ModelActions;
 using AIQ.Urban.Core.Models.GeometryElements;
 using AIQ.Urban.DebugViz;
-using AIQ.Urban.RhinoInterface.Pipeline.Configs;
 using AIQ.Urban.RhinoInterface.Tests.Helpers;
 using NUnit.Framework;
 using Rhino;
@@ -36,13 +35,12 @@ public class TransitPipelineConfigurationTests
 
         using var doc = RhinoDoc.CreateHeadless(null);
         var pipeline = new RhinoUrbanModelPipeline(doc, UrbanModel.Instance);
-        var config = new TransitPipelineConfiguration(testData.Input, testData.CenterlineIds);
 
         // Act
-        new PipelineConfigurations(pipeline)
-            .WithTransitAdditionSteps(config)
-            .WithMetricsCalculation(false);
-        pipeline.Run();
+        pipeline
+            .WithTransitAdditionSteps(testData.Input, testData.CenterlineIds)
+            .WithMetricsCalculation(false)
+            .Run();
 
         // Visualise
 #if DEBUG

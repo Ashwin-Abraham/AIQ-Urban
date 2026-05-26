@@ -21,4 +21,18 @@ public static class DefaultUses
     ];
 
     public static string[] Names { get; } = All.Select(u => u.Name).ToArray();
+
+    public static Use Resolve(string name)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(name);
+
+        var match = All.FirstOrDefault(
+            u => string.Equals(u.Name, name, StringComparison.OrdinalIgnoreCase));
+
+        if (match is not null)
+            return match;
+
+        var valid = string.Join(", ", Names);
+        throw new ArgumentException($"Unknown use name '{name}'. Valid uses: {valid}.");
+    }
 }

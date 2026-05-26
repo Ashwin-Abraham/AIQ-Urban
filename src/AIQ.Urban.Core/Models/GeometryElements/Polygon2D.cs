@@ -21,6 +21,28 @@ public class Polygon2D : IGeometryElement<Curve>
         Geometry = geometry;
     }
 
+    public static Polygon2D Create(List<(double X, double Y)> coordinates)
+    {
+        ArgumentNullException.ThrowIfNull(coordinates);
+
+        if (coordinates.Count < 3)
+            throw new ArgumentException("At least 3 coordinate pairs are required.", nameof(coordinates));
+
+        var points = coordinates.Select(c => new Point3d(c.X, c.Y, 0)).ToList();
+
+        var first = points[0];
+        var last = points[^1];
+        if (first.DistanceTo(last) > 1e-6)
+            points.Add(first);
+
+        var curve = new PolylineCurve(points);
+
+        if (!curve.IsClosed)
+            throw new ArgumentException("Coordinates must form a closed ring.");
+
+        return new Polygon2D(curve);
+    }
+
     internal double Area()
     {
         return AreaMassProperties.Compute(Geometry)!.Area;

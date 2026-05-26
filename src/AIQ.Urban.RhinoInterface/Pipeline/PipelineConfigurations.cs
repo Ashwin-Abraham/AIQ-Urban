@@ -1,59 +1,72 @@
 using AIQ.Urban.Core.ModelActions;
 using AIQ.Urban.Core.Models;
 using AIQ.Urban.Core.Models.Metrics;
-using AIQ.Urban.RhinoInterface.Pipeline.Configs;
 using Rhino.Geometry;
 
 namespace AIQ.Urban.RhinoInterface;
 
-public class PipelineConfigurations(RhinoUrbanModelPipeline pipeline)
+public static class PipelineConfigurations
 {
-    public PipelineConfigurations WithBuildingAdditionSteps(BuildingPipelineConfiguration config)
+    public static RhinoUrbanModelPipeline WithBuildingAdditionSteps(
+        this RhinoUrbanModelPipeline pipeline,
+        List<BuildingData> buildingData,
+        List<Guid> curvesToDelete)
     {
-        var addBuildingStep = new AddBuildingStep(config.BuildingData);
+        var addBuildingStep = new AddBuildingStep(buildingData);
 
-        pipeline.WithRhinoObjectDeletion(config.InputCurveIds)
+        pipeline.WithRhinoObjectDeletion(curvesToDelete)
             .WithUrbanElementStep(addBuildingStep);
 
-        return this;
+        return pipeline;
     }
 
-    public PipelineConfigurations WithTransitAdditionSteps(TransitPipelineConfiguration config)
+    public static RhinoUrbanModelPipeline WithTransitAdditionSteps(
+        this RhinoUrbanModelPipeline pipeline,
+        List<TransitData> transitData,
+        List<Guid> centerlinesToRemove)
     {
-        var addTransitStep = new AddTransitStep(config.TransitData);
-        var removeExistingTransitStep = new RemoveTransitStep(config.CenterlineIds);
+        var addTransitStep = new AddTransitStep(transitData);
+        var removeExistingTransitStep = new RemoveTransitStep(centerlinesToRemove);
         var transitUnioner = new TransitSurfaceUnioner();
         var recalculateParcelsStep = new RecalculateParcelsStep();
 
-        pipeline.WithRhinoObjectDeletion(config.CenterlineIds)
+        pipeline.WithRhinoObjectDeletion(centerlinesToRemove)
             .WithUrbanElementStep(removeExistingTransitStep)
             .WithUrbanElementStep(addTransitStep)
             .WithUrbanElementStep(transitUnioner)
             .WithUrbanElementStep(recalculateParcelsStep);
 
-        return this;
+        return pipeline;
     }
 
-    public PipelineConfigurations WithBuildingUseChangeSteps(List<Guid> geometryIds, Use newUse)
+    public static RhinoUrbanModelPipeline WithBuildingUseChangeSteps(
+        this RhinoUrbanModelPipeline pipeline,
+        List<Guid> geometryIds,
+        Use newUse)
     {
         var changeStep = new ChangeBuildingUseStep(geometryIds, newUse);
 
         pipeline.WithUrbanElementStep(changeStep);
 
-        return this;
+        return pipeline;
     }
 
-    public PipelineConfigurations WithZoneAdditionSteps(ZonePipelineConfiguration config)
+    public static RhinoUrbanModelPipeline WithZoneAdditionSteps(
+        this RhinoUrbanModelPipeline pipeline,
+        List<ZoneData> zoneData,
+        List<Guid> idsToDelete)
     {
-        var addZoneStep = new AddZoneStep(config.ZoneData);
+        var addZoneStep = new AddZoneStep(zoneData);
 
-        pipeline.WithRhinoObjectDeletion(config.InputCurveIds)
+        pipeline.WithRhinoObjectDeletion(idsToDelete)
             .WithUrbanElementStep(addZoneStep);
 
-        return this;
+        return pipeline;
     }
 
-    public PipelineConfigurations WithTransitDeletionSteps(List<Guid> centerlineIds)
+    public static RhinoUrbanModelPipeline WithTransitDeletionSteps(
+        this RhinoUrbanModelPipeline pipeline,
+        List<Guid> centerlineIds)
     {
         var removeStep = new RemoveTransitStep(centerlineIds);
         var transitUnioner = new TransitSurfaceUnioner();
@@ -63,10 +76,13 @@ public class PipelineConfigurations(RhinoUrbanModelPipeline pipeline)
             .WithUrbanElementStep(transitUnioner)
             .WithUrbanElementStep(recalculateParcelsStep);
 
-        return this;
+        return pipeline;
     }
 
-    public PipelineConfigurations WithTransitUpdateSteps(Guid oldCenterlineId, Curve newCenterline)
+    public static RhinoUrbanModelPipeline WithTransitUpdateSteps(
+        this RhinoUrbanModelPipeline pipeline,
+        Guid oldCenterlineId, 
+        Curve newCenterline)
     {
         var updateStep = new UpdateTransitStep(oldCenterlineId, newCenterline);
         var transitUnioner = new TransitSurfaceUnioner();
@@ -76,37 +92,45 @@ public class PipelineConfigurations(RhinoUrbanModelPipeline pipeline)
             .WithUrbanElementStep(transitUnioner)
             .WithUrbanElementStep(recalculateParcelsStep);
 
-        return this;
+        return pipeline;
     }
 
-    public PipelineConfigurations WithBuildingDeletionSteps(List<Guid> geometryIds)
+    public static RhinoUrbanModelPipeline WithBuildingDeletionSteps(
+        this RhinoUrbanModelPipeline pipeline,
+        List<Guid> geometryIds)
     {
         var removeStep = new RemoveBuildingStep(geometryIds);
 
         pipeline.WithUrbanElementStep(removeStep);
 
-        return this;
+        return pipeline;
     }
 
-    public PipelineConfigurations WithZoneDeletionSteps(List<Guid> geometryIds)
+    public static RhinoUrbanModelPipeline WithZoneDeletionSteps(
+        this RhinoUrbanModelPipeline pipeline,
+        List<Guid> geometryIds)
     {
         var removeStep = new RemoveZoneStep(geometryIds);
 
         pipeline.WithUrbanElementStep(removeStep);
 
-        return this;
+        return pipeline;
     }
 
-    public PipelineConfigurations WithZoneUpdateSteps(Guid oldBoundaryId, Curve newBoundary)
+    public static RhinoUrbanModelPipeline WithZoneUpdateSteps(
+        this RhinoUrbanModelPipeline pipeline,
+        Guid oldBoundaryId, 
+        Curve newBoundary)
     {
         var updateStep = new UpdateZoneStep(oldBoundaryId, newBoundary);
 
         pipeline.WithUrbanElementStep(updateStep);
 
-        return this;
+        return pipeline;
     }
 
-    public PipelineConfigurations WithMetricsCalculation(
+    public static RhinoUrbanModelPipeline WithMetricsCalculation(
+        this RhinoUrbanModelPipeline pipeline,
         bool saveToFile = false,
         double tolerance = 0.001,
         string? docName = null)
@@ -119,7 +143,7 @@ public class PipelineConfigurations(RhinoUrbanModelPipeline pipeline)
             pipeline.WithUrbanModelPostAction(um => ProjectMetricsJsonSerializer.Save(um.ProjectMetrics!, path));
         }
 
-        return this;
+        return pipeline;
     }
 
     private static string MakeMetricsFilePath(string? docName)

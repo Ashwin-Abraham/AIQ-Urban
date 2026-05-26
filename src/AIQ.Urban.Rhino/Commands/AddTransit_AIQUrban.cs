@@ -4,8 +4,6 @@ using AIQ.Urban.Core;
 using AIQ.Urban.Core.Enums;
 using AIQ.Urban.Core.ModelActions;
 using AIQ.Urban.Core.Models.GeometryElements;
-using AIQ.Urban.RhinoInterface;
-using AIQ.Urban.RhinoInterface.Pipeline.Configs;
 using Rhino;
 using Rhino.Commands;
 using Rhino.DocObjects;
@@ -67,12 +65,11 @@ public class AddTransit_AIQUrban : Command
         List<TransitData> transitData = BuildTransitData(rhinoObjs, width, transitType, tolerance);
 
         var centerlineIds = centerlineRefs.Select(x => x.ObjectId).ToList();
-        var config = new TransitPipelineConfiguration(transitData, centerlineIds);
 
-        var pipeline = new RhinoUrbanModelPipeline(doc, UrbanModel.Instance);
-        new PipelineConfigurations(pipeline)
-            .WithTransitAdditionSteps(config)
+        var pipeline = new RhinoUrbanModelPipeline(doc, UrbanModel.Instance)
+            .WithTransitAdditionSteps(transitData, centerlineIds)
             .WithMetricsCalculation(saveToFile: true, tolerance: doc.ModelAbsoluteTolerance, docName: doc.Name);
+        
         pipeline.Run();
 
         doc.Views.Redraw();
