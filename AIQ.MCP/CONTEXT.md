@@ -1,101 +1,31 @@
-# AIQ.MCP — Domain Context
+# AIQ.MCP — Context
 
 ## Purpose
-Thin interoperability layer that exposes the existing AIQ.Urban.Core urban modelling and analysis functionality as structured AI-callable tools using the Model Context Protocol (MCP). Hosted in-process inside the AIQ.Urban.RhinoPlugin.
+Model Context Protocol (MCP) server hosting AI-accessible urban modelling tools. Runs inside the Rhino process, started by `Urban_RhinoPlugin` on load. Exposes `AIQ.Urban.Core` capabilities to AI agents via MCP's standardised tool-calling protocol.
 
 ## Design Constraints
 
-### Dependency Rule
-- **AIQ.MCP** references `AIQ.Urban.Core` and `AIQ.Urban.RhinoInterface`.
-- AIQ.MCP depends on **no** other solution projects.
-- AIQ.Urban.RhinoPlugin references AIQ.MCP to start/stop the server.
-- NuGet package: `ModelContextProtocol` (official MCP C# SDK).
+- **Nullable reference types enabled** — `?` marks values that can legitimately be null; unadorned types are assumed non-null and need not be checked.
+- References `AIQ.Urban.Core` (domain model, steps) and `AIQ.Urban.RhinoInterface` (pipeline orchestration)
+- **Not a Rhino plugin** — `AIQ.MCP.csproj` uses `Microsoft.NET.Sdk` with `FrameworkReference Microsoft.AspNetCore.App`. The MCP server is instantiated by the Rhino plugin, not loaded as its own plugin.
+- **Internal tools** — `UrbanModelTools` is `internal` and accessed by MCP protocol via the `McpServer` DI registration.
+- No direct Rhino UI dependency — tools receive raw coordinates, not Rhino ObjectIds.
 
-### Process Model
-- MCP server runs **in-process inside Rhino** as part of the AIQ.Urban.RhinoPlugin.
-- Transport: **HTTP/SSE** — the plugin starts an embedded HTTP listener on `OnLoad`, stops it on `OnUnload`.
-- The AI tool connects to `http://localhost:<port>/sse`.
-- Port discovery: server binds to port 0, writes actual port to `%TEMP%\AIQ.MCP.port`.
-- Server auto-starts on plugin load; auto-stops on plugin unload.
+## Domain Glossary
 
-### No Direct RhinoDoc Access
-- The MCP server does **not** access `RhinoDoc` directly.
-- It calls into a data-only **UrbanModelService** that constructs pipeline steps from structured input.
-- The MCP tool handler (caller) owns `RhinoDoc` access and pipeline execution.
-- Geometry construction is delegated to Core static factories (`Curve2D.Create`, `Polygon2D.Create`, `DefaultUses.Resolve`, `string.ParseToTransitType`). No separate `IGeometryFactory` abstraction — the interface and class were removed in favour of domain-owned static methods.
+### MCP Server
+An ASP.NET `WebApplication` hosting the Model Context Protocol endpoint at `/mcp`. Created and started in `Urban_RhinoPlugin.OnLoad()`; stopped in `OnShutdown()`. Uses the `ModelContextProtocol.AspNetCore` NuGet package. Port is auto-selected (pass `0` to `Start()` — actual port available via `Port` property).
 
-### Error Handling
-- All service methods throw descriptive exceptions on failure (invalid input, stale GUIDs, empty model).
-- The MCP layer catches exceptions and returns JSON-RPC error responses.
-- The AI reads the error message and self-corrects.
+### MCP Tool
+A method on `UrbanModelTools` decorated with `[McpServerTool]`, registered via `.WithTools()`. Exposed to AI agents via the MCP `tools/list` and `tools/call` protocol methods. Currently:
+- `add_transit` — Adds a transit corridor from centerline curve coordinates, width, and TransitType
+- `add_building` — Adds a building from footprint curve coordinates, floor height, floor count, and Use
 
-### Model State After File Open
-- `UrbanModel` singleton is empty on file open (no reconciliation pass yet).
-- `list_elements` returns empty until the user (or AI) repopulates via commands.
-- Accepted gap for v1 — documented in AIQ.Urban.Rhino CONTEXT.md.
+### Tool Argument Pattern
+MCP tools receive **raw coordinate data** (lists of XY pairs) rather than Rhino ObjectIds. This means AI agents describe geometry numerically, not by picking objects in the Rhino viewport. Tools convert coordinates to domain types (`Curve2D`, `Polygon2D`) via `AIQ.Urban.Core` factories, then create pipeline actions executed by `RhinoPipelineExecutor`.
 
-### Pipeline Cascade
-- Each MCP mutation tool triggers the full pipeline cascade (steps → unions → parcels → metrics).
-- All mutation tools accept arrays of items to support batching (maps to existing `List<T>` step records).
-- No separate `recalculate` tool — cascade runs once per tool call.
+### ElementSummary
+AI-optimised JSON format for listing urban elements. Produced by `ElementSummarySerializer`. Contains flattened summaries per element type (transits, buildings, parcels, zones) with ID, type, use, summary string, and optional typed details. Not used for persistence — only for MCP `list_elements` tool output.
 
-## Tools (v1)
-
-### `add_transit`
-Adds one or more transit corridors. Accepts an array.
-- **Input:** `[{centerline: [[x,y], ...], width, transitType}], ...`
-- **Output:** `{ elementGuids: [guid, ...] }`
-
-### `add_building`
-Adds one or more buildings. Accepts an array.
-- **Input:** `[{footprint: [[x,y], ...], typicalFloorHeight, floorCount, useName}], ...`
-- **Output:** `{ elementGuids: [guid, ...] }`
-
-### `change_building_use`
-Changes the use of one or more buildings (all floor plates). Accepts an array.
-- **Input:** `[{buildingGeometryId: guid, newUseName}], ...`
-- **Output:** `{ affectedGuids: [guid, ...] }`
-
-### `list_elements`
-Lists all urban elements in the model.
-- **Input:** (none)
-- **Output:** `{ transits: [...], buildings: [...], parcels: [...], zones: [...] }`
-- Each element: `{ id, type, use, summary }` — serialized via a custom JSON serializer.
-
-## Key Abstractions
-
-### UrbanModelService
-Data-only coordinator that:
-- Accepts structured request records (coordinates, names, enums)
-- Delegates geometry construction to Core static factories (`Curve2D.Create`, `Polygon2D.Create`, `DefaultUses.Resolve`, `string.ParseToTransitType`)
-- Creates and returns `IUrbanModelStep` objects
-- Does **not** own pipeline execution or RhinoDoc access
-
-### UrbanModelService Records
-```
-AddTransitRequest(CenterlineCoords, Width, TransitType)
-AddBuildingRequest(FootprintCoords, TypicalFloorHeight, FloorCount, UseName)
-ChangeBuildingUseRequest(BuildingGeometryId, NewUseName)
-ListElementsRequest() → List<ElementSummary>
-```
-
-### Element Referencing
-- Elements are identified by their `Guid` (from `IGeometryElement<T>.Id`).
-- The AI discovers GUIDs via the `list_elements` tool.
-- `ChangeBuildingUseStep` operates on envelope GUIDs (building-wide).
-
-## Project Structure
-```
-AIQ.MCP/
-├── CONTEXT.md
-├── AIQ.MCP.csproj          — net8.0, references AIQ.Urban.Core + AIQ.Urban.RhinoInterface
-├── Services/
-│   └── UrbanModelService.cs — coordinate→step translation (uses Core static factories)
-├── Models/
-│   ├── AddTransitRequest.cs
-│   ├── AddBuildingRequest.cs
-│   ├── ChangeBuildingUseRequest.cs
-│   └── ElementSummary.cs
-├── McpServer.cs            — HTTP/SSE listener, tool registration, request dispatch
-└── Program.cs              — entry point (used for standalone testing only)
-```
+### RhinoPipelineExecutor
+Thin wrapper around `RhinoUrbanModelPipeline`. Takes a `RhinoDoc` and `UrbanModel`, accepts an `Action<RhinoUrbanModelPipeline>`, and calls `Run()`. Exists so MCP tools don't depend on `RhinoUrbanModelPipeline` construction directly. Requires an active RhinoDoc and is not suitable for unit tests.

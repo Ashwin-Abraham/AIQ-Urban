@@ -32,7 +32,7 @@ public class Urban_RhinoPlugin : PlugIn
     /// </summary>
     public RhinoUrbanEventHandler? EventHandler => _eventHandler;
 
-    protected override Rhino.PlugIns.LoadReturnCode OnLoad(ref string errorMessage)
+    protected override LoadReturnCode OnLoad(ref string errorMessage)
     {
         var doc = RhinoDoc.ActiveDoc;
         if (doc != null && _eventHandler == null)
@@ -40,16 +40,16 @@ public class Urban_RhinoPlugin : PlugIn
             _eventHandler = new RhinoUrbanEventHandler(doc);
         }
 
-        var code = StartMcp(ref errorMessage);
+        var code = StartMcp(doc, ref errorMessage);
 
         return code;
     }
 
-    private LoadReturnCode StartMcp(ref string errorMessage)
+    private LoadReturnCode StartMcp(RhinoDoc doc, ref string errorMessage)
     {
         try
         {
-            _mcpServer = new McpServer();
+            _mcpServer = new McpServer(doc, Core.UrbanModel.Instance);
             _ = _mcpServer.Start(0).ContinueWith(t =>
             {
                 if (t.IsCompletedSuccessfully && _mcpServer?.Port is int port)

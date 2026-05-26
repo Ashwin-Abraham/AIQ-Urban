@@ -13,7 +13,7 @@ namespace AIQ.MCP.Services;
 public record CurveCoordinates(List<(double X, double Y)> Coordinates);
 
 [McpServerToolType]
-internal class UrbanModelTools
+internal class UrbanModelTools(RhinoDoc doc, UrbanModel urbanModel)
 {
     [McpServerTool(
         Name = "add_transit",
@@ -40,7 +40,7 @@ internal class UrbanModelTools
 
         Action<RhinoUrbanModelPipeline> pipelineAction = (pipeline) => PipelineConfigurations.WithTransitAdditionSteps(pipeline, transitData, []);
 
-        return RhinoPipelineExecutor.Run(pipelineAction);
+        return new RhinoPipelineExecutor(doc, urbanModel).Run(pipelineAction);
     }
 
     [McpServerTool(
@@ -72,6 +72,6 @@ internal class UrbanModelTools
         Action<RhinoUrbanModelPipeline> pipelineAction = (pipeline)
             => PipelineConfigurations.WithBuildingAdditionSteps(pipeline, buildingData, []);
 
-        return RhinoPipelineExecutor.Run(pipelineAction);
+        return new RhinoPipelineExecutor(doc, urbanModel).Run(pipelineAction);
     }
 }

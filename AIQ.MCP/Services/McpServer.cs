@@ -1,10 +1,12 @@
+using AIQ.Urban.Core;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
+using Rhino;
 
 namespace AIQ.MCP.Services;
 
-public class McpServer : IAsyncDisposable
+public class McpServer(RhinoDoc doc, UrbanModel model) : IAsyncDisposable
 {
     private WebApplication? _app;
 
@@ -14,11 +16,14 @@ public class McpServer : IAsyncDisposable
     {
         var builder = WebApplication.CreateBuilder();
 
-        builder.WebHost.UseUrls($"http://localhost:{preferredPort}");
+        var listenUrl = preferredPort == 0 ? "http://127.0.0.1:0" : $"http://127.0.0.1:{preferredPort}";
+        builder.WebHost.UseUrls(listenUrl);
 
+        var tools = new UrbanModelTools(doc, model);
         builder.Services
             .AddMcpServer()
-            .WithTools<UrbanModelTools>();
+            .WithTools(tools)
+            .WithHttpTransport();
 
         _app = builder.Build();
 
@@ -26,7 +31,7 @@ public class McpServer : IAsyncDisposable
 
         await _app.StartAsync();
 
-        var address = _app.Urls.FirstOrDefault() ?? "http://localhost:0";
+        var address = _app.Urls.FirstOrDefault() ?? "http://127.0.0.1:0";
         Port = int.Parse(address.Split(':').Last());
     }
 
