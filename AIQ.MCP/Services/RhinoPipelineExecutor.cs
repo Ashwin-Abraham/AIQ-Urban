@@ -1,4 +1,5 @@
 using AIQ.Urban.Core;
+using AIQ.Urban.Core.Models.Metrics;
 using AIQ.Urban.RhinoInterface;
 using Rhino;
 
@@ -8,12 +9,12 @@ namespace AIQ.MCP.Services;
 /// Used in production inside the Rhino plugin; not suitable for unit tests.</summary>
 public class RhinoPipelineExecutor(RhinoDoc doc, UrbanModel model)
 {
-    public bool Run(Action<RhinoUrbanModelPipeline> pipelineAction)
+    public ProjectMetrics Run(Action<RhinoUrbanModelPipeline> pipelineAction)
     {
         var pipeline = new RhinoUrbanModelPipeline(doc, model);
         pipelineAction(pipeline);
         pipeline.Run();
 
-        return true;
+        return model.ProjectMetrics!;
     }
 }

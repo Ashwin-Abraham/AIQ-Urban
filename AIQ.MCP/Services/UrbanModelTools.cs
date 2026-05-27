@@ -4,6 +4,7 @@ using AIQ.Urban.Core.Enums;
 using AIQ.Urban.Core.ModelActions;
 using AIQ.Urban.Core.Models;
 using AIQ.Urban.Core.Models.GeometryElements;
+using AIQ.Urban.Core.Models.Metrics;
 using AIQ.Urban.RhinoInterface;
 using ModelContextProtocol.Server;
 using Rhino;
@@ -23,7 +24,7 @@ internal class UrbanModelTools(RhinoDoc doc, UrbanModel urbanModel)
     )]
     [Description("Adds transits to an urban model by specifying the centerline curve's coordinates, transit width and type of transit." +
         "The tool will automatically offset the centerline to create the transit geometry.")]
-    public bool AddTransit(
+    public ProjectMetrics AddTransit(
         [Description("Width of transit in model units")]
         double width,
 
@@ -38,7 +39,9 @@ internal class UrbanModelTools(RhinoDoc doc, UrbanModel urbanModel)
         var curves = curveCoordinates.Select(x => Curve2D.Create(x.Coordinates)).ToList();
         var transitData = curves.Select(c => new TransitData(c, width, type)).ToList();
 
-        Action<RhinoUrbanModelPipeline> pipelineAction = (pipeline) => PipelineConfigurations.WithTransitAdditionSteps(pipeline, transitData, []);
+        Action<RhinoUrbanModelPipeline> pipelineAction = (pipeline) => PipelineConfigurations
+        .WithTransitAdditionSteps(pipeline, transitData, [])
+        .WithMetricsCalculation();
 
         return new RhinoPipelineExecutor(doc, urbanModel).Run(pipelineAction);
     }
@@ -51,7 +54,7 @@ internal class UrbanModelTools(RhinoDoc doc, UrbanModel urbanModel)
     )]
     [Description("Lists all urban elements (transits, buildings, parcels, zones) in the current model. " +
         "Returns structured JSON summaries with GUIDs, types, uses, and type-specific details for each element.")]
-    public bool AddBuilding(
+    public ProjectMetrics AddBuilding(
         [Description("Floor to floor height between consecutive building floors")]
         double floorHeight,
 
@@ -70,7 +73,9 @@ internal class UrbanModelTools(RhinoDoc doc, UrbanModel urbanModel)
         var buildingData = footprints.Select(c => new BuildingData(c, floorHeight, floorCount, use)).ToList();
 
         Action<RhinoUrbanModelPipeline> pipelineAction = (pipeline)
-            => PipelineConfigurations.WithBuildingAdditionSteps(pipeline, buildingData, []);
+            => PipelineConfigurations
+            .WithBuildingAdditionSteps(pipeline, buildingData, [])
+            .WithMetricsCalculation();
 
         return new RhinoPipelineExecutor(doc, urbanModel).Run(pipelineAction);
     }
