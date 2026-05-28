@@ -5,6 +5,8 @@
 		<EnableDynamicLoading>true</EnableDynamicLoading>
 		<TargetExt>.rhp</TargetExt>
 		<NoWarn>NU1701</NoWarn>
+		<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+
 	</PropertyGroup>
   
   <PropertyGroup>
