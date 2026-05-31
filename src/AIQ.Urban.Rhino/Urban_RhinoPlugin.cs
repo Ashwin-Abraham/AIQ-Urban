@@ -40,9 +40,9 @@ public class Urban_RhinoPlugin : PlugIn
             _eventHandler = new RhinoUrbanEventHandler(doc);
         }
 
-        var code = StartMcp(doc, ref errorMessage);
+        //var code = StartMcp(doc, ref errorMessage);
 
-        return code;
+        return LoadReturnCode.Success;
     }
 
     private LoadReturnCode StartMcp(RhinoDoc doc, ref string errorMessage)
