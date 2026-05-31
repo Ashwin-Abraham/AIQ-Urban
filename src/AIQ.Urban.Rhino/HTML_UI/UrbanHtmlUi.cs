@@ -1,0 +1,45 @@
+using System;
+using Eto.Drawing;
+using Eto.Forms;
+
+namespace AIQ.Urban.RhinoInterface.HTML_UI;
+
+public static class UrbanHtmlUi
+{
+    private static Form? _window;
+
+    public static Form OpenWindow(int httpPort, Action onClosed)
+    {
+        if (_window is not null)
+            return _window;
+
+        var webView = new WebView
+        {
+            Height = 1000,
+            Width = 420,
+            Url = new Uri($"http://localhost:{httpPort}/index.html"),
+        };
+
+        var layout = new DynamicLayout { DefaultSpacing = new Size(5, 5), Padding = new Padding(0) };
+        layout.AddSeparateRow(webView);
+        layout.Add(null);
+
+        _window = new Form
+        {
+            Title = "AIQ Urban UI",
+            Width = 420,
+            Height = 800,
+            Topmost = true,
+            Content = layout,
+        };
+
+        _window.Closed += (_, _) =>
+        {
+            _window = null;
+            onClosed();
+        };
+        _window.Show();
+
+        return _window;
+    }
+}

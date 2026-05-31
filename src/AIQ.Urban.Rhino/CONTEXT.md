@@ -17,7 +17,7 @@ Rhino 8 plugin (`AIQ.Urban.RhinoPlugin.rhp`) owning the native Rhino commands an
 - **Reverse-lookup dict lifecycle**: the handler owns the dict and wraps each pipeline run. After `pipeline.Run()` returns, the handler iterates the added/deleted GUIDs to update the dict. On `ReplaceRhinoObject`, the handler swaps old ObjectId → new ObjectId in the dict.
 - **Error on miss**: reverse-lookup miss is silently skipped. The dict is correctly maintained during a session; after file open there's nothing to do (accepted gap).
 - **File open gap**: on `EndOpenDocument`, UrbanModel is empty (in-memory singleton reset). The reverse-lookup dict is also empty. No reconciliation pass yet — user must re-run commands. Accepted gap for v1.
-- Vue UI via websocket/HTTPS is a future concern
+- **HTML UI ownership**: AIQ.Urban.RhinoPlugin owns its own minimal HTML UI infrastructure under `HTML_UI`; copy patterns from the old `ArchSitePlan.RhinoInterface.HTML_UI` code, but do not depend on old `ArchSitePlan.*` UI projects.
 
 ## Event Handler Lifecycle
 - Created in `Urban_RhinoPlugin.OnLoad()` → calls `SubscribeModelEvents()` on the singleton handler
@@ -135,6 +135,19 @@ These pipeline configurations are wrapped as reusable methods (not necessarily u
 - `ResetUrbanElementsStep` collects all geometry GUIDs from all element types (Transits, Buildings, Parcels, Zones) and `TransitSurfaces`, then calls `UrbanModel.Reset()`
 - No metrics calculation after reset
 - Layers remain in the Rhino doc (only objects are deleted)
+
+### `StartUI_AIQUrban`
+- Starts the AIQ Urban HTML UI from Rhino.
+- Command owns UI startup only: starts local HTTP/static-file serving, starts websocket communication, then opens an Eto WebView pointed at the served `index.html`.
+- Local UI ports follow the old working pattern: HTTP on `localhost:6300`, websocket on `localhost:6400`.
+- Static UI assets live under `HTML_UI/wwwroot` and are copied beside the Rhino plugin at build time; the HTTP server serves from the copied output directory, not the source tree.
+- UI servers are not started on plugin load; the UI is optional and ports are only bound after the user runs this command.
+- Closing the UI window stops both local servers so ports are released and the command can be run again cleanly.
+- Only one UI window should be open at a time; re-running the command should focus/reuse the existing window or no-op successfully, not create duplicate windows or duplicate servers.
+- Uses the new AIQ.Urban.RhinoPlugin HTML UI infrastructure, copied from the old `ArchSitePlan.RhinoInterface.HTML_UI` pattern without depending on the old project.
+- Websocket serving uses `WebSocketSharp`, matching the old working Rhino UI pattern for the first pass.
+- Initial scope is static HTML serving plus websocket startup; UI-to-Rhino commands over HTTP `POST` are deferred until the UI message contract exists.
+- Future UI command support should add a typed message contract owned by AIQ.Urban, deserialize incoming UI messages at the HTTP/websocket boundary, marshal Rhino operations onto the Rhino UI thread, and delegate domain changes through the existing RhinoUrbanModelPipeline rather than calling Core directly from transport code.
 
 ### Future Commands (non-exhaustive, deferred)
 - `AddBuildingFromBrep(Brep Envelope, double FloorHeight)`
