@@ -18,6 +18,7 @@ Rhino 8 plugin (`AIQ.Urban.RhinoPlugin.rhp`) owning the native Rhino commands an
 - **Error on miss**: reverse-lookup miss is silently skipped. The dict is correctly maintained during a session; after file open there's nothing to do (accepted gap).
 - **File open gap**: on `EndOpenDocument`, UrbanModel is empty (in-memory singleton reset). The reverse-lookup dict is also empty. No reconciliation pass yet — user must re-run commands. Accepted gap for v1.
 - **HTML UI ownership**: AIQ.Urban.RhinoPlugin owns its own minimal HTML UI infrastructure under `HTML_UI`; copy patterns from the old `ArchSitePlan.RhinoInterface.HTML_UI` code, but do not depend on old `ArchSitePlan.*` UI projects.
+- **Vue UI dist**: the built Vue application under `src/UI/aiq-urban-ui/dist`; this is the canonical source of UI assets packaged by the Rhino plugin.
 
 ## Event Handler Lifecycle
 - Created in `Urban_RhinoPlugin.OnLoad()` → calls `SubscribeModelEvents()` on the singleton handler
@@ -140,7 +141,8 @@ These pipeline configurations are wrapped as reusable methods (not necessarily u
 - Starts the AIQ Urban HTML UI from Rhino.
 - Command owns UI startup only: starts local HTTP/static-file serving, starts websocket communication, then opens an Eto WebView pointed at the served `index.html`.
 - Local UI ports follow the old working pattern: HTTP on `localhost:6300`, websocket on `localhost:6400`.
-- Static UI assets live under `HTML_UI/wwwroot` and are copied beside the Rhino plugin at build time; the HTTP server serves from the copied output directory, not the source tree.
+- Static UI assets are copied from the Vue UI dist into the plugin output under `HTML_UI/wwwroot` at build time; the HTTP server serves from the copied output directory, not the source tree.
+- The Rhino plugin build does not run the Vue build; if the Vue UI dist is missing, the plugin build fails with `AIQ Urban UI not found.`
 - UI servers are not started on plugin load; the UI is optional and ports are only bound after the user runs this command.
 - Closing the UI window stops both local servers so ports are released and the command can be run again cleanly.
 - Only one UI window should be open at a time; re-running the command should focus/reuse the existing window or no-op successfully, not create duplicate windows or duplicate servers.

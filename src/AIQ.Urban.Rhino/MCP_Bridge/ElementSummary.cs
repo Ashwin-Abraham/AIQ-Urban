@@ -1,6 +1,8 @@
-namespace AIQ.MCP.Models;
+using System;
+using System.Collections.Generic;
 
-/// <summary>Summary of a single urban element for AI consumption. Serialized via custom JSON serializer.</summary>
+namespace AIQ.Urban.RhinoInterface.MCP_Bridge;
+
 public record ElementSummary(
     Guid Id,
     string Type,
@@ -8,7 +10,6 @@ public record ElementSummary(
     string Summary,
     Dictionary<string, object>? Details);
 
-/// <summary>Response from the list_elements tool.</summary>
 public record ListElementsResponse(
     List<ElementSummary> Transits,
     List<ElementSummary> Buildings,

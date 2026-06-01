@@ -1,31 +1,56 @@
 # AIQ.MCP — Context
 
 ## Purpose
-Model Context Protocol (MCP) server hosting AI-accessible urban modelling tools. Runs inside the Rhino process, started by `Urban_RhinoPlugin` on load. Exposes `AIQ.Urban.Core` capabilities to AI agents via MCP's standardised tool-calling protocol.
+Standalone EXE hosting the Model Context Protocol (MCP) server for AI-accessible urban modelling tools. Launched by `Urban_RhinoPlugin` via `Process.Start` and communicates with Rhino over a WebSocket bridge (`/mcp-bridge`). Exposes `AIQ.Urban.Core` capabilities to AI agents without direct Rhino process coupling.
 
 ## Design Constraints
 
 - **Nullable reference types enabled** — `?` marks values that can legitimately be null; unadorned types are assumed non-null and need not be checked.
-- References `AIQ.Urban.Core` (domain model, steps) and `AIQ.Urban.RhinoInterface` (pipeline orchestration)
-- **Not a Rhino plugin** — `AIQ.MCP.csproj` uses `Microsoft.NET.Sdk` with `FrameworkReference Microsoft.AspNetCore.App`. The MCP server is instantiated by the Rhino plugin, not loaded as its own plugin.
-- **Internal tools** — `UrbanModelTools` is `internal` and accessed by MCP protocol via the `McpServer` DI registration.
-- No direct Rhino UI dependency — tools receive raw coordinates, not Rhino ObjectIds.
+- References `AIQ.Urban.Core` (domain models only — no pipeline or Rhino types)
+- **Does not** reference `AIQ.Urban.RhinoInterface` — the EXE is a pure proxy; all Rhino operations happen on the other side of the bridge.
+- **Standalone EXE** — `AIQ.MCP.csproj` outputs `AIQ.MCP.exe` to the Rhino plugin's build directory. Started with `--bridge ws://localhost:6400/mcp-bridge` argument.
+- **No direct Rhino dependency** — tools receive raw coordinate data, not Rhino ObjectIds.
+- **Tool schemas discovered via handshake** — on connect, the EXE sends `ListTools` bridge message; Rhino responds with tool schemas. Tools are registered dynamically on the MCP server.
+- **Port file** written to `%TEMP%\AIQ.MCP.port` containing the MCP HTTP URL (e.g. `http://localhost:12345/mcp`). Cleaned up on shutdown.
+
+## Architecture
+
+```
+AI Agent → MCP HTTP/SSE → AIQ.MCP.exe → WebSocket → Rhino Plugin (/mcp-bridge) → UrbanModelTools
+```
+
+- `Program.cs` — entry point, parses `--bridge` arg, orchestrates lifecycle
+- `BridgeClient.cs` — WebSocket client to Rhino's `/mcp-bridge` using typed envelope protocol (`BridgeEnvelope` with `requestId`)
+- `McpServerHost.cs` — ASP.NET `WebApplication` hosting the MCP endpoint at `/mcp`. Has no Rhino dependency. Uses `ModelContextProtocol.AspNetCore` NuGet. Tool handlers are registered via `OnListTools`/`OnCallTool`, which proxy to the Rhino bridge.
+- `BridgeMessage.cs` — `BridgeEnvelope` (type, requestId, tool, arguments, result, error) and `ToolDefinition` (name, description, inputSchema)
+
+## Lifecycle
+
+1. Rhino plugin OnLoad → starts `AIQ.MCP.exe --bridge ws://localhost:6400/mcp-bridge`
+2. EXE connects to bridge WebSocket, sends `ListTools` → receives tool schemas
+3. EXE starts ASP.NET MCP server on random port, writes URL to port file
+4. MCP server proxies `tools/list` and `tools/call` over the bridge
+5. On Rhino plugin shutdown → kills the EXE process (port file auto-cleaned)
 
 ## Domain Glossary
 
 ### MCP Server
-An ASP.NET `WebApplication` hosting the Model Context Protocol endpoint at `/mcp`. Created and started in `Urban_RhinoPlugin.OnLoad()`; stopped in `OnShutdown()`. Uses the `ModelContextProtocol.AspNetCore` NuGet package. Port is auto-selected (pass `0` to `Start()` — actual port available via `Port` property).
+An ASP.NET `WebApplication` hosting the Model Context Protocol endpoint at `/mcp`. Port is auto-selected (pass `0` to `Start()` — actual port available via `Port` property). Uses `McpServerHost` (not `McpServer`) to avoid ambiguity with `ModelContextProtocol.Server.McpServer`.
 
-### MCP Tool
-A method on `UrbanModelTools` decorated with `[McpServerTool]`, registered via `.WithTools()`. Exposed to AI agents via the MCP `tools/list` and `tools/call` protocol methods. Currently:
-- `add_transit` — Adds a transit corridor from centerline curve coordinates, width, and TransitType
-- `add_building` — Adds a building from footprint curve coordinates, floor height, floor count, and Use
+### Bridge Protocol
+Typed envelope messages over WebSocket between the EXE and Rhino plugin. Message types:
+- `ListTools` / `ToolsList` — handshake for tool discovery
+- `ToolCall` / `ToolResult` — tool invocation and response
+- `Error` — error responses
 
-### Tool Argument Pattern
-MCP tools receive **raw coordinate data** (lists of XY pairs) rather than Rhino ObjectIds. This means AI agents describe geometry numerically, not by picking objects in the Rhino viewport. Tools convert coordinates to domain types (`Curve2D`, `Polygon2D`) via `AIQ.Urban.Core` factories, then create pipeline actions executed by `RhinoPipelineExecutor`.
+### McpServerHost
+Class in `Services/McpServerHost.cs`. Thin wrapper around ASP.NET + MCP SDK. Registers `WithListToolsHandler` and `WithCallToolHandler` that delegate to bridge responses. No reference to `UrbanModelTools` or `RhinoDoc` — all tool logic lives in the Rhino plugin.
+
+### BridgeClient
+WebSocket client in `Services/BridgeClient.cs`. Connects to `ws://localhost:6400/mcp-bridge` with retry (15s timeout). Sends typed envelopes, deserializes responses. `ListToolsAsync()` returns `List<ToolDefinition>`, `CallToolAsync()` returns `JsonElement`.
 
 ### ElementSummary
-AI-optimised JSON format for listing urban elements. Produced by `ElementSummarySerializer`. Contains flattened summaries per element type (transits, buildings, parcels, zones) with ID, type, use, summary string, and optional typed details. Not used for persistence — only for MCP `list_elements` tool output.
+AI-optimised JSON format for listing urban elements. Produced by `ElementSummarySerializer` in the Rhino plugin. Not used in the EXE — serialized/deserialized transparently through the bridge.
 
-### RhinoPipelineExecutor
-Thin wrapper around `RhinoUrbanModelPipeline`. Takes a `RhinoDoc` and `UrbanModel`, accepts an `Action<RhinoUrbanModelPipeline>`, and calls `Run()`. Exists so MCP tools don't depend on `RhinoUrbanModelPipeline` construction directly. Requires an active RhinoDoc and is not suitable for unit tests.
+### Tool Argument Pattern
+MCP tools receive **raw coordinate data** (lists of XY pairs) rather than Rhino ObjectIds. AI agents describe geometry numerically, not by picking objects in the viewport. Tools convert coordinates to domain types via `AIQ.Urban.Core` factories (`Curve2D.Create`, `Polygon2D.Create`).

@@ -1,76 +1,136 @@
 using AIQ.MCP.Services;
-using AIQ.Urban.Core;
-using AIQ.Urban.Core.Enums;
 using NUnit.Framework;
-using Rhino;
-using Rhino.Testing.Fixtures;
 using System;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace AIQ.MCP.Tests;
 
-[RhinoTestFixture]
 public class McpServerHttpTests
 {
-    [SetUp]
-    public void SetUp()
-    {
-        UrbanModel.Instance.Reset();
-    }
-
     [Test]
-    public async Task ToolsCall_AddTransit_ReturnsJsonRpcResponse()
+    public async Task TestHealth_ReturnsHealthyMessage()
     {
-        // Arrange
-        using var doc = RhinoDoc.CreateHeadless(null);
-        await using var server = new McpServer(doc, UrbanModel.Instance);
+        await using var server = new McpServerHost();
+        server.OnListTools((_, _) => ValueTask.FromResult(new ModelContextProtocol.Protocol.ListToolsResult { Tools = [] }));
+
         await server.Start(0);
-
-        var request = new
-        {
-            jsonrpc = "2.0",
-            id = 1,
-            method = "tools/call",
-            Params = new
-            {
-                name = "add_transit",
-                arguments = new
-                {
-                    width = 6.0,
-                    type = "Road",
-                    curveCoordinates = new[]
-                    {
-                        new { coordinates = new[] { new[] { 0.0, 0.0 }, new[] { 50.0, 0.0 } } }
-                    }
-                }
-            }
-        };
-
-        var json = JsonSerializer.Serialize(request, new JsonSerializerOptions
-        {
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-        });
 
         using var client = new HttpClient { Timeout = TimeSpan.FromSeconds(10) };
 
-        // Act
-        var response = await client.PostAsync(
-            $"http://localhost:{server.Port}/mcp",
-            new StringContent(json, Encoding.UTF8, "application/json"));
+        // Step 1: Initialize session
+        var initRequest = new HttpRequestMessage(HttpMethod.Post, $"http://localhost:{server.Port}/mcp")
+        {
+            Content = new StringContent(
+                JsonSerializer.Serialize(new
+                {
+                    jsonrpc = "2.0",
+                    id = 1,
+                    method = "initialize",
+                    @params = new
+                    {
+                        protocolVersion = "2024-11-05",
+                        capabilities = new { },
+                        clientInfo = new { name = "test-client", version = "1.0" }
+                    }
+                }),
+                Encoding.UTF8,
+                "application/json")
+        };
+        initRequest.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+        initRequest.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("text/event-stream"));
 
-        // Assert — server responded
-        Assert.That(response.IsSuccessStatusCode, Is.True,
-            $"Expected success, got {response.StatusCode}");
+        var initResponse = await client.SendAsync(initRequest);
+        var initBody = await initResponse.Content.ReadAsStringAsync();
 
+        // Extract session ID from response headers
+        var sessionId = initResponse.Headers.Contains("Mcp-Session-Id")
+            ? string.Join(",", initResponse.Headers.GetValues("Mcp-Session-Id"))
+            : null;
+
+        // Step 2: Call tools/list with session header
+        var listRequest = new HttpRequestMessage(HttpMethod.Post, $"http://localhost:{server.Port}/mcp")
+        {
+            Content = new StringContent(
+                JsonSerializer.Serialize(new
+                {
+                    jsonrpc = "2.0",
+                    id = 2,
+                    method = "tools/list"
+                }),
+                Encoding.UTF8,
+                "application/json")
+        };
+        listRequest.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+        listRequest.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("text/event-stream"));
+        if (sessionId is not null)
+            listRequest.Headers.Add("Mcp-Session-Id", sessionId);
+
+        var listResponse = await client.SendAsync(listRequest);
+
+        // Step 3: Call tools/call with test_health
+        var callRequest = new HttpRequestMessage(HttpMethod.Post, $"http://localhost:{server.Port}/mcp")
+        {
+            Content = new StringContent(
+                JsonSerializer.Serialize(new
+                {
+                    jsonrpc = "2.0",
+                    id = 3,
+                    method = "tools/call",
+                    @params = new { name = "test_health", arguments = new { } }
+                }),
+                Encoding.UTF8,
+                "application/json")
+        };
+        callRequest.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+        callRequest.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("text/event-stream"));
+        if (sessionId is not null)
+            callRequest.Headers.Add("Mcp-Session-Id", sessionId);
+
+        var callResponse = await client.SendAsync(callRequest);
+        var callBody = await callResponse.Content.ReadAsStringAsync();
+
+        Assert.That(callBody, Does.Contain("Your AIQ MCP Server is HEALTHY"),
+            "Response should contain the health message. Got: " + callBody);
+
+        await server.Stop();
+    }
+
+    [Test]
+    public async Task ServerStartsAndMcpEndpointResponds()
+    {
+        await using var server = new McpServerHost();
+
+        server.OnListTools(async (_, ct) =>
+        {
+            return new ModelContextProtocol.Protocol.ListToolsResult
+            {
+                Tools = []
+            };
+        });
+
+        await server.Start(0);
+
+        using var client = new HttpClient { Timeout = TimeSpan.FromSeconds(10) };
+
+        var request = new HttpRequestMessage(HttpMethod.Post, $"http://localhost:{server.Port}/mcp")
+        {
+            Content = new StringContent(
+                """{"jsonrpc":"2.0","id":1,"method":"tools/list"}""",
+                Encoding.UTF8,
+                "application/json")
+        };
+        request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+        request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("text/event-stream"));
+
+        var response = await client.SendAsync(request);
         var body = await response.Content.ReadAsStringAsync();
-        Assert.That(body, Does.Contain("jsonrpc"),
-            "Response should be a JSON-RPC message");
 
-        // Assert — UrbanModel was updated
-        Assert.That(UrbanModel.Instance.Transits, Has.Count.EqualTo(1));
+        Assert.That(body, Does.Contain("jsonrpc"),
+            "Response should be a JSON-RPC message. Got: " + body);
 
         await server.Stop();
     }
@@ -78,18 +138,13 @@ public class McpServerHttpTests
     [Test]
     public async Task GetRoot_ReturnsOk()
     {
-        // Arrange
-        using var doc = RhinoDoc.CreateHeadless(null);
-        await using var server = new McpServer(doc, UrbanModel.Instance);
+        await using var server = new McpServerHost();
         await server.Start(0);
 
         using var client = new HttpClient { Timeout = TimeSpan.FromSeconds(5) };
 
-        // Act
         var response = await client.GetAsync($"http://localhost:{server.Port}/");
 
-        // Assert — root should return something useful (e.g. 200 or 404 is fine,
-        // but we just verify the server is alive and not crashing)
         Assert.That(response, Is.Not.Null);
 
         await server.Stop();
