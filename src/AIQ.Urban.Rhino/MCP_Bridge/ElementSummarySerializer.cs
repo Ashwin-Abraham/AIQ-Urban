@@ -1,12 +1,10 @@
+using System;
+using System.Collections;
+using System.IO;
 using System.Text.Json;
-using AIQ.MCP.Models;
 
-namespace AIQ.MCP.Services;
+namespace AIQ.Urban.RhinoInterface.MCP_Bridge;
 
-/// <summary>
-/// Custom JSON serializer for element summaries, decoupled from any future persistence/export serialization.
-/// Produces a stable JSON format optimised for AI consumption via the list_elements MCP tool.
-/// </summary>
 public static class ElementSummarySerializer
 {
     private static readonly JsonSerializerOptions JsonOptions = new()
@@ -15,7 +13,6 @@ public static class ElementSummarySerializer
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase
     };
 
-    /// <summary>Serializes a ListElementsResponse to a JSON string for AI consumption.</summary>
     public static string Serialize(ListElementsResponse response)
     {
         using var stream = new MemoryStream();

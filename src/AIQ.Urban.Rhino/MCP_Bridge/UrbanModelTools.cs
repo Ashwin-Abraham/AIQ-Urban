@@ -1,4 +1,7 @@
-﻿using System.ComponentModel;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Linq;
 using AIQ.Urban.Core;
 using AIQ.Urban.Core.Enums;
 using AIQ.Urban.Core.ModelActions;
@@ -6,22 +9,14 @@ using AIQ.Urban.Core.Models;
 using AIQ.Urban.Core.Models.GeometryElements;
 using AIQ.Urban.Core.Models.Metrics;
 using AIQ.Urban.RhinoInterface;
-using ModelContextProtocol.Server;
 using Rhino;
 
-namespace AIQ.MCP.Services;
+namespace AIQ.Urban.RhinoInterface.MCP_Bridge;
 
 public record CurveCoordinates(List<(double X, double Y)> Coordinates);
 
-[McpServerToolType]
-internal class UrbanModelTools(RhinoDoc doc, UrbanModel urbanModel)
+public class UrbanModelTools(RhinoDoc doc, UrbanModel urbanModel)
 {
-    [McpServerTool(
-        Name = "add_transit",
-        Title = "Add transit by drawing a curve",
-        Idempotent = true,
-        Destructive = false
-    )]
     [Description("Adds transits to an urban model by specifying the centerline curve's coordinates, transit width and type of transit." +
         "The tool will automatically offset the centerline to create the transit geometry.")]
     public ProjectMetrics AddTransit(
@@ -46,12 +41,6 @@ internal class UrbanModelTools(RhinoDoc doc, UrbanModel urbanModel)
         return new RhinoPipelineExecutor(doc, urbanModel).Run(pipelineAction);
     }
 
-    [McpServerTool(
-        Name = "add_building",
-        Title = "Generate Building",
-        Idempotent = true,
-        Destructive = false
-    )]
     [Description("Lists all urban elements (transits, buildings, parcels, zones) in the current model. " +
         "Returns structured JSON summaries with GUIDs, types, uses, and type-specific details for each element.")]
     public ProjectMetrics AddBuilding(

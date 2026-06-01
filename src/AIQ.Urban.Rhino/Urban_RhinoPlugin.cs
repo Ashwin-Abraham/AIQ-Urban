@@ -1,35 +1,23 @@
 ﻿using System;
-using AIQ.MCP.Services;
+using System.Diagnostics;
+using System.IO;
 using Rhino;
 using Rhino.PlugIns;
 
 namespace AIQ.Urban.RhinoInterface;
 
-///<summary>
-/// <para>Every RhinoCommon .rhp assembly must have one and only one PlugIn-derived
-/// class. DO NOT create instances of this class yourself. It is the
-/// responsibility of Rhino to create an instance of this class.</para>
-/// <para>To complete plug-in information, please also see all PlugInDescription
-/// attributes in AssemblyInfo.cs (you might need to click "Project" ->
-/// "Show All Files" to see it in the "Solution Explorer" panel).</para>
-///</summary>
 public class Urban_RhinoPlugin : PlugIn
 {
     private RhinoUrbanEventHandler? _eventHandler;
-    private McpServer? _mcpServer;
+    private Process? _mcpProcess;
 
     public Urban_RhinoPlugin()
     {
         Instance = this;
     }
 
-    ///<summary>Gets the only instance of the Urban_RhinoPlugin plug-in.</summary>
     public static Urban_RhinoPlugin Instance { get; private set; }
 
-    /// <summary>
-    /// The active document event handler. Created on plugin load.
-    /// Disposal is handled by Rhino on plugin unload.
-    /// </summary>
     public RhinoUrbanEventHandler? EventHandler => _eventHandler;
 
     protected override LoadReturnCode OnLoad(ref string errorMessage)
@@ -40,40 +28,83 @@ public class Urban_RhinoPlugin : PlugIn
             _eventHandler = new RhinoUrbanEventHandler(doc);
         }
 
-        //var code = StartMcp(doc, ref errorMessage);
-
         return LoadReturnCode.Success;
     }
 
-    private LoadReturnCode StartMcp(RhinoDoc doc, ref string errorMessage)
+    public void StartMcpProcess()
     {
+        if (_mcpProcess is not null && !_mcpProcess.HasExited)
+            return;
+
         try
         {
-            _mcpServer = new McpServer(doc, Core.UrbanModel.Instance);
-            _ = _mcpServer.Start(0).ContinueWith(t =>
+            var pluginDir = Path.GetDirectoryName(GetType().Assembly.Location);
+            var exePath = Path.Combine(pluginDir ?? ".", "mcp", "AIQ.MCP.exe");
+
+            if (!File.Exists(exePath))
             {
-                if (t.IsCompletedSuccessfully && _mcpServer?.Port is int port)
-                    RhinoApp.WriteLine($"MCP server started on http://localhost:{port}/mcp");
-            });
+                RhinoApp.WriteLine($"AIQ.MCP.exe not found at {exePath}");
+                return;
+            }
+
+            var startInfo = new ProcessStartInfo
+            {
+                FileName = exePath,
+                Arguments = "--bridge ws://127.0.0.1:6400/mcp-bridge",
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                CreateNoWindow = true
+            };
+
+            _mcpProcess = new Process { StartInfo = startInfo };
+            _mcpProcess.OutputDataReceived += (_, e) =>
+            {
+                if (!string.IsNullOrEmpty(e.Data))
+                    RhinoApp.WriteLine($"[MCP] {e.Data}");
+            };
+            _mcpProcess.ErrorDataReceived += (_, e) =>
+            {
+                if (!string.IsNullOrEmpty(e.Data))
+                    RhinoApp.WriteLine($"[MCP Error] {e.Data}");
+            };
+
+            _mcpProcess.Start();
+            _mcpProcess.BeginOutputReadLine();
+            _mcpProcess.BeginErrorReadLine();
+
+            RhinoApp.WriteLine($"AIQ.MCP process started (PID: {_mcpProcess.Id})");
         }
         catch (Exception ex)
         {
-            errorMessage = $"Failed to start MCP server: {ex.Message}";
-            return LoadReturnCode.ErrorShowDialog;
+            RhinoApp.WriteLine($"Failed to start AIQ.MCP: {ex.Message}");
         }
-
-        return LoadReturnCode.Success;
     }
 
     protected override void OnShutdown()
     {
-        if (_mcpServer is not null)
+        if (_mcpProcess is not null && !_mcpProcess.HasExited)
         {
-            RhinoApp.WriteLine("MCP server stopping...");
-            _mcpServer.Stop().GetAwaiter().GetResult();
-            _mcpServer = null;
-            RhinoApp.WriteLine("MCP server stopped.");
+            RhinoApp.WriteLine("Stopping AIQ.MCP process...");
+
+            try
+            {
+                _mcpProcess.Kill();
+                _mcpProcess.WaitForExit(5000);
+            }
+            catch (Exception ex)
+            {
+                RhinoApp.WriteLine($"Error stopping AIQ.MCP: {ex.Message}");
+            }
+            finally
+            {
+                _mcpProcess.Dispose();
+                _mcpProcess = null;
+            }
         }
+
+        var portFile = Path.Combine(Path.GetTempPath(), "AIQ.MCP.port");
+        try { if (File.Exists(portFile)) File.Delete(portFile); } catch { }
 
         base.OnShutdown();
     }

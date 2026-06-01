@@ -2,10 +2,11 @@
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
+    <OutputType>Exe</OutputType>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <Configurations>Debug;Release;Debug_NoViz</Configurations>
-	  <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    <RuntimeIdentifiers>win-x64</RuntimeIdentifiers>
   </PropertyGroup>
 
   <ItemGroup>
@@ -22,7 +23,14 @@
 
   <ItemGroup>
     <ProjectReference Include="..\src\AIQ.Urban.Core\AIQ.Urban.Core.csproj" />
-    <ProjectReference Include="..\src\AIQ.Urban.RhinoInterface\AIQ.Urban.RhinoInterface.csproj" />
   </ItemGroup>
+
+  <Target Name="PublishMcpSingleFile" AfterTargets="Build" Condition="'$(DesignTimeBuild)' != 'true' AND '$(PublishMcpSingleFileGuard)' != 'true'">
+    <PropertyGroup>
+      <_McpOutputDir>$(MSBuildProjectDirectory)\..\src\AIQ.Urban.Rhino\bin\$(Configuration)\net8.0\mcp</_McpOutputDir>
+    </PropertyGroup>
+    <MakeDir Directories="$(_McpOutputDir)" />
+    <Exec Command="dotnet publish &quot;$(MSBuildProjectFullPath)&quot; -c $(Configuration) -o &quot;$(_McpOutputDir)&quot; -p:PublishSingleFile=true -p:SelfContained=false -p:IncludeNativeLibrariesForSelfExtract=true -p:PublishMcpSingleFileGuard=true" />
+  </Target>
 
 </Project>

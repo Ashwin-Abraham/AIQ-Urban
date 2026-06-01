@@ -27,6 +27,8 @@ public class StartUI_AIQUrban : Command
             HttpUiServer.Start(HttpServerPort);
             WebSocketUiServer.Start(WebSocketServerPort);
 
+            Urban_RhinoPlugin.Instance.StartMcpProcess();
+
             UrbanHtmlUi.OpenWindow(HttpServerPort, StopServers);
 
             RhinoApp.WriteLine("AIQ Urban UI started at http://localhost:{0}/", HttpServerPort);
