@@ -1,7 +1,8 @@
 ﻿using Rhino.Geometry;
 
 namespace AIQ.Urban.Core.Models.UrbanGraph;
-public interface IGraphable
+public interface IGraphableAsNode
 {
-    public Curve Geometry { get; }
+    public Point3d NodePoint { get; }
+
 }
