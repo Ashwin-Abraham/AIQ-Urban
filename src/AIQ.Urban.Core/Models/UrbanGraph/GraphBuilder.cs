@@ -121,7 +121,6 @@ internal class GraphBuilder(double _approachTolerance = 1e-5, double _tolerance 
         {
             var sourceA = sourceObjects[i];
 
-
             for (int j = i + 1; j < sourceObjects.Count; j++)
             {
                 var sourceB = sourceObjects[j];
@@ -150,6 +149,12 @@ internal class GraphBuilder(double _approachTolerance = 1e-5, double _tolerance 
                     nodeData.Add(intersectionEnd);
                 }
             }
+        }
+
+        foreach(var source in sourceObjects)
+        {
+            nodeData.Add(new NodeData(source.GraphableGeometry.PointAtStart, [source]));
+            nodeData.Add(new NodeData(source.GraphableGeometry.PointAtEnd, [source]));
         }
 
         nodeData = MergeNodeData(nodeData, tolerance);
