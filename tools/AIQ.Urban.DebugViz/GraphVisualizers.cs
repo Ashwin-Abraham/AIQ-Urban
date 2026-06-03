@@ -34,6 +34,7 @@ public static class GraphVisualizers
             var color = edge.SourceElement switch
             {
                 Transit => Color.Black,
+                Building => Color.IndianRed,
                 _ => Color.Gray,
             };
 

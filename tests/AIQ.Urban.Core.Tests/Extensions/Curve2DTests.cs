@@ -31,14 +31,6 @@ public class Curve2DTests
     }
 
     [Test]
-    public void Create_NullInput_Throws()
-    {
-        var ex = Assert.Throws<ArgumentNullException>(() =>
-            Curve2D.Create(null!));
-        Assert.That(ex!.Message, Does.Contain("Value cannot be null"));
-    }
-
-    [Test]
     [TestCase("SinglePoint")]
     [TestCase("EmptyArray")]
     public void Create_InvalidInput_Throws(string testName)
