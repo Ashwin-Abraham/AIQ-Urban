@@ -3,6 +3,7 @@ using AIQ.Urban.Core.Models;
 using AIQ.Urban.Core.Models.GeometryElements;
 using AIQ.Urban.Core.Models.Metrics;
 using AIQ.Urban.Core.Models.UrbanElements;
+using AIQ.Urban.Core.Models.UrbanGraph;
 using Rhino.Geometry;
 
 namespace AIQ.Urban.Core;
@@ -32,6 +33,11 @@ public class UrbanModel
     /// <summary>Latest project-level metrics snapshot. Set by <c>ProjectMetricsCalculator</c> after pipeline runs.</summary>
     public ProjectMetrics? ProjectMetrics { get; set; }
 
+    /// <summary>
+    /// The graph representing the connections in the urban model
+    /// </summary>
+    public Graph UrbanGraph { get; set; } = new([], []);
+
     public Plane Plane => new Plane(Point3d.Origin, Vector3d.ZAxis);
 
     private UrbanModel() { }
@@ -45,6 +51,7 @@ public class UrbanModel
         Zones.Clear();
         TransitSurfaces.Clear();
         ProjectMetrics = null;
+        UrbanGraph = new([], []);
     }
 
     public List<IUrbanElement> GetUrbanElements()

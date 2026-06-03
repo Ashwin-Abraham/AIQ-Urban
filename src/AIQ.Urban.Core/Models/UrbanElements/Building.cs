@@ -1,15 +1,17 @@
 using Rhino.Geometry;
 using AIQ.Urban.Core.Models.GeometryElements;
+using AIQ.Urban.Core.Models.UrbanGraph;
 
 namespace AIQ.Urban.Core.Models.UrbanElements;
 
-public class Building : IUrbanElement
+public class Building : IUrbanElement, IGraphableAsNode
 {
     public BrepElement Envelope { get; }
     public IReadOnlyList<FloorPlate> FloorPlates { get; }
     public double TypicalFloorHeight { get; }
     public int FloorCount { get; }
     public Polygon2D Footprint { get; }
+    public Point3d NodePoint { get; }
 
     public Building(Polygon2D footprint, double typicalFloorHeight, int floorCount, Use use)
     {
@@ -29,6 +31,7 @@ public class Building : IUrbanElement
         Footprint = new Polygon2D(curve);
         Envelope = ComputeEnvelope(curve, typicalFloorHeight * floorCount);
         FloorPlates = ComputeOrderedFloorPlates(curve, typicalFloorHeight, floorCount, use);
+        NodePoint = GetRepresentativeCenter();
     }
 
     private static BrepElement ComputeEnvelope(Curve footprint, double height, double tolerance = 1e-5)

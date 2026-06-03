@@ -2,14 +2,18 @@ using Rhino.Geometry;
 using AIQ.Urban.Core.Enums;
 using AIQ.Urban.Core.Extensions;
 using AIQ.Urban.Core.Models.GeometryElements;
+using AIQ.Urban.Core.Models.UrbanGraph;
 
 namespace AIQ.Urban.Core.Models.UrbanElements;
 
 /// <summary>A linear transportation corridor of a given <see cref="Enums.TransitType"/>.</summary>
-public class Transit : IUrbanElement
+public class Transit : IUrbanElement, IGraphableAsEdge
 {
     /// <summary>Path along the corridor (planar at consistent Z).</summary>
     public Curve2D Centerline { get; }
+
+    /// <inheritdoc/>
+    public Curve GraphableGeometry => Centerline.Geometry;
 
     /// <summary>Closed boundary curve representing the full right-of-way.</summary>
     public Profile2D Outline { get; }

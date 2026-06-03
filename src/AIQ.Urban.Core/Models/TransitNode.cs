@@ -1,8 +1,6 @@
 namespace AIQ.Urban.Core.Models;
 
-/// <summary>Junction or intersection in a transit network.</summary>
-public class TransitNode : Node
+public class TransitNode
 {
-    /// <summary>Connected neighbour nodes in the transit graph.</summary>
-    public List<Node> Neighbours { get; } = [];
+    public List<TransitNode> Neighbours { get; } = [];
 }
