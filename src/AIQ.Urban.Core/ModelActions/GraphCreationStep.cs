@@ -6,10 +6,12 @@ internal class GraphCreationStep(double _approachTolerance = 1e-5, double _toler
 {
     public List<Guid> Run(UrbanModel model)
     {
-        var graphables = model.Transits
-            .Cast<IGraphableAsEdge>()
-            .ToList();
+        model.UrbanGraph = new GraphBuilder(_approachTolerance, _tolerance)
+            .WithTransit(model.Transits)
+            .WithParcels(model.Parcels)
+            .WithBuildings(model.Buildings)
+            .Run();
 
-        var graph = GraphBuilder.Run(graphables);
+        return [];
     }
 }

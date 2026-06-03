@@ -24,7 +24,7 @@ internal class GraphBuilder(double _approachTolerance = 1e-5, double _tolerance 
         return this;
     }
 
-    internal GraphBuilder WithBuildings(List<Transit> transit)
+    internal GraphBuilder WithTransit(List<Transit> transit)
     {
         _transit = transit;
         return this;
@@ -183,7 +183,7 @@ internal class GraphBuilder(double _approachTolerance = 1e-5, double _tolerance 
 
         foreach (var group in nodesPerSource)
         {
-            for (int i = 0; i < group.Nodes.Count; i++)
+            for (int i = 0; i < group.Nodes.Count - 1; i++)
             {
                 var startNode = group.Nodes[i];
                 var endNode = group.Nodes[i + 1];

@@ -138,11 +138,11 @@ Abstract base for computed analytics on a `ModelGroup`. Concrete subtypes:
 - **ZoneMetrics**, **AreaMetrics**, **RadiationMetrics**, **TransitMetrics**, **ParcelMetrics**
 
 ## Test Projects
-- `tests\AIQ.Urban.Core.Tests\` — xUnit tests for AIQ.Urban.Core
-- `tests\AIQ.Urban.RhinoPlugin.Tests\` — xUnit tests using `RhinoTest` NuGet package for Rhino-aware tests
+- `tests\AIQ.Urban.Core.Tests\` — NUnit tests for AIQ.Urban.Core
+- `tests\AIQ.Urban.RhinoPlugin.Tests\` — NUnit tests using `RhinoTest` NuGet package for Rhino-aware tests
 
 ### Test Approach
-Step tests exercise the real dependency chain rather than seeding intermediate state. For example, `RecalculateParcelsStepTests` routes through `TransitSurfaceUnioner` instead of directly populating `TransitSurfaces`, so a failure in the unioner correctly surfaces as a parcels regression. Test data uses the parametrized `[TestCase]` + record pattern for concise scenario coverage.
+Step tests exercise the real dependency chain rather than seeding intermediate state. For example, `RecalculateParcelsStepTests` routes through `TransitSurfaceUnioner` instead of directly populating `TransitSurfaces`, so a failure in the unioner correctly surfaces as a parcels regression. Test data uses the parametrized `[TestCase]` + `_testData` record lookup pattern for concise scenario coverage.
 
 ## Relationship to Old Solution
 The `ArchSitePlan.*` projects (`ArchSitePlan.Core`, `ArchSitePlan.RhinoAddin`, `ArchSitePlan.BHoM.Geometry`, etc.) and `tests\AQI.Urban.Tests` are a past attempt to be ignored and eventually deleted. The new codebase starts fresh in `AIQ.Urban.Core` and `AIQ.Urban.RhinoPlugin`.

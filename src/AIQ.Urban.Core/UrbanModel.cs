@@ -36,7 +36,7 @@ public class UrbanModel
     /// <summary>
     /// The graph representing the connections in the urban model
     /// </summary>
-    public Graph UrbanGraph { get; set; }
+    public Graph UrbanGraph { get; set; } = new([], []);
 
     public Plane Plane => new Plane(Point3d.Origin, Vector3d.ZAxis);
 
@@ -51,6 +51,7 @@ public class UrbanModel
         Zones.Clear();
         TransitSurfaces.Clear();
         ProjectMetrics = null;
+        UrbanGraph = new([], []);
     }
 
     public List<IUrbanElement> GetUrbanElements()
