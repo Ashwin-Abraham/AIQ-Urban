@@ -25,12 +25,12 @@
     <ProjectReference Include="..\src\AIQ.Urban.Core\AIQ.Urban.Core.csproj" />
   </ItemGroup>
 
-  <Target Name="PublishMcpSingleFile" AfterTargets="Build" Condition="'$(DesignTimeBuild)' != 'true' AND '$(PublishMcpSingleFileGuard)' != 'true'">
+  <!--<Target Name="PublishMcpSingleFile" AfterTargets="Build" Condition="'$(DesignTimeBuild)' != 'true' AND '$(PublishMcpSingleFileGuard)' != 'true'">
     <PropertyGroup>
       <_McpOutputDir>$(MSBuildProjectDirectory)\..\src\AIQ.Urban.Rhino\bin\$(Configuration)\net8.0\mcp</_McpOutputDir>
     </PropertyGroup>
     <MakeDir Directories="$(_McpOutputDir)" />
     <Exec Command="dotnet publish &quot;$(MSBuildProjectFullPath)&quot; -c $(Configuration) -o &quot;$(_McpOutputDir)&quot; -p:PublishSingleFile=true -p:SelfContained=false -p:IncludeNativeLibrariesForSelfExtract=true -p:PublishMcpSingleFileGuard=true" />
-  </Target>
+  </Target>-->
 
 </Project>

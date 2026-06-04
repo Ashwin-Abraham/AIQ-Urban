@@ -38,7 +38,7 @@ public class UrbanModelTools(RhinoDoc doc, UrbanModel urbanModel)
         .WithTransitAdditionSteps(pipeline, transitData, [])
         .WithMetricsCalculation();
 
-        return new RhinoPipelineExecutor(doc, urbanModel).Run(pipelineAction);
+        return new RhinoPipelineExecutorForMcp(doc, urbanModel).Run(pipelineAction);
     }
 
     [Description("Lists all urban elements (transits, buildings, parcels, zones) in the current model. " +
@@ -66,6 +66,6 @@ public class UrbanModelTools(RhinoDoc doc, UrbanModel urbanModel)
             .WithBuildingAdditionSteps(pipeline, buildingData, [])
             .WithMetricsCalculation();
 
-        return new RhinoPipelineExecutor(doc, urbanModel).Run(pipelineAction);
+        return new RhinoPipelineExecutorForMcp(doc, urbanModel).Run(pipelineAction);
     }
 }

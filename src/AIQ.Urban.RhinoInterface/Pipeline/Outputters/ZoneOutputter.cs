@@ -1,5 +1,6 @@
 using AIQ.Urban.Core;
 using AIQ.Urban.Core.Models;
+using AIQ.Urban.Core.Utils;
 using AIQ.Urban.RhinoInterface.Utils;
 using Rhino;
 
@@ -13,7 +14,7 @@ public class ZoneOutputter(List<Zone> zones) : IUrbanModelRhinoOutputter
             RhinoOutputHelper.OutputGeometry(
                 doc, 
                 zone.Boundary,
-                RhinoOutputHelper.MakeAttributes(doc, LayerConstants.ZoneLayer(zone.Name)),
+                RhinoOutputHelper.MakeLayerDrivenAttributes(doc, LayerConstants.ZoneLayer(zone.Name), ColorUtils.DefaultZoneColor),
                 false);
     }
 }
