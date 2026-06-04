@@ -1,5 +1,6 @@
 using AIQ.Urban.Core;
 using AIQ.Urban.Core.Models.UrbanElements;
+using AIQ.Urban.Core.Utils;
 using AIQ.Urban.RhinoInterface.Utils;
 using Rhino;
 
@@ -9,7 +10,7 @@ public class BuildingOutputter(List<Building> buildings) : IUrbanModelRhinoOutpu
 {
     public void Run(UrbanModel model, RhinoDoc doc)
     {
-        var envelopeAttributes = RhinoOutputHelper.MakeAttributes(doc, LayerConstants.BuildingEnvelope);
+        var envelopeAttributes = RhinoOutputHelper.MakeLayerDrivenAttributes(doc, LayerConstants.BuildingEnvelope, ColorUtils.BuildingEnvelopeColor);
 
         foreach (var building in buildings)
         {
@@ -18,7 +19,7 @@ public class BuildingOutputter(List<Building> buildings) : IUrbanModelRhinoOutpu
 
             foreach (var plate in building.FloorPlates)
             {
-                var plateAttributes = RhinoOutputHelper.MakeAttributes(doc, LayerConstants.BuildingFloorPlate(plate.Use));
+                var plateAttributes = RhinoOutputHelper.MakeLayerDrivenAttributes(doc, LayerConstants.BuildingFloorPlate(plate.Use), plate.Use.Color);
                 var newId = doc.Objects.AddCurve(plate.Outline.Geometry, plateAttributes);
                 plate.Outline.Id = newId;
             }

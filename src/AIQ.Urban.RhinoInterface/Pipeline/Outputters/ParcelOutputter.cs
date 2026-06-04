@@ -13,7 +13,7 @@ public class ParcelOutputter(List<Parcel> parcels) : IUrbanModelRhinoOutputter
             RhinoOutputHelper.OutputGeometry(
                 doc, 
                 parcel.Outline,
-                RhinoOutputHelper.MakeAttributes(doc, LayerConstants.ParcelLayer(parcel.Use)),
+                RhinoOutputHelper.MakeLayerDrivenAttributes(doc, LayerConstants.ParcelLayer(parcel.Use), parcel.Use.Color),
                 true);
     }
 }

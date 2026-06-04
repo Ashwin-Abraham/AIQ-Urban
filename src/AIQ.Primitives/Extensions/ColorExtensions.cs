@@ -20,6 +20,12 @@ public static class ColorExtensions
         return Color.FromArgb(alpha, color.R, color.G, color.B);
     }
 
+    public static Color WithAlpha(this Color color, double alpha)
+    {
+        var alphaValue = (int)Math.Round(Math.Clamp(alpha, 0, 1) * 255, MidpointRounding.AwayFromZero);
+        return Color.FromArgb(alphaValue, color.R, color.G, color.B);
+    }
+
     /// <summary>
     /// Darkens a colour by a ratio (from 0-1)
     /// R,G and B values are proportionally reduced

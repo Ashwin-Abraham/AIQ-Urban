@@ -1,3 +1,4 @@
+using System.Drawing;
 using AIQ.Urban.Core.Models.GeometryElements;
 using AIQ.Urban.RhinoInterface.Extensions;
 using Rhino;
@@ -7,9 +8,15 @@ namespace AIQ.Urban.RhinoInterface.Pipeline.Outputters;
 
 internal static class RhinoOutputHelper
 {
-    internal static ObjectAttributes MakeAttributes(RhinoDoc doc, string layerPath)
+    internal static ObjectAttributes MakeLayerDrivenAttributes(
+        RhinoDoc doc,
+        string layerPath,
+        Color layerColor)
     {
         var layerIndex = doc.Layers.EnsureLayerExists(layerPath).Index;
+        var layer = doc.Layers[layerIndex];
+        layer.Color = layerColor;
+
         return new ObjectAttributes { LayerIndex = layerIndex };
     }
 
