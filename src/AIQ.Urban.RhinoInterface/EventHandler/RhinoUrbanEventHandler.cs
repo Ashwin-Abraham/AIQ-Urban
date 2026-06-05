@@ -159,6 +159,8 @@ public class RhinoUrbanEventHandler : IDisposable
                 // and requires more involved update logic.
             }
         }
+
+        _doc.Views.Redraw();
     }
 
     private bool IsOnManagedLayer(RhinoObject rhinoObject)
