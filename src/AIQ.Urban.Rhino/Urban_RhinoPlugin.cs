@@ -1,14 +1,15 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
+using AIQ.Urban.RhinoInterface.EventHandler;
 using Rhino;
 using Rhino.PlugIns;
 
-namespace AIQ.Urban.RhinoInterface;
+namespace AIQ.Urban.RhinoPlugin;
 
 public class Urban_RhinoPlugin : PlugIn
 {
-    private RhinoUrbanEventHandler? _eventHandler;
+    private RhinoUrbanEventHandler _eventHandler;
     private Process? _mcpProcess;
 
     public Urban_RhinoPlugin()
@@ -18,7 +19,7 @@ public class Urban_RhinoPlugin : PlugIn
 
     public static Urban_RhinoPlugin Instance { get; private set; }
 
-    public RhinoUrbanEventHandler? EventHandler => _eventHandler;
+    public RhinoUrbanEventHandler EventHandler => _eventHandler;
 
     protected override LoadReturnCode OnLoad(ref string errorMessage)
     {

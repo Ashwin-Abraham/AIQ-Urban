@@ -1,8 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Rhino.DocObjects;
 
-namespace AIQ.Urban.RhinoInterface;
+namespace AIQ.Urban.RhinoInterface.EventHandler;
 
 /// <summary>
 /// Pure queuing and deduplication of Rhino object events. No Rhino dependency —
@@ -10,29 +11,29 @@ namespace AIQ.Urban.RhinoInterface;
 /// </summary>
 public class EventQueue
 {
-    private readonly HashSet<Guid> _adds = [];
-    private readonly HashSet<Guid> _deletes = [];
-    private readonly Dictionary<Guid, Guid> _replacements = new(); // oldId -> newId
+    private readonly HashSet<RhinoObject> _adds = [];
+    private readonly HashSet<RhinoObject> _deletes = [];
+    private readonly Dictionary<RhinoObject, RhinoObject> _replacements = new(); // oldId -> newId
 
     /// <summary>Queue an object for addition.</summary>
-    public void EnqueueAdd(Guid objectId)
+    public void EnqueueAdd(RhinoObject obj)
     {
-        _adds.Add(objectId);
+        _adds.Add(obj);
     }
 
     /// <summary>Queue an object for deletion.</summary>
-    public void EnqueueDelete(Guid objectId)
+    public void EnqueueDelete(RhinoObject obj)
     {
-        _deletes.Add(objectId);
+        _deletes.Add(obj);
     }
 
     /// <summary>
     /// Queue an object replacement. If multiple replaces arrive for the same
     /// old ID, only the final new ID is kept.
     /// </summary>
-    public void EnqueueReplace(Guid oldObjectId, Guid newObjectId)
+    public void EnqueueReplace(RhinoObject oldObject, RhinoObject newObject)
     {
-        _replacements[oldObjectId] = newObjectId;
+        _replacements[oldObject] = newObject;
     }
 
     /// <summary>
@@ -104,9 +105,9 @@ public class EventQueue
 /// <param name="Deletes">Confirmed deletions (object IDs to remove from Rhino and UrbanModel).</param>
 /// <param name="Replacements">Confirmed replacements (old ID to new ID).</param>
 public record EventQueueBatch(
-    List<Guid> Adds,
-    List<Guid> Deletes,
-    List<(Guid OldId, Guid NewId)> Replacements)
+    List<RhinoObject> Adds,
+    List<RhinoObject> Deletes,
+    List<(RhinoObject OldObject, RhinoObject NewObject)> Replacements)
 {
     /// <summary>True when all three lists are empty.</summary>
     public bool IsEmpty => Adds.Count == 0 && Deletes.Count == 0 && Replacements.Count == 0;

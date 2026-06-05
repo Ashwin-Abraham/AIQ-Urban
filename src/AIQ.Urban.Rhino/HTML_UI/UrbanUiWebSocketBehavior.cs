@@ -1,8 +1,7 @@
 using Rhino;
-using WebSocketSharp;
 using WebSocketSharp.Server;
 
-namespace AIQ.Urban.RhinoInterface.HTML_UI;
+namespace AIQ.Urban.RhinoPlugin.HTML_UI;
 
 public class UrbanUiWebSocketBehavior : WebSocketBehavior
 {

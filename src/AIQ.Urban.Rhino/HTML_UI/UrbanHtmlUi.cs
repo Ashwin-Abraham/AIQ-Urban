@@ -2,7 +2,7 @@ using System;
 using Eto.Drawing;
 using Eto.Forms;
 
-namespace AIQ.Urban.RhinoInterface.HTML_UI;
+namespace AIQ.Urban.RhinoPlugin.HTML_UI;
 
 public static class UrbanHtmlUi
 {

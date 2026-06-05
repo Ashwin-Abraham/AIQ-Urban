@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Rhino;
 
-namespace AIQ.Urban.RhinoInterface.HTML_UI;
+namespace AIQ.Urban.RhinoPlugin.HTML_UI;
 
 public static class HttpUiServer
 {

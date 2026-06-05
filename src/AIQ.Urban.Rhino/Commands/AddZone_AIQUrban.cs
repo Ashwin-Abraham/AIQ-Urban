@@ -8,7 +8,7 @@ using Rhino.Geometry;
 using Rhino.Input;
 using Rhino.Input.Custom;
 
-namespace AIQ.Urban.RhinoInterface;
+namespace AIQ.Urban.RhinoPlugin;
 
 public class AddZone_AIQUrban : Command
 {
@@ -57,7 +57,8 @@ public class AddZone_AIQUrban : Command
 
         var pipeline = new RhinoUrbanModelPipeline(doc, UrbanModel.Instance)
             .WithZoneAdditionSteps([zoneData], [curveRef.ObjectId])
-            .WithMetricsCalculation(saveToFile: true, tolerance: doc.ModelAbsoluteTolerance, docName: doc.Name);
+            .WithMetricsCalculation(saveToFile: true, tolerance: doc.ModelAbsoluteTolerance, docName: doc.Name)
+            .WithEventHandler(Urban_RhinoPlugin.Instance.EventHandler);
         pipeline.Run();
 
         doc.Views.Redraw();

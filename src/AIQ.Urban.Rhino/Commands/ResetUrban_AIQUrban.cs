@@ -6,7 +6,7 @@ using Rhino.Commands;
 using Rhino.Input;
 using Rhino.Input.Custom;
 
-namespace AIQ.Urban.RhinoInterface;
+namespace AIQ.Urban.RhinoPlugin;
 
 public class ResetUrban_AIQUrban : Command
 {
@@ -36,6 +36,7 @@ public class ResetUrban_AIQUrban : Command
 
         var pipeline = new RhinoUrbanModelPipeline(doc, UrbanModel.Instance);
         pipeline.WithUrbanElementStep(new ResetUrbanElementsStep());
+        pipeline.WithEventHandler(Urban_RhinoPlugin.Instance.EventHandler);
         pipeline.Run();
 
         doc.Views.Redraw();

@@ -1,10 +1,10 @@
 using System;
-using AIQ.Urban.RhinoInterface.HTML_UI;
+using AIQ.Urban.RhinoPlugin.HTML_UI;
 using Rhino;
 using Rhino.Commands;
 using MessageBox = Eto.Forms.MessageBox;
 
-namespace AIQ.Urban.RhinoInterface;
+namespace AIQ.Urban.RhinoPlugin;
 
 public class StartUI_AIQUrban : Command
 {
