@@ -12,7 +12,7 @@ public class AddTransitStep : IAddUrbanElementsStep
         _transitData = transitData;
     }
 
-    List<Guid> IUrbanModelStep.Run(UrbanModel model)
+    public List<Guid> Run(UrbanModel model)
     {
         var transits = _transitData.Select(x => x.ToTransit()).ToList();
         model.AddTransit(transits);

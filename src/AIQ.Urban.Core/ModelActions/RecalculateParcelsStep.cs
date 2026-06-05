@@ -18,7 +18,7 @@ namespace AIQ.Urban.Core.ModelActions;
 /// </summary>
 public class RecalculateParcelsStep : IEditUrbanElementsStep
 {
-    List<Guid> IUrbanModelStep.Run(UrbanModel model)
+    public EditStepResult Run(UrbanModel model)
     {
         var oldParcelIds = model.Parcels.SelectMany(p => p.GetGeometryIds()).ToList();
 
@@ -43,7 +43,7 @@ public class RecalculateParcelsStep : IEditUrbanElementsStep
 
         var newParcelIds = model.Parcels.SelectMany(p => p.GetGeometryIds()).ToList();
 
-        return oldParcelIds.Concat(newParcelIds).ToList();
+        return new(newParcelIds, oldParcelIds);
     }
 
     private static Use ResolveUse(

@@ -10,6 +10,6 @@ public class TransitSurfaceOutputter : IUrbanModelRhinoOutputter
     public void Run(UrbanModel model, RhinoDoc doc)
     {
         foreach (var (profile, type) in model.TransitSurfaces)
-            RhinoOutputHelper.OutputGeometry(doc, profile, RhinoOutputHelper.MakeLayerDrivenAttributes(doc, LayerConstants.TransitSurface(type), ColorUtils.GetTransitTypeColor(type)), true);
+            RhinoOutputHelper.OutputGeometry(doc, profile, RhinoOutputHelper.MakeLayerDrivenAttributes(doc, LayerConstants.TransitSurface(type), ColorUtils.GetTransitTypeColor(type)), true).ToList();
     }
 }

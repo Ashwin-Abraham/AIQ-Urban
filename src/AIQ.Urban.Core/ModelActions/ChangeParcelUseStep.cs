@@ -6,7 +6,7 @@ public class ChangeParcelUseStep(
     List<Guid> parcelGeometryIds,
     Use newUse) : IEditUrbanElementsStep
 {
-    List<Guid> IUrbanModelStep.Run(UrbanModel model)
+    public EditStepResult Run(UrbanModel model)
     {
         var oldIds = new List<Guid>();
         var newIds = new List<Guid>();
@@ -21,6 +21,6 @@ public class ChangeParcelUseStep(
             }
         }
 
-        return oldIds.Concat(newIds).ToList();
+        return new(newIds, oldIds);
     }
 }

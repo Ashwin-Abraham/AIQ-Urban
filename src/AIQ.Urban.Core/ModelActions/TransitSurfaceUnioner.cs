@@ -4,7 +4,7 @@ using Rhino.Geometry;
 namespace AIQ.Urban.Core.ModelActions;
 public class TransitSurfaceUnioner(double _tolerance = 0.001) : IEditUrbanElementsStep
 {
-    List<Guid> IUrbanModelStep.Run(UrbanModel model)
+    public EditStepResult Run(UrbanModel model)
     {
         var oldIds = model.TransitSurfaces.Select(x => x.Profile.Id).ToList();
         model.TransitSurfaces.Clear();
@@ -39,6 +39,6 @@ public class TransitSurfaceUnioner(double _tolerance = 0.001) : IEditUrbanElemen
             }
         }
 
-        return surfaceIds.Concat(oldIds).ToList();
+        return new(surfaceIds, oldIds);
     }
 }

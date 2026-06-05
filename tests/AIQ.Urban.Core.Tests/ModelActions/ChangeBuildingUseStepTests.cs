@@ -37,7 +37,7 @@ public class ChangeBuildingUseStepTests
         foreach (var building in testData.InitialBuildings)
             UrbanModel.Instance.Buildings.Add(building);
 
-        IUrbanModelStep step = new ChangeBuildingUseStep(
+        var step = new ChangeBuildingUseStep(
             testData.GeometryIds,
             testData.NewUse);
 
@@ -62,7 +62,8 @@ public class ChangeBuildingUseStepTests
                 Assert.That(building.FloorPlates[j].Use, Is.EqualTo(expectedPlates[j]));
         }
 
-        Assert.That(result, Has.Count.EqualTo(testData.ExpectedResultCount));
+        Assert.AreEqual(result.AddedIds.Count, testData.AddedCount);
+        Assert.AreEqual(result.AddedIds.Count, testData.DeletedCount);
     }
 
     private record ChangeBuildingUseTestData(
@@ -71,7 +72,8 @@ public class ChangeBuildingUseStepTests
         List<Guid> GeometryIds,
         Use NewUse,
         List<List<Use>> ExpectedPlateUses,
-        int ExpectedResultCount);
+        int AddedCount,
+        int DeletedCount);
 
     private static Polygon2D MakeOutline(double size, Point3d origin = default)
     {
@@ -124,7 +126,8 @@ public class ChangeBuildingUseStepTests
                     [residential, residential, residential], // bwB1 all plates change
                     [DefaultUses.Commercial, DefaultUses.Commercial], // bwB2 unchanged
                 ],
-                ExpectedResultCount: 8), // 1 envelope + 3 plates (old) + 1 envelope + 3 plates (new)
+                AddedCount: 4,    // 1 envelope + 3 plates (new)
+                DeletedCount: 4), // 1 envelope + 3 plates (old)
 
             new ChangeBuildingUseTestData(
                 "PerPlate",
@@ -135,7 +138,8 @@ public class ChangeBuildingUseStepTests
                 [
                     [retail, DefaultUses.Public, DefaultUses.Public], // only plate 0 changes
                 ],
-                ExpectedResultCount: 2), // 1 plate outline old + 1 new
+                AddedCount: 1,    // 1 new
+                DeletedCount: 1), // 1 plate outline old 
 
             new ChangeBuildingUseTestData(
                 "BuildingWins",
@@ -150,7 +154,7 @@ public class ChangeBuildingUseStepTests
                 [
                     [residential, residential, residential], // envelope wins, all plates change
                 ],
-                ExpectedResultCount: 8), // 1 envelope + 3 plates (old) + 1 envelope + 3 plates (new)
+                AddedCount: 4, DeletedCount: 4), // 1 envelope + 3 plates (old) + 1 envelope + 3 plates (new)
 
             new ChangeBuildingUseTestData(
                 "Mixed",
@@ -166,7 +170,7 @@ public class ChangeBuildingUseStepTests
                     [residential, residential, residential], // B1 all plates
                     [residential, DefaultUses.Commercial],   // B2 only plate 0
                 ],
-                ExpectedResultCount: 10), // B1: 1+3 old + 1+3 new = 8; B2: 1 old + 1 new = 2; total = 10
+                AddedCount: 5, DeletedCount: 5), // B1: 1+3 old + 1+3 new = 8; B2: 1 old + 1 new = 2; total = 10
 
             new ChangeBuildingUseTestData(
                 "MultipleBuildings",
@@ -178,7 +182,7 @@ public class ChangeBuildingUseStepTests
                     [residential, residential, residential],
                     [residential, residential],
                 ],
-                ExpectedResultCount: 14), // B1: 4 old + 4 new = 8; B2: 3 old + 3 new = 6; total = 14
+                AddedCount: 7, DeletedCount: 7), // B1: 4 old + 4 new = 8; B2: 3 old + 3 new = 6; total = 14
 
             new ChangeBuildingUseTestData(
                 "NoMatch",
@@ -189,7 +193,8 @@ public class ChangeBuildingUseStepTests
                 [
                     [DefaultUses.Public, DefaultUses.Public, DefaultUses.Public], // unchanged
                 ],
-                ExpectedResultCount: 0),
+                AddedCount: 0,
+                DeletedCount: 0),
 
             new ChangeBuildingUseTestData(
                 "UnmatchedGuid",
@@ -200,7 +205,7 @@ public class ChangeBuildingUseStepTests
                 [
                     [residential, residential, residential], // matched by envelope, unmatched GUIDs ignored
                 ],
-                ExpectedResultCount: 8), // 1 envelope + 3 plates (old) + 1 envelope + 3 plates (new)
+                AddedCount: 4, DeletedCount: 4), // 1 envelope + 3 plates (old) + 1 envelope + 3 plates (new)
         ];
     }
 }

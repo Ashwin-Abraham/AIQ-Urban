@@ -67,19 +67,19 @@ public class RhinoUrbanEventHandler : IDisposable
     private void OnAddRhinoObject(object? sender, RhinoObjectEventArgs e)
     {
         if (_eventLock || e?.TheObject == null) return;
-        _queue.EnqueueAdd(e.TheObject);
+        _queue.EnqueueAdd(e.ObjectId);
     }
 
     private void OnDeleteRhinoObject(object? sender, RhinoObjectEventArgs e)
     {
         if (_eventLock || e?.TheObject == null) return;
-        _queue.EnqueueDelete(e.TheObject);
+        _queue.EnqueueDelete(e.ObjectId);
     }
 
     private void OnReplaceRhinoObject(object? sender, RhinoReplaceObjectEventArgs e)
     {
         if (_eventLock || e?.NewRhinoObject == null) return;
-        _queue.EnqueueReplace(e.OldRhinoObject, e.NewRhinoObject);
+        _queue.EnqueueReplace(e.OldRhinoObject.Id, e.NewRhinoObject.Id);
     }
 
     private void OnBeginOpenDocument(object? sender, EventArgs e)
@@ -105,8 +105,9 @@ public class RhinoUrbanEventHandler : IDisposable
         if (batch.IsEmpty) return;
 
         // Process deletions
-        foreach (var obj in batch.Deletes)
+        foreach (var id in batch.Deletes)
         {
+            var obj = _doc.Objects.FindId(id);
             if (!IsOnManagedLayer(obj))
             {
                 ObjectIdToElement.Remove(obj.Id);
@@ -133,13 +134,14 @@ public class RhinoUrbanEventHandler : IDisposable
         }
 
         // Process replacements
-        foreach (var (oldObject, newObject) in batch.Replacements)
+        foreach (var (_, newId) in batch.Replacements)
         {
-            if (!IsOnManagedLayer(newObject)) continue;
+            var newObj = _doc.Objects.FindId(newId);
+            if (!IsOnManagedLayer(newObj)) continue;
 
             // Try to find the element by scanning UrbanModel
             // (the old ID was a placeholder, not useful for lookup)
-            var element = FindElementByLayer(newObject);
+            var element = FindElementByLayer(newObj);
             if (element == null) continue;
 
             // Remove old mapping for this element's previous geometry IDs
@@ -150,10 +152,10 @@ public class RhinoUrbanEventHandler : IDisposable
             switch (element)
             {
                 case Transit transit:
-                    HandleTransitReplace(transit, newObject.Id);
+                    HandleTransitReplace(transit, newId);
                     break;
                 case Zone zone:
-                    HandleZoneReplace(zone, newObject.Id);
+                    HandleZoneReplace(zone, newId);
                     break;
                 // Building replace is deferred — the envelope is a Brep
                 // and requires more involved update logic.
@@ -227,7 +229,7 @@ public class RhinoUrbanEventHandler : IDisposable
 
     private void HandleTransitReplace(Transit transit, Guid newCenterlineId)
     {
-        var newRhinoObject = _doc.Objects.Find(newCenterlineId);
+        var newRhinoObject = _doc.Objects.FindId(newCenterlineId);
         if (newRhinoObject == null) return;
 
         var newCurve = newRhinoObject.Geometry as Curve;

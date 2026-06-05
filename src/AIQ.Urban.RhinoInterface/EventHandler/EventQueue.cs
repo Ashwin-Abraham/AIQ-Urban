@@ -11,18 +11,18 @@ namespace AIQ.Urban.RhinoInterface.EventHandler;
 /// </summary>
 public class EventQueue
 {
-    private readonly HashSet<RhinoObject> _adds = [];
-    private readonly HashSet<RhinoObject> _deletes = [];
-    private readonly Dictionary<RhinoObject, RhinoObject> _replacements = new(); // oldId -> newId
+    private readonly HashSet<Guid> _adds = [];
+    private readonly HashSet<Guid> _deletes = [];
+    private readonly Dictionary<Guid, Guid> _replacements = new(); // oldId -> newId
 
     /// <summary>Queue an object for addition.</summary>
-    public void EnqueueAdd(RhinoObject obj)
+    public void EnqueueAdd(Guid obj)
     {
         _adds.Add(obj);
     }
 
     /// <summary>Queue an object for deletion.</summary>
-    public void EnqueueDelete(RhinoObject obj)
+    public void EnqueueDelete(Guid obj)
     {
         _deletes.Add(obj);
     }
@@ -31,9 +31,11 @@ public class EventQueue
     /// Queue an object replacement. If multiple replaces arrive for the same
     /// old ID, only the final new ID is kept.
     /// </summary>
-    public void EnqueueReplace(RhinoObject oldObject, RhinoObject newObject)
+    public void EnqueueReplace(Guid oldObject, Guid newObject)
     {
         _replacements[oldObject] = newObject;
+        _adds.Remove(newObject);
+        _deletes.Remove(newObject);
     }
 
     /// <summary>
@@ -48,10 +50,10 @@ public class EventQueue
             // Replace wins over an add of the same old ID
             _adds.Remove(oldId);
 
-            // Delete wins over replace — remove the replacement entry
-            if (_deletes.Contains(oldId))
+            // replacement wins over delete
+            if (_replacements.Keys.Contains(oldId))
             {
-                _replacements.Remove(oldId);
+                _deletes.Remove(oldId);
             }
         }
 
@@ -105,9 +107,9 @@ public class EventQueue
 /// <param name="Deletes">Confirmed deletions (object IDs to remove from Rhino and UrbanModel).</param>
 /// <param name="Replacements">Confirmed replacements (old ID to new ID).</param>
 public record EventQueueBatch(
-    List<RhinoObject> Adds,
-    List<RhinoObject> Deletes,
-    List<(RhinoObject OldObject, RhinoObject NewObject)> Replacements)
+    List<Guid> Adds,
+    List<Guid> Deletes,
+    List<(Guid OldObject, Guid NewObject)> Replacements)
 {
     /// <summary>True when all three lists are empty.</summary>
     public bool IsEmpty => Adds.Count == 0 && Deletes.Count == 0 && Replacements.Count == 0;

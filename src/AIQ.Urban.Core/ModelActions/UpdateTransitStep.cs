@@ -6,13 +6,13 @@ namespace AIQ.Urban.Core.ModelActions;
 
 public class UpdateTransitStep(Guid _oldCenterlineId, Curve _newCenterline) : IEditUrbanElementsStep
 {
-    List<Guid> IUrbanModelStep.Run(UrbanModel model)
+    public EditStepResult Run(UrbanModel model)
     {
         var oldTransit = model.Transits
             .FirstOrDefault(t => t.GetGeometryIds().Contains(_oldCenterlineId));
 
         if (oldTransit is null)
-            return [];
+            return new([],[]);
 
         var oldIds = oldTransit.GetGeometryIds();
         model.Transits.Remove(oldTransit);
@@ -28,6 +28,6 @@ public class UpdateTransitStep(Guid _oldCenterlineId, Curve _newCenterline) : IE
 
         model.Transits.Add(newTransit);
 
-        return oldIds.Concat(newTransit.GetGeometryIds()).ToList();
+        return new(newTransit.GetGeometryIds(), oldIds);
     }
 }

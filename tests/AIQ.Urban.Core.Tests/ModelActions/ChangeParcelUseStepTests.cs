@@ -34,7 +34,7 @@ public class ChangeParcelUseStepTests
         foreach (var parcel in testData.InitialParcels)
             UrbanModel.Instance.Parcels.Add(parcel);
 
-        IUrbanModelStep step = new ChangeParcelUseStep(
+        var step = new ChangeParcelUseStep(
             testData.ParcelIdsToChange,
             testData.NewUse);
 
@@ -52,7 +52,8 @@ public class ChangeParcelUseStepTests
         for (int i = 0; i < testData.ExpectedUses.Count; i++)
             Assert.That(UrbanModel.Instance.Parcels[i].Use, Is.EqualTo(testData.ExpectedUses[i]));
 
-        Assert.That(result, Has.Count.EqualTo(testData.ExpectedResultCount));
+        Assert.That(result.AddedIds.Count, Is.EqualTo(testData.AddedCount));
+        Assert.That(result.DeletedIds.Count, Is.EqualTo(testData.DeletedCount));
     }
 
     private record ChangeParcelUseTestData(
@@ -61,7 +62,8 @@ public class ChangeParcelUseStepTests
         List<Guid> ParcelIdsToChange,
         Use NewUse,
         List<Use> ExpectedUses,
-        int ExpectedResultCount);
+        int AddedCount,
+        int DeletedCount);
 
     private static Polygon2D MakeOutline(double size)
     {
@@ -91,7 +93,8 @@ public class ChangeParcelUseStepTests
                 ParcelIdsToChange: [sp.Id],
                 NewUse: DefaultUses.Residential,
                 ExpectedUses: [DefaultUses.Residential],
-                ExpectedResultCount: 2),
+                AddedCount: 1,
+                DeletedCount: 1),
 
             new ChangeParcelUseTestData(
                 "MultipleParcels",
@@ -99,7 +102,8 @@ public class ChangeParcelUseStepTests
                 ParcelIdsToChange: [mp1.Id, mp2.Id],
                 NewUse: DefaultUses.Commercial,
                 ExpectedUses: [DefaultUses.Commercial, DefaultUses.Commercial],
-                ExpectedResultCount: 4),
+                AddedCount: 2,
+                DeletedCount: 2),
 
             new ChangeParcelUseTestData(
                 "EmptyIdList",
@@ -107,7 +111,8 @@ public class ChangeParcelUseStepTests
                 ParcelIdsToChange: [],
                 NewUse: DefaultUses.Residential,
                 ExpectedUses: [DefaultUses.Public],
-                ExpectedResultCount: 0),
+                AddedCount: 0,
+                DeletedCount: 0),
 
             new ChangeParcelUseTestData(
                 "PartialMatch",
@@ -115,7 +120,8 @@ public class ChangeParcelUseStepTests
                 ParcelIdsToChange: [pm.Id, Guid.NewGuid(), Guid.NewGuid()],
                 NewUse: DefaultUses.Retail,
                 ExpectedUses: [DefaultUses.Retail],
-                ExpectedResultCount: 2),
+                AddedCount: 1,
+                DeletedCount: 1),
         ];
     }
 }
