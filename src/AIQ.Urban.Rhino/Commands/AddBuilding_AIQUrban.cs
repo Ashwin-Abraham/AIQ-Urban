@@ -2,12 +2,13 @@ using AIQ.Urban.Core;
 using AIQ.Urban.Core.ModelActions;
 using AIQ.Urban.Core.Models;
 using AIQ.Urban.Core.Models.GeometryElements;
+using AIQ.Urban.RhinoInterface;
 using Rhino;
 using Rhino.Commands;
 using Rhino.Input;
 using Rhino.Input.Custom;
 
-namespace AIQ.Urban.RhinoInterface;
+namespace AIQ.Urban.RhinoPlugin;
 
 public class AddBuilding_AIQUrban : Command
 {
@@ -55,7 +56,9 @@ public class AddBuilding_AIQUrban : Command
 
         var pipeline = new RhinoUrbanModelPipeline(doc, UrbanModel.Instance)
             .WithBuildingAdditionSteps([buildingData], [curveRef.ObjectId])
-            .WithMetricsCalculation(saveToFile: true, tolerance: doc.ModelAbsoluteTolerance, docName: doc.Name);
+            .WithMetricsCalculation(saveToFile: true, tolerance: doc.ModelAbsoluteTolerance, docName: doc.Name)
+            .WithEventHandler(Urban_RhinoPlugin.Instance.EventHandler);
+
         pipeline.Run();
 
         doc.Views.Redraw();

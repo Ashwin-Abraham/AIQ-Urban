@@ -2,16 +2,27 @@ using AIQ.Urban.Core;
 using AIQ.Urban.Core.ModelActions;
 using AIQ.Urban.Core.Models;
 using AIQ.Urban.Core.Models.UrbanElements;
+using AIQ.Urban.RhinoInterface.EventHandler;
 using AIQ.Urban.RhinoInterface.Pipeline.Outputters;
 using Rhino;
 
 namespace AIQ.Urban.RhinoInterface;
 
-public class RhinoUrbanModelPipeline(RhinoDoc _rhinoDoc, UrbanModel _urbanModel)
+public class RhinoUrbanModelPipeline(
+    RhinoDoc _rhinoDoc,
+    UrbanModel _urbanModel)
 {
     private readonly List<IUrbanModelStep> _steps = [];
     private readonly List<Guid> _directDeleteIds = [];
     private readonly List<Action<UrbanModel>> _postActions = [];
+
+    private RhinoUrbanEventHandler? _eventHandler = null;
+
+    public RhinoUrbanModelPipeline WithEventHandler(RhinoUrbanEventHandler eventHandler)
+    {
+        _eventHandler = eventHandler;
+        return this;
+    }
 
     public RhinoUrbanModelPipeline WithRhinoObjectDeletion(List<Guid> ids)
     {
@@ -34,6 +45,11 @@ public class RhinoUrbanModelPipeline(RhinoDoc _rhinoDoc, UrbanModel _urbanModel)
 
     public void Run()
     {
+        if(_eventHandler is not null)
+        {
+            _eventHandler.EventLock = true;
+        }
+
         var deletedIds = new List<Guid>();
         var editedIds = new List<Guid>();
         var addedIds = new List<Guid>();
@@ -62,6 +78,12 @@ public class RhinoUrbanModelPipeline(RhinoDoc _rhinoDoc, UrbanModel _urbanModel)
 
         foreach (var action in _postActions)
             action(_urbanModel);
+
+        if(_eventHandler is not null)
+        {
+            _eventHandler.RebuildLookup();
+            _eventHandler.EventLock = false;
+        }
     }
 
     private void AddRhinoObjects(List<Guid> addedIds)

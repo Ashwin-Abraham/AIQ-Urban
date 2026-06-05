@@ -4,7 +4,7 @@ using AIQ.Urban.Core.Models.Metrics;
 using AIQ.Urban.RhinoInterface;
 using Rhino;
 
-namespace AIQ.Urban.RhinoInterface.MCP_Bridge;
+namespace AIQ.Urban.RhinoPlugin.MCP_Bridge;
 
 public class RhinoPipelineExecutorForMcp(RhinoDoc doc, UrbanModel model)
 {

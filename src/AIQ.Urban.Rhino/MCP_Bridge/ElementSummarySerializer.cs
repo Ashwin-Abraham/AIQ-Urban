@@ -3,7 +3,7 @@ using System.Collections;
 using System.IO;
 using System.Text.Json;
 
-namespace AIQ.Urban.RhinoInterface.MCP_Bridge;
+namespace AIQ.Urban.RhinoPlugin.MCP_Bridge;
 
 public static class ElementSummarySerializer
 {

@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace AIQ.Urban.RhinoInterface.MCP_Bridge;
+namespace AIQ.Urban.RhinoPlugin.MCP_Bridge;
 
 public record ElementSummary(
     Guid Id,

@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using AIQ.Urban.Core;
 using AIQ.Urban.Core.Models;
 using AIQ.Urban.Core.Models.UrbanElements;
@@ -8,7 +5,7 @@ using Rhino;
 using Rhino.DocObjects;
 using Rhino.Geometry;
 
-namespace AIQ.Urban.RhinoInterface;
+namespace AIQ.Urban.RhinoInterface.EventHandler;
 
 /// <summary>
 /// Subscribes to Rhino document events, queues and deduplicates them via
@@ -69,25 +66,20 @@ public class RhinoUrbanEventHandler : IDisposable
 
     private void OnAddRhinoObject(object? sender, RhinoObjectEventArgs e)
     {
-        if (_eventLock || e?.ObjectId == null) return;
-        _queue.EnqueueAdd(e.ObjectId);
+        if (_eventLock || e?.TheObject == null) return;
+        _queue.EnqueueAdd(e.TheObject);
     }
 
     private void OnDeleteRhinoObject(object? sender, RhinoObjectEventArgs e)
     {
-        if (_eventLock || e?.ObjectId == null) return;
-        _queue.EnqueueDelete(e.ObjectId);
+        if (_eventLock || e?.TheObject == null) return;
+        _queue.EnqueueDelete(e.TheObject);
     }
 
     private void OnReplaceRhinoObject(object? sender, RhinoReplaceObjectEventArgs e)
     {
-        if (_eventLock || e?.ObjectId == null) return;
-
-        // ReplaceRhinoObject args give us the new object's ID.
-        // The old object is already gone from the doc.
-        // We generate a placeholder old ID — at processing time,
-        // we look up by the new object's layer and current model state.
-        _queue.EnqueueReplace(Guid.NewGuid(), e.ObjectId);
+        if (_eventLock || e?.NewRhinoObject == null) return;
+        _queue.EnqueueReplace(e.OldRhinoObject, e.NewRhinoObject);
     }
 
     private void OnBeginOpenDocument(object? sender, EventArgs e)
@@ -113,18 +105,18 @@ public class RhinoUrbanEventHandler : IDisposable
         if (batch.IsEmpty) return;
 
         // Process deletions
-        foreach (var id in batch.Deletes)
+        foreach (var obj in batch.Deletes)
         {
-            if (!IsOnManagedLayer(id))
+            if (!IsOnManagedLayer(obj))
             {
-                ObjectIdToElement.Remove(id);
+                ObjectIdToElement.Remove(obj.Id);
                 continue;
             }
 
-            if (!ObjectIdToElement.TryGetValue(id, out var element))
+            if (!ObjectIdToElement.TryGetValue(obj.Id, out var element))
                 continue;
 
-            ObjectIdToElement.Remove(id);
+            ObjectIdToElement.Remove(obj.Id);
 
             switch (element)
             {
@@ -141,13 +133,13 @@ public class RhinoUrbanEventHandler : IDisposable
         }
 
         // Process replacements
-        foreach (var (oldId, newId) in batch.Replacements)
+        foreach (var (oldObject, newObject) in batch.Replacements)
         {
-            if (!IsOnManagedLayer(newId)) continue;
+            if (!IsOnManagedLayer(newObject)) continue;
 
             // Try to find the element by scanning UrbanModel
             // (the old ID was a placeholder, not useful for lookup)
-            var element = FindElementByLayer(newId);
+            var element = FindElementByLayer(newObject);
             if (element == null) continue;
 
             // Remove old mapping for this element's previous geometry IDs
@@ -158,22 +150,21 @@ public class RhinoUrbanEventHandler : IDisposable
             switch (element)
             {
                 case Transit transit:
-                    HandleTransitReplace(transit, newId);
+                    HandleTransitReplace(transit, newObject.Id);
                     break;
                 case Zone zone:
-                    HandleZoneReplace(zone, newId);
+                    HandleZoneReplace(zone, newObject.Id);
                     break;
                 // Building replace is deferred — the envelope is a Brep
                 // and requires more involved update logic.
             }
         }
+
+        _doc.Views.Redraw();
     }
 
-    private bool IsOnManagedLayer(Guid objectId)
+    private bool IsOnManagedLayer(RhinoObject rhinoObject)
     {
-        var rhinoObject = _doc.Objects.Find(objectId);
-        if (rhinoObject == null) return false;
-
         var layerIndex = rhinoObject.Attributes.LayerIndex;
         var layer = _doc.Layers[layerIndex];
         if (layer == null) return false;
@@ -182,11 +173,9 @@ public class RhinoUrbanEventHandler : IDisposable
         return fullPath.StartsWith("AIQ Urban::", StringComparison.OrdinalIgnoreCase);
     }
 
-    private IUrbanElement? FindElementByLayer(Guid objectId)
+    private IUrbanElement? FindElementByLayer(RhinoObject rhinoObject)
     {
-        var rhinoObject = _doc.Objects.Find(objectId);
-        if (rhinoObject == null) return null;
-
+        var objectId = rhinoObject.Id;
         var layerIndex = rhinoObject.Attributes.LayerIndex;
         var layer = _doc.Layers[layerIndex];
         if (layer == null) return null;

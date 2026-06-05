@@ -12,7 +12,7 @@ using Rhino;
 using WebSocketSharp;
 using WebSocketSharp.Server;
 
-namespace AIQ.Urban.RhinoInterface.MCP_Bridge;
+namespace AIQ.Urban.RhinoPlugin.MCP_Bridge;
 
 internal class McpBridgeBehavior : WebSocketBehavior
 {

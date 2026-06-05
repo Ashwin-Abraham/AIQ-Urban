@@ -1,7 +1,7 @@
-using AIQ.Urban.RhinoInterface.MCP_Bridge;
+using AIQ.Urban.RhinoPlugin.MCP_Bridge;
 using WebSocketSharp.Server;
 
-namespace AIQ.Urban.RhinoInterface.HTML_UI;
+namespace AIQ.Urban.RhinoPlugin.HTML_UI;
 
 public static class WebSocketUiServer
 {

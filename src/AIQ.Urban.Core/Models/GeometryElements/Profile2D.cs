@@ -3,7 +3,11 @@
 namespace AIQ.Urban.Core.Models.GeometryElements;
 public class Profile2D : IGeometryElement<Brep>
 {
-    public Guid Id { get; set; }
+    public Guid Id
+    {
+        get => Outline.Id;
+        set => Outline.Id = value;
+    }
     public Brep Geometry { get; }
     
     //TODO: Use Polygon not Polygon2D because we dont want to track the ID
@@ -15,7 +19,6 @@ public class Profile2D : IGeometryElement<Brep>
         Geometry = geometry;
         Outline = outline;
         Holes = holes;
-        Id = Guid.NewGuid();
     }
 
     public static Profile2D? Create(Polygon2D outline, List<Polygon2D> holes, double tolerance = 1e-5)

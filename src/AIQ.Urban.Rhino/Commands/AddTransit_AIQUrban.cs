@@ -4,6 +4,7 @@ using AIQ.Urban.Core;
 using AIQ.Urban.Core.Enums;
 using AIQ.Urban.Core.ModelActions;
 using AIQ.Urban.Core.Models.GeometryElements;
+using AIQ.Urban.RhinoInterface;
 using Rhino;
 using Rhino.Commands;
 using Rhino.DocObjects;
@@ -11,7 +12,7 @@ using Rhino.Geometry;
 using Rhino.Input;
 using Rhino.Input.Custom;
 
-namespace AIQ.Urban.RhinoInterface;
+namespace AIQ.Urban.RhinoPlugin;
 
 /// <summary>Rhino command: pick centerline curves → width + transit type on command line → bake outlines.</summary>
 public class AddTransit_AIQUrban : Command
@@ -68,7 +69,8 @@ public class AddTransit_AIQUrban : Command
 
         var pipeline = new RhinoUrbanModelPipeline(doc, UrbanModel.Instance)
             .WithTransitAdditionSteps(transitData, centerlineIds)
-            .WithMetricsCalculation(saveToFile: true, tolerance: doc.ModelAbsoluteTolerance, docName: doc.Name);
+            .WithMetricsCalculation(saveToFile: true, tolerance: doc.ModelAbsoluteTolerance, docName: doc.Name)
+            .WithEventHandler(Urban_RhinoPlugin.Instance.EventHandler);
         
         pipeline.Run();
 
