@@ -20,27 +20,29 @@ internal static class RhinoOutputHelper
         return new ObjectAttributes { LayerIndex = layerIndex };
     }
 
-    internal static void OutputGeometry(RhinoDoc doc, Curve2D geometry, ObjectAttributes attributes)
+    internal static Guid OutputGeometry(RhinoDoc doc, Curve2D geometry, ObjectAttributes attributes)
     {
         geometry.Id = doc.Objects.AddCurve(geometry.Geometry, attributes);
+        return geometry.Id;
     }
 
-    internal static void OutputGeometry(RhinoDoc doc, Profile2D geometry, ObjectAttributes attributes, bool asBrep)
+    internal static IEnumerable<Guid> OutputGeometry(RhinoDoc doc, Profile2D geometry, ObjectAttributes attributes, bool asBrep)
     {
         if (asBrep)
         {
             geometry.Id = doc.Objects.AddBrep(geometry.Geometry, attributes);
+            yield return geometry.Id;
         }
         else
         {
-            OutputGeometry(doc, geometry.Outline, attributes, false);
+            yield return OutputGeometry(doc, geometry.Outline, attributes, false);
 
             foreach (var hole in geometry.Holes)
-                OutputGeometry(doc, hole, attributes, false);
+                yield return OutputGeometry(doc, hole, attributes, false);
         }
     }
 
-    internal static void OutputGeometry(RhinoDoc doc, Polygon2D geometry, ObjectAttributes attributes, bool asBrep)
+    internal static Guid OutputGeometry(RhinoDoc doc, Polygon2D geometry, ObjectAttributes attributes, bool asBrep)
     {
         if(asBrep)
         {
@@ -49,5 +51,7 @@ internal static class RhinoOutputHelper
         }
         else
             geometry.Id = doc.Objects.AddCurve(geometry.Geometry, attributes);
+
+        return geometry.Id;
     }
 }

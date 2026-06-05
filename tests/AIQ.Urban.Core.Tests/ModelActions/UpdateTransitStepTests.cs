@@ -28,14 +28,14 @@ public class UpdateTransitStepTests
         var testData = _testData.Single(x => x.CaseName == testName);
 
         // Arrange: add initial transits and capture their actual geometry IDs
-        IUrbanModelStep addStep = new AddTransitStep(testData.InitialTransits);
+        var addStep = new AddTransitStep(testData.InitialTransits);
         var addedIds = addStep.Run(UrbanModel.Instance);
 
         var oldCenterlineId = addedIds[0];
         var oldCount = UrbanModel.Instance.Transits.Count;
 
         // Act
-        IUrbanModelStep updateStep = new UpdateTransitStep(
+        var updateStep = new UpdateTransitStep(
             testData.UseExistingId ? oldCenterlineId : Guid.NewGuid(),
             testData.NewCenterline);
         var result = updateStep.Run(UrbanModel.Instance);
@@ -56,14 +56,15 @@ public class UpdateTransitStepTests
                 .ToHashSet();
             Assert.That(allCurrentIds, Does.Not.Contain(oldCenterlineId));
 
-            // The result should contain both old and new IDs
-            Assert.That(result, Has.Count.EqualTo(testData.ExpectedResultCount));
-            Assert.That(result, Has.All.Not.EqualTo(Guid.Empty));
-            Assert.That(result, Is.Unique);
+            var allResultIds = result.AddedIds.Concat(result.DeletedIds).ToList();
+            Assert.That(result.AddedIds, Has.Count.EqualTo(testData.ExpectedAddedCount));
+            Assert.That(result.DeletedIds, Has.Count.EqualTo(testData.ExpectedDeletedCount));
+            Assert.That(allResultIds, Has.All.Not.EqualTo(Guid.Empty));
+            Assert.That(allResultIds, Is.Unique);
 
             // The new transit should have the new centerline geometry
             var updatedTransit = UrbanModel.Instance.Transits
-                .FirstOrDefault(t => t.GetGeometryIds().Any(id => result.Contains(id)));
+                .FirstOrDefault(t => t.GetGeometryIds().Any(id => result.AddedIds.Contains(id)));
             Assert.That(updatedTransit, Is.Not.Null);
             Assert.That(updatedTransit!.Width, Is.EqualTo(testData.ExpectedWidth));
             Assert.That(updatedTransit.TransitType, Is.EqualTo(testData.ExpectedType));
@@ -71,7 +72,8 @@ public class UpdateTransitStepTests
         else
         {
             // Non-existent ID: no changes
-            Assert.That(result, Is.Empty);
+            Assert.That(result.AddedIds, Is.Empty);
+            Assert.That(result.DeletedIds, Is.Empty);
             Assert.That(UrbanModel.Instance.Transits, Has.Count.EqualTo(oldCount));
         }
     }
@@ -82,7 +84,8 @@ public class UpdateTransitStepTests
         bool UseExistingId,
         Curve NewCenterline,
         int ExpectedTransitCount,
-        int ExpectedResultCount,
+        int ExpectedAddedCount,
+        int ExpectedDeletedCount,
         double ExpectedWidth,
         TransitType ExpectedType);
 
@@ -105,7 +108,8 @@ public class UpdateTransitStepTests
                 UseExistingId: true,
                 NewCenterline: newCenterline,
                 ExpectedTransitCount: 1,
-                ExpectedResultCount: 4,  // 2 old IDs + 2 new IDs
+                ExpectedAddedCount: 2,  // new centerline + new outline
+                ExpectedDeletedCount: 2,  // old centerline + old outline
                 ExpectedWidth: 6,
                 ExpectedType: TransitType.Road),
 
@@ -115,7 +119,8 @@ public class UpdateTransitStepTests
                 UseExistingId: false,
                 NewCenterline: newCenterline,
                 ExpectedTransitCount: 1,
-                ExpectedResultCount: 0,
+                ExpectedAddedCount: 0,
+                ExpectedDeletedCount: 0,
                 ExpectedWidth: 0,
                 ExpectedType: TransitType.Road),
         ];

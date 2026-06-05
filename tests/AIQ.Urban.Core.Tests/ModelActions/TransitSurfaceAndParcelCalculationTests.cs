@@ -36,9 +36,9 @@ public class TransitSurfaceAndParcelCalculationTests
         addStep.Run(UrbanModel.Instance);
 
         // Act
-        IUrbanModelStep unionerStep = new TransitSurfaceUnioner();
+        var unionerStep = new TransitSurfaceUnioner();
         unionerStep.Run(UrbanModel.Instance);
-        IUrbanModelStep parcelsStep = new RecalculateParcelsStep();
+        var parcelsStep = new RecalculateParcelsStep();
         var result = parcelsStep.Run(UrbanModel.Instance);
 
         // Visualise
@@ -52,7 +52,8 @@ public class TransitSurfaceAndParcelCalculationTests
 
         // Assert
         Assert.That(UrbanModel.Instance.Parcels, Has.Count.EqualTo(testData.ExpectedParcelCount));
-        Assert.That(result, Has.Count.EqualTo(testData.ExpectedReturnedIdCount));
+        Assert.That(result.AddedIds, Has.Count.EqualTo(testData.AddedCount));
+        Assert.That(result.DeletedIds, Has.Count.EqualTo(testData.DeletedCount));
 
         for (int i = 0; i < testData.ExpectedParcelCount; i++)
         {
@@ -65,7 +66,8 @@ public class TransitSurfaceAndParcelCalculationTests
         string CaseName,
         List<TransitData> TransitInputs,
         int ExpectedParcelCount,
-        int ExpectedReturnedIdCount,
+        int AddedCount,
+        int DeletedCount,
         List<Use> ExpectedUses);
 
     private static Curve2D MakeCenterline(Point3d from, Point3d to)
@@ -80,7 +82,8 @@ public class TransitSurfaceAndParcelCalculationTests
             new(CaseName: "NoTransits",
                 TransitInputs: [],
                 ExpectedParcelCount: 0,
-                ExpectedReturnedIdCount: 0,
+                AddedCount: 0,
+                DeletedCount: 0,
                 ExpectedUses: []),
 
             new(CaseName: "NoHoles",
@@ -89,7 +92,8 @@ public class TransitSurfaceAndParcelCalculationTests
                     new TransitData(MakeCenterline(new(0, 0, 0), new(30, 0, 0)), 6, TransitType.Road),
                 ],
                 ExpectedParcelCount: 0,
-                ExpectedReturnedIdCount: 0,
+                AddedCount: 0,
+                DeletedCount: 0,
                 ExpectedUses: []),
 
             new(CaseName: "SingleHole",
@@ -101,7 +105,8 @@ public class TransitSurfaceAndParcelCalculationTests
                     new TransitData(MakeCenterline(new(0, 30, 0), new(0, 0, 0)), 6, TransitType.Road),
                 ],
                 ExpectedParcelCount: 1,
-                ExpectedReturnedIdCount: 1,
+                AddedCount: 1,
+                DeletedCount: 0,
                 ExpectedUses: [DefaultUses.Public]),
 
             new(CaseName: "TwoSeparateHoles",
@@ -119,7 +124,8 @@ public class TransitSurfaceAndParcelCalculationTests
                     new TransitData(MakeCenterline(new(0, 80, 0), new(0, 50, 0)), 6, TransitType.Road),
                 ],
                 ExpectedParcelCount: 2,
-                ExpectedReturnedIdCount: 2,
+                AddedCount: 2,
+                DeletedCount: 0,
                 ExpectedUses: [DefaultUses.Public, DefaultUses.Public]),
         ];
     }

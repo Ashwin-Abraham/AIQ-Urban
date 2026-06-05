@@ -12,7 +12,8 @@ public class RhinoUrbanModelPipeline(
     RhinoDoc _rhinoDoc,
     UrbanModel _urbanModel)
 {
-    private readonly List<IUrbanModelStep> _steps = [];
+    private readonly List<IUrbanModelStep> _addDeleteSteps = [];
+    private readonly List<IEditUrbanElementsStep> _editSteps = [];
     private readonly List<Guid> _directDeleteIds = [];
     private readonly List<Action<UrbanModel>> _postActions = [];
 
@@ -32,7 +33,12 @@ public class RhinoUrbanModelPipeline(
 
     public RhinoUrbanModelPipeline WithUrbanElementStep(IUrbanModelStep step)
     {
-        _steps.Add(step);
+        _addDeleteSteps.Add(step);
+        return this;
+    }
+    public RhinoUrbanModelPipeline WithUrbanElementStep(IEditUrbanElementsStep step)
+    {
+        _editSteps.Add(step);
         return this;
     }
 
@@ -51,30 +57,28 @@ public class RhinoUrbanModelPipeline(
         }
 
         var deletedIds = new List<Guid>();
-        var editedIds = new List<Guid>();
         var addedIds = new List<Guid>();
 
-        foreach (var step in _steps)
+        foreach (var step in _addDeleteSteps)
         {
             var result = step.Run(_urbanModel);
 
             if (step is IDeleteUrbanElementsStep)
                 deletedIds.AddRange(result);
-            if (step is IEditUrbanElementsStep)
-                editedIds.AddRange(result);
             if (step is IAddUrbanElementsStep)
                 addedIds.AddRange(result);
         }
 
-        var idsToDelete = editedIds
-            .Concat(deletedIds)
-            .Concat(_directDeleteIds)
-            .ToList();
+        foreach(var step in _editSteps)
+        {
+            var result = step.Run(_urbanModel);
+            addedIds.AddRange(result.AddedIds);
+            deletedIds.AddRange(result.DeletedIds);
+        }
 
-        var idsToAdd = editedIds.Concat(addedIds).ToList();
-
-        DeleteRhinoObjects(idsToDelete);
-        AddRhinoObjects(idsToAdd);
+        deletedIds.AddRange(_directDeleteIds);
+        DeleteRhinoObjects(deletedIds);
+        AddRhinoObjects(addedIds);
 
         foreach (var action in _postActions)
             action(_urbanModel);
@@ -123,6 +127,7 @@ public class RhinoUrbanModelPipeline(
 
     private void DeleteRhinoObjects(List<Guid> idsToDelete)
     {
-        _rhinoDoc.Objects.Delete(idsToDelete, true);
+        var deletableObjects = _rhinoDoc.Objects.Where(o => idsToDelete.Contains(o.Id)).ToList();
+        deletableObjects.ForEach(obj => _rhinoDoc.Objects.Delete(obj, true, true));
     }
 }

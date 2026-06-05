@@ -7,7 +7,7 @@ public class ChangeBuildingUseStep(
     List<Guid> geometryIds,
     Use newUse) : IEditUrbanElementsStep
 {
-    List<Guid> IUrbanModelStep.Run(UrbanModel model)
+    public EditStepResult Run(UrbanModel model)
     {
         var oldIds = new List<Guid>();
         var newIds = new List<Guid>();
@@ -49,6 +49,6 @@ public class ChangeBuildingUseStep(
             }
         }
 
-        return oldIds.Concat(newIds).ToList();
+        return new(newIds, oldIds);
     }
 }

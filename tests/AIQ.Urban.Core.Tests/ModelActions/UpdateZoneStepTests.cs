@@ -36,7 +36,7 @@ public class UpdateZoneStepTests
         var oldName = UrbanModel.Instance.Zones[0].Name;
 
         // Act
-        IUrbanModelStep updateStep = new UpdateZoneStep(
+        var updateStep = new UpdateZoneStep(
             testData.UseExistingId ? oldBoundaryId : Guid.NewGuid(),
             testData.NewBoundary);
         var result = updateStep.Run(UrbanModel.Instance);
@@ -57,10 +57,11 @@ public class UpdateZoneStepTests
                 .ToHashSet();
             Assert.That(allCurrentIds, Does.Not.Contain(oldBoundaryId));
 
-            // The result should contain both old and new IDs (2 total)
-            Assert.That(result, Has.Count.EqualTo(2));
-            Assert.That(result, Has.All.Not.EqualTo(Guid.Empty));
-            Assert.That(result, Is.Unique);
+            var allResultIds = result.AddedIds.Concat(result.DeletedIds).ToList();
+            Assert.That(result.AddedIds, Has.Count.EqualTo(1));
+            Assert.That(result.DeletedIds, Has.Count.EqualTo(1));
+            Assert.That(allResultIds, Has.All.Not.EqualTo(Guid.Empty));
+            Assert.That(allResultIds, Is.Unique);
 
             // The new zone should have the new boundary geometry
             var updatedZone = UrbanModel.Instance.Zones[0];
@@ -70,7 +71,8 @@ public class UpdateZoneStepTests
         else
         {
             // Non-existent ID: no changes
-            Assert.That(result, Is.Empty);
+            Assert.That(result.AddedIds, Is.Empty);
+            Assert.That(result.DeletedIds, Is.Empty);
             Assert.That(UrbanModel.Instance.Zones, Has.Count.EqualTo(oldCount));
         }
     }

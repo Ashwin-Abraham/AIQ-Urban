@@ -4,7 +4,7 @@ namespace AIQ.Urban.Core.ModelActions;
 
 internal class GraphCreationStep(double _approachTolerance = 1e-5, double _tolerance = 1e-5) : IEditUrbanElementsStep
 {
-    public List<Guid> Run(UrbanModel model)
+    public EditStepResult Run(UrbanModel model)
     {
         model.UrbanGraph = new GraphBuilder(_approachTolerance, _tolerance)
             .WithTransit(model.Transits)
@@ -12,6 +12,6 @@ internal class GraphCreationStep(double _approachTolerance = 1e-5, double _toler
             .WithBuildings(model.Buildings)
             .Run();
 
-        return [];
+        return new([],[]);
     }
 }
