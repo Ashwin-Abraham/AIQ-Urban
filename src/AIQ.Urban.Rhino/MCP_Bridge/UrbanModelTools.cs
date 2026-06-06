@@ -13,55 +13,44 @@ using Rhino;
 
 namespace AIQ.Urban.RhinoPlugin.MCP_Bridge;
 
-public record CurveCoordinates(List<(double X, double Y)> Coordinates);
-
 public class UrbanModelTools(RhinoDoc doc, UrbanModel urbanModel)
 {
-    private const string  _success = "Succeeded";
+    private const string _success = "Succeeded";
 
-    /// <summary>Adds transits by centerline coordinates, width, and transit type. Automatically offsets the centerline to create the transit geometry.</summary>
-    /// <param name="width">Width of transit in model units.</param>
-    /// <param name="type">Type of transit.</param>
-    /// <param name="curveCoordinates">A list of XY coordinates for centerline curves. These may be lines or polylines. If the first point in a curve is the same as the last, then it is considered closed.</param>
+    [McpTool("add_transit", "Adds transits by centerline coordinates, width, and transit type. Automatically offsets the centerline to create the transit geometry.")]
     public string AddTransit(
         double width,
         TransitType type,
-        List<CurveCoordinates> curveCoordinates
-    )
+        List<CurveCoordinates> centerlineCurves)
     {
         try
         {
-
-            var curves = curveCoordinates.Select(x => Curve2D.Create(x.Coordinates)).ToList();
+            var curves = centerlineCurves.Select(x => Curve2D.Create(x.ToCoreTupleList())).ToList();
             var transitData = curves.Select(c => new TransitData(c, width, type)).ToList();
 
             Action<RhinoUrbanModelPipeline> pipelineAction = (pipeline) => PipelineConfigurations
             .WithTransitAdditionSteps(pipeline, transitData, []);
 
-            var metrics = new RhinoPipelineExecutorForMcp(doc, urbanModel).Run(pipelineAction);
+            new RhinoPipelineExecutorForMcp(doc, urbanModel).Run(pipelineAction);
             return _success;
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
             return FailureMessage(ex);
         }
     }
 
-    /// <summary>Adds buildings by footprint coordinates, floor height, floor count, and use type.</summary>
-    /// <param name="floorHeight">Floor to floor height between consecutive building floors.</param>
-    /// <param name="floorCount">Number of floors in the building.</param>
-    /// <param name="use">Type of use for the building.</param>
-    /// <param name="footprintCurves">A list of XY coordinates for footprint curves. These must be closed rings. If not closed, the curve will be rejected.</param>
+    [McpTool("add_building", "Adds buildings by footprint coordinates, floor height, floor count, and use type.")]
     public string AddBuilding(
         double floorHeight,
         int floorCount,
-        Use use,
-        List<CurveCoordinates> footprintCurves
-    )
+        string useName,
+        List<CurveCoordinates> footprintCurves)
     {
         try
         {
-            var footprints = footprintCurves.Select(c => Polygon2D.Create(c.Coordinates)).ToList();
+            var use = DefaultUses.Resolve(useName);
+            var footprints = footprintCurves.Select(c => Polygon2D.Create(c.ToCoreTupleList())).ToList();
             var buildingData = footprints.Select(c => new BuildingData(c, floorHeight, floorCount, use)).ToList();
 
             Action<RhinoUrbanModelPipeline> pipelineAction = (pipeline)
@@ -78,9 +67,7 @@ public class UrbanModelTools(RhinoDoc doc, UrbanModel urbanModel)
         }
     }
 
-    /// <summary>Adds a zone by a named boundary polygon.</summary>
-    /// <param name="name">Name for the zone.</param>
-    /// <param name="boundaryCoordinates">A list of XY coordinates forming the zone boundary (closed ring).</param>
+    [McpTool("add_zone", "Adds a zone boundary with a name.")]
     public string AddZone(
         string name,
         List<CurveCoordinates> boundaryCoordinates)
@@ -90,7 +77,7 @@ public class UrbanModelTools(RhinoDoc doc, UrbanModel urbanModel)
             if (boundaryCoordinates.Count == 0)
                 return "Failed. No boundary coordinates provided.";
 
-            var boundary = Polygon2D.Create(boundaryCoordinates[0].Coordinates);
+            var boundary = Polygon2D.Create(boundaryCoordinates[0].ToCoreTupleList());
             var zoneData = new List<ZoneData> { new(boundary, name) };
 
             Action<RhinoUrbanModelPipeline> pipelineAction = (pipeline) => PipelineConfigurations
@@ -105,10 +92,8 @@ public class UrbanModelTools(RhinoDoc doc, UrbanModel urbanModel)
         }
     }
 
-    /// <summary>Deletes transits by their centerline geometry IDs.</summary>
-    /// <param name="centerlineIds">List of centerline geometry IDs to delete.</param>
-    public string DeleteTransit(
-        List<Guid> centerlineIds)
+    [McpTool("delete_transit", "Deletes transits by their centerline IDs.")]
+    public string DeleteTransit(List<Guid> centerlineIds)
     {
         try
         {
@@ -124,10 +109,8 @@ public class UrbanModelTools(RhinoDoc doc, UrbanModel urbanModel)
         }
     }
 
-    /// <summary>Deletes buildings by their geometry IDs.</summary>
-    /// <param name="geometryIds">List of building geometry IDs to delete.</param>
-    public string DeleteBuilding(
-        List<Guid> geometryIds)
+    [McpTool("delete_building", "Deletes buildings by their geometry IDs.")]
+    public string DeleteBuilding(List<Guid> geometryIds)
     {
         try
         {
@@ -143,10 +126,8 @@ public class UrbanModelTools(RhinoDoc doc, UrbanModel urbanModel)
         }
     }
 
-    /// <summary>Deletes zones by their boundary geometry IDs.</summary>
-    /// <param name="geometryIds">List of zone boundary geometry IDs to delete.</param>
-    public string DeleteZone(
-        List<Guid> geometryIds)
+    [McpTool("delete_zone", "Deletes zones by their boundary geometry IDs.")]
+    public string DeleteZone(List<Guid> geometryIds)
     {
         try
         {
@@ -162,10 +143,8 @@ public class UrbanModelTools(RhinoDoc doc, UrbanModel urbanModel)
         }
     }
 
-    /// <summary>Computes project metrics (FAR, coverage, built-up area, transit lengths, zone metrics) from the current model state and returns them as JSON.</summary>
-    /// <param name="tolerance">Containment tolerance for point-in-polygon checks (default 0.001).</param>
-    public string ComputeMetrics(
-        double tolerance = 0.001)
+    [McpTool("compute_metrics", "Recomputes project metrics (FAR, coverage, area per use, transit lengths, zone metrics) from current model state.")]
+    public string ComputeMetrics(double tolerance = 0.001)
     {
         try
         {
@@ -181,12 +160,8 @@ public class UrbanModelTools(RhinoDoc doc, UrbanModel urbanModel)
         }
     }
 
-    /// <summary>Changes the use of one or more buildings or floor plates by their geometry IDs.</summary>
-    /// <param name="geometryIds">List of geometry IDs (envelope or floor plate outlines) to change.</param>
-    /// <param name="useName">New use type name (e.g. Residential, Commercial).</param>
-    public string ChangeBuildingUse(
-        List<Guid> geometryIds,
-        string useName)
+    [McpTool("change_building_use", "Changes the use of buildings or individual floor plates by their geometry IDs.")]
+    public string ChangeBuildingUse(List<Guid> geometryIds, string useName)
     {
         try
         {
@@ -202,6 +177,34 @@ public class UrbanModelTools(RhinoDoc doc, UrbanModel urbanModel)
         {
             return FailureMessage(ex);
         }
+    }
+
+    [McpTool("list_elements", "Lists all urban elements (transits, buildings, parcels, zones) in the current model.")]
+    public string ListElements()
+    {
+        try
+        {
+            var response = new ListElementsResponse(
+                urbanModel.Transits.Select(t => new ElementSummary(t.GetGeometryIds()[0], "Transit", null, t.ToString() ?? "", null)).ToList(),
+                urbanModel.Buildings.Select(b => new ElementSummary(b.GetGeometryIds()[0], "Building", b.FloorPlates.FirstOrDefault()?.Use?.Name, b.ToString() ?? "", null)).ToList(),
+                urbanModel.Parcels.Select(p => new ElementSummary(p.GetGeometryIds()[0], "Parcel", p.Use?.Name, p.ToString() ?? "", null)).ToList(),
+                urbanModel.Zones.Select(z => new ElementSummary(z.GetGeometryIds()[0], "Zone", z.Name, z.ToString() ?? "", null)).ToList());
+
+            return ElementSummarySerializer.Serialize(response);
+        }
+        catch (Exception ex)
+        {
+            return FailureMessage(ex);
+        }
+    }
+
+    [McpTool("list_available_uses", "Returns all available use types that can be assigned to buildings or floor plates.")]
+    public string ListAvailableUses()
+    {
+        return JsonSerializer.Serialize(DefaultUses.Names, new JsonSerializerOptions
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        });
     }
 
     private static string FailureMessage(Exception ex)
