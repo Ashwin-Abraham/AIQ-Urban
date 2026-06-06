@@ -12,13 +12,16 @@ public class Polygon2D : IGeometryElement<Curve>
     {
         ArgumentNullException.ThrowIfNull(geometry);
 
-        if (!geometry.IsPlanarInXY())
+        var copy = geometry.Duplicate() as Curve
+            ?? throw new InvalidOperationException("Failed to duplicate curve.");
+
+        if (!copy.IsPlanarInXY())
             throw new ArgumentException("Polygon2D requires a curve in an XY plane.", nameof(geometry));
 
-        if (!geometry.IsClosed)
+        if (!copy.IsClosed)
             throw new ArgumentException("Polygon2D requires a closed curve.", nameof(geometry));
 
-        Geometry = geometry;
+        Geometry = copy;
     }
 
     public static Polygon2D Create(List<(double X, double Y)> coordinates)

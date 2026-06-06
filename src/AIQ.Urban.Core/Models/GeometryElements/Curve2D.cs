@@ -11,10 +11,13 @@ public class Curve2D : IGeometryElement<Curve>
     {
         ArgumentNullException.ThrowIfNull(geometry);
 
-        if (!geometry.IsPlanar())
+        var copy = geometry.Duplicate() as Curve
+            ?? throw new InvalidOperationException("Failed to duplicate curve.");
+
+        if (!copy.IsPlanar())
             throw new ArgumentException("Curve is not planar in an XY plane", nameof(geometry));
 
-        Geometry = geometry;
+        Geometry = copy;
         Id = id;
     }
 

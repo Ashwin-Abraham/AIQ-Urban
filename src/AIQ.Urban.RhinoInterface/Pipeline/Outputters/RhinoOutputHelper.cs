@@ -51,6 +51,6 @@ internal static class RhinoOutputHelper
             geometry.Id = doc.Objects.AddBrep(brep, attributes);
         }
         else
-            geometry.Id = doc.Objects.AddCurve(geometry.Geometry, attributes);
+            geometry.Id = doc.Objects.AddCurve(geometry.Geometry.Duplicate() as Curve, attributes);
     }
 }
