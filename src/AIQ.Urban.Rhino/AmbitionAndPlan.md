@@ -1,4 +1,14 @@
-﻿I want to speculate on how agents can masterplan.
+﻿---
+name: ambition-and-plan
+description: >
+  Guides AI-assisted urban masterplanning through a structured design process:
+  program mix, site analysis, design principles, concept alternatives, spatial
+  strategy, and incremental 3D geometry generation. Keeps the user in control
+  at every decision gate while providing informed starting points. Use when
+  designing a masterplan, generating urban concepts, or creating site plans.
+---
+
+I want to speculate on how agents can masterplan.
 
 Prompt:
 
@@ -14,74 +24,82 @@ Prompt:
 
 ## Design Steps
 
-Throughout the following design steps always involve the user by asking questions. This is to ensure that you and the users
-ambitions for the project come into alignment. When asking questions provide a few options (2-3) and also recommend one
-of them with reasons.
+At each step, follow this pattern:
+
+1. **Frame** — Share your initial reading of the situation based on what's known so far. This gives the user a starting point to react to.
+2. **Propose** — Offer 2–3 directions or a draft for the user to consider. Recommend one with reasons.
+3. **Ask** — Ask the user for their input, preference, or approval.
+4. **Wait** — Do not proceed to the next step until the user has responded.
+
+This keeps you from running ahead while still giving the user something concrete to react to.
 
 ### Step 1: Program Mix
-Ask the user for the targetted program mix.
+
+Frame your understanding of the project's scale and context based on any program targets already provided. Then ask the user for the targeted program mix and any key ambitions they have.
 
 ### Step 2: Site Details
-Ask the user for the site analysis/ site condition details.
+
+Based on the agreed program mix, suggest which site conditions matter most (access, topography, existing features, constraints). Then ask the user for the site analysis details.
 
 ### Step 3: Design Principles
 
-Produce 2-3 guiding design principles that all subsequent decisions should satisfy. These principles help make tradeoffs when the
-need for this arises.
+Based on the program mix and site conditions, propose 2–3 draft guiding design principles. These should be specific enough to guide tradeoffs later. Explain why each principle fits this project.
 
 Examples:
+- Prioritize walkability.
+- Place daily amenities within 5 minutes.
+- Preserve existing trees where possible.
+- Maximize street frontage.
+- Create active ground floors.
+- Minimize dead-end streets.
 
-Prioritize walkability.
-Place daily amenities within 5 minutes.
-Preserve existing trees where possible.
-Maximize street frontage.
-Create active ground floors.
-Minimize dead-end streets.
+Then ask the user to refine, replace, or approve these principles. These become the evaluation criteria for all subsequent steps.
 
-These principles become the evaluation criteria later.
+### Step 4: Concept Planning
 
-### Step 3: Concept Planning
-Make a concept based on the provided information on what you want to create. What is the main driver of the design?
-As a start produce 3 alternative concepts with 1–2 paragraphs each with clear concise pros and cons. Then ask the user
-what they prefer.
+Share your initial observations about the site's character and what it suggests. 
+Then propose 3 alternative concepts, each with 1–2 paragraphs explaining the approach, 
+why it fits the site and program, and clear concise pros and cons. Recommend one with reasons.
 
 Example concepts:
+- Green spine
+- Transit-oriented development
+- Waterfront boulevard
+- Garden neighbourhood
+- Mixed-use urban blocks
 
-Green spine
-Transit-oriented development
-Waterfront boulevard
-Garden neighbourhood
-Mixed-use urban blocks
+Then ask the user what they prefer and what to carry forward. Ask follow-up questions to narrow down until a clear direction emerges.
 
-Then ask questions to narrow down.
+### Step 5: Spatial Strategy
 
-### Step 4: Spatial Strategy
+Based on the agreed concept, propose spatial strategy items that are most relevant for this project. 
+Ask the user to prioritise the items that matter most.
 
-Produce a spatial strategy describing:
+Potential (non exhaustive) list:
+- Movement hierarchy
+- Green network
+- Public space hierarchy
+- Land use distribution
+- Density distribution
+- Landmark locations
+- View corridors
+- Development edges
+- Transition zones
+- Phasing strategy
 
-Movement hierarchy
-Green network
-Public space hierarchy
-Land use distribution
-Density distribution
-Landmark locations
-View corridors
-Development edges
-Transition zones
-Phasing strategy
+Then develop the prioritised items, clearly indicating the dominant strategy(ies) so that conflicts can be resolved in their favour. Pause after each major item to check alignment with the user.
 
-Only after this should geometry be generated. You may produce a strategy for only some of these items, depending on
-the project/ design intent/ concept/ program mix.
+Only proceed to geometry generation after the spatial strategy has been agreed.
 
-Clearly indicate what the dominant strategy(s) are so that if conflicts arise you can prioritise well.
+### Step 6: Geometry Generation
 
-### 4. Use the tools exposed in the aiq-urban-mcp to implement your plan by creating the actual 3d model.
-Generate geometry incrementally. After each major operation (primary roads, secondary roads, blocks, parcels, open spaces, buildings),
-inspect the resulting model and adjust subsequent decisions accordingly.
+Use the tools exposed in the aiq-urban-mcp to implement your plan by creating the actual 3d model.
+Generate geometry incrementally. After each major operation (primary roads, secondary roads, blocks,
+parcels, open spaces, buildings), inspect the resulting model and adjust subsequent decisions accordingly.
 
-### 5. Verify the output
-Verify the output against alignment with the orignal design principles and concept and report on any difficulties or tensions.
-Revisit step 4 if any issues arise. Involve the user in this verification process asking if they are happy with the output.
+### Step 7: Verification
+
+Verify the output against alignment with the original design principles and concept and report on any difficulties or tensions. Revisit the previous step if any issues arise. Involve the user in this verification process, asking if they are happy with the output.
 
 ## Terminology
-- Concept: The overall unifying design intent 
+- Concept: The overall unifying design intent
