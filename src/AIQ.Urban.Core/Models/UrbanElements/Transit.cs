@@ -10,13 +10,13 @@ namespace AIQ.Urban.Core.Models.UrbanElements;
 public class Transit : IUrbanElement, IGraphableAsEdge
 {
     /// <summary>Path along the corridor (planar at consistent Z).</summary>
-    public Curve2D Centerline { get; }
+    public Curve2D Centerline { get; set; }
 
     /// <inheritdoc/>
     public Curve GraphableGeometry => Centerline.Geometry;
 
     /// <summary>Closed boundary curve representing the full right-of-way.</summary>
-    public Profile2D Outline { get; }
+    public Profile2D Outline { get; set; }
 
     /// <summary>Right-of-way width.</summary>
     public double Width { get; }
@@ -26,9 +26,6 @@ public class Transit : IUrbanElement, IGraphableAsEdge
 
     /// <summary>Whether the corridor sits on ground level.</summary>
     public bool IsOnGround { get; }
-
-    /// <summary>Ordered junction nodes along the corridor.</summary>
-    public List<TransitNode> OrderedNodes { get; }
 
     /// <param name="centerline">Planar path at consistent Z.</param>
     /// <param name="width">Right-of-way width.</param>
@@ -46,7 +43,6 @@ public class Transit : IUrbanElement, IGraphableAsEdge
         Width = width;
         TransitType = transitType;
         IsOnGround = isOnGround;
-        OrderedNodes = [];
         Outline = CalculateOutline(centerline.Geometry, width, tolerance);
     }
 
@@ -79,6 +75,8 @@ public class Transit : IUrbanElement, IGraphableAsEdge
 
     public List<Guid> GetGeometryIds()
     {
-        return [Centerline.Id, Outline.Id];
+        List<Guid> ids = [Centerline.Id, Outline.Outline.Id];
+        ids.AddRange(Outline.Holes.Select(x => x.Id));
+        return ids;
     }
 }

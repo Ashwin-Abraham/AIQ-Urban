@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using AIQ.Urban.Core.Models.GeometryElements;
 using NUnit.Framework;
+using Rhino;
 using Rhino.Geometry;
 using Rhino.Testing.Fixtures;
 
@@ -72,4 +73,44 @@ public class Polygon2DTests
         new("TwoPoints", [(0, 0), (10, 0)], "required"),
         new("EmptyArray", [], "required"),
     ];
+
+    [Test]
+    public void Constructor_StoresIndependentCopy_NotAffectedByDocDeletion()
+    {
+        using var doc = RhinoDoc.CreateHeadless(null);
+        var polyline = new PolylineCurve([
+            new Point3d(0, 0, 0), new Point3d(10, 0, 0),
+            new Point3d(10, 10, 0), new Point3d(0, 10, 0),
+            new Point3d(0, 0, 0),
+        ]);
+        var id = doc.Objects.AddCurve(polyline);
+        var obj = doc.Objects.Find(id);
+        var curve = obj!.Geometry as Curve;
+
+        var sut = new Polygon2D(curve!);
+        doc.Objects.Delete(obj, true);
+
+        Assert.That(sut.Geometry.IsValid, Is.True);
+        Assert.That(sut.Geometry.IsClosed, Is.True);
+    }
+
+    [Test]
+    public void Constructor_StoresIndependentCopy_NotAffectedByDocModification()
+    {
+        using var doc = RhinoDoc.CreateHeadless(null);
+        var polyline = new PolylineCurve([
+            new Point3d(0, 0, 0), new Point3d(10, 0, 0),
+            new Point3d(10, 10, 0), new Point3d(0, 10, 0),
+            new Point3d(0, 0, 0),
+        ]);
+        var id = doc.Objects.AddCurve(polyline);
+        var obj = doc.Objects.Find(id);
+        var curve = obj!.Geometry as Curve;
+
+        var sut = new Polygon2D(curve!);
+        doc.Objects.AddLine(new Line(new Point3d(99, 0, 0), new Point3d(99, 10, 0)));
+
+        Assert.That(sut.Geometry.IsValid, Is.True);
+        Assert.That(sut.Geometry.IsClosed, Is.True);
+    }
 }

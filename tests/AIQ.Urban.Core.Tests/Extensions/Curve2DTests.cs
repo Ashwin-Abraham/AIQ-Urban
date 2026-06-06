@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using AIQ.Urban.Core.Models.GeometryElements;
 using NUnit.Framework;
+using Rhino;
 using Rhino.Geometry;
 using Rhino.Testing.Fixtures;
 
@@ -58,4 +59,34 @@ public class Curve2DTests
         new("SinglePoint", [(0, 0)], "required"),
         new("EmptyArray", [], "required"),
     ];
+
+    [Test]
+    public void Constructor_StoresIndependentCopy_NotAffectedByDocDeletion()
+    {
+        using var doc = RhinoDoc.CreateHeadless(null);
+        var id = doc.Objects.AddLine(new Line(new Point3d(0, 0, 0), new Point3d(10, 0, 0)));
+        var obj = doc.Objects.Find(id);
+        var curve = obj!.Geometry as Curve;
+
+        var sut = new Curve2D(curve!, Guid.NewGuid());
+        doc.Objects.Delete(obj, true);
+
+        Assert.That(sut.Geometry.IsValid, Is.True);
+        Assert.That(sut.Geometry.GetLength(), Is.EqualTo(10.0).Within(1e-6));
+    }
+
+    [Test]
+    public void Constructor_StoresIndependentCopy_NotAffectedByDocModification()
+    {
+        using var doc = RhinoDoc.CreateHeadless(null);
+        var id = doc.Objects.AddLine(new Line(new Point3d(0, 0, 0), new Point3d(10, 0, 0)));
+        var obj = doc.Objects.Find(id);
+        var curve = obj!.Geometry as Curve;
+
+        var sut = new Curve2D(curve!, Guid.NewGuid());
+        doc.Objects.AddLine(new Line(new Point3d(99, 0, 0), new Point3d(99, 10, 0)));
+
+        Assert.That(sut.Geometry.IsValid, Is.True);
+        Assert.That(sut.Geometry.GetLength(), Is.EqualTo(10.0).Within(1e-6));
+    }
 }

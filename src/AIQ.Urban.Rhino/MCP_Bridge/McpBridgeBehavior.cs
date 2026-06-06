@@ -63,6 +63,27 @@ internal class McpBridgeBehavior : WebSocketBehavior
                 new { type = "object", properties = new { floorHeight = new { type = "number", description = "Floor to floor height" }, floorCount = new { type = "integer", description = "Number of floors" }, useName = new { type = "string", description = "Use type (e.g. Residential, Commercial)" }, footprintCurves = new { type = "array", description = "Footprint XY coordinate arrays (closed rings)", items = new { type = "object", properties = new { coordinates = new { type = "array", items = new { type = "array", items = new { type = "number" }, minItems = 2, maxItems = 2 } } } } } }, required = new[] { "floorHeight", "floorCount", "useName", "footprintCurves" } }),
 
             BuildToolSchema("list_elements", "Lists all urban elements (transits, buildings, parcels, zones) in the current model.",
+                new { type = "object", properties = new object { }, required = Array.Empty<string>() }),
+
+            BuildToolSchema("add_zone", "Adds a zone boundary with a name.",
+                new { type = "object", properties = new { name = new { type = "string", description = "Zone name" }, boundaryCoordinates = new { type = "array", description = "Boundary XY coordinates (closed ring)", items = new { type = "object", properties = new { coordinates = new { type = "array", items = new { type = "array", items = new { type = "number" }, minItems = 2, maxItems = 2 } } } } } }, required = new[] { "name", "boundaryCoordinates" } }),
+
+            BuildToolSchema("delete_transit", "Deletes transits by their centerline IDs.",
+                new { type = "object", properties = new { centerlineIds = new { type = "array", description = "Centerline geometry IDs to delete", items = new { type = "string" } } }, required = new[] { "centerlineIds" } }),
+
+            BuildToolSchema("delete_building", "Deletes buildings by their geometry IDs.",
+                new { type = "object", properties = new { geometryIds = new { type = "array", description = "Building geometry IDs to delete", items = new { type = "string" } } }, required = new[] { "geometryIds" } }),
+
+            BuildToolSchema("delete_zone", "Deletes zones by their boundary geometry IDs.",
+                new { type = "object", properties = new { geometryIds = new { type = "array", description = "Zone boundary geometry IDs to delete", items = new { type = "string" } } }, required = new[] { "geometryIds" } }),
+
+            BuildToolSchema("change_building_use", "Changes the use of buildings or individual floor plates.",
+                new { type = "object", properties = new { geometryIds = new { type = "array", description = "Envelope or floor plate outline IDs", items = new { type = "string" } }, useName = new { type = "string", description = "New use type (e.g. Residential, Commercial)" } }, required = new[] { "geometryIds", "useName" } }),
+
+            BuildToolSchema("compute_metrics", "Recomputes project metrics (FAR, coverage, area per use, transit lengths, zone metrics) from current model state.",
+                new { type = "object", properties = new { tolerance = new { type = "number", description = "Containment tolerance (default 0.001)" } }, required = Array.Empty<string>() }),
+
+            BuildToolSchema("list_available_uses", "Returns all available use types that can be assigned to buildings or floor plates.",
                 new { type = "object", properties = new object { }, required = Array.Empty<string>() })
         };
 
@@ -106,6 +127,34 @@ internal class McpBridgeBehavior : WebSocketBehavior
 
                 case "add_building":
                     result = HandleAddBuilding(tools, arguments);
+                    break;
+
+                case "add_zone":
+                    result = HandleAddZone(tools, arguments);
+                    break;
+
+                case "delete_transit":
+                    result = HandleDeleteTransit(tools, arguments);
+                    break;
+
+                case "delete_building":
+                    result = HandleDeleteBuilding(tools, arguments);
+                    break;
+
+                case "delete_zone":
+                    result = HandleDeleteZone(tools, arguments);
+                    break;
+
+                case "change_building_use":
+                    result = HandleChangeBuildingUse(tools, arguments);
+                    break;
+
+                case "compute_metrics":
+                    result = HandleComputeMetrics(tools, arguments);
+                    break;
+
+                case "list_available_uses":
+                    result = HandleListAvailableUses();
                     break;
 
                 case "list_elements":
@@ -183,8 +232,104 @@ internal class McpBridgeBehavior : WebSocketBehavior
             footprints.Add(new CurveCoordinates(coords));
         }
 
-        var metrics = tools.AddBuilding(floorHeight, floorCount, use, footprints);
-        return JsonSerializer.SerializeToElement(metrics, JsonOptions);
+        var result = tools.AddBuilding(floorHeight, floorCount, use, footprints);
+        return JsonSerializer.SerializeToElement(result, JsonOptions);
+    }
+
+    private JsonElement HandleAddZone(UrbanModelTools tools, JsonElement? args)
+    {
+        if (args is null)
+            throw new ArgumentException("Arguments required");
+
+        var name = args.Value.GetProperty("name").GetString() ?? "";
+        var boundaryEl = args.Value.GetProperty("boundaryCoordinates");
+        var boundaryCoordinates = new List<CurveCoordinates>();
+
+        foreach (var item in boundaryEl.EnumerateArray())
+        {
+            var coords = new List<(double X, double Y)>();
+            foreach (var pt in item.GetProperty("coordinates").EnumerateArray())
+            {
+                var arr = pt.EnumerateArray().ToList();
+                coords.Add((arr[0].GetDouble(), arr[1].GetDouble()));
+            }
+            boundaryCoordinates.Add(new CurveCoordinates(coords));
+        }
+
+        var zoneResult = tools.AddZone(name, boundaryCoordinates);
+        return JsonSerializer.SerializeToElement(zoneResult, JsonOptions);
+    }
+
+    private JsonElement HandleDeleteTransit(UrbanModelTools tools, JsonElement? args)
+    {
+        if (args is null)
+            throw new ArgumentException("Arguments required");
+
+        var ids = args.Value.GetProperty("centerlineIds")
+            .EnumerateArray()
+            .Select(x => Guid.Parse(x.GetString()!))
+            .ToList();
+
+        var result = tools.DeleteTransit(ids);
+        return JsonSerializer.SerializeToElement(result, JsonOptions);
+    }
+
+    private JsonElement HandleDeleteBuilding(UrbanModelTools tools, JsonElement? args)
+    {
+        if (args is null)
+            throw new ArgumentException("Arguments required");
+
+        var ids = args.Value.GetProperty("geometryIds")
+            .EnumerateArray()
+            .Select(x => Guid.Parse(x.GetString()!))
+            .ToList();
+
+        var result = tools.DeleteBuilding(ids);
+        return JsonSerializer.SerializeToElement(result, JsonOptions);
+    }
+
+    private JsonElement HandleDeleteZone(UrbanModelTools tools, JsonElement? args)
+    {
+        if (args is null)
+            throw new ArgumentException("Arguments required");
+
+        var ids = args.Value.GetProperty("geometryIds")
+            .EnumerateArray()
+            .Select(x => Guid.Parse(x.GetString()!))
+            .ToList();
+
+        var result = tools.DeleteZone(ids);
+        return JsonSerializer.SerializeToElement(result, JsonOptions);
+    }
+
+    private JsonElement HandleChangeBuildingUse(UrbanModelTools tools, JsonElement? args)
+    {
+        if (args is null)
+            throw new ArgumentException("Arguments required");
+
+        var ids = args.Value.GetProperty("geometryIds")
+            .EnumerateArray()
+            .Select(x => Guid.Parse(x.GetString()!))
+            .ToList();
+        var useName = args.Value.GetProperty("useName").GetString() ?? "Residential";
+
+        var result = tools.ChangeBuildingUse(ids, useName);
+        return JsonSerializer.SerializeToElement(result, JsonOptions);
+    }
+
+    private JsonElement HandleComputeMetrics(UrbanModelTools tools, JsonElement? args)
+    {
+        var tolerance = 0.001;
+        if (args is not null && args.Value.TryGetProperty("tolerance", out var tol))
+            tolerance = tol.GetDouble();
+
+        var result = tools.ComputeMetrics(tolerance);
+        return JsonDocument.Parse(result).RootElement;
+    }
+
+    private static JsonElement HandleListAvailableUses()
+    {
+        return JsonSerializer.SerializeToElement(DefaultUses.Names, JsonOptions);
     }
 
     private JsonElement HandleListElements(UrbanModel model)
