@@ -9,8 +9,6 @@ public class Profile2D : IGeometryElement<Brep>
         set => Outline.Id = value;
     }
     public Brep Geometry { get; }
-    
-    //TODO: Use Polygon not Polygon2D because we dont want to track the ID
     public Polygon2D Outline { get; }
     public List<Polygon2D> Holes { get; }
 

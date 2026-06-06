@@ -3,6 +3,7 @@ using AIQ.Urban.Core.Models.GeometryElements;
 using AIQ.Urban.RhinoInterface.Extensions;
 using Rhino;
 using Rhino.DocObjects;
+using Rhino.Geometry;
 
 namespace AIQ.Urban.RhinoInterface.Pipeline.Outputters;
 
@@ -20,29 +21,29 @@ internal static class RhinoOutputHelper
         return new ObjectAttributes { LayerIndex = layerIndex };
     }
 
-    internal static Guid OutputGeometry(RhinoDoc doc, Curve2D geometry, ObjectAttributes attributes)
+    internal static void OutputGeometry(RhinoDoc doc, Curve2D geometry, ObjectAttributes attributes)
     {
-        geometry.Id = doc.Objects.AddCurve(geometry.Geometry, attributes);
-        return geometry.Id;
+        var curve = geometry.Geometry.Duplicate() as Curve;
+        geometry.Id = doc.Objects.AddCurve(curve, attributes);
     }
 
-    internal static IEnumerable<Guid> OutputGeometry(RhinoDoc doc, Profile2D geometry, ObjectAttributes attributes, bool asBrep)
+    internal static void OutputGeometry(RhinoDoc doc, Profile2D geometry, ObjectAttributes attributes, bool asBrep)
     {
         if (asBrep)
         {
-            geometry.Id = doc.Objects.AddBrep(geometry.Geometry, attributes);
-            yield return geometry.Id;
+            var brep = geometry.Geometry.Duplicate() as Brep;
+            geometry.Id = doc.Objects.AddBrep(brep, attributes);
         }
         else
         {
-            yield return OutputGeometry(doc, geometry.Outline, attributes, false);
+            OutputGeometry(doc, geometry.Outline, attributes, false);
 
             foreach (var hole in geometry.Holes)
-                yield return OutputGeometry(doc, hole, attributes, false);
+                OutputGeometry(doc, hole, attributes, false);
         }
     }
 
-    internal static Guid OutputGeometry(RhinoDoc doc, Polygon2D geometry, ObjectAttributes attributes, bool asBrep)
+    internal static void OutputGeometry(RhinoDoc doc, Polygon2D geometry, ObjectAttributes attributes, bool asBrep)
     {
         if(asBrep)
         {
@@ -51,7 +52,5 @@ internal static class RhinoOutputHelper
         }
         else
             geometry.Id = doc.Objects.AddCurve(geometry.Geometry, attributes);
-
-        return geometry.Id;
     }
 }
