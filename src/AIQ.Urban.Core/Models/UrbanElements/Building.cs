@@ -24,7 +24,7 @@ public class Building : IUrbanElement, IGraphableAsNode
         curve.TryGetPlane(out var plane);
         if (plane.Normal.Z < 0)
         {
-            curve = curve.DuplicateCurve();
+            curve = curve.DuplicateCurve() as PolylineCurve;
             curve.Reverse();
         }
 
