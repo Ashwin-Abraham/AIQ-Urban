@@ -15,6 +15,11 @@ public class LongEdgeToCenter(int _dividerCount = 2, double _tolerance = 1e-6) :
             .Take(_dividerCount)
             .ToList();
 
+        if (divisionSegments.Count < 2)
+        {
+            return new DivisionResult([profile], []);
+        }
+
         var divisionRegions = ToRegions(profile.Outline.Geometry, divisionSegments);
 
         var regions = new List<Polyline>();
@@ -34,7 +39,7 @@ public class LongEdgeToCenter(int _dividerCount = 2, double _tolerance = 1e-6) :
             .SelectMany(x => CurveToPolylines(x, _tolerance))
             .ToList();
 
-        regions.AddRange(remainderPolylines);
+        //regions.AddRange(remainderPolylines);
         
         var dividers = divisionSegments.Select(x => new Curve2D(x.Segment, Guid.NewGuid())).ToList();
         var fragments = regions
@@ -61,6 +66,13 @@ public class LongEdgeToCenter(int _dividerCount = 2, double _tolerance = 1e-6) :
         {
             var thisOne = divisionSegments[i];
             var nextOne = divisionSegments[(i + 1) % divisionSegments.Count];
+
+            if(thisOne.Index > nextOne.Index)
+            {
+                var temp = thisOne;
+                thisOne = nextOne;
+                nextOne = temp;
+            }
 
             var firstPoint = thisOne.Segment.PointAtMid;
             var interveningPoints = GetInterveningPoints(outline, thisOne.Index, nextOne.Index).ToList();
@@ -101,21 +113,23 @@ public class LongEdgeToCenter(int _dividerCount = 2, double _tolerance = 1e-6) :
         return [polyline];
     }
 
-    private IEnumerable<Point3d> GetInterveningPoints(PolylineCurve curve, int thisSegmentIndex, int nextSegmentIndex)
+    private static IEnumerable<Point3d> GetInterveningPoints(PolylineCurve curve, int thisSegmentIndex, int nextSegmentIndex)
     {
-        var count = curve.PointCount - 1;
-
-        thisSegmentIndex = ((thisSegmentIndex % count) + count) % count;
-        nextSegmentIndex = ((nextSegmentIndex % count) + count) % count;
-
-        if (thisSegmentIndex == nextSegmentIndex)
+        if(thisSegmentIndex < 0 || nextSegmentIndex < 0)
             yield break;
 
-        var i = (thisSegmentIndex + 1) % count;
-        while (i != nextSegmentIndex)
+        var count = curve.PointCount - 1;
+
+        var thisPointIndex = (thisSegmentIndex + 1) % count;
+        var lastPointIndex = (nextSegmentIndex + 1) % count;
+
+        if (thisPointIndex == lastPointIndex)
+            yield break;
+
+        while (thisPointIndex != nextSegmentIndex)
         {
-            yield return curve.Point(i);
-            i = (i + 1) % count;
+            yield return curve.Point(thisPointIndex);
+            thisPointIndex = (thisPointIndex + 1) % count;
         }
     }
 }
