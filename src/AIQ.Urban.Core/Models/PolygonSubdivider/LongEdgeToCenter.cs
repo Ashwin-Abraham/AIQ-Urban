@@ -77,7 +77,7 @@ public class LongEdgeToCenter(int _dividerCount = 2, double _tolerance = 1e-6) :
     }
 
     private IEnumerable<Point3d> GetInterveningPoints(PolylineCurve curve, int thisSegmentIndex, int nextSegmentIndex)
-    {
+{
         if (thisSegmentIndex < 0 || nextSegmentIndex < 0 || thisSegmentIndex == nextSegmentIndex)
             yield break;
 
@@ -85,7 +85,7 @@ public class LongEdgeToCenter(int _dividerCount = 2, double _tolerance = 1e-6) :
         nextSegmentIndex = nextSegmentIndex % (curve.PointCount - 1);
 
         for(int i = thisSegmentIndex + 1; i != nextSegmentIndex; i++)
-        {
+    {
             // Ensure wrap around
             i = i % (curve.PointCount - 1);
 
