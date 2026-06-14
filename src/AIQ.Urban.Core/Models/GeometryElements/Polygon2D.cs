@@ -3,16 +3,16 @@ using AIQ.Urban.Core.Extensions;
 
 namespace AIQ.Urban.Core.Models.GeometryElements;
 
-public class Polygon2D : IGeometryElement<Curve>
+public class Polygon2D : IGeometryElement<PolylineCurve>
 {
-    public Curve Geometry { get; }
+    public PolylineCurve Geometry { get; }
     public Guid Id { get; set; } = Guid.NewGuid();
 
     public Polygon2D(Curve geometry)
     {
         ArgumentNullException.ThrowIfNull(geometry);
 
-        var copy = geometry.Duplicate() as Curve
+        var copy = geometry.Duplicate() as PolylineCurve
             ?? throw new InvalidOperationException("Failed to duplicate curve.");
 
         if (!copy.IsPlanarInXY())

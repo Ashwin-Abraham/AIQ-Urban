@@ -1,4 +1,5 @@
-﻿using Rhino.Geometry;
+﻿using AIQ.Urban.Core.Extensions;
+using Rhino.Geometry;
 
 namespace AIQ.Urban.Core.Models.GeometryElements;
 public class Profile2D : IGeometryElement<Brep>
@@ -63,5 +64,10 @@ public class Profile2D : IGeometryElement<Brep>
             return null;
 
         return new Profile2D(profileBrep, outline, holes);
+    }
+
+    public Point2d Centroid()
+    {
+        return AreaMassProperties.Compute(Geometry).Centroid.ToPoint2d();
     }
 }
