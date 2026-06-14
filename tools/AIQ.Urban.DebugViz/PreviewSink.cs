@@ -18,15 +18,19 @@ public sealed class PreviewSink : IPreviewSink
     /// <inheritdoc/>
     public void AddToPreviewDoc(object @object)
     {
+        var found = false;
+
         foreach (var converter in _elementConverters)
         {
             if (!converter.IsPreviewable(@object))
                 continue;
 
             converter.AddToPreviewDoc(@object, _doc);
+            found = true;
         }
 
-        ReportFailedType(@object);
+        if (!found)
+            ReportFailedType(@object);
     }
 
     /// <inheritdoc/>

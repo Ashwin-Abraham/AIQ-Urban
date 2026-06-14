@@ -1,5 +1,4 @@
-﻿using System.Drawing;
-using AIQ.PreviewHelper.Core;
+﻿using AIQ.PreviewHelper.Core;
 using Rhino;
 using Rhino.DocObjects;
 using Rhino.Geometry;
@@ -11,8 +10,8 @@ public class DefaultCurveConverter : IGeometryPreviewConverter
     {
         var layer = RhinoHelper.EnsureLayer(
             doc, 
-            PreviewConstants.DefaultCurveLayer,
-            Color.FromArgb(15, Color.Gray));
+            PreviewConstants.DebugCurveLayer,
+            PreviewConstants.DebugGeometryColor);
 
         var attributes = new ObjectAttributes { LayerIndex = layer };
 
