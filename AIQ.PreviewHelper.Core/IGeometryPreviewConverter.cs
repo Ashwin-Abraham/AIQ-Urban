@@ -3,21 +3,18 @@
 namespace AIQ.PreviewHelper.Core;
 
 /// <summary>
-/// Holds the logic for converting an object into a list of elements suitable for previewing in the <see cref="PreviewHub"/>
-/// and the <see cref="PreviewSink"/>."/>
+/// Converts a domain object into Rhino geometry and adds it to a headless <see cref="RhinoDoc"/>
+/// for previewing via <see cref="PreviewHub"/> or <see cref="PreviewSink"/>.
 /// </summary>
-/// <param name="PreviewStyle">The preview style index of the preview helper. 
-/// This allows for the presetting of complex preview logic</param>
-/// <param name="Convert">The logic used to convert an object into previewable geometry</param>
 public interface IGeometryPreviewConverter
 {
     /// <summary>
     /// Checks if an object can be converted by this converter.
     /// </summary>
-    public bool IsPreviewable(object @object);
+    bool IsPreviewable(object @object);
 
     /// <summary>
-    /// Converts the object using the specified preview style preset.
+    /// Converts the object into Rhino geometry and adds it to the given document.
     /// </summary>
-    public void AddToPreviewDoc(object @object, RhinoDoc doc);
+    void AddToPreviewDoc(object @object, RhinoDoc doc);
 }
