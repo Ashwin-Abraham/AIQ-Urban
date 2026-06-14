@@ -11,6 +11,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\AIQ.PreviewHelper.Core\AIQ.PreviewHelper.Core.csproj" />
     <ProjectReference Include="..\..\src\AIQ.Urban.Core\AIQ.Urban.Core.csproj" />
   </ItemGroup>
 
