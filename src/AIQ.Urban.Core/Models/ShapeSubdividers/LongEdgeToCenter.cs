@@ -9,18 +9,19 @@ public class LongEdgeToCenter(int _dividerCount = 2, double _tolerance = 1e-6) :
         var curve = profile.Outline.Geometry;
         var segments = curve.DuplicateSegments();
 
-        var divisionSegments = segments
+        var divisionSegmentIndices = segments
             .Select((x, i) => (Index: i, Segment: x))
             .OrderByDescending(x => x.Segment.GetLength())
             .Take(_dividerCount)
+            .Select(x => x.Index)
             .ToList();
 
-        if (divisionSegments.Count < 2)
+        if (divisionSegmentIndices.Count < 2)
         {
             return new DivisionResult([profile], []);
         }
 
-        var divisionRegions = ToRegions(profile.Outline.Geometry, divisionSegments);
+        var divisionRegions = ToRegions(profile.Outline.Geometry, divisionSegmentIndices);
 
         var regions = new List<Polyline>();
 
@@ -35,13 +36,13 @@ public class LongEdgeToCenter(int _dividerCount = 2, double _tolerance = 1e-6) :
             regions.AddRange(overlappedPlines);
         }
 
-        var remainderPolylines = Curve.CreateBooleanDifference(profile.Outline.Geometry, divisionRegions, _tolerance)
-            .SelectMany(x => CurveToPolylines(x, _tolerance))
-            .ToList();
+        //var remainderPolylines = Curve.CreateBooleanDifference(profile.Outline.Geometry, divisionRegions, _tolerance)
+        //    .SelectMany(x => CurveToPolylines(x, _tolerance))
+        //    .ToList();
 
         //regions.AddRange(remainderPolylines);
         
-        var dividers = divisionSegments.Select(x => new Curve2D(x.Segment, Guid.NewGuid())).ToList();
+        var dividers = divisionSegmentIndices.Select(x => new Curve2D(segments[x], Guid.NewGuid())).ToList();
         var fragments = regions
             .Select(x =>
             {
@@ -55,28 +56,23 @@ public class LongEdgeToCenter(int _dividerCount = 2, double _tolerance = 1e-6) :
         return new DivisionResult(fragments, dividers);
     }
 
-    private List<PolylineCurve> ToRegions(PolylineCurve outline, List<(int Index, Curve Segment)> divisionSegments)
+    private List<PolylineCurve> ToRegions(PolylineCurve outline, List<int> divisionSegments)
     {
         var centroid = AreaMassProperties.Compute(outline).Centroid;
 
         // Assuming CW winding
         List<PolylineCurve> regions = [];
+        var segments = outline.DuplicateSegments();
+        divisionSegments.Sort();
 
         for(int i = 0;  i < divisionSegments.Count; i++)
         {
             var thisOne = divisionSegments[i];
             var nextOne = divisionSegments[(i + 1) % divisionSegments.Count];
 
-            if(thisOne.Index > nextOne.Index)
-            {
-                var temp = thisOne;
-                thisOne = nextOne;
-                nextOne = temp;
-            }
-
-            var firstPoint = thisOne.Segment.PointAtMid;
-            var interveningPoints = GetInterveningPoints(outline, thisOne.Index, nextOne.Index).ToList();
-            var lastPoint = nextOne.Segment.PointAtMid;
+            var firstPoint = segments[thisOne].PointAtMid;
+            var interveningPoints = GetInterveningPoints(outline, thisOne, nextOne).ToList();
+            var lastPoint = segments[nextOne].PointAtMid;
             var points = interveningPoints
                 .Prepend(firstPoint)
                 .Append(lastPoint)
@@ -126,7 +122,7 @@ public class LongEdgeToCenter(int _dividerCount = 2, double _tolerance = 1e-6) :
         if (thisPointIndex == lastPointIndex)
             yield break;
 
-        while (thisPointIndex != nextSegmentIndex)
+        while (thisPointIndex != lastPointIndex)
         {
             yield return curve.Point(thisPointIndex);
             thisPointIndex = (thisPointIndex + 1) % count;
