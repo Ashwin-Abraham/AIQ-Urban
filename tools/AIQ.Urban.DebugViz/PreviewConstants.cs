@@ -1,23 +1,36 @@
-﻿using System.Text;
+﻿using System.Drawing;
+using AIQ.Urban.Core.Enums;
 
 namespace AIQ.Urban.DebugViz;
-internal class PreviewConstants
+
+internal static class PreviewConstants
 {
-    internal static readonly string DefaultLayer = "Default";
-    internal static readonly string DefaultCurveLayer = CombineLayers(DefaultLayer, "Curves");
+    internal const string AiqUrbanRoot = "AIQ Urban";
 
-    private static string CombineLayers(params string[] pathFragments)
-    {
-        if(pathFragments.Length == 0) return "";
+    // --- Building layers ---
+    internal const string BuildingLayer = "AIQ Urban::Building";
+    internal const string BuildingEnvelopeLayer = "AIQ Urban::Building::Envelope";
+    internal const string BuildingFloorPlatesLayer = "AIQ Urban::Building::FloorPlates";
 
-        var pathBuilder = new StringBuilder(pathFragments[0]);
+    // --- Transit layers ---
+    internal const string TransitLayer = "AIQ Urban::Transit";
+    internal static string TransitCenterlineLayer(TransitType type) => $"{TransitLayer}::{type}::Centerline";
+    internal static string TransitOutlineLayer(TransitType type) => $"{TransitLayer}::{type}::Outline";
+    internal static string TransitSurfaceLayer(TransitType type) => $"{TransitLayer}::{type}::Surface";
 
-        for(int i = 1; i < pathFragments.Length; i++)
-        {
-            pathBuilder.Append(":");
-            pathBuilder.Append(pathFragments[i]);
-        }
+    // --- Parcel layers ---
+    internal const string ParcelLayer = "AIQ Urban::Parcel";
 
-        return pathBuilder.ToString();
-    }
+    // --- Zone layers ---
+    internal const string ZoneLayer = "AIQ Urban::Zone";
+
+    // --- Debug layers (geometry-level) ---
+    internal const string DebugDefaultLayer = "Default";
+    internal const string DebugCurveLayer = "Default:Curves";
+    internal const string DebugBrepLayer = "Default:Breps";
+    internal const string DebugProfileLayer = "Default:Profiles";
+
+    // --- Default colors ---
+    internal static readonly Color DebugGeometryColor = Color.FromArgb(15, Color.Gray);
+    internal static readonly Color ZoneDefaultColor = Color.CornflowerBlue;
 }

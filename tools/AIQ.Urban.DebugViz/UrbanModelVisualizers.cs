@@ -14,9 +14,9 @@ public static class UrbanModelVisualizers
         Visualizer.View(doc);
     }
 
-    public static void VisualizeBuildings(this UrbanModel model, bool viewLocal = true, bool showEnvelope = false)
+    public static void VisualizeBuildings(this UrbanModel model, bool viewLocal = true)
     {
-        var doc = new UrbanSceneBuilder(showEnvelope: showEnvelope)
+        var doc = new UrbanSceneBuilder()
             .AddUrbanElements(model.Buildings.Cast<IUrbanElement>().ToList())
             .Build();
         Visualizer.View(doc, viewLocal: viewLocal);

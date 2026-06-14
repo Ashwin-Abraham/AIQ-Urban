@@ -24,9 +24,19 @@ public static class PreviewAssemblyBootstrap
         var converters = new List<IGeometryPreviewConverter>()
         {
             new DefaultCurveConverter(),
+            new Curve2DConverter(),
+            new Polygon2DConverter(),
+            new CurveElementConverter(),
+            new BrepElementConverter(),
+            new Profile2DConverter(),
+            new FloorPlateConverter(),
+            new BuildingConverter(),
+            new TransitConverter(),
+            new ParcelConverter(),
+            new ZoneConverter(),
+            new TransitSurfacesConverter(),
         };
 
-        // TODO: Add additional converters for all classes that need to be visualised
         PreviewHub.Sink = new PreviewSink(converters.ToHashSet());
     }
 }
