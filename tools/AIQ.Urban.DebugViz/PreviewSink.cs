@@ -32,6 +32,7 @@ public sealed class PreviewSink : IPreviewSink
     /// <inheritdoc/>
     public void PreviewDoc(bool useWebViewer = false)
     {
+        Visualizer.View(_doc, viewLocal: !useWebViewer);
     }
 
     private static void ReportFailedType(object @object)
