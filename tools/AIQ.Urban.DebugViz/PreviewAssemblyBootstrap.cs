@@ -2,6 +2,7 @@
 
 using System.Runtime.CompilerServices;
 using AIQ.PreviewHelper.Core;
+using AIQ.Urban.DebugViz.Converters;
 
 namespace AIQ.Urban.DebugViz;
 
@@ -21,14 +22,7 @@ public static class PreviewAssemblyBootstrap
     {
         var converters = new List<IGeometryPreviewConverter>()
         {
-            //new WallDataPreviewConverter(),
-            //new Vector3PreviewConverter(),
-            //new LinePreviewConverter(),
-            //new PlanePreviewConverter(),
-            //new PolygonPreviewConverter(),
-            //new ProfilePreviewConverter(),
-            //new RegionPreviewConverter(),
-            //new WallFramingGraphPreviewConverter(),
+            new DefaultCurveConverter(),
         };
 
         // TODO: Add additional converters for all classes that need to be visualised
