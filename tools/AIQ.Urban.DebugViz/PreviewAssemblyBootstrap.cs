@@ -8,14 +8,15 @@ namespace AIQ.Urban.DebugViz;
 
 
 /// <summary>
-/// Registers the preview sink for the kope.PreviewHelper.Converters in the test assembly.
+/// Registers the preview sink and its converters into <see cref="PreviewHub"/>
+/// when the assembly is loaded, making preview available across all projects in DEBUG builds.
 /// </summary>
 public static class PreviewAssemblyBootstrap
 {
     /// <summary>
     /// Attaches preview converters to the <see cref="PreviewHub"/>.
-    /// The converters are then accessible within any other project
-    /// enabling previews during debug sessions and avoids 
+    /// The converters are then accessible within any other project,
+    /// enabling previews during debug sessions without circular dependencies.
     /// </summary>
     [ModuleInitializer]
     public static void Initialize()

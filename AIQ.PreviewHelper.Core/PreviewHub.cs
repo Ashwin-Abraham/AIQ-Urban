@@ -2,11 +2,9 @@
 
 #if DEBUG
 /// <summary>
-/// Contains a space for the injection of preview logic without causing a circular dependancy.
-/// <see cref="PreviewHub.Sink"/> will host preview helper logic that converts any object
-/// into a previewable format if the preview helper for that object is present in the sink.
-/// 
-/// This class acts as an orchestrator for the preview conversion logic of the <see cref="IPreviewSink"/>
+/// Static service locator for debug-only preview functionality.
+/// Accepts an <see cref="IPreviewSink"/> implementation via <see cref="Sink"/>
+/// to avoid circular dependencies between domain projects and preview converters.
 /// </summary>
 public static class PreviewHub
 {
@@ -19,9 +17,7 @@ public static class PreviewHub
     /// Converts any object into a previewable format using logic present in <see cref="PreviewHub.Sink"/>
     /// if it was injected in at the start of the program.
     /// </summary>
-    /// <param name="object">The object to preview</param>
-    /// <param name="previewStyle">The preview style index of the preview helper. 
-    /// This allows for the presetting of complex preview logic</param>
+    /// <param name="object">The object to preview.</param>
     public static void AddToPreviewDoc(this object @object)
     {
         Sink?.AddToPreviewDoc(@object);
@@ -31,9 +27,8 @@ public static class PreviewHub
     /// Converts any object into a previewable format using logic present in <see cref="PreviewHub.Sink"/>
     /// if it was injected in at the start of the program and then previews it.
     /// </summary>
-    /// <param name="object">The object to preview</param>
-    /// <param name="previewStyle">The preview style index of the preview helper. 
-    /// This allows for the presetting of complex preview logic</param>
+    /// <param name="object">The object to preview.</param>
+    /// <param name="useWebView">If true, opens in a web-based viewer; otherwise uses the OS-default GLB viewer.</param>
     public static void PreviewViaHub(this object @object, bool useWebView = false)
     {
         Sink?.AddToPreviewDoc(@object);
