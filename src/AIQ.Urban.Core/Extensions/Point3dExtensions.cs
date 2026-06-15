@@ -7,4 +7,9 @@ public static class Point3dExtensions
     {
         return new Point2d(point.X, point.Y);
     }
+
+    public static Vector3d ToVector3d(this Point3d point)
+    {
+        return new Vector3d(point.X, point.Y, point.Z);
+    }
 }
