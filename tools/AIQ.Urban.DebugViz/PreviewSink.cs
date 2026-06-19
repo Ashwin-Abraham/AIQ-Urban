@@ -1,5 +1,5 @@
 ﻿using System.Diagnostics;
-using System.Text;
+using System.Drawing;
 using AIQ.PreviewHelper.Core;
 using Rhino;
 
@@ -15,8 +15,7 @@ public sealed class PreviewSink : IPreviewSink
         _elementConverters = elementConverters;
     }
 
-    /// <inheritdoc/>
-    public void AddToPreviewDoc(object @object)
+    public void AddToPreviewDoc(object @object, Color? color = null)
     {
         var found = false;
 
@@ -25,7 +24,7 @@ public sealed class PreviewSink : IPreviewSink
             if (!converter.IsPreviewable(@object))
                 continue;
 
-            converter.AddToPreviewDoc(@object, _doc);
+            converter.AddToPreviewDoc(@object, _doc, color);
             found = true;
         }
 
@@ -33,7 +32,6 @@ public sealed class PreviewSink : IPreviewSink
             ReportFailedType(@object);
     }
 
-    /// <inheritdoc/>
     public void PreviewDoc(bool useWebViewer = false)
     {
         Visualizer.View(_doc, viewLocal: !useWebViewer);

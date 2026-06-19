@@ -36,12 +36,6 @@ public class LongEdgeToCenter(int _dividerCount = 2, double _tolerance = 1e-6) :
             regions.AddRange(overlappedPlines);
         }
 
-        //var remainderPolylines = Curve.CreateBooleanDifference(profile.Outline.Geometry, divisionRegions, _tolerance)
-        //    .SelectMany(x => CurveToPolylines(x, _tolerance))
-        //    .ToList();
-
-        //regions.AddRange(remainderPolylines);
-        
         var dividers = divisionSegmentIndices.Select(x => new Curve2D(segments[x], Guid.NewGuid())).ToList();
         var fragments = regions
             .Select(x =>

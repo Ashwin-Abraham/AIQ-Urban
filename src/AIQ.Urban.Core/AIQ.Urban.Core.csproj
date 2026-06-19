@@ -18,6 +18,7 @@
 
   <ItemGroup>
     <Folder Include="Comparers\" />
+    <Folder Include="GeometryOperations\" />
   </ItemGroup>
 
   <ItemGroup>
