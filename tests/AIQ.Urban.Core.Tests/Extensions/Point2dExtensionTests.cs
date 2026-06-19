@@ -1,5 +1,7 @@
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
+using AIQ.PreviewHelper.Core;
 using AIQ.Urban.Core.Extensions;
 using NUnit.Framework;
 using Rhino.Geometry;
@@ -16,8 +18,13 @@ public class Point2dExtensionTests
     [TestCase("CollinearPoints")]
     public void GrahamConvexHull_ReturnsFewerThanThreePoints(string testName)
     {
+        // Arrange
         var testData = _degenerateTestData.Single(x => x.CaseName == testName);
+        
+        // Act
         var result = testData.Input.GrahamConvexHull();
+        
+        // Assert
         Assert.That(result.Count, Is.LessThan(3));
     }
 
@@ -28,9 +35,20 @@ public class Point2dExtensionTests
     [TestCase("Triangle")]
     public void GrahamConvexHull_ReturnsConvexHull(string testName)
     {
+        // Arrange
         var testData = _hullTestData.Single(x => x.CaseName == testName);
+        
+        // Act
         var result = testData.Input.GrahamConvexHull();
 
+        // Preview
+        var polylineResult = new PolylineCurve(result.Select(x => x.ToPoint3d()));
+        testData.Input.Select(x => x.ToPoint3d())
+            .Select(x => new Circle(x, 1).ToNurbsCurve())
+            .ToList().ForEach(x => x.AddToPreviewDoc());
+        polylineResult.PreviewViaHub(color: Color.DarkBlue);
+
+        // Assert
         Assert.That(result.Count, Is.EqualTo(testData.ExpectedCount));
 
         // Verify convexity: all consecutive triples form a left turn (CCW)

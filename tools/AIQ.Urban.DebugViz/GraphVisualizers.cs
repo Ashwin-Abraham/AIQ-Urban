@@ -2,7 +2,6 @@ using System.Drawing;
 using AIQ.Urban.Core.Models.UrbanElements;
 using AIQ.Urban.Core.Models.UrbanGraph;
 using Rhino;
-using Rhino.DocObjects;
 using Rhino.Geometry;
 
 namespace AIQ.Urban.DebugViz;
@@ -22,9 +21,7 @@ public static class GraphVisualizers
                 _ => Color.Gray,
             };
 
-            var layer = RhinoHelper.EnsureLayer(doc, $"GraphNodes::{color.Name}", color);
-            var attribs = new ObjectAttributes { LayerIndex = layer };
-
+            var attribs = RhinoHelper.MakeAttributes(doc, $"GraphNodes::{color.Name}", color);
             var sphere = new Sphere(node.Point, sphereRadius);
             doc.Objects.AddBrep(sphere.ToBrep(), attribs);
         }
@@ -38,9 +35,7 @@ public static class GraphVisualizers
                 _ => Color.Gray,
             };
 
-            var layer = RhinoHelper.EnsureLayer(doc, $"GraphEdges::{color.Name}", color);
-            var attribs = new ObjectAttributes { LayerIndex = layer };
-
+            var attribs = RhinoHelper.MakeAttributes(doc, $"GraphEdges::{color.Name}", color);
             var line = new Line(edge.Start.Point, edge.End.Point);
             doc.Objects.AddLine(line, attribs);
         }

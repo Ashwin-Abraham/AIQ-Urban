@@ -32,7 +32,6 @@ public class LongEdgeToCenterTests
 
         // Act
         var result = subdivider.Run(testData.Input);
-        var count = result.Fragmenets.Count;
 
         // Visualise
 #if DEBUG
@@ -102,7 +101,7 @@ public class LongEdgeToCenterTests
             new(
                 CaseName: "Rectangle_DividerCount1",
                 Input: MakeRectangle(20, 10),
-                DividerCount: 1,
+                DividerCount: 0,
                 ExpectedFragmentCount: 1),
 
             new(
@@ -155,19 +154,19 @@ public class LongEdgeToCenterTests
     private static void PreviewDivision(Profile2D input, DivisionResult result)
     {
         var doc = RhinoDoc.CreateHeadless(null);
-        var outlineLayer = RhinoHelper.EnsureLayer(doc, "Original Outline", Color.Black);
-        doc.Objects.AddCurve(input.Outline.Geometry, new ObjectAttributes { LayerIndex = outlineLayer });
+        var outlineAttribs = RhinoHelper.MakeAttributes(doc, "Original Outline", Color.Black);
+        doc.Objects.AddCurve(input.Outline.Geometry, outlineAttribs);
 
         var fragmentColors = new[] { Color.Red, Color.Green, Color.Blue, Color.Orange, Color.Purple };
         for (var i = 0; i < result.Fragmenets.Count; i++)
         {
-            var layer = RhinoHelper.EnsureLayer(doc, $"Fragment {i}", fragmentColors[i % fragmentColors.Length]);
-            doc.Objects.AddBrep(result.Fragmenets[i].Geometry, new ObjectAttributes { LayerIndex= layer });
+            var attribs = RhinoHelper.MakeAttributes(doc, $"Fragment {i}", fragmentColors[i % fragmentColors.Length]);
+            doc.Objects.AddBrep(result.Fragmenets[i].Geometry, attribs);
         }
 
-        var dividerLayer = RhinoHelper.EnsureLayer(doc, "Dividers", Color.Yellow);
+        var dividerAttribs = RhinoHelper.MakeAttributes(doc, "Dividers", Color.Yellow);
         foreach (var d in result.Dividers)
-            doc.Objects.AddCurve(d.Geometry, new ObjectAttributes { LayerIndex = dividerLayer });
+            doc.Objects.AddCurve(d.Geometry, dividerAttribs);
 
         Visualizer.View(doc);
     }

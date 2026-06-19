@@ -3,6 +3,11 @@
 namespace AIQ.Urban.Core.Extensions;
 public static class Point2dExtensions
 {
+    public static Point3d ToPoint3d(this Point2d point, double z = 0)
+    {
+        return new Point3d(point.X, point.Y, z);
+    }
+
     public static List<Point2d> GrahamConvexHull(this IEnumerable<Point2d> points)
     {
         var pointsArray = points.ToArray();
