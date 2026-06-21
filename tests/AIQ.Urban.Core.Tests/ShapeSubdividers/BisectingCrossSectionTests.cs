@@ -72,19 +72,6 @@ public class BisectingCrossSectionTests
         ];
     }
 
-    private static Profile2D MakeSquare()
-    {
-        var poly = new Polygon2D(new PolylineCurve([
-            new Point3d(0, 0, 0),
-            new Point3d(4, 0, 0),
-            new Point3d(4, 4, 0),
-            new Point3d(0, 4, 0),
-            new Point3d(0, 0, 0),
-        ]));
-        var brep = Brep.CreatePlanarBreps(poly.Geometry, 1e-6)[0];
-        return new Profile2D(brep, poly, []);
-    }
-
     private static Profile2D MakeRectangle()
     {
         var poly = new Polygon2D(new PolylineCurve([
@@ -131,19 +118,6 @@ public class BisectingCrossSectionTests
         var poly = new Polygon2D(new PolylineCurve([
             new Point3d(0, 0, 0),
             new Point3d(10, 0, 0),
-            new Point3d(0, 10, 0),
-            new Point3d(0, 0, 0),
-        ]));
-        var brep = Brep.CreatePlanarBreps(poly.Geometry, 1e-6)[0];
-        return new Profile2D(brep, poly, []);
-    }
-
-    private static Profile2D MakeSquare10()
-    {
-        var poly = new Polygon2D(new PolylineCurve([
-            new Point3d(0, 0, 0),
-            new Point3d(10, 0, 0),
-            new Point3d(10, 10, 0),
             new Point3d(0, 10, 0),
             new Point3d(0, 0, 0),
         ]));
