@@ -8,12 +8,20 @@ namespace AIQ.Urban.DebugViz.Converters;
 
 public class FloorPlateConverter : IGeometryPreviewConverter
 {
-    public bool IsPreviewable(object @object) => @object is FloorPlate;
+    public bool IsPreviewable(object @object) => @object is FloorPlate || @object is IEnumerable<FloorPlate>;
 
     public void AddToPreviewDoc(object @object, RhinoDoc doc, Color? color = null)
     {
-        if (@object is not FloorPlate plate) return;
+        if (@object is FloorPlate plate)
+            AddToPreviewDoc(plate, doc, color);
 
+        if (@object is IEnumerable<FloorPlate> plates)
+            foreach (var p in plates)
+                AddToPreviewDoc(p, doc, color);
+    }
+
+    private static void AddToPreviewDoc(FloorPlate plate, RhinoDoc doc, Color? color)
+    {
         var layerPath = $"{PreviewConstants.BuildingFloorPlatesLayer}::{plate.Use.Name}";
         var attributes = RhinoHelper.MakeAttributes(doc, layerPath, plate.Use.Color, color);
 

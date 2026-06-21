@@ -8,12 +8,20 @@ namespace AIQ.Urban.DebugViz.Converters;
 
 public class ParcelConverter : IGeometryPreviewConverter
 {
-    public bool IsPreviewable(object @object) => @object is Parcel;
+    public bool IsPreviewable(object @object) => @object is Parcel || @object is IEnumerable<Parcel>;
 
     public void AddToPreviewDoc(object @object, RhinoDoc doc, Color? color = null)
     {
-        if (@object is not Parcel parcel) return;
+        if (@object is Parcel parcel)
+            AddToPreviewDoc(parcel, doc, color);
 
+        if (@object is IEnumerable<Parcel> parcels)
+            foreach (var p in parcels)
+                AddToPreviewDoc(p, doc, color);
+    }
+
+    private static void AddToPreviewDoc(Parcel parcel, RhinoDoc doc, Color? color)
+    {
         var layerPath = $"{PreviewConstants.ParcelLayer}::{parcel.Use.Name}";
         var attributes = RhinoHelper.MakeAttributes(doc, layerPath, parcel.Use.Color, color);
 
