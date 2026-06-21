@@ -65,10 +65,10 @@ public class BisectingCrossSectionTests
     {
         return
         [
-            new("Rectangle", MakeRectangle(), 2, 0),
-            new("Diamond", MakeDiamond(), 2, 0),
-            new("Angled L", MakeAngledL(), 2, 0),
-            new("Triangle", MakeTriangle(), 2, 0),
+            new(CaseName: "Rectangle", Input: MakeRectangle(), ExpectedFragmentCount: 2, ExpectedHolesPerFragment: 0),
+            new(CaseName: "Diamond", Input: MakeDiamond(), ExpectedFragmentCount: 2, ExpectedHolesPerFragment: 0),
+            new(CaseName: "Angled L", Input: MakeAngledL(), ExpectedFragmentCount: 2, ExpectedHolesPerFragment: 0),
+            new(CaseName: "Triangle", Input: MakeTriangle(), ExpectedFragmentCount: 2, ExpectedHolesPerFragment: 0),
         ];
     }
 
