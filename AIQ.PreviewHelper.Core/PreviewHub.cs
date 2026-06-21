@@ -18,6 +18,11 @@ public static class PreviewHub
         Sink?.PreviewDoc(useWebView);
     }
 
+    public static void PreviewViaHub(bool useWebView = false)
+    {
+        Sink?.PreviewDoc(useWebView);
+    }
+
     public static void ResetDoc()
     {
         Sink?.ResetDoc();

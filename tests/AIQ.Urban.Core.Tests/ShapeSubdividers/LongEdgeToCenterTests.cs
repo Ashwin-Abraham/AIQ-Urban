@@ -41,17 +41,17 @@ public class LongEdgeToCenterTests
         var segmentCount = testData.Input.Outline.Geometry.DuplicateSegments().Length;
         var expectedDividerCount = Math.Min(testData.DividerCount, segmentCount);
 
-        Assert.That(result.Fragmenets, Has.Count.EqualTo(testData.ExpectedFragmentCount));
+        Assert.That(result.Fragments, Has.Count.EqualTo(testData.ExpectedFragmentCount));
         Assert.That(result.Dividers, Has.Count.EqualTo(expectedDividerCount));
         Assert.That(result.Dividers.Select(x => x.Id), Is.Unique);
         Assert.That(result.Dividers.Select(x => x.Id), Has.All.Not.EqualTo(Guid.Empty));
 
         var originalArea = AreaMassProperties.Compute(testData.Input.Outline.Geometry).Area;
-        var fragmentAreaSum = result.Fragmenets
+        var fragmentAreaSum = result.Fragments
             .Sum(f => AreaMassProperties.Compute(f.Geometry).Area);
         Assert.That(fragmentAreaSum, Is.EqualTo(originalArea).Within(1e-4));
 
-        foreach (var fragment in result.Fragmenets)
+        foreach (var fragment in result.Fragments)
         {
             Assert.That(fragment.Geometry, Is.Not.Null);
             Assert.That(fragment.Geometry.Faces.Count, Is.GreaterThan(0));
@@ -157,10 +157,10 @@ public class LongEdgeToCenterTests
         doc.Objects.AddCurve(input.Outline.Geometry, outlineAttribs);
 
         var fragmentColors = new[] { Color.Red, Color.Green, Color.Blue, Color.Orange, Color.Purple };
-        for (var i = 0; i < result.Fragmenets.Count; i++)
+        for (var i = 0; i < result.Fragments.Count; i++)
         {
             var attribs = RhinoHelper.MakeAttributes(doc, $"Fragment {i}", fragmentColors[i % fragmentColors.Length]);
-            doc.Objects.AddBrep(result.Fragmenets[i].Geometry, attribs);
+            doc.Objects.AddBrep(result.Fragments[i].Geometry, attribs);
         }
 
         var dividerAttribs = RhinoHelper.MakeAttributes(doc, "Dividers", Color.Yellow);

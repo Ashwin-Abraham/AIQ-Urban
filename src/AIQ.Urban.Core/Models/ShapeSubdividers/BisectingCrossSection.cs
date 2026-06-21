@@ -11,8 +11,6 @@ public class BisectingCrossSection(double _tolerance = 1e-6) : IShapeSubdivider
         var outline = profile.Outline.Geometry;
 
         var canGetPolyline = outline.TryGetPolyline(out var polyline);
-        System.Diagnostics.Debug.WriteLine(
-            $"BisectingCrossSection: TryGetPolyline={canGetPolyline}, Count={polyline?.Count}, Holes={profile.Holes.Count}");
 
         if (!canGetPolyline)
             return new DivisionResult([profile], []);
@@ -21,8 +19,6 @@ public class BisectingCrossSection(double _tolerance = 1e-6) : IShapeSubdivider
             return new DivisionResult([profile], []);
 
         var box = polyline.CreateMinimalBox();
-        System.Diagnostics.Debug.WriteLine(
-            $"BisectingCrossSection: box is null = {box is null}");
 
         if (box is null)
             return new DivisionResult([profile], []);
@@ -82,7 +78,7 @@ public class BisectingCrossSection(double _tolerance = 1e-6) : IShapeSubdivider
         var outlineCurve = new PolylineCurve(outlinePline);
         var polygon = new Polygon2D(outlineCurve);
 
-        var holeCurves = new List<Curve>();
+        var holeCurves = new List<PolylineCurve>();
         foreach (var hole in originalHoles)
         {
             var holePline = CurveToPolyline(hole.Geometry, _tolerance);

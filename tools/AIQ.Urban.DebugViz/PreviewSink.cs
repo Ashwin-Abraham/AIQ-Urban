@@ -31,6 +31,7 @@ public sealed class PreviewSink : IPreviewSink
 
             converter.AddToPreviewDoc(@object, _doc, color);
             found = true;
+            break;
         }
 
         if (!found)

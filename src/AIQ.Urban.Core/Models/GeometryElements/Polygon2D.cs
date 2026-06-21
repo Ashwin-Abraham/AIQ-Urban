@@ -28,9 +28,9 @@ public class Polygon2D : IGeometryElement<PolylineCurve>
     {
         return Create([
             (min.X, min.Y),
-            (min.X, max.Y),
-            (max.X, max.Y),
             (max.X, min.Y),
+            (max.X, max.Y),
+            (min.X, max.Y),
             ]);
     }
 
