@@ -4,7 +4,7 @@ namespace AIQ.Urban.Core.Extensions;
 
 public static class PolylineExtensions
 {
-    public static BoundingBox? CreateMinimalBox(this Polyline curve)
+    public static Polyline? CreateMinimalBox(this Polyline curve)
     {
         var points = curve.ToArray();
         if (points.Length < 3)
@@ -19,12 +19,20 @@ public static class PolylineExtensions
             return null;
 
         var pointsList = hull.Select(p => new Point3d(p.X, p.Y, 0)).ToList();
-        return ComputeMinAreaOrientedBox(pointsList);
+        (BoundingBox Box, Transform Rotator) = ComputeMinAreaOrientedBox(pointsList);
+
+        var pline = Box.ToPolylineXY();
+
+        if (!Rotator.TryGetInverse(out var inverse))
+            return null;
+        
+        pline.Transform(inverse);
+        return new Polyline(pline);
     }
 
-    private static BoundingBox? ComputeMinAreaOrientedBox(List<Point3d> hullPoints)
+    private static (BoundingBox, Transform) ComputeMinAreaOrientedBox(List<Point3d> hullPoints)
     {
-        (BoundingBox? Box, double Area) minResult = (null, double.MaxValue);
+        (BoundingBox Box, double Area, Transform BoxRotation) minResult = (BoundingBox.Empty, double.MaxValue, Transform.Identity);
         for(int i = 0; i < hullPoints.Count; i++)
         {
             var start = hullPoints[i];
@@ -35,9 +43,9 @@ public static class PolylineExtensions
             var box = new BoundingBox(hullPoints, rotator);
 
             if (box.Area < minResult.Area)
-                minResult = (box, box.Area);
+                minResult = (box, box.Area, rotator);
         }
 
-        return minResult.Box;
+        return (minResult.Box, minResult.BoxRotation);
     }
 }

@@ -7,4 +7,6 @@ public interface IPreviewSink
     void PreviewDoc(bool useWebViewer = false);
 
     void AddToPreviewDoc(object @object, Color? color = null);
+
+    void ResetDoc();
 }

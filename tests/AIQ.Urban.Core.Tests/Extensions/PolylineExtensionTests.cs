@@ -19,13 +19,14 @@ public class PolylineExtensionTests
     {
         var testData = _nullTestData.Single(x => x.CaseName == testName);
         var result = testData.Input.CreateMinimalBox();
-        Assert.That(result.HasValue, Is.False);
+        Assert.That(result, Is.False);
     }
 
     [Test]
     [TestCase("Square")]
     [TestCase("Diamond")]
     [TestCase("Rectangle")]
+    [TestCase("Angled L")]
     public void CreateMinimalBox_ReturnsOrientedBox(string testName)
     {
         // Arrange
@@ -35,12 +36,12 @@ public class PolylineExtensionTests
         var result = testData.Input.CreateMinimalBox();
 
         // Preview
-        result.Value.ToPolylineXY().PreviewViaHub();
-
+        PreviewHub.ResetDoc();
+        new PolylineCurve(testData.Input).AddToPreviewDoc();
+        new PolylineCurve(result).PreviewViaHub();
+        
         // Assert
-        Assert.That(result.HasValue, Is.True);
-        var box = result.Value;
-        var area = box.AreaXY();
+        var area = AreaMassProperties.Compute(result.ToPolylineCurve(), 1e-5).Area;
         Assert.That(area, Is.EqualTo(testData.ExpectedArea).Within(1e-6));
     }
 
@@ -68,6 +69,10 @@ public class PolylineExtensionTests
         new(
             CaseName: "Rectangle",
             Input: new Polyline { new(0, 0, 0), new(6, 0, 0), new(6, 2, 0), new(0, 2, 0) },
-            ExpectedArea: 12)
+            ExpectedArea: 12),
+        new(
+            CaseName: "Angled L",
+            Input: new Polyline { new(0, 0, 0), new(7, 7, 0), new(6, 8, 0), new(0, 2, 0), new(-1,3,0), new(-2,2,0) },
+            ExpectedArea: 28)
     ];
 }

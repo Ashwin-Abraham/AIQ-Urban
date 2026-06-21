@@ -17,5 +17,10 @@ public static class PreviewHub
         Sink?.AddToPreviewDoc(@object, color);
         Sink?.PreviewDoc(useWebView);
     }
+
+    public static void ResetDoc()
+    {
+        Sink?.ResetDoc();
+    }
 }
 #endif
