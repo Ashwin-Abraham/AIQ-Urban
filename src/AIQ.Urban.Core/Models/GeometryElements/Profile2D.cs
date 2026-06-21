@@ -25,8 +25,6 @@ public class Profile2D : IGeometryElement<Brep>
         var curves = holes.Select(x => x.Geometry).Append(outline.Geometry).ToList();
         var profileBreps = Brep.CreatePlanarBreps(curves, tolerance);
 
-        var length = profileBreps.Count();
-
         if (profileBreps.Length != 1 || profileBreps[0].Faces.Count != 1)
             throw new ArgumentException("Invalid Profile2D");
 
@@ -45,18 +43,19 @@ public class Profile2D : IGeometryElement<Brep>
 
         foreach (var loop in profileBrep.Faces[0].Loops)
         {
+            if(!loop.To2dCurve().TryGetPolyline(out var pline))
+                return null;
+
             if (loop.LoopType == BrepLoopType.Outer)
             {
-                var curve = loop.To2dCurve();
-                curve.Transform(faceTransform);
-                outline = new(curve);
+                pline.Transform(faceTransform);
+                outline = new(pline.ToPolylineCurve());
             }
 
             if (loop.LoopType == BrepLoopType.Inner)
             {
-                var curve = loop.To2dCurve();
-                curve.Transform(faceTransform);
-                holes.Add(new(curve));
+                pline.Transform(faceTransform);
+                holes.Add(new(pline.ToPolylineCurve()));
             }
         }
 
