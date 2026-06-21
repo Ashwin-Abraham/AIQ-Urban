@@ -7,12 +7,17 @@ namespace AIQ.Urban.DebugViz;
 public sealed class PreviewSink : IPreviewSink
 {
     private readonly HashSet<IGeometryPreviewConverter> _elementConverters;
-    private readonly RhinoDoc _doc;
+    private RhinoDoc _doc;
 
     public PreviewSink(HashSet<IGeometryPreviewConverter> elementConverters)
     {
         _doc = RhinoDoc.CreateHeadless(null);
         _elementConverters = elementConverters;
+    }
+
+    public void ResetDoc()
+    {
+        _doc = RhinoDoc.CreateHeadless(null);
     }
 
     public void AddToPreviewDoc(object @object, Color? color = null)
