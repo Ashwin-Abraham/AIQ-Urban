@@ -24,6 +24,16 @@ public class Polygon2D : IGeometryElement<PolylineCurve>
         Geometry = copy;
     }
 
+    public static Polygon2D Rectangle(Point2d min, Point2d max)
+    {
+        return Create([
+            (min.X, min.Y),
+            (min.X, max.Y),
+            (max.X, max.Y),
+            (max.X, min.Y),
+            ]);
+    }
+
     public static Polygon2D Create(List<(double X, double Y)> coordinates)
     {
         ArgumentNullException.ThrowIfNull(coordinates);
