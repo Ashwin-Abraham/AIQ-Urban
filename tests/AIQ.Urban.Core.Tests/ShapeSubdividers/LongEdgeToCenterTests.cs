@@ -7,7 +7,6 @@ using AIQ.Urban.Core.Models.ShapeSubdividers;
 using AIQ.Urban.DebugViz;
 using NUnit.Framework;
 using Rhino;
-using Rhino.DocObjects;
 using Rhino.Geometry;
 using Rhino.Testing.Fixtures;
 
