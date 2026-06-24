@@ -52,8 +52,6 @@ internal static class DelaunayRefiner
 
             for (var fIdx = 0; fIdx < nFaces; fIdx++)
             {
-                var (a, b, c) = triVerts[fIdx];
-
                 for (var edge = 0; edge < 3; edge++)
                 {
                     var nIdx = adj[fIdx][edge];
