@@ -185,7 +185,7 @@ Create a convex, non-cyclic quadrilateral `(0,0), (10,0), (9,10), (1,9)` but tri
 
 ## Error Handling
 
-- Self-intersecting or non-manifold input → `ArgumentException`
+- Non-manifold input (edge shared by >2 faces) → `ArgumentException`
 - Boundary edges are never flipped (verified by adjacency count == 1)
 - Non-convergence guard: `maxPasses = faceCount * faceCount` prevents infinite loops
 - Tolerance parameter threaded to all geometric tests (planarity, InCircle, degenerate triangle detection)

@@ -127,6 +127,11 @@ internal static class DelaunayRefiner
                 adj[f0][edge0] = f1;
                 adj[f1][edge1] = f0;
             }
+            else if (faces.Count > 2)
+            {
+                throw new ArgumentException("Non-manifold topology detected: edge shared by more than 2 faces");
+            }
+        }
         }
 
         return adj;
@@ -238,6 +243,10 @@ internal static class DelaunayRefiner
 
     private static bool InCircle(Point3d a, Point3d b, Point3d c, Point3d d, double tolerance)
     {
+        // Normalise triangle to CCW so the determinant sign is consistent
+        if (CrossZ(a, b, c) < 0)
+            (b, c) = (c, b);
+
         var ax = a.X; var ay = a.Y;
         var bx = b.X; var by = b.Y;
         var cx = c.X; var cy = c.Y;
