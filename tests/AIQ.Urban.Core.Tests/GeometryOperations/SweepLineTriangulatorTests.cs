@@ -19,6 +19,7 @@ public class SweepLineTriangulatorTests
     [TestCase("RectangleWithHole")]
     [TestCase("LShape")]
     [TestCase("Jagged")]
+    [TestCase("UShape")]
     public void Triangulate_ProducesValidMesh(string testName)
     {
         var testData = _testData.Single(x => x.CaseName == testName);
@@ -40,9 +41,14 @@ public class SweepLineTriangulatorTests
         Assert.That(mesh.Faces.Count, Is.GreaterThan(0));
         Assert.That(mesh.Faces.All(f => f.IsTriangle), Is.True);
 
+        Assert.That(mesh.Faces.Count, Is.EqualTo(testData.ExpectedTriangleCount));
+
         var meshArea = AreaMassProperties.Compute(mesh).Area;
         var profileArea = AreaMassProperties.Compute(profile.Geometry).Area;
         Assert.That(meshArea, Is.EqualTo(profileArea).Within(1e-4));
+
+        var avgArea = meshArea / mesh.Faces.Count;
+        Assert.That(avgArea, Is.EqualTo(testData.ExpectedAverageArea).Within(1e-2));
     }
 
     [Test]
@@ -67,7 +73,7 @@ public class SweepLineTriangulatorTests
         Assert.That(mesh.Faces.Count, Is.Zero);
     }
 
-    private record TriangulationTestData(string CaseName, Profile2D Input);
+    private record TriangulationTestData(string CaseName, Profile2D Input, int ExpectedTriangleCount, double ExpectedAverageArea);
 
     private static readonly List<TriangulationTestData> _testData = BuildTestData();
 
@@ -75,10 +81,11 @@ public class SweepLineTriangulatorTests
     {
         return
         [
-            new(CaseName: "SimpleSquare", Input: MakeSquare()),
-            new(CaseName: "RectangleWithHole", Input: MakeRectangleWithHole()),
-            new(CaseName: "LShape", Input: MakeLShape()),
-            new(CaseName: "Jagged", Input: MakeJaggedShape()),
+            new(CaseName: "SimpleSquare", Input: MakeSquare(), ExpectedTriangleCount: 2, ExpectedAverageArea: 50),
+            new(CaseName: "RectangleWithHole", Input: MakeRectangleWithHole(), ExpectedTriangleCount: 8, ExpectedAverageArea: 17.5),
+            new(CaseName: "LShape", Input: MakeLShape(), ExpectedTriangleCount: 4, ExpectedAverageArea: 18.75),
+            new(CaseName: "Jagged", Input: MakeJaggedShape(), ExpectedTriangleCount: 9, ExpectedAverageArea: 11.72),
+            new(CaseName: "UShape", Input: MakeUShape(), ExpectedTriangleCount: 6, ExpectedAverageArea: 12),
         ];
     }
 
@@ -136,6 +143,19 @@ public class SweepLineTriangulatorTests
             new Point3d(11, 14, 0),
             new Point3d(4, 4, 0),
             new Point3d(0, 2, 0),
+        ]));
+        var brep = Brep.CreatePlanarBreps(poly.Geometry, 1e-6)[0];
+        return new Profile2D(brep, poly, []);
+    }
+
+    private static Profile2D MakeUShape()
+    {
+        var poly = new Polygon2D(new PolylineCurve([
+            new Point3d(0, 0, 0), new Point3d(10, 0, 0),
+            new Point3d(10, 10, 0), new Point3d(7, 10, 0),
+            new Point3d(7, 3, 0), new Point3d(3, 3, 0),
+            new Point3d(3, 10, 0), new Point3d(0, 10, 0),
+            new Point3d(0, 0, 0),
         ]));
         var brep = Brep.CreatePlanarBreps(poly.Geometry, 1e-6)[0];
         return new Profile2D(brep, poly, []);
