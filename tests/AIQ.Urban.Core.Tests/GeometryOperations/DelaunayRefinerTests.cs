@@ -46,7 +46,8 @@ public class DelaunayRefinerTests
     [Test]
     public void Refine_NonDelaunayQuad_FlippedEdge()
     {
-        // Arrange: a convex non-cyclic quad split with the "wrong" diagonal
+        // Arrange
+        // A convex non-cyclic quad split with the "wrong" diagonal
         // Vertices: A(0,0), B(10,0), C(9,10), D(1,9)
         // Triangulated as ABC + ACD (diagonal AC = (0,0)-(9,10))
         var mesh = new Mesh();
@@ -102,7 +103,8 @@ public class DelaunayRefinerTests
     [Test]
     public void Refine_DegenerateTriangle_HandlesGracefully()
     {
-        // Arrange: near-degenerate triangle
+        // Arrange
+        // Near-degenerate triangle
         var mesh = new Mesh();
         mesh.Vertices.Add(0f, 0f, 0f);
         mesh.Vertices.Add(1f, 0f, 0f);
