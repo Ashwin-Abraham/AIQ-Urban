@@ -155,7 +155,7 @@ public class DelaunayRefinerTests
     }
 
     [Test]
-    public void Refine_ManualHexagonFan_ProducesValidMesh()
+    public void RefineOctagon()
     {
         // Arrange — hexagon with fan triangulation from vertex A
         var mesh = new Mesh();
@@ -164,11 +164,15 @@ public class DelaunayRefinerTests
         mesh.Vertices.Add(3, 1, 0);  // 2 = C
         mesh.Vertices.Add(3, 2, 0);   // 3 = D
         mesh.Vertices.Add(2, 3, 0);  // 4 = E
-        mesh.Vertices.Add(1, 6, 0);  // 5 = F
+        mesh.Vertices.Add(1, 3, 0);  // 5 = F
+        mesh.Vertices.Add(0, 2, 0);  // 6 = G
+        mesh.Vertices.Add(0, 1, 0);  // 7 = H
         mesh.Faces.AddFace(0, 1, 2); // T1: A,B,C
         mesh.Faces.AddFace(0, 2, 3); // T2: A,C,D
         mesh.Faces.AddFace(0, 3, 4); // T3: A,D,E
         mesh.Faces.AddFace(0, 4, 5); // T4: A,E,F
+        mesh.Faces.AddFace(0, 5, 6);
+        mesh.Faces.AddFace(0, 6, 7);
 
         // Act
         var result = DelaunayRefiner.Refine(mesh);

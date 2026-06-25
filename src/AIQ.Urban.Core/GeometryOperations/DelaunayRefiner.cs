@@ -6,8 +6,6 @@ internal static class DelaunayRefiner
 {
     public static Mesh Refine(Mesh mesh, double tolerance = 1e-5)
     {
-        ArgumentNullException.ThrowIfNull(mesh);
-
         if (mesh.Faces.Count == 0)
             return new Mesh();
 
