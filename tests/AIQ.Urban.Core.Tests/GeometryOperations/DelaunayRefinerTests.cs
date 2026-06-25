@@ -1,10 +1,13 @@
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using AIQ.Urban.Core.Extensions;
 using AIQ.Urban.Core.GeometryOperations;
 using AIQ.Urban.Core.Models.GeometryElements;
+using AIQ.Urban.DebugViz;
 using NUnit.Framework;
+using Rhino;
 using Rhino.Geometry;
 using Rhino.Testing.Fixtures;
 
@@ -24,25 +27,43 @@ public class DelaunayRefinerTests
     public void Refine_ReturnsValidDelaunayMesh(string testName)
     {
         var testData = _testData.Single(x => x.CaseName == testName);
+
+        // Arrange
         var inputMesh = testData.InputFactory();
+
         if (inputMesh is null)
         {
+            // Assert
             Assert.That(() => DelaunayRefiner.Refine(null!), Throws.ArgumentNullException);
             return;
         }
+
+        // Act
         var result = DelaunayRefiner.Refine(inputMesh);
+
+        // Visualise
+#if DEBUG
+        if (!testData.ExpectsEmpty)
+            PreviewMeshes(testName, inputMesh, result);
+#endif
+
+        // Assert
         Assert.That(result, Is.Not.Null);
+
         if (testData.ExpectsEmpty)
         {
             Assert.That(result.Faces.Count, Is.Zero);
             return;
         }
+
         Assert.That(result.IsValid, Is.True);
         Assert.That(result.Faces.Count, Is.EqualTo(testData.ExpectedTriangleCount));
         Assert.That(result.Faces.All(f => f.IsTriangle), Is.True);
+
         var inputArea = AreaMassProperties.Compute(inputMesh).Area;
         var resultArea = AreaMassProperties.Compute(result).Area;
         Assert.That(resultArea, Is.EqualTo(inputArea).Within(1e-4));
+
         if (testData.ExpectedAverageArea.HasValue)
         {
             var avgArea = resultArea / result.Faces.Count;
@@ -136,13 +157,12 @@ public class DelaunayRefinerTests
     private static Mesh MakeNonDelaunayQuad()
     {
         var mesh = new Mesh();
-        mesh.Vertices.Add(0, 0, 0);    // 0 - A
-        mesh.Vertices.Add(10, 0, 0);   // 1 - B
-        mesh.Vertices.Add(9, 10, 0);   // 2 - C
-        mesh.Vertices.Add(1, 9, 0);    // 3 - D
-        // Wrong diagonal A-C, should be B-D
-        mesh.Faces.AddFace(0, 1, 2, 2); // T1: (A, B, C)
-        mesh.Faces.AddFace(0, 2, 3, 3); // T2: (A, C, D)
+        mesh.Vertices.Add(0, 0, 0);
+        mesh.Vertices.Add(10, 0, 0);
+        mesh.Vertices.Add(9, 10, 0);
+        mesh.Vertices.Add(1, 9, 0);
+        mesh.Faces.AddFace(0, 1, 2, 2);
+        mesh.Faces.AddFace(0, 2, 3, 3);
         return mesh;
     }
 
@@ -150,4 +170,20 @@ public class DelaunayRefinerTests
     {
         return new Mesh();
     }
+
+#if DEBUG
+    private static void PreviewMeshes(string name, Mesh input, Mesh result)
+    {
+        var doc = RhinoDoc.CreateHeadless(null);
+        var inputAttribs = RhinoHelper.MakeAttributes(doc, $"Input::{name}", Color.CornflowerBlue);
+        var edgeCount = input.TopologyEdges.Count;
+        for (var i = 0; i < edgeCount; i++)
+            doc.Objects.AddCurve(input.TopologyEdges.EdgeLine(i).ToNurbsCurve(), inputAttribs);
+        var resultAttribs = RhinoHelper.MakeAttributes(doc, $"Result::{name}", Color.PaleVioletRed);
+        var rCount = result.TopologyEdges.Count;
+        for (var i = 0; i < rCount; i++)
+            doc.Objects.AddCurve(result.TopologyEdges.EdgeLine(i).ToNurbsCurve(), resultAttribs);
+        Visualizer.View(doc);
+    }
+#endif
 }
