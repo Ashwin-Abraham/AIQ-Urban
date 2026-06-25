@@ -64,6 +64,9 @@ public class DelaunayRefinerTests
         var resultArea = AreaMassProperties.Compute(result).Area;
         Assert.That(resultArea, Is.EqualTo(inputArea).Within(1e-4));
 
+        if (!testData.ExpectsEmpty)
+            Assert.That(IsDelaunayTriangulation(result), Is.True);
+
         if (testData.ExpectedAverageArea.HasValue)
         {
             var avgArea = resultArea / result.Faces.Count;
@@ -185,22 +188,33 @@ public class DelaunayRefinerTests
         // Assert
         Assert.That(result, Is.Not.Null);
         Assert.That(result.IsValid, Is.True);
-        Assert.That(result.Faces.Count, Is.EqualTo(4));
+        Assert.That(result.Faces.Count, Is.EqualTo(6));
         Assert.That(result.Faces.All(f => f.IsTriangle), Is.True);
 
         var inputArea = AreaMassProperties.Compute(mesh).Area;
         var resultArea = AreaMassProperties.Compute(result).Area;
         Assert.That(resultArea, Is.EqualTo(inputArea).Within(1e-4));
 
-        // Verify at least one edge flip occurred: not all triangles should still share vertex 0
-        var trianglesWithA = 0;
-        for (var i = 0; i < result.Faces.Count; i++)
+        // Verify Delaunay property: no vertex lies inside another triangle's circumcircle
+        Assert.That(IsDelaunayTriangulation(result), Is.True);
+    }
+
+    private static bool IsDelaunayTriangulation(Mesh mesh)
+    {
+        var verts = mesh.Vertices;
+        for (var i = 0; i < mesh.Faces.Count; i++)
         {
-            var f = result.Faces[i];
-            if (f.A == 0 || f.B == 0 || f.C == 0)
-                trianglesWithA++;
+            var f = mesh.Faces[i];
+            if (!f.IsTriangle) return false;
+            for (var j = 0; j < verts.Count; j++)
+            {
+                if (j == f.A || j == f.B || j == f.C) continue;
+                if (((Point3d)verts[j]).IsInsideCircumcircle(
+                        (Point3d)verts[f.A], (Point3d)verts[f.B], (Point3d)verts[f.C], 1e-5))
+                    return false;
+            }
         }
-        Assert.That(trianglesWithA, Is.LessThan(4));
+        return true;
     }
 
     private static Mesh MakeNonDelaunayQuad()
