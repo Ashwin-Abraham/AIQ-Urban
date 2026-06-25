@@ -20,6 +20,7 @@ public class DelaunatorTests
     [TestCase("Square")]
     [TestCase("Pentagon")]
     [TestCase("NonDelaunayQuad")]
+    [TestCase("Octagon")]
     public void Compute_ReturnsValidDelaunayMesh(string testName)
     {
         var testData = _testData.Single(x => x.CaseName == testName);
@@ -58,6 +59,7 @@ public class DelaunatorTests
             new(CaseName: "Square", Points: MakeSquarePoints(), ExpectedTriangleCount: 2),
             new(CaseName: "Pentagon", Points: MakePentagonPoints(), ExpectedTriangleCount: 3),
             new(CaseName: "NonDelaunayQuad", Points: MakeNonDelaunayQuadPoints(), ExpectedTriangleCount: 2),
+            new(CaseName: "Octagon", Points: MakeOctagonPoints(), ExpectedTriangleCount: 6),
         ];
     }
 
@@ -85,6 +87,20 @@ public class DelaunatorTests
     private static Point2d[] MakeNonDelaunayQuadPoints()
     {
         return [new(0, 0), new(10, 0), new(9, 10), new(1, 9)];
+    }
+
+    private static Point2d[] MakeOctagonPoints()
+    {
+        return [
+            new(1, 0),
+            new(2, 0),
+            new(3, 1),
+            new(3, 2),
+            new(2, 3),
+            new(1, 3),
+            new(0, 2),
+            new(0, 1),
+        ];
     }
 
     private static bool IsDelaunayTriangulation(Mesh mesh)
