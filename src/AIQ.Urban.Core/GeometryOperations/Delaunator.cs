@@ -587,4 +587,16 @@ public class Delaunator
     /// </summary>
     public static int TriangleOfEdge(int e) { return e / 3; }
     #endregion Methods based on index
+
+    public Mesh Run()
+    {
+        var mesh = new Mesh();
+        for (var i = 0; i < Points.Length; i++)
+            mesh.Vertices.Add(Points[i].X, Points[i].Y, 0);
+
+        for (var i = 0; i < Triangles.Length; i += 3)
+            mesh.Faces.AddFace(Triangles[i], Triangles[i + 1], Triangles[i + 2], Triangles[i + 2]);
+
+        return mesh;
+    }
 }
