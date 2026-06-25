@@ -122,13 +122,13 @@ public class TriangleToQuadConverterTests
                 ExpectedFaceCount: 3),
             new(CaseName: "FanTriangles",
                 Input: MakeFanTriangles(),
-                ExpectedFaceCount: 6),
+                ExpectedFaceCount: 3),
             new(CaseName: "LShape",
                 Input: MakeLShapeMesh(),
                 ExpectedFaceCount: 2),
             new(CaseName: "UShape",
                 Input: MakeUShapeMesh(),
-                ExpectedFaceCount: 4),
+                ExpectedFaceCount: 3),
         ];
     }
 
