@@ -94,12 +94,12 @@ public class DelaunatorTests
         return [
             new(1, 0),
             new(2, 0),
-            new(3, 1),
-            new(3, 2),
+            new(2.3, 1),
+            new(2.3, 2),
             new(2, 3),
             new(1, 3),
-            new(0, 2),
-            new(0, 1),
+            new(0.9, 2),
+            new(0.9, 1),
         ];
     }
 
