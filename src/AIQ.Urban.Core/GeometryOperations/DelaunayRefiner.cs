@@ -62,7 +62,7 @@ internal static class DelaunayRefiner
                     var opp0 = OppositeVertex(triVerts[fIdx], v0, v1);
                     var opp1 = OppositeVertex(triVerts[nIdx], v0, v1);
 
-                    if (!IsConvex(verts[opp0], verts[v0], verts[v1], verts[opp1]))
+                    if (!IsConvex(verts[opp0], verts[v0], verts[opp1], verts[v1]))
                         continue;
 
                     if (!InCircle(verts[opp0], verts[v0], verts[v1], verts[opp1], tolerance))

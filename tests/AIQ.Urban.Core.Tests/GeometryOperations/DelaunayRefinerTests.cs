@@ -154,6 +154,51 @@ public class DelaunayRefinerTests
         return profile.Triangulate();
     }
 
+    [Test]
+    public void Refine_ManualHexagonFan_ProducesValidMesh()
+    {
+        // Arrange — hexagon with fan triangulation from vertex A
+        var mesh = new Mesh();
+        mesh.Vertices.Add(1, 0, 0);   // 0 = A (shared)
+        mesh.Vertices.Add(2, 0, 0);  // 1 = B
+        mesh.Vertices.Add(3, 1, 0);  // 2 = C
+        mesh.Vertices.Add(3, 2, 0);   // 3 = D
+        mesh.Vertices.Add(2, 3, 0);  // 4 = E
+        mesh.Vertices.Add(1, 6, 0);  // 5 = F
+        mesh.Faces.AddFace(0, 1, 2); // T1: A,B,C
+        mesh.Faces.AddFace(0, 2, 3); // T2: A,C,D
+        mesh.Faces.AddFace(0, 3, 4); // T3: A,D,E
+        mesh.Faces.AddFace(0, 4, 5); // T4: A,E,F
+
+        // Act
+        var result = DelaunayRefiner.Refine(mesh);
+
+        // Visualise
+#if DEBUG
+        PreviewMeshes("HexagonFan", mesh, result);
+#endif
+
+        // Assert
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result.IsValid, Is.True);
+        Assert.That(result.Faces.Count, Is.EqualTo(4));
+        Assert.That(result.Faces.All(f => f.IsTriangle), Is.True);
+
+        var inputArea = AreaMassProperties.Compute(mesh).Area;
+        var resultArea = AreaMassProperties.Compute(result).Area;
+        Assert.That(resultArea, Is.EqualTo(inputArea).Within(1e-4));
+
+        // Verify at least one edge flip occurred: not all triangles should still share vertex 0
+        var trianglesWithA = 0;
+        for (var i = 0; i < result.Faces.Count; i++)
+        {
+            var f = result.Faces[i];
+            if (f.A == 0 || f.B == 0 || f.C == 0)
+                trianglesWithA++;
+        }
+        Assert.That(trianglesWithA, Is.LessThan(4));
+    }
+
     private static Mesh MakeNonDelaunayQuad()
     {
         var mesh = new Mesh();
