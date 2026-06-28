@@ -40,9 +40,9 @@ private record XxxTestData(
 );
 ```
 
-### Data Builder Convention
+### Data Builder Convention (Non-RhinoDoc Geometry)
 
-When test data requires creating Rhino geometry (Polygon2D, Curve2D, etc. — does not need a Rhino doc), build everything in `BuildTestData()` using helper methods:
+When test data requires creating geometry types that do **not** need a Rhino doc (Polygon2D, Curve2D, etc.), build everything in `BuildTestData()` using helper methods:
 
 ```csharp
 private static readonly List<XxxTestData> _testData = BuildTestData();
@@ -57,11 +57,50 @@ private static List<XxxTestData> BuildTestData()
 
 **Important**: each test case must own its own geometry instances. Sharing parcels/buildings between cases causes test pollution when steps mutate them in-place.
 
+### Primitive Data Record (RhinoDoc Geometry)
+
+When test data involves **RhinoCommon types that require a Rhino doc context** (Point3d, Line, GraphNode, etc.), keep the test data record **primitive-only** and construct the Rhino types **inside the test body**. This avoids initialization-order problems with RhinoCommon in static contexts under `[RhinoTestFixture]`.
+
+```csharp
+private record PrimitiveIntersectTestCase(
+    string CaseName,
+    double[][] NodeCoords,
+    double[] LineFrom,
+    double[] LineTo,
+    bool Expected);
+
+private static PrimitiveIntersectTestCase GetTestData(string caseName)
+{
+    return caseName switch
+    {
+        "CrossingEdge" => new PrimitiveIntersectTestCase(
+            CaseName: "CrossingEdge",
+            NodeCoords: [[5, 5, 0], [5, -5, 0]],
+            LineFrom: [3, 0, 0],
+            LineTo: [7, 0, 0],
+            Expected: true),
+        // ... more cases ...
+        _ => throw new ArgumentException($"Unknown test case: {caseName}")
+    };
+}
+```
+
+The test body looks up the primitive record by case name, constructs `Point3d`, `Line`, `GraphNode` etc. from the coordinate arrays, exercises the method, and asserts against the expected value.
+
+Key rules:
+- Record fields are only `string`, `double[]`, `double[][]`, `bool`, `int` — no RhinoCommon types
+- Each case uses named arguments for readability
+- The `GetTestData()` method uses a `switch` expression to map case names to records
+- Rhino types are constructed in the test body from the primitive coordinates
+- `MakeNodeWithEdges()` is still a static helper, but it takes `Point3d[]` built inline
+
 ### Examples
 
 **Step with inputs only (AddBuildingStepTests):** record stores input `List<BuildingData>` and expected counts. Geometry is defined as static `Polygon2D` fields shared by all cases (steps create new domain objects, so sharing is safe).
 
 **Step that mutates in-place (ChangeParcelUseStepTests):** each case creates its own `Parcel` instances in `BuildTestData()` so mutations don't leak between cases.
+
+**Extension method with Rhino types (GraphNodeExtensionPrimitiveTests):** record stores only `double[][]` coordinates; `Point3d` and `Line` constructed in test body.
 
 ## Test Structure Comments
 
@@ -147,3 +186,4 @@ Refer to these files as canonical examples:
 | `ModelActions/RemoveTransitStepTests.cs` | Parametrized `[TestCase]`, `BuildTestData()` with `out` parameters for GUIDs |
 | `ModelActions/TransitSurfaceAndParcelCalculationTests.cs` | Multi-step setup within a test, `#if DEBUG` visualisation with `UrbanSceneBuilder` |
 | `ModelActions/ResetUrbanElementsStepTests.cs` | Non-parametrized tests with explicit Arrange/Act/Assert comments |
+| `Extensions/GraphNodeExtensionPrimitiveTests.cs` | Primitive-only record, Rhino types constructed in test body |

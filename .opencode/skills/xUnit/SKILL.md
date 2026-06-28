@@ -38,7 +38,39 @@ Your goal is to help me write effective unit tests with XUnit, covering both sta
 - Create custom data attributes by implementing `DataAttribute`
 - Use meaningful parameter names in data-driven tests
 - Keep the runner-visible case name in `[InlineData("<case name>")]` and look up richer test data from records or strongly typed case collections inside the test class.
-- When a test constructs RhinoCommon objects, create them inside the test body rather than sharing via static fields. This avoids initialization-order problems and keeps each test self-contained.
+
+### Primitive-Only Records for RhinoCommon Tests
+
+When a test constructs RhinoCommon objects (Point3d, Line, etc.), keep the test data record **primitive-only** and construct the Rhino types **inside the test body**. This avoids initialization-order problems with RhinoCommon in static contexts.
+
+**Record — only primitives:**
+```csharp
+private record IntersectTestCase(
+    string CaseName,
+    double[][] NodeCoords,
+    double[] LineFrom,
+    double[] LineTo,
+    bool Expected);
+```
+
+**Data factory — named arguments, switch expression:**
+```csharp
+private static IntersectTestCase GetTestData(string caseName)
+{
+    return caseName switch
+    {
+        "CrossingEdge" => new IntersectTestCase(
+            CaseName: "CrossingEdge",
+            NodeCoords: [[5, 5, 0], [5, -5, 0]],
+            LineFrom: [3, 0, 0],
+            LineTo: [7, 0, 0],
+            Expected: true),
+        _ => throw new ArgumentException($"Unknown case: {caseName}")
+    };
+}
+```
+
+**Test body — construct Rhino types inline:** The test looks up the primitive record by case name, then constructs `Point3d`, `Line`, `GraphNode` etc. directly from the coordinate arrays before exercising the method under test.
 
 ## Assertions
 
