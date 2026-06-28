@@ -80,36 +80,42 @@ public class GraphNodeExtensionPrimitiveTests
                 LineFrom: [3, 0, 0],
                 LineTo: [7, 0, 0],
                 Expected: true),
+
             "TouchingStart" => new PrimitiveIntersectTestCase(
                 CaseName: "TouchingStart",
                 NodeCoords: [[0, 0, 0], [10, 0, 0]],
                 LineFrom: [0, 0, 0],
                 LineTo: [0, 5, 0],
                 Expected: true),
+            
             "TouchingEnd" => new PrimitiveIntersectTestCase(
                 CaseName: "TouchingEnd",
                 NodeCoords: [[0, 0, 0], [10, 0, 0]],
                 LineFrom: [10, 0, 0],
                 LineTo: [10, 5, 0],
                 Expected: true),
+            
             "ParallelNoIntersect" => new PrimitiveIntersectTestCase(
                 CaseName: "ParallelNoIntersect",
                 NodeCoords: [[0, 0, 0], [10, 0, 0]],
                 LineFrom: [0, 5, 0],
                 LineTo: [10, 5, 0],
                 Expected: false),
+            
             "AwayNoIntersect" => new PrimitiveIntersectTestCase(
                 CaseName: "AwayNoIntersect",
                 NodeCoords: [[0, 0, 0], [10, 0, 0]],
                 LineFrom: [20, 0, 0],
                 LineTo: [30, 0, 0],
                 Expected: false),
+            
             "EmptyNode" => new PrimitiveIntersectTestCase(
                 CaseName: "EmptyNode",
                 NodeCoords: [[0, 0, 0]],
                 LineFrom: [-5, 0, 0],
                 LineTo: [5, 0, 0],
                 Expected: false),
+
             _ => throw new ArgumentException($"Unknown test case: {caseName}")
         };
     }
