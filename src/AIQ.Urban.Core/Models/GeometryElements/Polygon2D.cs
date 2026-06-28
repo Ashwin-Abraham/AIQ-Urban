@@ -24,6 +24,12 @@ public class Polygon2D : IGeometryElement<PolylineCurve>
         Geometry = copy;
     }
 
+    public List<Point3d> Points()
+    {
+        Geometry.TryGetPolyline(out var polyline);
+        return [.. polyline];
+    }
+
     public static Polygon2D Rectangle(Point2d min, Point2d max)
     {
         return Create([

@@ -20,6 +20,7 @@ public class SweepLineTriangulatorTests
     [TestCase("LShape")]
     [TestCase("Jagged")]
     [TestCase("UShape")]
+    [TestCase("8Shape")]
     public void Triangulate_ProducesValidMesh(string testName)
     {
         var testData = _testData.Single(x => x.CaseName == testName);
@@ -86,7 +87,47 @@ public class SweepLineTriangulatorTests
             new(CaseName: "LShape", Input: MakeLShape(), ExpectedTriangleCount: 4, ExpectedAverageArea: 18.75),
             new(CaseName: "Jagged", Input: MakeJaggedShape(), ExpectedTriangleCount: 9, ExpectedAverageArea: 11.72),
             new(CaseName: "UShape", Input: MakeUShape(), ExpectedTriangleCount: 6, ExpectedAverageArea: 12),
+            new(CaseName: "8Shape", Input: Make8Shape(), ExpectedTriangleCount: 6, ExpectedAverageArea: 12),
         ];
+    }
+
+    private static Profile2D Make8Shape()
+    {
+        var profile = Profile2D.Create(
+            outline: Polygon2D.Create(
+            [
+                (0, 0),
+                (5, 0),
+                (7, 2),
+                (9, 0),
+                (14, 0),
+                (14, 6),
+                (9, 6),
+                (7, 4),
+                (5, 6),
+                (0, 6),
+            ]),
+            holes:
+            [
+                Polygon2D.Create(
+                [
+                    (2, 2),
+                    (4, 2),
+                    (4, 4),
+                    (2, 4),
+                    (2, 2),
+                ]),
+                Polygon2D.Create(
+                [
+                    (10, 2),
+                    (12, 2),
+                    (12, 4),
+                    (10, 4),                    
+                    (10, 2),
+                ])
+            ]);
+
+        return profile;
     }
 
     private static Profile2D MakeSquare()

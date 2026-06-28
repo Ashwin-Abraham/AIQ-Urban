@@ -21,4 +21,18 @@ public class GraphNode
         Point = sourceObject.NodePoint;
         Edges = edges;
     }
+
+    public HashSet<GraphNode> Neighbours()
+    {
+        HashSet<GraphNode> neighbours = [];
+        for(int i = 0; i < Edges.Count; i++)
+        {
+            neighbours.Add(Edges[i].Start);
+            neighbours.Add(Edges[i].End);
+        }
+
+        neighbours.Remove(this);
+
+        return neighbours;
+    }
 }

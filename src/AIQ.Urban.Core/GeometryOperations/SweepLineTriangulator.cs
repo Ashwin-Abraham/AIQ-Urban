@@ -1,25 +1,20 @@
 using AIQ.Primitives.Extensions;
+using AIQ.Urban.Core.Models.GeometryElements;
 using Rhino.Geometry;
 
 namespace AIQ.Urban.Core.GeometryOperations;
 
 internal static class SweepLineTriangulator
 {
-    public static Mesh Triangulate(
-        IReadOnlyList<Point3d> outer,
-        IReadOnlyList<IReadOnlyList<Point3d>> holes,
-        double tolerance = 1e-5)
+    public static Mesh Triangulate(Profile2D profile, double tolerance = 1e-5)
     {
         var result = new Mesh();
 
-        ArgumentNullException.ThrowIfNull(outer);
-        ArgumentNullException.ThrowIfNull(holes);
-
-        if (outer.Count < 3)
-            return result;
-
         // Merge holes into outer contour via bridging, producing a simple polygon
-        var polygon = MergeContours(outer, holes, tolerance);
+        var polygon = MergeContours(
+            outer: profile.Outline.Points(), 
+            holes: profile.Holes.Select(x => x.Points()).ToList(), 
+            tolerance);
 
         if (polygon.Count < 3 || Math.Abs(SignedArea(polygon)) < tolerance)
             return result;
