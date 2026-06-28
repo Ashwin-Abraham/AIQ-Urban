@@ -15,4 +15,11 @@ public static class Polygon2DExtensions
             yield return new Line(thisPoint, nextPoint);
         }
     }
+
+
+    public static List<Point3d> Points(this Polygon2D polygon)
+    {
+        polygon.Geometry.TryGetPolyline(out var polyline);
+        return [.. polyline];
+    }
 }

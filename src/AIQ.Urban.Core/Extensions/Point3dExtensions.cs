@@ -1,4 +1,5 @@
-﻿using Rhino.Geometry;
+﻿using Rhino;
+using Rhino.Geometry;
 
 namespace AIQ.Urban.Core.Extensions;
 public static class Point3dExtensions
@@ -34,5 +35,11 @@ public static class Point3dExtensions
                 - (b.X * (c.Y * d2 - c2 * d.Y) - b.Y * (c.X * d2 - c2 * d.X) + b2 * (c.X * d.Y - c.Y * d.X));
 
         return det > tolerance;
+    }
+
+    public static double FlatAngleToX(this Point3d point)
+    {
+        var radians = Vector3d.VectorAngle(point.ToVector3d(), Vector3d.XAxis, Plane.WorldXY);
+        return RhinoMath.ToDegrees(radians);
     }
 }
