@@ -31,6 +31,7 @@ public class GraphCreateTests
         var graph = Graph.Create(profile);
 
         // Preview
+        PreviewHub.ResetDoc();
         graph.PreviewViaHub();
 
         // Assert

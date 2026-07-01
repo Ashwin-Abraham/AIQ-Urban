@@ -27,21 +27,27 @@ public class Graph(List<GraphNode> nodes, List<Edge> edges)
             .ToList();
 
         var previousPoint = points[0];
-        var previousNode = new GraphNode(previousPoint, []);
-        graph.Nodes.Add(previousNode);
+
+        if (!graph.FindNodeAt(previousPoint, out GraphNode? previousNode, tolerance))
+        {
+            previousNode = new GraphNode(previousPoint, []);
+            graph.Nodes.Add(previousNode);
+        }
 
         for (int i = 1; i < points.Count; i++)
         {
             var thisPoint = points[i];
 
             if(!graph.FindNodeAt(thisPoint, out GraphNode? thisNode, tolerance))
+            {
                 thisNode = new GraphNode(thisPoint, []);
+                graph.Nodes.Add(thisNode);
+            }
 
             var edgeToPrevious = new Edge(previousNode, thisNode);
             thisNode!.Edges.Add(edgeToPrevious);
             previousNode.Edges.Add(edgeToPrevious);
 
-            graph.Nodes.Add(thisNode);
             graph.Edges.Add(edgeToPrevious);
             previousNode = thisNode;
         }

@@ -12,6 +12,7 @@ using NUnit.Framework;
 using Rhino.Geometry;
 using Rhino.Testing.Fixtures;
 using AIQ.Primitives.Extensions;
+using AIQ.PreviewHelper.Core;
 
 namespace AIQ.Urban.Core.Tests.Models.UrbanGraph;
 
@@ -170,7 +171,7 @@ public class GraphCreationStepTests
 
         // Visualise
 #if DEBUG
-        graph.VisualizeGraph();
+        graph.PreviewViaHub();
 #endif
 
         // Assert
@@ -208,7 +209,7 @@ public class GraphCreationStepTests
 
         // Visualise
 #if DEBUG
-        graph.VisualizeGraph();
+        graph.PreviewViaHub();
 #endif
 
         // Assert
@@ -232,7 +233,7 @@ public class GraphCreationStepTests
 
         // Visualise
 #if DEBUG
-        graph.VisualizeGraph();
+        graph.PreviewViaHub();
 #endif
 
         // Assert

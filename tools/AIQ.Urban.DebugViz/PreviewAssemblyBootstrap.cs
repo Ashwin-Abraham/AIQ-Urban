@@ -30,13 +30,13 @@ public static class PreviewAssemblyBootstrap
             new CurveElementConverter(),
             new BrepElementConverter(),
             new DefaultBrepConverter(),
-            new Profile2DConverter(),
             new FloorPlateConverter(),
             new BuildingConverter(),
             new TransitConverter(),
             new ParcelConverter(),
             new ZoneConverter(),
             new TransitSurfacesConverter(),
+            new GraphConverter(),
         };
 
         PreviewHub.Sink = new PreviewSink(converters.ToHashSet());
