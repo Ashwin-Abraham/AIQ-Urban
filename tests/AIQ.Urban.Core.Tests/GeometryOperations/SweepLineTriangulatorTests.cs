@@ -30,12 +30,16 @@ public class SweepLineTriangulatorTests
         var profile = testData.Input;
 
         // Act
+        PreviewHub.ResetDoc();
         var mesh = profile.Triangulate2();
 
         // Visualise
 #if DEBUG
         mesh.PreviewViaHub();
 #endif
+
+        // Assert
+
 
         //// Assert
         //Assert.That(mesh.IsValid, Is.True);
@@ -83,12 +87,35 @@ public class SweepLineTriangulatorTests
     {
         return
         [
-            new(CaseName: "SimpleSquare", Input: MakeSquare(), ExpectedTriangleCount: 2, ExpectedAverageArea: 50),
-            new(CaseName: "RectangleWithHole", Input: MakeRectangleWithHole(), ExpectedTriangleCount: 8, ExpectedAverageArea: 17.5),
-            new(CaseName: "LShape", Input: MakeLShape(), ExpectedTriangleCount: 4, ExpectedAverageArea: 18.75),
-            new(CaseName: "Jagged", Input: MakeJaggedShape(), ExpectedTriangleCount: 9, ExpectedAverageArea: 11.72),
-            new(CaseName: "UShape", Input: MakeUShape(), ExpectedTriangleCount: 6, ExpectedAverageArea: 12),
-            new(CaseName: "8Shape", Input: Make8Shape(), ExpectedTriangleCount: 6, ExpectedAverageArea: 12),
+            new(CaseName: "SimpleSquare",
+                Input: MakeSquare(), 
+                ExpectedTriangleCount: 2,
+                ExpectedAverageArea: 50),
+
+            new(CaseName: "RectangleWithHole",
+                Input: MakeRectangleWithHole(),
+                ExpectedTriangleCount: 8, 
+                ExpectedAverageArea: 17.5),
+
+            new(CaseName: "LShape", 
+                Input: MakeLShape(), 
+                ExpectedTriangleCount: 4, 
+                ExpectedAverageArea: 18.75),
+
+            new(CaseName: "Jagged",
+                Input: MakeJaggedShape(), 
+                ExpectedTriangleCount: 9,
+                ExpectedAverageArea: 11.72),
+
+            new(CaseName: "UShape", 
+                Input: MakeUShape(),
+                ExpectedTriangleCount: 6, 
+                ExpectedAverageArea: 12),
+
+            new(CaseName: "8Shape", 
+                Input: Make8Shape(),
+                ExpectedTriangleCount: 6,
+                ExpectedAverageArea: 12),
         ];
     }
 

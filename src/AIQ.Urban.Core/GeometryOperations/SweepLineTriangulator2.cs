@@ -13,30 +13,38 @@ internal static class SweepLineTriangulator2
         profile = profile.WithoutPeripheralVoids();
         var graph = Graph.Create(profile);
 
-        var orderedNodes = graph.Nodes.OrderBy(x => x.Point.X).ToList();
-        //Dictionary<GraphNode, (double StartAngle, double EndAngle)> internalAngleRange = CalculateInternalAngleRanges(graph.Nodes);
+        var orderedNodes = graph.Nodes
+            .OrderBy(x => x.Point.X)
+            .ThenBy(x => x.Point.Y)
+            .ToList();
 
-        var traversedNodes = new List<GraphNode>();
-        var traversedEdges = new HashSet<Edge>();
+        //Dictionary<GraphNode, (double StartAngle, double EndAngle)> internalAngleRange = CalculateInternalAngleRanges(graph.Nodes);
 
         // Traversal from left to right
         // Each loop run is intended to give one triangle
         foreach (var node in orderedNodes)
         {
             var nodeX = node.Point.X;
-            var pastEdges = node.Edges
+            var traversedEdges = node.Edges
                 .Where(x => x.Start.Point.X.LessThanORAlmostEquals(nodeX)
                     && x.End.Point.X.LessThanORAlmostEquals(nodeX))
+                .ToHashSet();
+
+            var neighboursOnLeft = node.Neighbours()
+                .Where(n => n.Point.X.LessThanORAlmostEquals(nodeX))
                 .ToList();
-            pastEdges.ForEach(x => traversedEdges.Add(x));
-            var traversedNeighbours = node.Neighbours().Where(traversedNodes.Contains).ToList();
-            traversedNodes.Add(node);
+
+            if (neighboursOnLeft.Count == 0)
+                continue;
 
             // First try to create a triangle by connecting to a neighbour using just one edge
-            var connectorEdge = ConnectToNeighbour(traversedNeighbours, node, profile);
+            var connectorEdge = ConnectToNeighbour(neighboursOnLeft, node, profile);
 
             if (connectorEdge != null)
+            {
                 AddEdgeToGraphAndNodes(graph, connectorEdge);
+                continue;
+            }
 
             // sometimes a node is isolated from traversed edges and needs 2 edges to be placed to make a triangle
             var connectorEdges = ConnectToOtherEdge(traversedEdges, node);
