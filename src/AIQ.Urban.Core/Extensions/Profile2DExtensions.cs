@@ -1,6 +1,7 @@
 using AIQ.Primitives.Extensions;
 using AIQ.Urban.Core.GeometryOperations;
 using AIQ.Urban.Core.Models.GeometryElements;
+using AIQ.Urban.Core.Models.UrbanGraph;
 using Rhino.Geometry;
 using Rhino.Geometry.Intersect;
 
@@ -23,32 +24,39 @@ public static class Profile2DExtensions
                 internalVoids.Add(hole);
         }
 
-        var remainingOutline = Curve.CreateBooleanDifference(outline, peripheralVoids.Select(x => x.Geometry), tolerance);
+        var remainingOutlines = peripheralVoids.Count == 0?
+            [outline]
+            :Curve.CreateBooleanDifference(outline, peripheralVoids.Select(x => x.Geometry), tolerance);
 
-        if (remainingOutline.Length != 1)
+        if (remainingOutlines.Length != 1)
             return profile;
 
-        var newProfile = Profile2D.Create(new Polygon2D(remainingOutline[0]), internalVoids, tolerance);
+        var newProfile = new Profile2D(new Polygon2D(remainingOutlines[0]), internalVoids, tolerance);
         return newProfile ?? profile;
     }
 
     public static Mesh Triangulate(this Profile2D profile, double tolerance = 1e-5)
         => SweepLineTriangulator.Triangulate(profile.Outline.Points(), profile.Holes.Select(x => x.Points()).ToList(), tolerance);
 
+    public static Graph Triangulate2(this Profile2D profile, double tolerance = 1e-5)
+    => SweepLineTriangulator2.Triangulate(profile, tolerance);
+
     public static bool Contains(this Profile2D profile, Line line, double tolerance = 1e-5)
     {
-        var outlineContains = profile.Outline.Contains(line, tolerance);
+        var outlineContains = profile.Outline.ContainsOrCoincides(line, tolerance);
 
         if (!outlineContains)
             return false;
 
+        var lineCurve = line.ToNurbsCurve();
+
         // Check if a part of the line strays into any hole
         foreach (var hole in profile.Holes)
         {
-            if (hole.Contains(line, tolerance))
+            if (hole.ContainsOrCoincides(line, tolerance))
                 return false;
 
-            var intersections = Intersection.CurveLine(hole.Geometry, line, tolerance, tolerance);
+            var intersections = Intersection.CurveCurve(hole.Geometry, lineCurve, tolerance, tolerance);
 
             if (intersections.Count == 0)
                 continue;
@@ -71,23 +79,4 @@ public static class Profile2DExtensions
         return true;
     }
 
-    public static bool Contains(this Polygon2D polygon, Line line, double tolerance = 1e-5)
-    {
-        var intersections = Intersection.CurveLine(polygon.Geometry, line, tolerance, tolerance);
-
-        if (intersections.Count == 0)
-        {
-            // Entire line is either inside or outside
-            var containment = polygon.Geometry.Contains(line.PointAt(0.5), Plane.WorldXY, tolerance);
-            return containment == PointContainment.Inside;
-        }
-
-        // line has left the polygon while traversing it
-        if (intersections.Count > 2)
-            return false;
-
-        // The mid point is either inside or outside the polygon, indicating the entire line is inside/ outside
-        var containment2 = polygon.Geometry.Contains(line.PointAt(0.5), Plane.WorldXY, tolerance);
-        return containment2 == PointContainment.Inside;
-    }
 }

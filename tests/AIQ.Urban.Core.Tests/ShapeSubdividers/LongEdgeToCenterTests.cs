@@ -120,8 +120,7 @@ public class LongEdgeToCenterTests
             new Point3d(0, 10, 0),
             new Point3d(0, 0, 0),
         ]));
-        var brep = Brep.CreatePlanarBreps(poly.Geometry, 1e-6)[0];
-        return new Profile2D(brep, poly, []);
+        return new Profile2D(poly, []);
     }
 
     private static Profile2D MakeRectangle(double w, double h)
@@ -133,8 +132,7 @@ public class LongEdgeToCenterTests
             new Point3d(0, h, 0),
             new Point3d(0, 0, 0),
         ]));
-        var brep = Brep.CreatePlanarBreps(poly.Geometry, 1e-6)[0];
-        return new Profile2D(brep, poly, []);
+        return new Profile2D(poly, []);
     }
 
     private static Profile2D MakeTriangle()
@@ -145,8 +143,7 @@ public class LongEdgeToCenterTests
             new Point3d(5, 10, 0),
             new Point3d(0, 0, 0),
         ]));
-        var brep = Brep.CreatePlanarBreps(poly.Geometry, 1e-6)[0];
-        return new Profile2D(brep, poly, []);
+        return new Profile2D(poly, []);
     }
 
 #if DEBUG

@@ -80,7 +80,7 @@ public class ResetUrbanElementsStepTests
             new Point3d(50, 10, 0), new Point3d(0, 10, 0),
             new Point3d(0, 0, 0),
         ]));
-        var profile = Profile2D.Create(surfaceOutline, [])!;
+        var profile = new Profile2D(surfaceOutline, [])!;
         UrbanModel.Instance.TransitSurfaces.Add((profile, TransitType.Road));
 
         var expectedCount = 2 + 4 + 1 + 1 + 1; // 9
@@ -111,14 +111,14 @@ public class ResetUrbanElementsStepTests
             new Point3d(50, 10, 0), new Point3d(0, 10, 0),
             new Point3d(0, 0, 0),
         ]));
-        var profile1 = Profile2D.Create(outline1, [])!;
+        var profile1 = new Profile2D(outline1, [])!;
 
         var outline2 = new Polygon2D(new PolylineCurve([
             new Point3d(60, 0, 0), new Point3d(100, 0, 0),
             new Point3d(100, 10, 0), new Point3d(60, 10, 0),
             new Point3d(60, 0, 0),
         ]));
-        var profile2 = Profile2D.Create(outline2, [])!;
+        var profile2 = new Profile2D(outline2, [])!;
 
         UrbanModel.Instance.TransitSurfaces.Add((profile1, TransitType.Road));
         UrbanModel.Instance.TransitSurfaces.Add((profile2, TransitType.Railway));

@@ -29,6 +29,7 @@ public static class PreviewAssemblyBootstrap
             new Profile2DConverter(),
             new CurveElementConverter(),
             new BrepElementConverter(),
+            new DefaultBrepConverter(),
             new Profile2DConverter(),
             new FloorPlateConverter(),
             new BuildingConverter(),

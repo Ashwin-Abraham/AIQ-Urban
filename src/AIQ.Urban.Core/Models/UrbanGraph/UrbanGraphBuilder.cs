@@ -3,7 +3,7 @@ using Rhino.Geometry;
 using Rhino.Geometry.Intersect;
 
 namespace AIQ.Urban.Core.Models.UrbanGraph;
-internal class GraphBuilder(double _approachTolerance = 1e-5, double _tolerance = 1e-5)
+internal class UrbanGraphBuilder(double _approachTolerance = 1e-5, double _tolerance = 1e-5)
 {
     private List<Parcel> _parcels = [];
     private List<Building> _buildings = [];
@@ -12,19 +12,19 @@ internal class GraphBuilder(double _approachTolerance = 1e-5, double _tolerance 
     // Initially store straight intersections, then merge based on point?
     private sealed record NodeData(Point3d Point, HashSet<IGraphableAsEdge> Items);
 
-    internal GraphBuilder WithParcels(List<Parcel> parcels)
+    internal UrbanGraphBuilder WithParcels(List<Parcel> parcels)
     {
         _parcels = parcels;
         return this;
     }
 
-    internal GraphBuilder WithBuildings(List<Building> buildings)
+    internal UrbanGraphBuilder WithBuildings(List<Building> buildings)
     {
         _buildings = buildings;
         return this;
     }
 
-    internal GraphBuilder WithTransit(List<Transit> transit)
+    internal UrbanGraphBuilder WithTransit(List<Transit> transit)
     {
         _transit = transit;
         return this;

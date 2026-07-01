@@ -9,28 +9,35 @@ public class Profile2D : IGeometryElement<Brep>
         get => Outline.Id;
         set => Outline.Id = value;
     }
-    public Brep Geometry { get; }
+    public Brep Geometry => GetBrep();
     public Polygon2D Outline { get; }
     public List<Polygon2D> Holes { get; }
 
-    public Profile2D(Brep geometry, Polygon2D outline, List<Polygon2D> holes, double tolerance = 1e-5)
+    public Profile2D(Polygon2D outline, List<Polygon2D> holes, double tolerance = 1e-5)
     {
-        Geometry = geometry;
         Outline = outline;
         Holes = holes;
     }
 
-    public static Profile2D? Create(Polygon2D outline, List<Polygon2D> holes, double tolerance = 1e-5)
+    public Brep GetBrep(double tolerance = 1e-5)
     {
-        var curves = holes.Select(x => x.Geometry).Append(outline.Geometry).ToList();
-        var profileBreps = Brep.CreatePlanarBreps(curves, tolerance);
+        Brep[] profileBreps;
+        if (Holes.Count > 0)
+        {
+            var holeCurves = Holes.Select(x => x.Geometry).ToList();
+            var holesInOutline = holeCurves.SelectMany(x => Curve.CreateBooleanIntersection(Outline.Geometry, x, tolerance)).ToArray();
+            
+            // TODO: Deal with peripheral breps
+            //holesInOutline = Curve.CreateBooleanDifference(Outline.Geometry, holesInOutline, tolerance);
 
-        if (profileBreps.Length != 1 || profileBreps[0].Faces.Count != 1)
-            throw new ArgumentException("Invalid Profile2D");
+            profileBreps = Brep.CreatePlanarBreps(holesInOutline.Append(Outline.Geometry), tolerance);
+        }
+        else
+        {
+            profileBreps = Brep.CreatePlanarBreps(Outline.Geometry, tolerance);
+        }
 
-        var profileBrep = profileBreps[0];
-
-        return Create(profileBrep);
+        return profileBreps?.First();
     }
 
     public static Profile2D? Create(Brep profileBrep)
@@ -62,7 +69,7 @@ public class Profile2D : IGeometryElement<Brep>
         if (outline == null)
             return null;
 
-        return new Profile2D(profileBrep, outline, holes);
+        return new Profile2D(outline, holes);
     }
 
     public Point2d Centroid()

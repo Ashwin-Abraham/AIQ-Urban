@@ -10,10 +10,16 @@ public class Polygon2D : IGeometryElement<PolylineCurve>
 
     public Polygon2D(Curve geometry)
     {
-        ArgumentNullException.ThrowIfNull(geometry);
+        PolylineCurve? plineCrv = null;
+        if (geometry is PolylineCurve)
+            plineCrv = (PolylineCurve)geometry;
+        else if (geometry.TryGetPolyline(out Polyline pline))
+            plineCrv = pline.ToPolylineCurve();
 
-        var copy = geometry.Duplicate() as PolylineCurve
-            ?? throw new InvalidOperationException("Failed to duplicate curve.");
+        if(plineCrv is null)
+            throw new InvalidOperationException("Making a polygon2D is only allowed with a polyline curve. Received a " + geometry.GetType());
+
+        var copy = (plineCrv.Duplicate() as PolylineCurve)!;
 
         if (!copy.IsPlanarInXY())
             throw new ArgumentException("Polygon2D requires a curve in an XY plane.", nameof(geometry));

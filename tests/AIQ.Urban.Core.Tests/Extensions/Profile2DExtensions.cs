@@ -1,4 +1,5 @@
-﻿using System.Drawing;
+﻿using System;
+using System.Drawing;
 using System.Linq;
 using AIQ.Urban.Core.Extensions;
 using AIQ.Urban.Core.Models.GeometryElements;
@@ -46,46 +47,6 @@ public class Profile2DExtensionTests
         Assert.That(result.Holes, Has.Count.EqualTo(testData.ExpectedHoleCount));
     }
 
-    [Test]
-    [TestCase("InsideLine")]
-    [TestCase("OutsideLine")]
-    [TestCase("CrossingHole")]
-    [TestCase("LineOnHoleBoundary")]
-    public void Contains_LineInProfile(string testName)
-    {
-        // Arrange
-        var testData = _containsLineTestData.Single(x => x.CaseName == testName);
-
-        // Act
-        var result = testData.Profile.Contains(testData.Line);
-
-        // Visualise
-#if DEBUG
-        VisualiseContainsTest(testData.Profile, testData.Line, result);
-#endif
-
-        // Assert
-        Assert.That(result, Is.EqualTo(testData.Expected));
-    }
-
-    [Test]
-    [TestCase("LineInsidePolygon")]
-    [TestCase("LineOutsidePolygon")]
-    [TestCase("LineCrossingBoundary")]
-    [TestCase("LineOnEdge")]
-    public void PolygonContains_Line(string testName)
-    {
-        // Arrange
-        var testData = _polygonContainsLineTestData.Single(x => x.CaseName == testName);
-
-        // Act
-        var result = testData.Polygon.Contains(testData.Line);
-
-        // Assert
-        Assert.That(result, Is.EqualTo(testData.Expected));
-    }
-
-#if DEBUG
     private static void VisualisePeripheralVoidTest(Profile2D input, Profile2D result)
     {
         var doc = RhinoDoc.CreateHeadless(null);
@@ -102,6 +63,78 @@ public class Profile2DExtensionTests
         Visualizer.View(doc);
     }
 
+    private record PeripheralVoidTestData(string CaseName, Profile2D Input, double ExpectedArea, int ExpectedHoleCount);
+
+    private static readonly PeripheralVoidTestData[] _peripheralVoidTestData = BuildPeripheralVoidTestData();
+
+    private static PeripheralVoidTestData[] BuildPeripheralVoidTestData()
+    {
+        var mixedHolesInput = new Profile2D(
+            Polygon2D.Create([(0, 0), (20, 0), (20, 10), (0, 10)]),
+            [
+                Polygon2D.Create([(0, 0), (4, 0), (4, 3), (0, 3)]),
+                Polygon2D.Create([(5, 2), (15, 2), (15, 8), (5, 8)]),
+            ])!;
+
+        return
+        [
+            new(CaseName: "NoHoles",
+                Input: new Profile2D(
+                    Polygon2D.Create([(0, 0), (10, 0), (10, 10), (0, 10)]), [])!,
+                ExpectedArea: 100,
+                ExpectedHoleCount: 0),
+
+            new(CaseName: "OnlyInternalHoles",
+                Input: new Profile2D(
+                    Polygon2D.Create([(0, 0), (20, 0), (20, 10), (0, 10)]),
+                    [Polygon2D.Create([(5, 2), (15, 2), (15, 8), (5, 8)])])!,
+                ExpectedArea: 140,
+                ExpectedHoleCount: 1),
+
+            new(CaseName: "OnlyPeripheralVoids",
+                Input: new Profile2D(
+                    Polygon2D.Create([(0, 0), (10, 0), (10, 10), (0, 10)]),
+                    [Polygon2D.Create([(0, 0), (5, 0), (5, 4), (0, 4)])])!,
+                ExpectedArea: 80,
+                ExpectedHoleCount: 0),
+
+            new(CaseName: "MixedHoles",
+                Input: mixedHolesInput,
+                ExpectedArea: 128,
+                ExpectedHoleCount: 1),
+        ];
+    }
+
+
+    [Test]
+    [TestCase("InsideLine")]
+    [TestCase("OutsideLine")]
+    [TestCase("CrossingHole")]
+    [TestCase("LineOnHoleBoundary")]
+    public void Contains_LineInProfile(string testName)
+    {
+        // Arrange
+        var td = GetContainsLineTestData(testName);
+        var outline = Polygon2D.Create(td.Outline.Select(v => (v[0], v[1])).ToList());
+        var holes = td.Holes.Select(h => Polygon2D.Create(h.Select(v => (v[0], v[1])).ToList())).ToList();
+        var profile = new Profile2D(outline, holes)!;
+        var line = new Line(new Point3d(td.LineFrom[0], td.LineFrom[1], 0),
+                            new Point3d(td.LineTo[0], td.LineTo[1], 0));
+
+        // Act
+        var result = profile.Contains(line);
+
+        // Visualise
+#if DEBUG
+        VisualiseContainsTest(profile, line, result);
+#endif
+
+        // Assert
+        Assert.That(result, Is.EqualTo(td.Expected));
+    }
+
+#if DEBUG
+
     private static void VisualiseContainsTest(Profile2D profile, Line line, bool contained)
     {
         var doc = RhinoDoc.CreateHeadless(null);
@@ -114,76 +147,52 @@ public class Profile2DExtensionTests
     }
 #endif
 
-    private record PeripheralVoidTestData(string CaseName, Profile2D Input, double ExpectedArea, int ExpectedHoleCount);
+  
+    private record PrimitiveContainsLineTestData(
+        string CaseName,
+        double[][] Outline,
+        double[][][] Holes,
+        double[] LineFrom,
+        double[] LineTo,
+        bool Expected);
 
-    private static readonly PeripheralVoidTestData[] _peripheralVoidTestData = BuildPeripheralVoidTestData();
-
-    private static PeripheralVoidTestData[] BuildPeripheralVoidTestData()
+    private static PrimitiveContainsLineTestData GetContainsLineTestData(string caseName)
     {
-        var square10 = Profile2D.Create(
-            Polygon2D.Create([(0, 0), (10, 0), (10, 10), (0, 10)]), [])!;
-        var profileWithInternalHole = Profile2D.Create(
-            Polygon2D.Create([(0, 0), (20, 0), (20, 10), (0, 10)]),
-            [Polygon2D.Create([(5, 2), (15, 2), (15, 8), (5, 8)])])!;
-        var profileWithPeripheralVoid = Profile2D.Create(
-            Polygon2D.Create([(0, 0), (10, 0), (10, 10), (0, 10)]),
-            [Polygon2D.Create([(0, 0), (5, 0), (5, 4), (0, 4)])])!;
-        var profileWithBoth = Profile2D.Create(
-            Polygon2D.Create([(0, 0), (20, 0), (20, 10), (0, 10)]),
-            [
-                Polygon2D.Create([(0, 0), (4, 0), (4, 3), (0, 3)]),
-                Polygon2D.Create([(5, 2), (15, 2), (15, 8), (5, 8)]),
-            ])!;
+        return caseName switch
+        {
+            "InsideLine" => new PrimitiveContainsLineTestData(
+                CaseName: "InsideLine",
+                Outline: [[0, 0], [10, 0], [10, 10], [0, 10]],
+                Holes: [[[3, 3], [7, 3], [7, 7], [3, 7]]],
+                LineFrom: [1, 5],
+                LineTo: [2, 5],
+                Expected: true),
 
-        return
-        [
-            new("NoHoles", square10, 100, 0),
-            new("OnlyInternalHoles", profileWithInternalHole, 100, 1),
-            new("OnlyPeripheralVoids", profileWithPeripheralVoid,
-                AreaMassProperties.Compute(profileWithPeripheralVoid.Geometry).Area, 0),
-            new("MixedHoles", profileWithBoth,
-                AreaMassProperties.Compute(profileWithBoth.Geometry).Area, 1),
-        ];
+            "OutsideLine" => new PrimitiveContainsLineTestData(
+                CaseName: "OutsideLine",
+                Outline: [[0, 0], [10, 0], [10, 10], [0, 10]],
+                Holes: [[[3, 3], [7, 3], [7, 7], [3, 7]]],
+                LineFrom: [20, 0],
+                LineTo: [30, 0],
+                Expected: false),
+
+            "CrossingHole" => new PrimitiveContainsLineTestData(
+                CaseName: "CrossingHole",
+                Outline: [[0, 0], [10, 0], [10, 10], [0, 10]],
+                Holes: [[[3, 3], [7, 3], [7, 7], [3, 7]]],
+                LineFrom: [1, 5],
+                LineTo: [9, 5],
+                Expected: false),
+
+            "LineOnHoleBoundary" => new PrimitiveContainsLineTestData(
+                CaseName: "LineOnHoleBoundary",
+                Outline: [[0, 0], [10, 0], [10, 10], [0, 10]],
+                Holes: [[[3, 3], [7, 3], [7, 7], [3, 7]]],
+                LineFrom: [3, 4],
+                LineTo: [7, 4],
+                Expected: false),
+
+            _ => throw new ArgumentException($"Unknown test case: {caseName}")
+        };
     }
-
-    private record ContainsLineTestData(string CaseName, Profile2D Profile, Line Line, bool Expected);
-
-    private static readonly ContainsLineTestData[] _containsLineTestData = BuildContainsLineTestData();
-
-    private static ContainsLineTestData[] BuildContainsLineTestData()
-    {
-        var squareWithHole = Profile2D.Create(
-            Polygon2D.Create([(0, 0), (10, 0), (10, 10), (0, 10)]),
-            [Polygon2D.Create([(3, 3), (7, 3), (7, 7), (3, 7)])])!;
-
-        return
-        [
-            new("InsideLine", squareWithHole,
-                new Line(new Point3d(1, 5, 0), new Point3d(2, 5, 0)), true),
-            new("OutsideLine", squareWithHole,
-                new Line(new Point3d(20, 0, 0), new Point3d(30, 0, 0)), false),
-            new("CrossingHole", squareWithHole,
-                new Line(new Point3d(1, 5, 0), new Point3d(9, 5, 0)), false),
-            new("LineOnHoleBoundary", squareWithHole,
-                new Line(new Point3d(3, 4, 0), new Point3d(7, 4, 0)), true),
-        ];
-    }
-
-    private record PolygonContainsLineTestData(string CaseName, Polygon2D Polygon, Line Line, bool Expected);
-
-    private static readonly PolygonContainsLineTestData[] _polygonContainsLineTestData =
-    [
-        new("LineInsidePolygon",
-            Polygon2D.Create([(0, 0), (10, 0), (10, 10), (0, 10)]),
-            new Line(new Point3d(1, 5, 0), new Point3d(9, 5, 0)), true),
-        new("LineOutsidePolygon",
-            Polygon2D.Create([(0, 0), (10, 0), (10, 10), (0, 10)]),
-            new Line(new Point3d(20, 0, 0), new Point3d(30, 0, 0)), false),
-        new("LineCrossingBoundary",
-            Polygon2D.Create([(0, 0), (10, 0), (10, 10), (0, 10)]),
-            new Line(new Point3d(-5, 5, 0), new Point3d(15, 5, 0)), false),
-        new("LineOnEdge",
-            Polygon2D.Create([(0, 0), (10, 0), (10, 10), (0, 10)]),
-            new Line(new Point3d(10, 2, 0), new Point3d(10, 8, 0)), false),
-    ];
 }

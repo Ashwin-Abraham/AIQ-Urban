@@ -11,14 +11,16 @@ public class BrepElementConverter : IGeometryPreviewConverter
     public bool IsPreviewable(object @object) => @object is BrepElement || @object is IEnumerable<BrepElement>;
 
     public void AddToPreviewDoc(object @object, RhinoDoc doc, Color? color = null)
-    {
-        if (@object is BrepElement brepElement)
-            AddToPreviewDoc(brepElement, doc, color);
+        => new DefaultBrepConverter().AddToPreviewDoc(((BrepElement)@object).Geometry, doc, color);
 
-        if (@object is IEnumerable<BrepElement> brepElements)
-            foreach (var be in brepElements)
-                AddToPreviewDoc(be, doc, color);
-    }
+    //{
+    //    if (@object is BrepElement brepElement)
+    //        AddToPreviewDoc(brepElement, doc, color);
+
+    //    if (@object is IEnumerable<BrepElement> brepElements)
+    //        foreach (var be in brepElements)
+    //            AddToPreviewDoc(be, doc, color);
+    //}
 
     private static void AddToPreviewDoc(BrepElement brepElement, RhinoDoc doc, Color? color)
     {

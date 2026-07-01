@@ -6,7 +6,7 @@ internal class GraphCreationStep(double _approachTolerance = 1e-5, double _toler
 {
     public EditStepResult Run(UrbanModel model)
     {
-        model.UrbanGraph = new GraphBuilder(_approachTolerance, _tolerance)
+        model.UrbanGraph = new UrbanGraphBuilder(_approachTolerance, _tolerance)
             .WithTransit(model.Transits)
             .WithParcels(model.Parcels)
             .WithBuildings(model.Buildings)
