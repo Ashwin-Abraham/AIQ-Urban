@@ -22,20 +22,15 @@ public class Profile2D : IGeometryElement<Brep>
     public Brep GetBrep(double tolerance = 1e-5)
     {
         Brep[] profileBreps;
+        List<Curve> curves = [Outline.Geometry];
         if (Holes.Count > 0)
         {
             var holeCurves = Holes.Select(x => x.Geometry).ToList();
             var holesInOutline = holeCurves.SelectMany(x => Curve.CreateBooleanIntersection(Outline.Geometry, x, tolerance)).ToArray();
-            
-            // TODO: Deal with peripheral breps
-            //holesInOutline = Curve.CreateBooleanDifference(Outline.Geometry, holesInOutline, tolerance);
-
-            profileBreps = Brep.CreatePlanarBreps(holesInOutline.Append(Outline.Geometry), tolerance);
+            curves.AddRange(holesInOutline);
         }
-        else
-        {
-            profileBreps = Brep.CreatePlanarBreps(Outline.Geometry, tolerance);
-        }
+        
+        profileBreps = Brep.CreatePlanarBreps(curves, tolerance);
 
         return profileBreps?.First();
     }
