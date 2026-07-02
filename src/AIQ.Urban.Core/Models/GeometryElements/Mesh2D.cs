@@ -1,4 +1,5 @@
-﻿using Rhino.Geometry;
+﻿using AIQ.Urban.Core.Extensions;
+using Rhino.Geometry;
 
 namespace AIQ.Urban.Core.Models.GeometryElements;
 public class Mesh2D : IGeometryElement<Mesh>
@@ -23,6 +24,28 @@ public class Mesh2D : IGeometryElement<Mesh>
             return false;
 
         return Plane.FitPlaneToPoints(points, out _) == PlaneFitResult.Success;
+    }
+
+    public static Mesh2D Create(Profile2D profile)
+    {
+        var points = profile.Holes
+            .SelectMany(x => x.Points())
+            .Concat(profile.Outline.Points())
+            .ToList();
+
+        var edges = profile.Holes.Select(x => x.Geometry)
+            .Append(profile.Outline.Geometry)
+            .Select(x =>
+                {
+                    var ctrlPts = x.ToNurbsCurve().Points;
+                    return ctrlPts.Select(controlPoint => new Point3d(controlPoint.X, controlPoint.Y, controlPoint.Z))
+                })
+            .ToList();
+
+        Plane.FitPlaneToPoints(points, out var plane);
+        var mesh = Mesh.CreateFromTessellation(points, edges, plane, false);
+
+        return new Mesh2D(mesh);
     }
     
 }
