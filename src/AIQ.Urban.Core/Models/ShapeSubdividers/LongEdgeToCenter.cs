@@ -42,8 +42,7 @@ public class LongEdgeToCenter(int _dividerCount = 2, double _tolerance = 1e-6) :
             {
                 var pline = x.ToPolylineCurve();
                 var polygon = new Polygon2D(pline);
-                var brep = Brep.CreatePlanarBreps(pline, _tolerance)[0];
-                return new Profile2D(brep, polygon, []);
+                return new Profile2D(polygon, []);
             })
             .ToList();
 

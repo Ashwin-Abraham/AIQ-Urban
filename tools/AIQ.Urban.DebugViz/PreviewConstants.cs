@@ -30,6 +30,10 @@ internal static class PreviewConstants
     internal const string DebugBrepLayer = "Default:Breps";
     internal const string DebugProfileLayer = "Default:Profiles";
 
+    // --- Graph layers ---
+    internal const string GraphNodesLayer = "Default:GraphNodes";
+    internal const string GraphEdgesLayer = "Default:GraphEdges";
+
     // --- Default colors ---
     internal static readonly Color DebugGeometryColor = Color.FromArgb(15, Color.Gray);
     internal static readonly Color ZoneDefaultColor = Color.CornflowerBlue;

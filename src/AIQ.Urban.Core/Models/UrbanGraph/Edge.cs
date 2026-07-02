@@ -1,13 +1,27 @@
 ﻿using Rhino.Geometry;
 
 namespace AIQ.Urban.Core.Models.UrbanGraph;
-public class Edge(GraphNode start, GraphNode end, IGraphableAsEdge? source = null)
+public class Edge
 {
-    public IGraphableAsEdge? SourceElement { get; } = source;
-    public GraphNode Start { get; } = start;
-    public GraphNode End { get; } = end;
+    //TODO: Remove IGraphable or think about refactoring this
+    public IGraphableAsEdge? SourceElement { get; } 
+    public GraphNode Start { get; } 
+    public GraphNode End { get; }
 
-    public Lazy<Curve> Curve { get; } = new Lazy<Curve>(() => CalculateCurve(start.Point, end.Point, source.GraphableGeometry));
+    // TODO: It is odd to have both a direct line connection AND a IGraphable based connection.
+    // May need concept simplification
+    public Lazy<Curve> Curve { get; }
+
+    public Edge(GraphNode start, GraphNode end, IGraphableAsEdge? source = null)
+    {
+        if (start == end)
+            throw new ArgumentException("Start and end node cannot be the same.");
+
+        SourceElement = source;
+        Start  = start;
+        End  = end;
+        Curve = new Lazy<Curve>(() => CalculateCurve(Start.Point, End.Point, SourceElement.GraphableGeometry));
+    }
 
     private static Curve CalculateCurve(Point3d start, Point3d end, Curve parent)
     {

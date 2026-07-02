@@ -113,7 +113,7 @@ public class BisectingCrossSection(double _tolerance = 1e-6) : IShapeSubdivider
         foreach (var hc in holeCurves)
             holePolygons.Add(new Polygon2D(hc));
 
-        return new Profile2D(brep[0], polygon, holePolygons);
+        return new Profile2D(polygon, holePolygons);
     }
 
     private static Polyline EnsureWinding(Polyline pline, bool clockwise)

@@ -72,25 +72,25 @@ public class BisectingCrossSectionTests
         [
             new(
                 CaseName: "Rectangle",
-                Input: Profile2D.Create(
+                Input: new Profile2D(
                     Polygon2D.Rectangle(new(0, 0), new(6, 2)), [])!,
                 ExpectedFragmentCount: 2,
                 ExpectedHolesPerFragment: 0),
             new(
                 CaseName: "Diamond",
-                Input: Profile2D.Create(
+                Input: new Profile2D(
                     Polygon2D.Create([(2, 0), (4, 2), (2, 4), (0, 2)]), [])!,
                 ExpectedFragmentCount: 2,
                 ExpectedHolesPerFragment: 0),
             new(
                 CaseName: "Angled L",
-                Input: Profile2D.Create(
+                Input: new Profile2D(
                     Polygon2D.Create([(0, 0), (7, 7), (6, 8), (0, 2), (-1, 3), (-2, 2)]), [])!,
                 ExpectedFragmentCount: 2,
                 ExpectedHolesPerFragment: 0),
             new(
                 CaseName: "Triangle",
-                Input: Profile2D.Create(
+                Input: new Profile2D(
                     Polygon2D.Create([(0, 0), (10, 0), (0, 10)]), [])!,
                 ExpectedFragmentCount: 2,
                 ExpectedHolesPerFragment: 0),
