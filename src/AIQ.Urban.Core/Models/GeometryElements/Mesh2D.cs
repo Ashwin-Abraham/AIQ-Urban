@@ -13,7 +13,7 @@ public class Mesh2D : IGeometryElement<Mesh>
             throw new ArgumentException("Mesh is not flat");
 
         Geometry = geometry;
-        Id = id?? Guid.NewGuid();
+        Id = id ?? Guid.NewGuid();
     }
 
     private static bool Validate2D(Mesh geometry)
@@ -28,24 +28,11 @@ public class Mesh2D : IGeometryElement<Mesh>
 
     public static Mesh2D Create(Profile2D profile)
     {
-        var points = profile.Holes
-            .SelectMany(x => x.Points())
-            .Concat(profile.Outline.Points())
-            .ToList();
-
-        var edges = profile.Holes.Select(x => x.Geometry)
-            .Append(profile.Outline.Geometry)
-            .Select(x =>
-                {
-                    var ctrlPts = x.ToNurbsCurve().Points;
-                    return ctrlPts.Select(controlPoint => new Point3d(controlPoint.X, controlPoint.Y, controlPoint.Z))
-                })
-            .ToList();
-
-        Plane.FitPlaneToPoints(points, out var plane);
-        var mesh = Mesh.CreateFromTessellation(points, edges, plane, false);
+        var brep = profile.GetBrep();
+        var meshes = Mesh.CreateFromBrep(brep, MeshingParameters.FastRenderMesh);
+        var mesh = meshes?.FirstOrDefault()
+            ?? throw new InvalidOperationException("Failed to create mesh from profile");
 
         return new Mesh2D(mesh);
     }
-    
 }

@@ -30,6 +30,7 @@ public static class PreviewAssemblyBootstrap
             new CurveElementConverter(),
             new BrepElementConverter(),
             new DefaultBrepConverter(),
+            new Mesh2DConverter(),
             new FloorPlateConverter(),
             new BuildingConverter(),
             new TransitConverter(),
