@@ -1,12 +1,11 @@
-﻿using ArchSitePlan.RhinoInterface.CoreModelInterface;
+﻿using System;
+using ArchSitePlan.RhinoInterface.CoreModelInterface;
 using ArchSitePlan.RhinoInterface.HTML_UI;
 using ArchSitePlan.RhinoInterface.HTML_UI.Websockets;
 using Eto.Forms;
 using Rhino;
 using Rhino.Commands;
 using Rhino.Display;
-using System;
-using static ArchSitePlan.RhinoInterface.Constants.Enums;
 using Command = Rhino.Commands.Command;
 
 namespace ArchSitePlan.RhinoAddin;
