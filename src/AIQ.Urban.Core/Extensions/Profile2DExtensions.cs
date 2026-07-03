@@ -35,12 +35,6 @@ public static class Profile2DExtensions
         return newProfile ?? profile;
     }
 
-    public static Mesh Triangulate(this Profile2D profile, double tolerance = 1e-5)
-        => SweepLineTriangulator.Triangulate(profile.Outline.Points(), profile.Holes.Select(x => x.Points()).ToList(), tolerance);
-
-    public static Graph Triangulate2(this Profile2D profile, double tolerance = 1e-5)
-    => SweepLineTriangulator2.Triangulate(profile, tolerance);
-
     public static bool Contains(this Profile2D profile, Line line, double tolerance = 1e-5)
     {
         var outlineContains = profile.Outline.ContainsOrCoincides(line, tolerance);
