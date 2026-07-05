@@ -18,7 +18,9 @@ Rhino 8 plugin (`AIQ.Urban.RhinoPlugin.rhp`) owning the native Rhino commands an
 - **Error on miss**: reverse-lookup miss is silently skipped. The dict is correctly maintained during a session; after file open there's nothing to do (accepted gap).
 - **File open gap**: on `EndOpenDocument`, UrbanModel is empty (in-memory singleton reset). The reverse-lookup dict is also empty. No reconciliation pass yet — user must re-run commands. Accepted gap for v1.
 - **HTML UI ownership**: AIQ.Urban.RhinoPlugin owns its own minimal HTML UI infrastructure under `HTML_UI`; copy patterns from the old `ArchSitePlan.RhinoInterface.HTML_UI` code, but do not depend on old `ArchSitePlan.*` UI projects.
-- **Vue UI dist**: the built Vue application under `src/UI/aiq-urban-ui/dist`; this is the canonical source of UI assets packaged by the Rhino plugin.
+- **HTTP POST message contract**: HTTP POST requests from the Vue UI are routed by `messageType` field via `MessageConverter` to typed `IMessageFromUI` classes. Each class implements `HandleMessage()` which runs on the Rhino UI thread via `RhinoApp.InvokeOnUiThread()`. Responses are serialized as `IMessageToUI` JSON objects. See `docs/plans/implement-ui-post-handler.md`.
+- **UI geometry source**: UI POST requests carry parameter values only (width, floor height, etc.). Geometry (curves, Breps) comes from pre-selected Rhino objects at the time the POST arrives, obtained via `doc.Objects.GetSelectedObjects()`.
+- **Vue UI dist**: the built Vue application under `src/UI/dist`; this is the canonical source of UI assets packaged by the Rhino plugin.
 
 ## Event Handler Lifecycle
 - Created in `Urban_RhinoPlugin.OnLoad()` → calls `SubscribeModelEvents()` on the singleton handler
@@ -148,16 +150,55 @@ These pipeline configurations are wrapped as reusable methods (not necessarily u
 - Only one UI window should be open at a time; re-running the command should focus/reuse the existing window or no-op successfully, not create duplicate windows or duplicate servers.
 - Uses the new AIQ.Urban.RhinoPlugin HTML UI infrastructure, copied from the old `ArchSitePlan.RhinoInterface.HTML_UI` pattern without depending on the old project.
 - Websocket serving uses `WebSocketSharp`, matching the old working Rhino UI pattern for the first pass.
-- Initial scope is static HTML serving plus websocket startup; UI-to-Rhino commands over HTTP `POST` are deferred until the UI message contract exists.
-- Future UI command support should add a typed message contract owned by AIQ.Urban, deserialize incoming UI messages at the HTTP/websocket boundary, marshal Rhino operations onto the Rhino UI thread, and delegate domain changes through the existing RhinoUrbanModelPipeline rather than calling Core directly from transport code.
+- UI-to-Rhino commands over HTTP `POST` use a typed message contract (`MessagesFromUI/`, `MessageToUI/`). Incoming JSON is deserialized by `MessageConverter`, routed by `messageType` field, and executed on the Rhino UI thread. Domain changes go through `RhinoUrbanModelPipeline` — never directly to Core.
+- Implemented message types: `Transit`, `Building`. See `docs/plans/implement-ui-post-handler.md` for full plan.
+- `ToolSelection` messages are received but not yet acted on (deferred).
+- CORS headers (`Access-Control-Allow-Origin: *`) are added to all HTTP responses for compatibility.
 
-### Future Commands (non-exhaustive, deferred)
+### Deferred Commands (non-exhaustive)
 - `AddBuildingFromBrep(Brep Envelope, double FloorHeight)`
 - `AddBuildingOnParcel(Brep Envelope, double FloorHeight)`
 - `AddBuildingOnParcelEdge(Brep Envelope, double FloorHeight)`
 
 ### ProjectMetricsJsonSerializer
 Serializer in `Pipeline/ModelActions/ProjectMetricsJsonSerializer.cs`. Reads `UrbanModel.ProjectMetrics` and writes it as indented JSON to `%USERPROFILE%\Documents\AIQ Urban\{RhinoDocName}-project-metrics.json`. Invoked as a `WithUrbanModelAction` step after the pipeline computes metrics. Uses `System.Text.Json` (no additional dependencies).
+
+## UI-to-Rhino POST Message Contract
+
+### Incoming Messages (`MessagesFromUI/`)
+Each implements `IMessageFromUI<T>` with a `HandleMessage()` method that returns `IMessageToUI`.
+
+| Message | `messageType` | Source (Vue component) | Parameters | Geometry Source |
+|---|---|---|---|---|
+| `TransitMessage` | `"Transit"` | `TransitTool.vue` | `RoadWidth` | Selected curves in RhinoDoc |
+| `BuildingMessage` | `"Building"` | `BuildingTool.vue` | `FloorCount`, `FloorHeight`, `manual_generationType` ("Footprint" or "Mass") | Selected curves (Footprint) or Breps (Mass) |
+| `ToolSelectionMessage` | `"ToolSelection"` | `ModellingTools.vue` | `Tool` (name) | None (stub) |
+
+### Outgoing Messages (`MessageToUI/`)
+Returned as JSON in the HTTP response. The UI's `RhinoApiService.ts` routes by `Type` field.
+
+| Message | `Type` | Content |
+|---|---|---|
+| `ModelStateMessage` | `"ModelStateMessage"` | Landuses (from `DefaultUses.All`) + per-zone chart metrics (from `ProjectMetrics`) |
+| `EmptyMessage` | `"EmptyMessage"` | No content (used for stubs) |
+
+### TransitMessage Handling
+1. Get `RhinoDoc.ActiveDoc`
+2. Get selected curve objects, filter to `ObjectType.Curve`
+3. For each: create `Curve2D(curve, obj.Id)` → `TransitData(curve2D, RoadWidth, TransitType.Road)`
+4. Pipeline: `WithTransitAdditionSteps()` + `WithMetricsCalculation()` via `RhinoUrbanModelPipeline`
+5. Return `ModelStateMessage`
+
+### BuildingMessage Handling
+Two modes controlled by `manual_generationType`:
+
+- **Footprint**: Get selected curves → `Polygon2D(curve)` → `BuildingData(polygon, FloorHeight, FloorCount, DefaultUses.MixedUse)`
+- **Mass**: Get selected Breps → extract lowest face boundary as footprint polygon → same `BuildingData` construction
+- Pipeline: `WithBuildingAdditionSteps()` + `WithMetricsCalculation()` via `RhinoUrbanModelPipeline`
+- Building Use always defaults to `DefaultUses.MixedUse` (UI does not send useName)
+
+### Thread Safety
+All `HandleMessage()` calls are marshalled to the Rhino UI thread via `RhinoApp.InvokeOnUiThread()`. The `HttpListener` runs on thread pool threads — without this marshalling, Rhino doc access would crash.
 
 ## Relationship to Core
 Commands collect user input, then delegate to `RhinoUrbanModelPipeline` which calls into Core's domain logic. Core owns all model state and computation. The RhinoPlugin is a thin presenter/controller layer on top.
