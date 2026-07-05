@@ -13,6 +13,7 @@ using Rhino.Geometry;
 using Rhino.Testing.Fixtures;
 using AIQ.Primitives.Extensions;
 using AIQ.PreviewHelper.Core;
+using AIQ.Urban.Core.ModelActions.CreationData;
 
 namespace AIQ.Urban.Core.Tests.Models.UrbanGraph;
 

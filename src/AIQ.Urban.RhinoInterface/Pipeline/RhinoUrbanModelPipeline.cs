@@ -4,6 +4,7 @@ using AIQ.Urban.Core.Models;
 using AIQ.Urban.Core.Models.UrbanElements;
 using AIQ.Urban.RhinoInterface.EventHandler;
 using AIQ.Urban.RhinoInterface.Pipeline.Outputters;
+using AIQ.Urban.RhinoInterface.Pipeline.RhinoDocActions;
 using Rhino;
 
 namespace AIQ.Urban.RhinoInterface;
@@ -12,6 +13,7 @@ public class RhinoUrbanModelPipeline(
     RhinoDoc _rhinoDoc,
     UrbanModel _urbanModel)
 {
+    private readonly IRhinoDataGatherStep _objectSelectionStep;
     private readonly List<IUrbanModelStep> _addDeleteSteps = [];
     private readonly List<IEditUrbanElementsStep> _editSteps = [];
     private readonly List<Guid> _directDeleteIds = [];
@@ -59,9 +61,11 @@ public class RhinoUrbanModelPipeline(
         var deletedIds = new List<Guid>();
         var addedIds = new List<Guid>();
 
+        var creationData = _objectSelectionStep.Run(_rhinoDoc);
+
         foreach (var step in _addDeleteSteps)
         {
-            var result = step.Run(_urbanModel);
+            var result = step.Run(_urbanModel, creationData);
 
             if (step is IDeleteUrbanElementsStep)
                 deletedIds.AddRange(result);

@@ -1,6 +1,4 @@
-using AIQ.Urban.Core.Models;
-using AIQ.Urban.Core.Models.GeometryElements;
-using AIQ.Urban.Core.Models.UrbanElements;
+using AIQ.Urban.Core.ModelActions.CreationData;
 
 namespace AIQ.Urban.Core.ModelActions;
 
@@ -16,14 +14,3 @@ public class AddBuildingStep(List<BuildingData> _buildingData) : IAddUrbanElemen
     }
 }
 
-public record BuildingData(
-    Polygon2D Footprint,
-    double TypicalFloorHeight,
-    int FloorCount,
-    Use Use)
-{
-    public Building ToBuilding()
-    {
-        return new Building(Footprint, TypicalFloorHeight, FloorCount, Use);
-    }
-}
