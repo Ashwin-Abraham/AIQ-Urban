@@ -1,8 +1,10 @@
+using AIQ.Urban.Core.ModelActions.CreationData;
+
 namespace AIQ.Urban.Core.ModelActions;
 
 public class RemoveZoneStep(List<Guid> _geometryIds) : IDeleteUrbanElementsStep
 {
-    List<Guid> IUrbanModelStep.Run(UrbanModel model)
+    List<Guid> IUrbanModelStep.Run(UrbanModel model, ICreationData? creationData)
     {
         var zonesToRemove = model.Zones
             .Where(x => x.GetGeometryIds()

@@ -2,7 +2,7 @@
 using Rhino;
 
 namespace AIQ.Urban.RhinoInterface.Pipeline.RhinoDocActions;
-internal interface IRhinoDataGatherStep
+public interface IRhinoDataGatherStep
 {
-    internal ICreationData Run(RhinoDoc doc);
+    ICreationData Run(RhinoDoc doc);
 }

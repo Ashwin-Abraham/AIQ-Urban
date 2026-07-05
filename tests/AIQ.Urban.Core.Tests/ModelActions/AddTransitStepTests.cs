@@ -1,5 +1,6 @@
 using AIQ.Urban.Core.Enums;
 using AIQ.Urban.Core.ModelActions;
+using AIQ.Urban.Core.ModelActions.CreationData;
 using AIQ.Urban.Core.Models.GeometryElements;
 using AIQ.Urban.DebugViz;
 using NUnit.Framework;
@@ -30,10 +31,10 @@ public class AddTransitStepTests
         var testData = _testData.Single(x => x.CaseName == testName);
 
         // Arrange
-        IUrbanModelStep step = new AddTransitStep(testData.Input);
+        IUrbanModelStep step = new AddTransitStep();
 
         // Act
-        var result = step.Run(UrbanModel.Instance);
+        var result = step.Run(UrbanModel.Instance, new CreationDataCollection<TransitData>(testData.Input));
 
         // Visualise
 #if DEBUG

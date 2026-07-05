@@ -3,13 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using AIQ.Urban.Core;
 using AIQ.Urban.Core.Enums;
-using AIQ.Urban.Core.ModelActions;
-using AIQ.Urban.Core.Models.GeometryElements;
+using AIQ.Urban.Core.ModelActions.CreationData;
 using AIQ.Urban.RhinoInterface;
+using AIQ.Urban.RhinoInterface.Pipeline.RhinoDocActions;
 using AIQ.Urban.RhinoPlugin.HTML_UI.MessageToUI;
 using Rhino;
 using Rhino.DocObjects;
-using Rhino.Geometry;
 
 namespace AIQ.Urban.RhinoPlugin.HTML_UI.MessagesFromUI;
 
@@ -29,24 +28,13 @@ public class TransitMessage : IMessageFromUI<ModelStateMessage>
         if (selected.Count == 0)
             throw new Exception("Select one or more transit centerline curves first.");
 
-        List<TransitData> transitData = [];
-        List<Guid> centerlineIds = [];
-
-        foreach (var obj in selected)
-        {
-            if (obj.Geometry is not Curve curve)
-                continue;
-
-            var curve2D = new Curve2D(curve, obj.Id);
-            transitData.Add(new TransitData(curve2D, RoadWidth, TransitType.Road));
-            centerlineIds.Add(obj.Id);
-        }
-
-        if (transitData.Count == 0)
-            throw new Exception("Selected objects must be curves.");
+        var gatherStep = new SelectTransitCenterlinesStep(selected, RoadWidth, TransitType.Road);
+        var creationData = (CreationDataCollection<TransitData>)gatherStep.Run(doc);
+        var centerlineIds = creationData.Items.Select(t => t.Centerline.Id).ToList();
 
         var pipeline = new RhinoUrbanModelPipeline(doc, UrbanModel.Instance)
-            .WithTransitAdditionSteps(transitData, centerlineIds)
+            .WithDataGatherStep(gatherStep)
+            .WithTransitAdditionSteps([], centerlineIds)
             .WithMetricsCalculation(tolerance: doc.ModelAbsoluteTolerance);
 
         if (Urban_RhinoPlugin.Instance.EventHandler is { } handler)

@@ -1,5 +1,6 @@
 using AIQ.Urban.Core.Enums;
 using AIQ.Urban.Core.ModelActions;
+using AIQ.Urban.Core.ModelActions.CreationData;
 using AIQ.Urban.Core.Models;
 using AIQ.Urban.Core.Models.GeometryElements;
 using AIQ.Urban.Core.Models.UrbanElements;
@@ -32,8 +33,8 @@ public class TransitSurfaceAndParcelCalculationTests
         var testData = _testData.Single(x => x.CaseName == testName);
 
         // Arrange
-        IUrbanModelStep addStep = new AddTransitStep(testData.TransitInputs);
-        addStep.Run(UrbanModel.Instance);
+        IUrbanModelStep addStep = new AddTransitStep();
+        addStep.Run(UrbanModel.Instance, new CreationDataCollection<TransitData>(testData.TransitInputs));
 
         // Act
         var unionerStep = new TransitSurfaceUnioner();

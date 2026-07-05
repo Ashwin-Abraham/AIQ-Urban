@@ -1,28 +1,18 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using AIQ.Urban.Core;
-using AIQ.Urban.Core.Models;
-using AIQ.Urban.Core.Models.GeometryElements;
+using AIQ.Urban.Core.ModelActions.CreationData;
 
 namespace AIQ.Urban.Core.ModelActions;
 
-public class AddZoneStep(List<ZoneData> _zoneData) : IAddUrbanElementsStep
+public class AddZoneStep : IAddUrbanElementsStep
 {
-    List<Guid> IUrbanModelStep.Run(UrbanModel model)
+    List<Guid> IUrbanModelStep.Run(UrbanModel model, ICreationData? creationData)
     {
-        var zones = _zoneData.Select(x => x.ToZone()).ToList();
+        var collection = creationData as CreationDataCollection<ZoneData>
+            ?? throw new InvalidOperationException("Expected CreationDataCollection<ZoneData>.");
+
+        var zones = collection.Items.Select(x => x.ToZone()).ToList();
         foreach (var zone in zones)
             model.AddZone(zone);
 
         return zones.SelectMany(x => x.GetGeometryIds()).ToList();
-    }
-}
-
-public record ZoneData(Polygon2D Boundary, string Name)
-{
-    public Zone ToZone()
-    {
-        return new Zone(Boundary, Name);
     }
 }

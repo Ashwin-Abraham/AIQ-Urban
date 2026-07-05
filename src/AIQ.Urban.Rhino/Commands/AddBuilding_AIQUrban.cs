@@ -1,11 +1,12 @@
+using System.Linq;
 using AIQ.Urban.Core;
-using AIQ.Urban.Core.ModelActions;
 using AIQ.Urban.Core.ModelActions.CreationData;
 using AIQ.Urban.Core.Models;
-using AIQ.Urban.Core.Models.GeometryElements;
 using AIQ.Urban.RhinoInterface;
+using AIQ.Urban.RhinoInterface.Pipeline.RhinoDocActions;
 using Rhino;
 using Rhino.Commands;
+using Rhino.DocObjects;
 using Rhino.Input;
 using Rhino.Input.Custom;
 
@@ -44,19 +45,24 @@ public class AddBuilding_AIQUrban : Command
         var floorHeight = floorHeightOption.CurrentValue;
         var floorCount = floorCountOption.CurrentValue;
         var curveRef = go.Object(0);
-        var footprint = curveRef.Curve();
+        var rhinoObj = curveRef.Object();
 
-        if (footprint == null)
+        if (rhinoObj is null)
         {
-            RhinoApp.WriteLine("Selected object is not a curve.");
+            RhinoApp.WriteLine("Selected object is no longer valid.");
             return Result.Failure;
         }
 
-        Polygon2D profile= new Polygon2D(footprint);
-        var buildingData = new BuildingData(profile, floorHeight, floorCount, selectedUse);
+        var rhinoObjs = new[] { rhinoObj };
+
+        var gatherStep = new SelectBuildingFootprintsStep(rhinoObjs, floorHeight, floorCount, selectedUse, "Footprint");
+        var creationData = (CreationDataCollection<BuildingData>)gatherStep.Run(doc);
+        var buildingData = creationData.Items;
+        var idsToDelete = buildingData.Select(b => b.Footprint.Id).ToList();
 
         var pipeline = new RhinoUrbanModelPipeline(doc, UrbanModel.Instance)
-            .WithBuildingAdditionSteps([buildingData], [curveRef.ObjectId])
+            .WithDataGatherStep(gatherStep)
+            .WithBuildingAdditionSteps([], idsToDelete)
             .WithMetricsCalculation(saveToFile: true, tolerance: doc.ModelAbsoluteTolerance, docName: doc.Name)
             .WithEventHandler(Urban_RhinoPlugin.Instance.EventHandler);
 

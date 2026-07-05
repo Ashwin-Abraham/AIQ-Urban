@@ -13,9 +13,10 @@ public static class PipelineConfigurations
         List<BuildingData> buildingData,
         List<Guid> curvesToDelete)
     {
-        var addBuildingStep = new AddBuildingStep(buildingData);
+        var addBuildingStep = new AddBuildingStep();
 
         pipeline.WithRhinoObjectDeletion(curvesToDelete)
+            .WithCreationData(new CreationDataCollection<BuildingData>(buildingData))
             .WithUrbanElementStep(addBuildingStep);
 
         return pipeline;
@@ -26,12 +27,13 @@ public static class PipelineConfigurations
         List<TransitData> transitData,
         List<Guid> centerlinesToRemove)
     {
-        var addTransitStep = new AddTransitStep(transitData);
+        var addTransitStep = new AddTransitStep();
         var removeExistingTransitStep = new RemoveTransitStep(centerlinesToRemove);
         var transitUnioner = new TransitSurfaceUnioner();
         var recalculateParcelsStep = new RecalculateParcelsStep();
 
         pipeline.WithRhinoObjectDeletion(centerlinesToRemove)
+            .WithCreationData(new CreationDataCollection<TransitData>(transitData))
             .WithUrbanElementStep(removeExistingTransitStep)
             .WithUrbanElementStep(addTransitStep)
             .WithUrbanElementStep(transitUnioner)
@@ -57,9 +59,10 @@ public static class PipelineConfigurations
         List<ZoneData> zoneData,
         List<Guid> idsToDelete)
     {
-        var addZoneStep = new AddZoneStep(zoneData);
+        var addZoneStep = new AddZoneStep();
 
         pipeline.WithRhinoObjectDeletion(idsToDelete)
+            .WithCreationData(new CreationDataCollection<ZoneData>(zoneData))
             .WithUrbanElementStep(addZoneStep);
 
         return pipeline;

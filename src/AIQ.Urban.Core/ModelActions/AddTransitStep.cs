@@ -1,33 +1,17 @@
-﻿using AIQ.Urban.Core.Enums;
-using AIQ.Urban.Core.Models.GeometryElements;
-using AIQ.Urban.Core.Models.UrbanElements;
+﻿using AIQ.Urban.Core.ModelActions.CreationData;
 
 namespace AIQ.Urban.Core.ModelActions;
+
 public class AddTransitStep : IAddUrbanElementsStep
 {
-    private readonly List<TransitData> _transitData;
-
-    public AddTransitStep(List<TransitData> transitData)
+    List<Guid> IUrbanModelStep.Run(UrbanModel model, ICreationData? creationData)
     {
-        _transitData = transitData;
-    }
+        var collection = creationData as CreationDataCollection<TransitData>
+            ?? throw new InvalidOperationException("Expected CreationDataCollection<TransitData>.");
 
-    public List<Guid> Run(UrbanModel model)
-    {
-        var transits = _transitData.Select(x => x.ToTransit()).ToList();
+        var transits = collection.Items.Select(x => x.ToTransit()).ToList();
         model.AddTransit(transits);
 
         return transits.SelectMany(x => x.GetGeometryIds()).ToList();
-    }
-}
-
-public record TransitData(
-     Curve2D Centerline,
-     double Width,
-     TransitType TransitType)
-{
-    public Transit ToTransit()
-    {
-        return new Transit(Centerline, Width, TransitType);
     }
 }

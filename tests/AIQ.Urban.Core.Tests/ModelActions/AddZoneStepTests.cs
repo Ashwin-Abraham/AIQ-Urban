@@ -1,4 +1,5 @@
 using AIQ.Urban.Core.ModelActions;
+using AIQ.Urban.Core.ModelActions.CreationData;
 using AIQ.Urban.Core.Models;
 using AIQ.Urban.Core.Models.GeometryElements;
 using AIQ.Urban.DebugViz;
@@ -29,10 +30,10 @@ public class AddZoneStepTests
         var testData = _testData.Single(x => x.CaseName == testName);
 
         // Arrange
-        IUrbanModelStep step = new AddZoneStep(testData.Input);
+        IUrbanModelStep step = new AddZoneStep();
 
         // Act
-        var result = step.Run(UrbanModel.Instance);
+        var result = step.Run(UrbanModel.Instance, new CreationDataCollection<ZoneData>(testData.Input));
 
         // Visualise
 #if DEBUG

@@ -30,10 +30,10 @@ public class AddBuildingStepTests
         var testData = _testData.Single(x => x.CaseName == testName);
 
         // Arrange
-        IUrbanModelStep step = new AddBuildingStep(testData.Input);
+        IUrbanModelStep step = new AddBuildingStep();
 
         // Act
-        var result = step.Run(UrbanModel.Instance);
+        var result = step.Run(UrbanModel.Instance, new CreationDataCollection<BuildingData>(testData.Input));
 
         // Visualise
 #if DEBUG

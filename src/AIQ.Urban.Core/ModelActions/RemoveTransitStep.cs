@@ -1,7 +1,10 @@
-﻿namespace AIQ.Urban.Core.ModelActions;
+﻿using AIQ.Urban.Core.ModelActions.CreationData;
+
+namespace AIQ.Urban.Core.ModelActions;
+
 public class RemoveTransitStep(List<Guid> _centerlineIds) : IDeleteUrbanElementsStep
 {
-    List<Guid> IUrbanModelStep.Run(UrbanModel model)
+    List<Guid> IUrbanModelStep.Run(UrbanModel model, ICreationData? creationData)
     {
         var transitsToRemove = model.Transits
             .Where(x => x.GetGeometryIds()

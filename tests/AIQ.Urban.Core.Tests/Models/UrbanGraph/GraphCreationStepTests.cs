@@ -281,17 +281,18 @@ public class GraphCreationStepTests
 
     private static void AddTransits((double X, double Y)[][] transitCoords)
     {
-        IUrbanModelStep addStep = new AddTransitStep(transitCoords
+        var transitData = transitCoords
             .Select(coords => new TransitData(Curve2D.Create(coords.ToList()), 0.5, TransitType.Road))
-            .ToList());
+            .ToList();
+        IUrbanModelStep addStep = new AddTransitStep();
 
-        addStep.Run(UrbanModel.Instance);
+        addStep.Run(UrbanModel.Instance, new CreationDataCollection<TransitData>(transitData));
     }
 
     private static void AddBuildings(List<BuildingData> buildingData)
     {
-        IUrbanModelStep addStep = new AddBuildingStep(buildingData);
-        addStep.Run(UrbanModel.Instance);
+        IUrbanModelStep addStep = new AddBuildingStep();
+        addStep.Run(UrbanModel.Instance, new CreationDataCollection<BuildingData>(buildingData));
     }
 
     private static void RunParcelCreationSteps()
