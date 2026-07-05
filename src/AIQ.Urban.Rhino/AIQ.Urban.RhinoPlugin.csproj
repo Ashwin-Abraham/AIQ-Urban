@@ -25,7 +25,7 @@
   </ItemGroup>
   
   <ItemGroup>
-    <Content Include="..\UI\aiq-urban-ui\dist\**\*">
+    <Content Include="..\..\..\aiqurban-ui\dist\**\*">
       <Link>HTML_UI\wwwroot\%(RecursiveDir)%(Filename)%(Extension)</Link>
       <TargetPath>HTML_UI\wwwroot\%(RecursiveDir)%(Filename)%(Extension)</TargetPath>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -33,7 +33,7 @@
   </ItemGroup>
   
   <Target Name="EnsureVueUiDistExists" BeforeTargets="PrepareForBuild">
-    <Error Condition="!Exists('..\UI\aiq-urban-ui\dist\index.html')" Text="AIQ Urban UI not found." />
+    <Error Condition="!Exists('..\..\..\aiqurban-ui\dist\index.html')" Text="AIQ Urban UI not found at ..\..\..\aiqurban-ui\dist\index.html. Build the Vue UI first." />
   </Target>
   
   <ItemGroup>

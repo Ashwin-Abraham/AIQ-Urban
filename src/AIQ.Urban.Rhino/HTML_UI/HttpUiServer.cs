@@ -3,7 +3,10 @@ using System.IO;
 using System.Net;
 using System.Reflection;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
+using AIQ.Urban.RhinoPlugin.HTML_UI.MessageToUI;
+using AIQ.Urban.RhinoPlugin.HTML_UI.MessagesFromUI;
 using Rhino;
 
 namespace AIQ.Urban.RhinoPlugin.HTML_UI;
@@ -13,6 +16,11 @@ public static class HttpUiServer
     private static readonly object Lock = new();
     private static HttpListener? _listener;
     private static bool _serverRunning;
+
+    private static readonly JsonSerializerOptions JsonOptions = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+    };
 
     public static void Start(int port)
     {
@@ -69,39 +77,106 @@ public static class HttpUiServer
 
     private static async Task HandleRequestAsync(HttpListenerContext context)
     {
+        var request = context.Request;
         var response = context.Response;
 
         try
         {
-            if (context.Request.HttpMethod != "GET")
+            if (request.HttpMethod == "OPTIONS")
+            {
+                AddCorsHeaders(response);
+                response.StatusCode = (int)HttpStatusCode.OK;
+                response.Close();
+                return;
+            }
+
+            if (request.HttpMethod == "POST")
+            {
+                await HandlePostAsync(request, response);
+                return;
+            }
+
+            if (request.HttpMethod != "GET")
             {
                 response.StatusCode = (int)HttpStatusCode.MethodNotAllowed;
                 response.Close();
                 return;
             }
 
-            var filePath = ResolveStaticFilePath(context.Request.Url?.LocalPath ?? "/");
-
-            if (!File.Exists(filePath))
-            {
-                response.StatusCode = (int)HttpStatusCode.NotFound;
-                await WriteResponseAsync(response, "404 Not Found", "text/plain");
-                return;
-            }
-
-            var fileBytes = await File.ReadAllBytesAsync(filePath);
-            response.ContentType = GetContentType(filePath);
-            response.ContentLength64 = fileBytes.Length;
-            await response.OutputStream.WriteAsync(fileBytes, 0, fileBytes.Length);
-            response.Close();
+            await HandleGetAsync(request, response);
         }
         catch (Exception ex)
         {
             RhinoApp.WriteLine($"AIQ Urban UI HTTP server error: {ex.Message}");
 
             if (response.OutputStream.CanWrite)
-                response.Close();
+            {
+                try { response.Close(); }
+                catch { /* ignore */ }
+            }
         }
+    }
+
+    private static async Task HandlePostAsync(HttpListenerRequest request, HttpListenerResponse response)
+    {
+        using var reader = new StreamReader(request.InputStream, request.ContentEncoding);
+        var body = await reader.ReadToEndAsync();
+
+        IMessageFromUI<IMessageToUI> messageObj;
+
+        try
+        {
+            messageObj = MessageConverter.Convert(body);
+        }
+        catch (Exception ex)
+        {
+            RhinoApp.WriteLine($"AIQ Urban UI: Invalid message: {ex.Message}");
+            AddCorsHeaders(response);
+            await WriteJsonErrorAsync(response, $"Invalid message: {ex.Message}");
+            return;
+        }
+
+        IMessageToUI? result = null;
+        var tcs = new TaskCompletionSource<bool>();
+
+        RhinoApp.InvokeOnUiThread(() =>
+        {
+            try
+            {
+                result = messageObj.HandleMessage();
+            }
+            catch (Exception ex)
+            {
+                RhinoApp.WriteLine($"AIQ Urban UI: Handler error: {ex.Message}");
+                result = new ErrorMessage(ex.Message);
+            }
+            finally
+            {
+                tcs.SetResult(true);
+            }
+        });
+
+        await tcs.Task;
+        AddCorsHeaders(response);
+        await WriteJsonResponseAsync(response, result!);
+    }
+
+    private static async Task HandleGetAsync(HttpListenerRequest request, HttpListenerResponse response)
+    {
+        var filePath = ResolveStaticFilePath(request.Url?.LocalPath ?? "/");
+
+        if (!File.Exists(filePath))
+        {
+            response.StatusCode = (int)HttpStatusCode.NotFound;
+            await WriteResponseAsync(response, "404 Not Found", "text/plain");
+            return;
+        }
+
+        var fileBytes = await File.ReadAllBytesAsync(filePath);
+        response.ContentType = GetContentType(filePath);
+        response.ContentLength64 = fileBytes.Length;
+        await response.OutputStream.WriteAsync(fileBytes, 0, fileBytes.Length);
+        response.Close();
     }
 
     private static string ResolveStaticFilePath(string localPath)
@@ -125,6 +200,33 @@ public static class HttpUiServer
             ?? AppContext.BaseDirectory;
 
         return Path.GetFullPath(Path.Combine(assemblyDirectory, "HTML_UI", "wwwroot"));
+    }
+
+    private static void AddCorsHeaders(HttpListenerResponse response)
+    {
+        response.AddHeader("Access-Control-Allow-Origin", "*");
+        response.AddHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS");
+        response.AddHeader("Access-Control-Allow-Headers", "Content-Type");
+    }
+
+    private static async Task WriteJsonResponseAsync(HttpListenerResponse response, IMessageToUI message)
+    {
+        var json = JsonSerializer.Serialize((object)message, JsonOptions);
+        var bytes = Encoding.UTF8.GetBytes(json);
+        response.ContentType = "application/json";
+        response.ContentLength64 = bytes.Length;
+        await response.OutputStream.WriteAsync(bytes, 0, bytes.Length);
+        response.Close();
+    }
+
+    private static async Task WriteJsonErrorAsync(HttpListenerResponse response, string error)
+    {
+        var json = JsonSerializer.Serialize(new { Type = "Error", Message = error }, JsonOptions);
+        var bytes = Encoding.UTF8.GetBytes(json);
+        response.ContentType = "application/json";
+        response.ContentLength64 = bytes.Length;
+        await response.OutputStream.WriteAsync(bytes, 0, bytes.Length);
+        response.Close();
     }
 
     private static async Task WriteResponseAsync(HttpListenerResponse response, string content, string contentType)
