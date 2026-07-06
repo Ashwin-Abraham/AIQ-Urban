@@ -151,7 +151,7 @@ These pipeline configurations are wrapped as reusable methods (not necessarily u
 - Uses the new AIQ.Urban.RhinoPlugin HTML UI infrastructure, copied from the old `ArchSitePlan.RhinoInterface.HTML_UI` pattern without depending on the old project.
 - Websocket serving uses `WebSocketSharp`, matching the old working Rhino UI pattern for the first pass.
 - UI-to-Rhino commands over HTTP `POST` use a typed message contract (`MessagesFromUI/`, `MessageToUI/`). Incoming JSON is deserialized by `MessageConverter`, routed by `messageType` field, and executed on the Rhino UI thread. Domain changes go through `RhinoUrbanModelPipeline` — never directly to Core.
-- Implemented message types: `Transit`, `Building`. See `docs/plans/implement-ui-post-handler.md` for full plan.
+- Implemented message types: `Transit`, `Building`, `Zone`, `Landuse`, `ChangeBuildingUse`. See `docs/plans/implement-ui-post-handler.md` for the original base plan.
 - `ToolSelection` messages are received but not yet acted on (deferred).
 - CORS headers (`Access-Control-Allow-Origin: *`) are added to all HTTP responses for compatibility.
 
@@ -172,6 +172,9 @@ Each implements `IMessageFromUI<T>` with a `HandleMessage()` method that returns
 |---|---|---|---|---|
 | `TransitMessage` | `"Transit"` | `TransitTool.vue` | `RoadWidth` | Selected curves in RhinoDoc |
 | `BuildingMessage` | `"Building"` | `BuildingTool.vue` | `FloorCount`, `FloorHeight`, `manual_generationType` ("Footprint" or "Mass") | Selected curves (Footprint) or Breps (Mass) |
+| `AddZoneMessage` | `"Zone"` | `ZonesTool.vue` | `name` | Selected closed curve in RhinoDoc |
+| `ChangeParcelUseMessage` | `"Landuse"` | `LanduseTool.vue` | `use` | Selected parcel outline curves in RhinoDoc |
+| `ChangeBuildingUseMessage` | `"ChangeBuildingUse"` | future Vue change-building-use tool | `useName` | Selected building envelope Breps or floor-plate curves in RhinoDoc |
 | `ToolSelectionMessage` | `"ToolSelection"` | `ModellingTools.vue` | `Tool` (name) | None (stub) |
 
 ### Outgoing Messages (`MessageToUI/`)
