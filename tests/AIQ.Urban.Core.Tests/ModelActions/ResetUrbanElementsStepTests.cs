@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using AIQ.Urban.Core.Enums;
 using AIQ.Urban.Core.ModelActions;
+using AIQ.Urban.Core.ModelActions.CreationData;
 using AIQ.Urban.Core.Models;
 using AIQ.Urban.Core.Models.GeometryElements;
 using AIQ.Urban.Core.Models.UrbanElements;
@@ -25,7 +26,7 @@ public class ResetUrbanElementsStepTests
     public void Run_EmptyModel_ReturnsEmptyIdsAndModelStaysEmpty()
     {
         var step = new ResetUrbanElementsStep();
-        var ids = ((IUrbanModelStep)step).Run(UrbanModel.Instance);
+        var ids = ((IUrbanModelStep)step).Run(UrbanModel.Instance, []);
 
         Assert.That(ids, Is.Empty);
         Assert.That(UrbanModel.Instance.Transits, Is.Empty);
@@ -44,8 +45,8 @@ public class ResetUrbanElementsStepTests
         var centerline1 = new Curve2D(
             new LineCurve(new Point3d(0, 0, 0), new Point3d(50, 0, 0)),
             centerlineId1);
-        IUrbanModelStep addTransit = new AddTransitStep([new TransitData(centerline1, 6, TransitType.Road)]);
-        addTransit.Run(UrbanModel.Instance);
+        IUrbanModelStep addTransit = new AddTransitStep();
+        addTransit.Run(UrbanModel.Instance, [new TransitData(centerline1, 6, TransitType.Road)]);
 
         // One building, 3 floors
         var footprint = new Polygon2D(new PolylineCurve([
@@ -53,9 +54,8 @@ public class ResetUrbanElementsStepTests
             new Point3d(10, 10, 0), new Point3d(0, 10, 0),
             new Point3d(0, 0, 0),
         ]));
-        IUrbanModelStep addBuilding = new AddBuildingStep(
-            [new BuildingData(footprint, 3.5, 3, DefaultUses.Residential)]);
-        addBuilding.Run(UrbanModel.Instance);
+        IUrbanModelStep addBuilding = new AddBuildingStep();
+        addBuilding.Run(UrbanModel.Instance, [new BuildingData(footprint, 3.5, 3, DefaultUses.Residential)]);
 
         // One parcel
         var parcelPolygon = new Polygon2D(new PolylineCurve([
@@ -87,7 +87,7 @@ public class ResetUrbanElementsStepTests
 
         // Act
         var step = new ResetUrbanElementsStep();
-        var ids = ((IUrbanModelStep)step).Run(UrbanModel.Instance);
+        var ids = ((IUrbanModelStep)step).Run(UrbanModel.Instance, []);
 
         // Assert
         Assert.That(ids, Has.Count.EqualTo(expectedCount));
@@ -125,7 +125,7 @@ public class ResetUrbanElementsStepTests
 
         // Act
         var step = new ResetUrbanElementsStep();
-        var ids = ((IUrbanModelStep)step).Run(UrbanModel.Instance);
+        var ids = ((IUrbanModelStep)step).Run(UrbanModel.Instance, []);
 
         // Assert
         Assert.That(ids, Has.Count.EqualTo(2));

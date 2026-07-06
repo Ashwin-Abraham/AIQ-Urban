@@ -1,4 +1,5 @@
 using AIQ.Urban.Core.ModelActions;
+using AIQ.Urban.Core.ModelActions.CreationData;
 using AIQ.Urban.Core.Models;
 using AIQ.Urban.Core.Models.GeometryElements;
 using AIQ.Urban.DebugViz;
@@ -29,10 +30,10 @@ public class AddBuildingStepTests
         var testData = _testData.Single(x => x.CaseName == testName);
 
         // Arrange
-        IUrbanModelStep step = new AddBuildingStep(testData.Input);
+        IUrbanModelStep step = new AddBuildingStep();
 
         // Act
-        var result = step.Run(UrbanModel.Instance);
+        var result = step.Run(UrbanModel.Instance, testData.Input.Cast<ICreationData>().ToList());
 
         // Visualise
 #if DEBUG

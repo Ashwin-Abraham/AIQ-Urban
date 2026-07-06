@@ -1,5 +1,6 @@
 using AIQ.Urban.Core.Enums;
 using AIQ.Urban.Core.ModelActions;
+using AIQ.Urban.Core.ModelActions.CreationData;
 using AIQ.Urban.Core.Models.GeometryElements;
 using AIQ.Urban.DebugViz;
 using NUnit.Framework;
@@ -28,8 +29,8 @@ public class UpdateTransitStepTests
         var testData = _testData.Single(x => x.CaseName == testName);
 
         // Arrange: add initial transits and capture their actual geometry IDs
-        var addStep = new AddTransitStep(testData.InitialTransits);
-        var addedIds = addStep.Run(UrbanModel.Instance);
+        IUrbanModelStep addStep = new AddTransitStep();
+        var addedIds = addStep.Run(UrbanModel.Instance, testData.InitialTransits.Cast<ICreationData>().ToList());
 
         var oldCenterlineId = addedIds[0];
         var oldCount = UrbanModel.Instance.Transits.Count;

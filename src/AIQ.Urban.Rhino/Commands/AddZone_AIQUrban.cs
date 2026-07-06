@@ -1,11 +1,11 @@
 using System.Linq;
 using AIQ.Urban.Core;
-using AIQ.Urban.Core.ModelActions;
-using AIQ.Urban.Core.Models.GeometryElements;
+using AIQ.Urban.Core.ModelActions.CreationData;
 using AIQ.Urban.RhinoInterface;
+using AIQ.Urban.RhinoInterface.Pipeline.RhinoDocActions;
 using Rhino;
 using Rhino.Commands;
-using Rhino.Geometry;
+using Rhino.DocObjects;
 using Rhino.Input;
 using Rhino.Input.Custom;
 
@@ -32,9 +32,13 @@ public class AddZone_AIQUrban : Command
             return Result.Cancel;
 
         var curveRef = go.Object(0);
-        var curve = TryValidateBoundaryCurve(curveRef.Curve());
-        if (curve is null)
+        var rhinoObj = curveRef.Object();
+
+        if (rhinoObj is null)
+        {
+            RhinoApp.WriteLine("Selected object is no longer valid.");
             return Result.Failure;
+        }
 
         var zoneName = string.Empty;
         var rc = RhinoGet.GetString("Zone name", false, ref zoneName);
@@ -53,11 +57,16 @@ public class AddZone_AIQUrban : Command
             return Result.Failure;
         }
 
-        var boundary = new Polygon2D(curve);
-        var zoneData = new ZoneData(boundary, zoneName);
+        var rhinoObjs = new[] { rhinoObj };
+
+        var gatherStep = new SelectZoneBoundaryStep(rhinoObjs, zoneName);
+        var creationData = gatherStep.Run(doc);
+        var zoneData = creationData.OfType<ZoneData>().ToList();
+        var idsToDelete = zoneData.Select(z => z.Boundary.Id).ToList();
 
         var pipeline = new RhinoUrbanModelPipeline(doc, UrbanModel.Instance)
-            .WithZoneAdditionSteps([zoneData], [curveRef.ObjectId])
+            .WithDataGatherStep(gatherStep)
+            .WithZoneAdditionSteps([], idsToDelete)
             .WithMetricsCalculation(saveToFile: true, tolerance: doc.ModelAbsoluteTolerance, docName: doc.Name)
             .WithEventHandler(Urban_RhinoPlugin.Instance.EventHandler);
         pipeline.Run();
@@ -65,35 +74,5 @@ public class AddZone_AIQUrban : Command
         doc.Views.Redraw();
         RhinoApp.WriteLine("Added zone: {0}", zoneName);
         return Result.Success;
-    }
-
-    private static Curve? TryValidateBoundaryCurve(Curve? curve)
-    {
-        if (curve == null)
-        {
-            RhinoApp.WriteLine("Selected object is not a curve.");
-            return null;
-        }
-
-        if (!curve.IsClosed)
-        {
-            RhinoApp.WriteLine("Zone boundary must be a closed curve.");
-            return null;
-        }
-
-        if(!curve.IsPlanar())
-        {
-            RhinoApp.WriteLine("Non planar curves not allowed.");
-            return null;
-        }
-
-        curve.TryGetPlane(out var plane);
-        if (plane.Normal.Z < 0)
-        {
-            curve = curve.DuplicateCurve();
-            curve.Reverse();
-        }
-
-        return curve;
     }
 }

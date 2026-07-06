@@ -1,4 +1,5 @@
 using AIQ.Urban.Core.ModelActions;
+using AIQ.Urban.Core.ModelActions.CreationData;
 using AIQ.Urban.Core.Models;
 using AIQ.Urban.Core.Models.GeometryElements;
 using AIQ.Urban.DebugViz;
@@ -31,14 +32,14 @@ public class RemoveBuildingStepTests
         var testData = _testData.Single(x => x.CaseName == testName);
 
         // Arrange: add buildings and capture their actual geometry IDs
-        IUrbanModelStep addStep = new AddBuildingStep(testData.InitialBuildings);
-        var addedIds = addStep.Run(UrbanModel.Instance);
+        IUrbanModelStep addStep = new AddBuildingStep();
+        var addedIds = addStep.Run(UrbanModel.Instance, testData.InitialBuildings.Cast<ICreationData>().ToList());
 
         var initialCount = UrbanModel.Instance.Buildings.Count;
 
         // Act
         IUrbanModelStep removeStep = new RemoveBuildingStep(testData.GetRemoveIds(addedIds));
-        var removedIds = removeStep.Run(UrbanModel.Instance);
+        var removedIds = removeStep.Run(UrbanModel.Instance, []);
 
         // Visualise
 #if DEBUG

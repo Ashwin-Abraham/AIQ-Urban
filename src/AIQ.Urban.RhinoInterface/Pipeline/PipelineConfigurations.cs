@@ -1,4 +1,5 @@
 using AIQ.Urban.Core.ModelActions;
+using AIQ.Urban.Core.ModelActions.CreationData;
 using AIQ.Urban.Core.Models;
 using AIQ.Urban.Core.Models.Metrics;
 using Rhino.Geometry;
@@ -12,9 +13,10 @@ public static class PipelineConfigurations
         List<BuildingData> buildingData,
         List<Guid> curvesToDelete)
     {
-        var addBuildingStep = new AddBuildingStep(buildingData);
+        var addBuildingStep = new AddBuildingStep();
 
         pipeline.WithRhinoObjectDeletion(curvesToDelete)
+            .WithCreationData(buildingData.Cast<ICreationData>().ToList())
             .WithUrbanElementStep(addBuildingStep);
 
         return pipeline;
@@ -25,12 +27,13 @@ public static class PipelineConfigurations
         List<TransitData> transitData,
         List<Guid> centerlinesToRemove)
     {
-        var addTransitStep = new AddTransitStep(transitData);
+        var addTransitStep = new AddTransitStep();
         var removeExistingTransitStep = new RemoveTransitStep(centerlinesToRemove);
         var transitUnioner = new TransitSurfaceUnioner();
         var recalculateParcelsStep = new RecalculateParcelsStep();
 
         pipeline.WithRhinoObjectDeletion(centerlinesToRemove)
+            .WithCreationData(transitData.Cast<ICreationData>().ToList())
             .WithUrbanElementStep(removeExistingTransitStep)
             .WithUrbanElementStep(addTransitStep)
             .WithUrbanElementStep(transitUnioner)
@@ -56,9 +59,10 @@ public static class PipelineConfigurations
         List<ZoneData> zoneData,
         List<Guid> idsToDelete)
     {
-        var addZoneStep = new AddZoneStep(zoneData);
+        var addZoneStep = new AddZoneStep();
 
         pipeline.WithRhinoObjectDeletion(idsToDelete)
+            .WithCreationData(zoneData.Cast<ICreationData>().ToList())
             .WithUrbanElementStep(addZoneStep);
 
         return pipeline;

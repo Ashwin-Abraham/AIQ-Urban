@@ -13,6 +13,7 @@ using Rhino.Geometry;
 using Rhino.Testing.Fixtures;
 using AIQ.Primitives.Extensions;
 using AIQ.PreviewHelper.Core;
+using AIQ.Urban.Core.ModelActions.CreationData;
 
 namespace AIQ.Urban.Core.Tests.Models.UrbanGraph;
 
@@ -280,17 +281,18 @@ public class GraphCreationStepTests
 
     private static void AddTransits((double X, double Y)[][] transitCoords)
     {
-        IUrbanModelStep addStep = new AddTransitStep(transitCoords
+        var transitData = transitCoords
             .Select(coords => new TransitData(Curve2D.Create(coords.ToList()), 0.5, TransitType.Road))
-            .ToList());
+            .ToList();
+        IUrbanModelStep addStep = new AddTransitStep();
 
-        addStep.Run(UrbanModel.Instance);
+        addStep.Run(UrbanModel.Instance, transitData.Cast<ICreationData>().ToList());
     }
 
     private static void AddBuildings(List<BuildingData> buildingData)
     {
-        IUrbanModelStep addStep = new AddBuildingStep(buildingData);
-        addStep.Run(UrbanModel.Instance);
+        IUrbanModelStep addStep = new AddBuildingStep();
+        addStep.Run(UrbanModel.Instance, buildingData.Cast<ICreationData>().ToList());
     }
 
     private static void RunParcelCreationSteps()

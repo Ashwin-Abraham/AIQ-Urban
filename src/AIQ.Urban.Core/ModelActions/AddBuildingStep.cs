@@ -1,29 +1,15 @@
-using AIQ.Urban.Core.Models;
-using AIQ.Urban.Core.Models.GeometryElements;
-using AIQ.Urban.Core.Models.UrbanElements;
+using AIQ.Urban.Core.ModelActions.CreationData;
 
 namespace AIQ.Urban.Core.ModelActions;
 
-public class AddBuildingStep(List<BuildingData> _buildingData) : IAddUrbanElementsStep
+public class AddBuildingStep : IAddUrbanElementsStep
 {
-    List<Guid> IUrbanModelStep.Run(UrbanModel model)
+    List<Guid> IUrbanModelStep.Run(UrbanModel model, List<ICreationData> creationData)
     {
-        var buildings = _buildingData.Select(x => x.ToBuilding()).ToList();
+        var buildings = creationData.OfType<BuildingData>().Select(x => x.ToBuilding()).ToList();
         foreach (var building in buildings)
             model.AddBuilding(building);
 
         return buildings.SelectMany(x => x.GetGeometryIds()).ToList();
-    }
-}
-
-public record BuildingData(
-    Polygon2D Footprint,
-    double TypicalFloorHeight,
-    int FloorCount,
-    Use Use)
-{
-    public Building ToBuilding()
-    {
-        return new Building(Footprint, TypicalFloorHeight, FloorCount, Use);
     }
 }

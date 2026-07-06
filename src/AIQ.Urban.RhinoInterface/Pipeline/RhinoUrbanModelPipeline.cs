@@ -1,9 +1,11 @@
 using AIQ.Urban.Core;
 using AIQ.Urban.Core.ModelActions;
+using AIQ.Urban.Core.ModelActions.CreationData;
 using AIQ.Urban.Core.Models;
 using AIQ.Urban.Core.Models.UrbanElements;
 using AIQ.Urban.RhinoInterface.EventHandler;
 using AIQ.Urban.RhinoInterface.Pipeline.Outputters;
+using AIQ.Urban.RhinoInterface.Pipeline.RhinoDocActions;
 using Rhino;
 
 namespace AIQ.Urban.RhinoInterface;
@@ -12,6 +14,8 @@ public class RhinoUrbanModelPipeline(
     RhinoDoc _rhinoDoc,
     UrbanModel _urbanModel)
 {
+    private IRhinoDataGatherStep? _objectSelectionStep;
+    private List<ICreationData> _creationData = [];
     private readonly List<IUrbanModelStep> _addDeleteSteps = [];
     private readonly List<IEditUrbanElementsStep> _editSteps = [];
     private readonly List<Guid> _directDeleteIds = [];
@@ -22,6 +26,18 @@ public class RhinoUrbanModelPipeline(
     public RhinoUrbanModelPipeline WithEventHandler(RhinoUrbanEventHandler eventHandler)
     {
         _eventHandler = eventHandler;
+        return this;
+    }
+
+    public RhinoUrbanModelPipeline WithDataGatherStep(IRhinoDataGatherStep step)
+    {
+        _objectSelectionStep = step;
+        return this;
+    }
+
+    public RhinoUrbanModelPipeline WithCreationData(List<ICreationData> data)
+    {
+        _creationData = data;
         return this;
     }
 
@@ -36,6 +52,7 @@ public class RhinoUrbanModelPipeline(
         _addDeleteSteps.Add(step);
         return this;
     }
+
     public RhinoUrbanModelPipeline WithUrbanElementStep(IEditUrbanElementsStep step)
     {
         _editSteps.Add(step);
@@ -51,7 +68,7 @@ public class RhinoUrbanModelPipeline(
 
     public void Run()
     {
-        if(_eventHandler is not null)
+        if (_eventHandler is not null)
         {
             _eventHandler.EventLock = true;
         }
@@ -59,9 +76,14 @@ public class RhinoUrbanModelPipeline(
         var deletedIds = new List<Guid>();
         var addedIds = new List<Guid>();
 
+        var creationData = _objectSelectionStep?.Run(_rhinoDoc) ?? _creationData;
+
+        if (creationData.Count == 0 && _addDeleteSteps.OfType<IAddUrbanElementsStep>().Any())
+            throw new InvalidOperationException("No creation data provided for add steps.");
+
         foreach (var step in _addDeleteSteps)
         {
-            var result = step.Run(_urbanModel);
+            var result = step.Run(_urbanModel, creationData);
 
             if (step is IDeleteUrbanElementsStep)
                 deletedIds.AddRange(result);
@@ -69,7 +91,7 @@ public class RhinoUrbanModelPipeline(
                 addedIds.AddRange(result);
         }
 
-        foreach(var step in _editSteps)
+        foreach (var step in _editSteps)
         {
             var result = step.Run(_urbanModel);
             addedIds.AddRange(result.AddedIds);
@@ -83,7 +105,7 @@ public class RhinoUrbanModelPipeline(
         foreach (var action in _postActions)
             action(_urbanModel);
 
-        if(_eventHandler is not null)
+        if (_eventHandler is not null)
         {
             _eventHandler.RebuildLookup();
             _eventHandler.EventLock = false;
