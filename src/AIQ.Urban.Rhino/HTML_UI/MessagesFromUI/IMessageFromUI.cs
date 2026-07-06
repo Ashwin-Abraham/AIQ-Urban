@@ -4,6 +4,9 @@ public enum TypeOfMessage
 {
     Transit,
     Building,
+    Zone,
+    Landuse,
+    ChangeBuildingUse,
     ToolSelection
 }
 
