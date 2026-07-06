@@ -5,6 +5,9 @@
   "permission": {
     "external_directory": "allow"
   },
-  "enabled_providers": ["opencode", "google"],
+  "enabled_providers": [
+    "opencode",
+    "google"
+  ],
   "disabled_providers": []
 }
