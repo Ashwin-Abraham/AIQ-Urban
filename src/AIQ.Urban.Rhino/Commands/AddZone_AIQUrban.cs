@@ -60,8 +60,8 @@ public class AddZone_AIQUrban : Command
         var rhinoObjs = new[] { rhinoObj };
 
         var gatherStep = new SelectZoneBoundaryStep(rhinoObjs, zoneName);
-        var creationData = (CreationDataCollection<ZoneData>)gatherStep.Run(doc);
-        var zoneData = creationData.Items;
+        var creationData = gatherStep.Run(doc);
+        var zoneData = creationData.OfType<ZoneData>().ToList();
         var idsToDelete = zoneData.Select(z => z.Boundary.Id).ToList();
 
         var pipeline = new RhinoUrbanModelPipeline(doc, UrbanModel.Instance)

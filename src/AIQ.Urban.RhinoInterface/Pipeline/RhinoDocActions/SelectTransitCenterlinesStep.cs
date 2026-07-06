@@ -15,7 +15,7 @@ public class SelectTransitCenterlinesStep(
     double width,
     TransitType transitType) : IRhinoDataGatherStep
 {
-    public ICreationData Run(RhinoDoc doc)
+    public List<ICreationData> Run(RhinoDoc doc)
     {
         var selected = selectedObjects
             .Where(obj => obj.ObjectType == ObjectType.Curve)
@@ -38,6 +38,6 @@ public class SelectTransitCenterlinesStep(
         if (transitData.Count == 0)
             throw new Exception("Selected objects must be curves.");
 
-        return new CreationDataCollection<TransitData>(transitData);
+        return transitData.Cast<ICreationData>().ToList();
     }
 }

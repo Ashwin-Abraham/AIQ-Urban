@@ -34,7 +34,7 @@ public class TransitSurfaceAndParcelCalculationTests
 
         // Arrange
         IUrbanModelStep addStep = new AddTransitStep();
-        addStep.Run(UrbanModel.Instance, new CreationDataCollection<TransitData>(testData.TransitInputs));
+        addStep.Run(UrbanModel.Instance, testData.TransitInputs.Cast<ICreationData>().ToList());
 
         // Act
         var unionerStep = new TransitSurfaceUnioner();

@@ -4,7 +4,7 @@ namespace AIQ.Urban.Core.ModelActions;
 
 public class RemoveBuildingStep(List<Guid> _geometryIds) : IDeleteUrbanElementsStep
 {
-    List<Guid> IUrbanModelStep.Run(UrbanModel model, ICreationData? creationData)
+    List<Guid> IUrbanModelStep.Run(UrbanModel model, List<ICreationData> creationData)
     {
         var buildingsToRemove = model.Buildings
             .Where(x => x.GetGeometryIds()

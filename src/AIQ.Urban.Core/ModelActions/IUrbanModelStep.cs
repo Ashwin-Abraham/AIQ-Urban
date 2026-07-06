@@ -4,7 +4,7 @@ namespace AIQ.Urban.Core.ModelActions;
 
 public interface IUrbanModelStep
 {
-    public List<Guid> Run(UrbanModel model, ICreationData? creationData);
+    public List<Guid> Run(UrbanModel model, List<ICreationData> creationData);
 }
 
 public interface IAddUrbanElementsStep : IUrbanModelStep;

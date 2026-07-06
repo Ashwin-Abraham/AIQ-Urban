@@ -26,7 +26,7 @@ public class ResetUrbanElementsStepTests
     public void Run_EmptyModel_ReturnsEmptyIdsAndModelStaysEmpty()
     {
         var step = new ResetUrbanElementsStep();
-        var ids = ((IUrbanModelStep)step).Run(UrbanModel.Instance, null);
+        var ids = ((IUrbanModelStep)step).Run(UrbanModel.Instance, []);
 
         Assert.That(ids, Is.Empty);
         Assert.That(UrbanModel.Instance.Transits, Is.Empty);
@@ -46,7 +46,7 @@ public class ResetUrbanElementsStepTests
             new LineCurve(new Point3d(0, 0, 0), new Point3d(50, 0, 0)),
             centerlineId1);
         IUrbanModelStep addTransit = new AddTransitStep();
-        addTransit.Run(UrbanModel.Instance, new CreationDataCollection<TransitData>([new TransitData(centerline1, 6, TransitType.Road)]));
+        addTransit.Run(UrbanModel.Instance, [new TransitData(centerline1, 6, TransitType.Road)]);
 
         // One building, 3 floors
         var footprint = new Polygon2D(new PolylineCurve([
@@ -55,7 +55,7 @@ public class ResetUrbanElementsStepTests
             new Point3d(0, 0, 0),
         ]));
         IUrbanModelStep addBuilding = new AddBuildingStep();
-        addBuilding.Run(UrbanModel.Instance, new CreationDataCollection<BuildingData>([new BuildingData(footprint, 3.5, 3, DefaultUses.Residential)]));
+        addBuilding.Run(UrbanModel.Instance, [new BuildingData(footprint, 3.5, 3, DefaultUses.Residential)]);
 
         // One parcel
         var parcelPolygon = new Polygon2D(new PolylineCurve([
@@ -87,7 +87,7 @@ public class ResetUrbanElementsStepTests
 
         // Act
         var step = new ResetUrbanElementsStep();
-        var ids = ((IUrbanModelStep)step).Run(UrbanModel.Instance, null);
+        var ids = ((IUrbanModelStep)step).Run(UrbanModel.Instance, []);
 
         // Assert
         Assert.That(ids, Has.Count.EqualTo(expectedCount));
@@ -125,7 +125,7 @@ public class ResetUrbanElementsStepTests
 
         // Act
         var step = new ResetUrbanElementsStep();
-        var ids = ((IUrbanModelStep)step).Run(UrbanModel.Instance, null);
+        var ids = ((IUrbanModelStep)step).Run(UrbanModel.Instance, []);
 
         // Assert
         Assert.That(ids, Has.Count.EqualTo(2));

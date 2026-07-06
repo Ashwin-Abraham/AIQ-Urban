@@ -30,7 +30,7 @@ public class UpdateTransitStepTests
 
         // Arrange: add initial transits and capture their actual geometry IDs
         IUrbanModelStep addStep = new AddTransitStep();
-        var addedIds = addStep.Run(UrbanModel.Instance, new CreationDataCollection<TransitData>(testData.InitialTransits));
+        var addedIds = addStep.Run(UrbanModel.Instance, testData.InitialTransits.Cast<ICreationData>().ToList());
 
         var oldCenterlineId = addedIds[0];
         var oldCount = UrbanModel.Instance.Transits.Count;

@@ -286,13 +286,13 @@ public class GraphCreationStepTests
             .ToList();
         IUrbanModelStep addStep = new AddTransitStep();
 
-        addStep.Run(UrbanModel.Instance, new CreationDataCollection<TransitData>(transitData));
+        addStep.Run(UrbanModel.Instance, transitData.Cast<ICreationData>().ToList());
     }
 
     private static void AddBuildings(List<BuildingData> buildingData)
     {
         IUrbanModelStep addStep = new AddBuildingStep();
-        addStep.Run(UrbanModel.Instance, new CreationDataCollection<BuildingData>(buildingData));
+        addStep.Run(UrbanModel.Instance, buildingData.Cast<ICreationData>().ToList());
     }
 
     private static void RunParcelCreationSteps()

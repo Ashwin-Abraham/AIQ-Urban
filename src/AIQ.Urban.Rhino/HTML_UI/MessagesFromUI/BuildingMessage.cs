@@ -43,8 +43,8 @@ public class BuildingMessage : IMessageFromUI<ModelStateMessage>
             throw new Exception("Select one or more building footprint curves first.");
 
         var gatherStep = new SelectBuildingFootprintsStep(selected, FloorHeight, FloorCount, use, "Footprint");
-        var creationData = (CreationDataCollection<BuildingData>)gatherStep.Run(doc);
-        var idsToDelete = creationData.Items.Select(b => b.Footprint.Id).ToList();
+        var creationData = gatherStep.Run(doc);
+        var idsToDelete = creationData.OfType<BuildingData>().Select(b => b.Footprint.Id).ToList();
 
         return RunPipeline(doc, gatherStep, idsToDelete);
     }
@@ -59,8 +59,8 @@ public class BuildingMessage : IMessageFromUI<ModelStateMessage>
             throw new Exception("Select one or more building envelope Breps first.");
 
         var gatherStep = new SelectBuildingFootprintsStep(selected, FloorHeight, FloorCount, use, "Mass");
-        var creationData = (CreationDataCollection<BuildingData>)gatherStep.Run(doc);
-        var idsToDelete = creationData.Items.Select(b => b.Footprint.Id).ToList();
+        var creationData = gatherStep.Run(doc);
+        var idsToDelete = creationData.OfType<BuildingData>().Select(b => b.Footprint.Id).ToList();
 
         return RunPipeline(doc, gatherStep, idsToDelete);
     }

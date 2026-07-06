@@ -30,7 +30,7 @@ public class UpdateZoneStepTests
 
         // Arrange: add initial zones and capture their actual geometry IDs
         IUrbanModelStep addStep = new AddZoneStep();
-        var addedIds = addStep.Run(UrbanModel.Instance, new CreationDataCollection<ZoneData>(testData.InitialZones));
+        var addedIds = addStep.Run(UrbanModel.Instance, testData.InitialZones.Cast<ICreationData>().ToList());
 
         var oldBoundaryId = addedIds[0];
         var oldCount = UrbanModel.Instance.Zones.Count;

@@ -61,9 +61,9 @@ public class AddTransit_AIQUrban : Command
             .ToList();
 
         var gatherStep = new SelectTransitCenterlinesStep(rhinoObjs, width, transitType);
-        var creationData = (CreationDataCollection<TransitData>)gatherStep.Run(doc);
-        var centerlineIds = creationData.Items.Select(t => t.Centerline.Id).ToList();
-        var transitData = creationData.Items;
+        var creationData = gatherStep.Run(doc);
+        var transitData = creationData.OfType<TransitData>().ToList();
+        var centerlineIds = transitData.Select(t => t.Centerline.Id).ToList();
 
         var pipeline = new RhinoUrbanModelPipeline(doc, UrbanModel.Instance)
             .WithDataGatherStep(gatherStep)

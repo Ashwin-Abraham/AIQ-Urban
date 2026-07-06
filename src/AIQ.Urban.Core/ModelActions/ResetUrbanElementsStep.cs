@@ -4,7 +4,7 @@ namespace AIQ.Urban.Core.ModelActions;
 
 public class ResetUrbanElementsStep : IDeleteUrbanElementsStep
 {
-    List<Guid> IUrbanModelStep.Run(UrbanModel model, ICreationData? creationData)
+    List<Guid> IUrbanModelStep.Run(UrbanModel model, List<ICreationData> creationData)
     {
         var ids = model.GetUrbanElements()
             .SelectMany(e => e.GetGeometryIds())

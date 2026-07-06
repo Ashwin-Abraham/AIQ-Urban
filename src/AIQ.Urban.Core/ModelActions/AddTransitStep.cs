@@ -4,12 +4,9 @@ namespace AIQ.Urban.Core.ModelActions;
 
 public class AddTransitStep : IAddUrbanElementsStep
 {
-    List<Guid> IUrbanModelStep.Run(UrbanModel model, ICreationData? creationData)
+    List<Guid> IUrbanModelStep.Run(UrbanModel model, List<ICreationData> creationData)
     {
-        var collection = creationData as CreationDataCollection<TransitData>
-            ?? throw new InvalidOperationException("Expected CreationDataCollection<TransitData>.");
-
-        var transits = collection.Items.Select(x => x.ToTransit()).ToList();
+        var transits = creationData.OfType<TransitData>().Select(x => x.ToTransit()).ToList();
         model.AddTransit(transits);
 
         return transits.SelectMany(x => x.GetGeometryIds()).ToList();

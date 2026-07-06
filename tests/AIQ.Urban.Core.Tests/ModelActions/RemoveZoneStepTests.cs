@@ -33,13 +33,13 @@ public class RemoveZoneStepTests
 
         // Arrange: add zones and capture their actual geometry IDs
         IUrbanModelStep addStep = new AddZoneStep();
-        var addedIds = addStep.Run(UrbanModel.Instance, new CreationDataCollection<ZoneData>(testData.InitialZones));
+        var addedIds = addStep.Run(UrbanModel.Instance, testData.InitialZones.Cast<ICreationData>().ToList());
 
         var initialCount = UrbanModel.Instance.Zones.Count;
 
         // Act
         IUrbanModelStep removeStep = new RemoveZoneStep(testData.GetRemoveIds(addedIds));
-        var removedIds = removeStep.Run(UrbanModel.Instance, null);
+        var removedIds = removeStep.Run(UrbanModel.Instance, []);
 
         // Visualise
 #if DEBUG

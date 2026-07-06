@@ -33,7 +33,7 @@ public class AddZoneStepTests
         IUrbanModelStep step = new AddZoneStep();
 
         // Act
-        var result = step.Run(UrbanModel.Instance, new CreationDataCollection<ZoneData>(testData.Input));
+        var result = step.Run(UrbanModel.Instance, testData.Input.Cast<ICreationData>().ToList());
 
         // Visualise
 #if DEBUG

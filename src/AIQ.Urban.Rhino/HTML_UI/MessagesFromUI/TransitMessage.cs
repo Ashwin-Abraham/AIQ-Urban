@@ -29,8 +29,8 @@ public class TransitMessage : IMessageFromUI<ModelStateMessage>
             throw new Exception("Select one or more transit centerline curves first.");
 
         var gatherStep = new SelectTransitCenterlinesStep(selected, RoadWidth, TransitType.Road);
-        var creationData = (CreationDataCollection<TransitData>)gatherStep.Run(doc);
-        var centerlineIds = creationData.Items.Select(t => t.Centerline.Id).ToList();
+        var creationData = gatherStep.Run(doc);
+        var centerlineIds = creationData.OfType<TransitData>().Select(t => t.Centerline.Id).ToList();
 
         var pipeline = new RhinoUrbanModelPipeline(doc, UrbanModel.Instance)
             .WithDataGatherStep(gatherStep)

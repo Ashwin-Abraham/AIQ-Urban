@@ -4,5 +4,5 @@ using Rhino;
 namespace AIQ.Urban.RhinoInterface.Pipeline.RhinoDocActions;
 public interface IRhinoDataGatherStep
 {
-    ICreationData Run(RhinoDoc doc);
+    List<ICreationData> Run(RhinoDoc doc);
 }

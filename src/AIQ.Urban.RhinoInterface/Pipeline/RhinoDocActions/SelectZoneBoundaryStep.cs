@@ -13,7 +13,7 @@ public class SelectZoneBoundaryStep(
     IEnumerable<RhinoObject> selectedObjects,
     string name) : IRhinoDataGatherStep
 {
-    public ICreationData Run(RhinoDoc doc)
+    public List<ICreationData> Run(RhinoDoc doc)
     {
         var selected = selectedObjects
             .Where(obj => obj.ObjectType == ObjectType.Curve)
@@ -28,7 +28,7 @@ public class SelectZoneBoundaryStep(
             throw new Exception("Selected curve is not a valid closed planar boundary.");
 
         var boundary = new Polygon2D(curve);
-        return new CreationDataCollection<ZoneData>([new ZoneData(boundary, name)]);
+        return [new ZoneData(boundary, name)];
     }
 
     private static Curve? TryValidateBoundaryCurve(Curve? curve)

@@ -15,7 +15,7 @@ public class RhinoUrbanModelPipeline(
     UrbanModel _urbanModel)
 {
     private IRhinoDataGatherStep? _objectSelectionStep;
-    private ICreationData? _creationData;
+    private List<ICreationData> _creationData = [];
     private readonly List<IUrbanModelStep> _addDeleteSteps = [];
     private readonly List<IEditUrbanElementsStep> _editSteps = [];
     private readonly List<Guid> _directDeleteIds = [];
@@ -35,7 +35,7 @@ public class RhinoUrbanModelPipeline(
         return this;
     }
 
-    public RhinoUrbanModelPipeline WithCreationData(ICreationData data)
+    public RhinoUrbanModelPipeline WithCreationData(List<ICreationData> data)
     {
         _creationData = data;
         return this;
@@ -78,7 +78,7 @@ public class RhinoUrbanModelPipeline(
 
         var creationData = _objectSelectionStep?.Run(_rhinoDoc) ?? _creationData;
 
-        if (creationData is null && _addDeleteSteps.OfType<IAddUrbanElementsStep>().Any())
+        if (creationData.Count == 0 && _addDeleteSteps.OfType<IAddUrbanElementsStep>().Any())
             throw new InvalidOperationException("No creation data provided for add steps.");
 
         foreach (var step in _addDeleteSteps)

@@ -17,7 +17,7 @@ public class SelectBuildingFootprintsStep(
     Use use,
     string generationType) : IRhinoDataGatherStep
 {
-    public ICreationData Run(RhinoDoc doc)
+    public List<ICreationData> Run(RhinoDoc doc)
     {
         if (generationType == "Mass")
             return GatherFromMass();
@@ -25,7 +25,7 @@ public class SelectBuildingFootprintsStep(
         return GatherFromFootprints();
     }
 
-    private CreationDataCollection<BuildingData> GatherFromFootprints()
+    private List<ICreationData> GatherFromFootprints()
     {
         var selected = selectedObjects
             .Where(obj => obj.ObjectType == ObjectType.Curve)
@@ -48,10 +48,10 @@ public class SelectBuildingFootprintsStep(
         if (buildingData.Count == 0)
             throw new Exception("Selected objects must be curves.");
 
-        return new CreationDataCollection<BuildingData>(buildingData);
+        return buildingData.Cast<ICreationData>().ToList();
     }
 
-    private CreationDataCollection<BuildingData> GatherFromMass()
+    private List<ICreationData> GatherFromMass()
     {
         var selected = selectedObjects
             .Where(obj => obj.ObjectType == ObjectType.Brep)
@@ -74,7 +74,7 @@ public class SelectBuildingFootprintsStep(
         if (buildingData.Count == 0)
             throw new Exception("Selected objects must be Breps.");
 
-        return new CreationDataCollection<BuildingData>(buildingData);
+        return buildingData.Cast<ICreationData>().ToList();
     }
 
     private static Polygon2D ExtractFootprintFromBrep(Brep brep)

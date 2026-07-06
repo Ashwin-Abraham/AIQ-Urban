@@ -33,13 +33,13 @@ public class RemoveBuildingStepTests
 
         // Arrange: add buildings and capture their actual geometry IDs
         IUrbanModelStep addStep = new AddBuildingStep();
-        var addedIds = addStep.Run(UrbanModel.Instance, new CreationDataCollection<BuildingData>(testData.InitialBuildings));
+        var addedIds = addStep.Run(UrbanModel.Instance, testData.InitialBuildings.Cast<ICreationData>().ToList());
 
         var initialCount = UrbanModel.Instance.Buildings.Count;
 
         // Act
         IUrbanModelStep removeStep = new RemoveBuildingStep(testData.GetRemoveIds(addedIds));
-        var removedIds = removeStep.Run(UrbanModel.Instance, null);
+        var removedIds = removeStep.Run(UrbanModel.Instance, []);
 
         // Visualise
 #if DEBUG

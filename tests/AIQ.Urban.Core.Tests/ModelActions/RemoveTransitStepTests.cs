@@ -33,13 +33,13 @@ public class RemoveTransitStepTests
 
         // Arrange
         IUrbanModelStep addStep = new AddTransitStep();
-        addStep.Run(UrbanModel.Instance, new CreationDataCollection<TransitData>(testData.InitialTransits));
+        addStep.Run(UrbanModel.Instance, testData.InitialTransits.Cast<ICreationData>().ToList());
 
         var initialCount = UrbanModel.Instance.Transits.Count;
 
         // Act
         IUrbanModelStep removeStep = new RemoveTransitStep(testData.CenterlineIds);
-        var removedIds = removeStep.Run(UrbanModel.Instance, null);
+        var removedIds = removeStep.Run(UrbanModel.Instance, []);
 
         // Visualise
 #if DEBUG

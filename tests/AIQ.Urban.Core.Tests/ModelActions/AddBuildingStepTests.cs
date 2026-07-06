@@ -33,7 +33,7 @@ public class AddBuildingStepTests
         IUrbanModelStep step = new AddBuildingStep();
 
         // Act
-        var result = step.Run(UrbanModel.Instance, new CreationDataCollection<BuildingData>(testData.Input));
+        var result = step.Run(UrbanModel.Instance, testData.Input.Cast<ICreationData>().ToList());
 
         // Visualise
 #if DEBUG
