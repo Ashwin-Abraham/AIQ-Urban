@@ -9,5 +9,8 @@
     "opencode",
     "google"
   ],
-  "disabled_providers": []
+  "disabled_providers": [],
+  "plugin": [
+    ".opencode/plugins/graphify.js"
+  ]
 }
