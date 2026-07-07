@@ -1,0 +1,1123 @@
+{
+  "directed": false,
+  "multigraph": false,
+  "graph": {},
+  "nodes": [
+    {
+      "type": "module",
+      "label": "AIQ.Urban.Core",
+      "properties": {
+        "source_location": "C:\\Users\\AshwinAbraham\\source\\repos\\ArchSitePlan\\src/AIQ.Urban.Core/CONTEXT.md",
+        "purpose": "Pure city-modelling domain logic"
+      },
+      "file_type": "concept",
+      "id": "aiq-urban-core",
+      "community": 7,
+      "norm_label": "aiq.urban.core"
+    },
+    {
+      "type": "concept",
+      "label": "UrbanModel",
+      "properties": {
+        "source_location": "C:\\Users\\AshwinAbraham\\source\\repos\\ArchSitePlan\\src/AIQ.Urban.Core/CONTEXT.md",
+        "description": "Singleton holding all IUrbanElements"
+      },
+      "file_type": "concept",
+      "id": "urban-model",
+      "community": 1,
+      "norm_label": "urbanmodel"
+    },
+    {
+      "type": "interface",
+      "label": "IUrbanElement",
+      "properties": {
+        "source_location": "C:\\Users\\AshwinAbraham\\source\\repos\\ArchSitePlan\\src/AIQ.Urban.Core/CONTEXT.md"
+      },
+      "file_type": "concept",
+      "id": "iurban-element",
+      "community": 1,
+      "norm_label": "iurbanelement"
+    },
+    {
+      "type": "concept",
+      "label": "Building",
+      "properties": {
+        "source_location": "C:\\Users\\AshwinAbraham\\source\\repos\\ArchSitePlan\\src/AIQ.Urban.Core/CONTEXT.md"
+      },
+      "file_type": "concept",
+      "id": "building",
+      "community": 0,
+      "norm_label": "building"
+    },
+    {
+      "type": "concept",
+      "label": "Transit",
+      "properties": {
+        "source_location": "C:\\Users\\AshwinAbraham\\source\\repos\\ArchSitePlan\\src/AIQ.Urban.Core/CONTEXT.md"
+      },
+      "file_type": "concept",
+      "id": "transit",
+      "community": 5,
+      "norm_label": "transit"
+    },
+    {
+      "type": "concept",
+      "label": "Parcel",
+      "properties": {
+        "source_location": "C:\\Users\\AshwinAbraham\\source\\repos\\ArchSitePlan\\src/AIQ.Urban.Core/CONTEXT.md"
+      },
+      "file_type": "concept",
+      "id": "parcel",
+      "community": 1,
+      "norm_label": "parcel"
+    },
+    {
+      "type": "concept",
+      "label": "Zone",
+      "properties": {
+        "source_location": "C:\\Users\\AshwinAbraham\\source\\repos\\ArchSitePlan\\src/AIQ.Urban.Core/CONTEXT.md"
+      },
+      "file_type": "concept",
+      "id": "zone",
+      "community": 1,
+      "norm_label": "zone"
+    },
+    {
+      "type": "concept",
+      "label": "FloorPlate",
+      "properties": {
+        "source_location": "C:\\Users\\AshwinAbraham\\source\\repos\\ArchSitePlan\\src/AIQ.Urban.Core/CONTEXT.md"
+      },
+      "file_type": "concept",
+      "id": "floor-plate",
+      "community": 0,
+      "norm_label": "floorplate"
+    },
+    {
+      "type": "concept",
+      "label": "Use",
+      "properties": {
+        "source_location": "C:\\Users\\AshwinAbraham\\source\\repos\\ArchSitePlan\\src/AIQ.Urban.Core/CONTEXT.md",
+        "description": "Semantic label with Name and Color"
+      },
+      "file_type": "concept",
+      "id": "use",
+      "community": 0,
+      "norm_label": "use"
+    },
+    {
+      "type": "enum",
+      "label": "TransitType",
+      "properties": {
+        "source_location": "C:\\Users\\AshwinAbraham\\source\\repos\\ArchSitePlan\\src/AIQ.Urban.Core/CONTEXT.md",
+        "values": "Road, Railway, CyclePath, Pedestrian, Waterway"
+      },
+      "file_type": "concept",
+      "id": "transit-type",
+      "community": 39,
+      "norm_label": "transittype"
+    },
+    {
+      "type": "concept",
+      "label": "Profile2D",
+      "properties": {
+        "source_location": "C:\\Users\\AshwinAbraham\\source\\repos\\ArchSitePlan\\src/AIQ.Urban.Core/CONTEXT.md",
+        "description": "Planar curve wrapper enforcing XY plane"
+      },
+      "file_type": "concept",
+      "id": "profile2d",
+      "community": 5,
+      "norm_label": "profile2d"
+    },
+    {
+      "type": "concept",
+      "label": "Polygon2D",
+      "properties": {
+        "source_location": "C:\\Users\\AshwinAbraham\\source\\repos\\ArchSitePlan\\src/AIQ.Urban.Core/CONTEXT.md"
+      },
+      "file_type": "concept",
+      "id": "polygon2d",
+      "community": 33,
+      "norm_label": "polygon2d"
+    },
+    {
+      "type": "concept",
+      "label": "TransitSurface",
+      "properties": {
+        "source_location": "C:\\Users\\AshwinAbraham\\source\\repos\\ArchSitePlan\\src/AIQ.Urban.Core/CONTEXT.md",
+        "description": "Unioned planar Brep of merged transit right-of-way"
+      },
+      "file_type": "concept",
+      "id": "transit-surface",
+      "community": 5,
+      "norm_label": "transitsurface"
+    },
+    {
+      "type": "concept",
+      "label": "TransitGraph",
+      "properties": {
+        "source_location": "C:\\Users\\AshwinAbraham\\source\\repos\\ArchSitePlan\\src/AIQ.Urban.Core/CONTEXT.md"
+      },
+      "file_type": "concept",
+      "id": "transit-graph",
+      "community": 38,
+      "norm_label": "transitgraph"
+    },
+    {
+      "type": "concept",
+      "label": "Parcel2D",
+      "properties": {
+        "source_location": "C:\\Users\\AshwinAbraham\\source\\repos\\ArchSitePlan\\src/AIQ.Urban.Core/CONTEXT.md"
+      },
+      "file_type": "concept",
+      "id": "parcel2d",
+      "community": 1,
+      "norm_label": "parcel2d"
+    },
+    {
+      "type": "concept",
+      "label": "ProjectMetrics",
+      "properties": {
+        "source_location": "C:\\Users\\AshwinAbraham\\source\\repos\\ArchSitePlan\\src/AIQ.Urban.Core/CONTEXT.md",
+        "description": "Aggregate metrics for entire urban model"
+      },
+      "file_type": "concept",
+      "id": "project-metrics",
+      "community": 0,
+      "norm_label": "projectmetrics"
+    },
+    {
+      "type": "concept",
+      "label": "ProjectMetricsCalculator",
+      "properties": {
+        "source_location": "C:\\Users\\AshwinAbraham\\source\\repos\\ArchSitePlan\\src/AIQ.Urban.Core/CONTEXT.md"
+      },
+      "file_type": "concept",
+      "id": "project-metrics-calc",
+      "community": 0,
+      "norm_label": "projectmetricscalculator"
+    },
+    {
+      "type": "concept",
+      "label": "ZoneMetrics",
+      "properties": {
+        "source_location": "C:\\Users\\AshwinAbraham\\source\\repos\\ArchSitePlan\\src/AIQ.Urban.Core/CONTEXT.md"
+      },
+      "file_type": "concept",
+      "id": "zone-metrics",
+      "community": 0,
+      "norm_label": "zonemetrics"
+    },
+    {
+      "type": "concept",
+      "label": "TransitMetrics",
+      "properties": {
+        "source_location": "C:\\Users\\AshwinAbraham\\source\\repos\\ArchSitePlan\\src/AIQ.Urban.Core/CONTEXT.md"
+      },
+      "file_type": "concept",
+      "id": "transit-metrics",
+      "community": 0,
+      "norm_label": "transitmetrics"
+    },
+    {
+      "type": "concept",
+      "label": "DefaultUses",
+      "properties": {
+        "source_location": "C:\\Users\\AshwinAbraham\\source\\repos\\ArchSitePlan\\src/AIQ.Urban.Core/CONTEXT.md",
+        "uses": "Residential, Commercial, Retail, Industrial, MixedUse, Public, Park, Parking, Utility"
+      },
+      "file_type": "concept",
+      "id": "default-uses",
+      "community": 14,
+      "norm_label": "defaultuses"
+    },
+    {
+      "type": "concept",
+      "label": "TopoMesh",
+      "properties": {
+        "source_location": "C:\\Users\\AshwinAbraham\\source\\repos\\ArchSitePlan\\src/AIQ.Urban.Core/CONTEXT.md"
+      },
+      "file_type": "concept",
+      "id": "topo-mesh",
+      "community": 37,
+      "norm_label": "topomesh"
+    },
+    {
+      "type": "concept",
+      "label": "Vegetation",
+      "properties": {
+        "source_location": "C:\\Users\\AshwinAbraham\\source\\repos\\ArchSitePlan\\src/AIQ.Urban.Core/CONTEXT.md"
+      },
+      "file_type": "concept",
+      "id": "vegetation",
+      "community": 40,
+      "norm_label": "vegetation"
+    },
+    {
+      "type": "module",
+      "label": "AIQ.Urban.RhinoPlugin",
+      "properties": {
+        "source_location": "C:\\Users\\AshwinAbraham\\source\\repos\\ArchSitePlan\\src/AIQ.Urban.Rhino/CONTEXT.md",
+        "purpose": "Rhino 8 plugin bridging interaction model with Core"
+      },
+      "file_type": "concept",
+      "id": "aiq-urban-rhino",
+      "community": 7,
+      "norm_label": "aiq.urban.rhinoplugin"
+    },
+    {
+      "type": "concept",
+      "label": "RhinoUrbanModelPipeline",
+      "properties": {
+        "source_location": "C:\\Users\\AshwinAbraham\\source\\repos\\ArchSitePlan\\src/AIQ.Urban.Rhino/CONTEXT.md",
+        "description": "Fluent step-based pipeline for model sync"
+      },
+      "file_type": "concept",
+      "id": "rhino-urban-pipeline",
+      "community": 2,
+      "norm_label": "rhinourbanmodelpipeline"
+    },
+    {
+      "type": "concept",
+      "label": "RhinoUrbanEventHandler",
+      "properties": {
+        "source_location": "C:\\Users\\AshwinAbraham\\source\\repos\\ArchSitePlan\\src/AIQ.Urban.Rhino/CONTEXT.md",
+        "description": "Handles Rhino doc events for mutation/deletion"
+      },
+      "file_type": "concept",
+      "id": "rhino-event-handler",
+      "community": 6,
+      "norm_label": "rhinourbaneventhandler"
+    },
+    {
+      "type": "concept",
+      "label": "EventQueue",
+      "properties": {
+        "source_location": "C:\\Users\\AshwinAbraham\\source\\repos\\ArchSitePlan\\src/AIQ.Urban.Rhino/CONTEXT.md"
+      },
+      "file_type": "concept",
+      "id": "event-queue",
+      "community": 6,
+      "norm_label": "eventqueue"
+    },
+    {
+      "type": "concept",
+      "label": "ReverseLookupDict",
+      "properties": {
+        "source_location": "C:\\Users\\AshwinAbraham\\source\\repos\\ArchSitePlan\\src/AIQ.Urban.Rhino/CONTEXT.md",
+        "description": "Dictionary<Guid, IUrbanElement> keyed by Rhino ObjectId"
+      },
+      "file_type": "concept",
+      "id": "reverse-lookup",
+      "community": 6,
+      "norm_label": "reverselookupdict"
+    },
+    {
+      "type": "concept",
+      "label": "TransitSurfaceUnioner",
+      "properties": {
+        "source_location": "C:\\Users\\AshwinAbraham\\source\\repos\\ArchSitePlan\\src/AIQ.Urban.Rhino/CONTEXT.md"
+      },
+      "file_type": "concept",
+      "id": "transit-surface-unioner",
+      "community": 5,
+      "norm_label": "transitsurfaceunioner"
+    },
+    {
+      "type": "concept",
+      "label": "RecalculateParcelsStep",
+      "properties": {
+        "source_location": "C:\\Users\\AshwinAbraham\\source\\repos\\ArchSitePlan\\src/AIQ.Urban.Rhino/CONTEXT.md"
+      },
+      "file_type": "concept",
+      "id": "recalculate-parcels",
+      "community": 1,
+      "norm_label": "recalculateparcelsstep"
+    },
+    {
+      "type": "command",
+      "label": "AddTransit_AIQUrban",
+      "properties": {
+        "source_location": "C:\\Users\\AshwinAbraham\\source\\repos\\ArchSitePlan\\src/AIQ.Urban.Rhino/CONTEXT.md"
+      },
+      "file_type": "concept",
+      "id": "add-transit-command",
+      "community": 2,
+      "norm_label": "addtransit_aiqurban"
+    },
+    {
+      "type": "command",
+      "label": "AddBuilding_AIQUrban",
+      "properties": {
+        "source_location": "C:\\Users\\AshwinAbraham\\source\\repos\\ArchSitePlan\\src/AIQ.Urban.Rhino/CONTEXT.md"
+      },
+      "file_type": "concept",
+      "id": "add-building-command",
+      "community": 2,
+      "norm_label": "addbuilding_aiqurban"
+    },
+    {
+      "type": "command",
+      "label": "AddZone_AIQUrban",
+      "properties": {
+        "source_location": "C:\\Users\\AshwinAbraham\\source\\repos\\ArchSitePlan\\src/AIQ.Urban.Rhino/CONTEXT.md"
+      },
+      "file_type": "concept",
+      "id": "add-zone-command",
+      "community": 2,
+      "norm_label": "addzone_aiqurban"
+    },
+    {
+      "type": "command",
+      "label": "ChangeBuildingUse_AIQUrban",
+      "properties": {
+        "source_location": "C:\\Users\\AshwinAbraham\\source\\repos\\ArchSitePlan\\src/AIQ.Urban.Rhino/CONTEXT.md"
+      },
+      "file_type": "concept",
+      "id": "change-use-command",
+      "community": 2,
+      "norm_label": "changebuildinguse_aiqurban"
+    },
+    {
+      "type": "command",
+      "label": "ChangeParcelUse_AIQUrban",
+      "properties": {
+        "source_location": "C:\\Users\\AshwinAbraham\\source\\repos\\ArchSitePlan\\src/AIQ.Urban.Rhino/CONTEXT.md"
+      },
+      "file_type": "concept",
+      "id": "change-parcel-use-command",
+      "community": 12,
+      "norm_label": "changeparceluse_aiqurban"
+    },
+    {
+      "type": "command",
+      "label": "ResetUrban_AIQUrban",
+      "properties": {
+        "source_location": "C:\\Users\\AshwinAbraham\\source\\repos\\ArchSitePlan\\src/AIQ.Urban.Rhino/CONTEXT.md"
+      },
+      "file_type": "concept",
+      "id": "reset-urban-command",
+      "community": 34,
+      "norm_label": "reseturban_aiqurban"
+    },
+    {
+      "type": "command",
+      "label": "StartUI_AIQUrban",
+      "properties": {
+        "source_location": "C:\\Users\\AshwinAbraham\\source\\repos\\ArchSitePlan\\src/AIQ.Urban.Rhino/CONTEXT.md"
+      },
+      "file_type": "concept",
+      "id": "start-ui-command",
+      "community": 8,
+      "norm_label": "startui_aiqurban"
+    },
+    {
+      "type": "concept",
+      "label": "LayerStructure",
+      "properties": {
+        "source_location": "C:\\Users\\AshwinAbraham\\source\\repos\\ArchSitePlan\\src/AIQ.Urban.Rhino/CONTEXT.md",
+        "description": "AIQ Urban :: Transit/Building/Zone/Parcel/Vegetation/Topography hierarchy"
+      },
+      "file_type": "concept",
+      "id": "layer-structure",
+      "community": 29,
+      "norm_label": "layerstructure"
+    },
+    {
+      "type": "concept",
+      "label": "HTML_UI",
+      "properties": {
+        "source_location": "C:\\Users\\AshwinAbraham\\source\\repos\\ArchSitePlan\\src/AIQ.Urban.Rhino/CONTEXT.md",
+        "description": "Vue-based HTML UI for urban modelling"
+      },
+      "file_type": "concept",
+      "id": "html-ui",
+      "community": 8,
+      "norm_label": "html_ui"
+    },
+    {
+      "type": "concept",
+      "label": "HTTP_POST_MessageContract",
+      "properties": {
+        "source_location": "C:\\Users\\AshwinAbraham\\source\\repos\\ArchSitePlan\\src/AIQ.Urban.Rhino/CONTEXT.md"
+      },
+      "file_type": "concept",
+      "id": "http-message-contract",
+      "community": 4,
+      "norm_label": "http_post_messagecontract"
+    },
+    {
+      "type": "concept",
+      "label": "MessageConverter",
+      "properties": {
+        "source_location": "C:\\Users\\AshwinAbraham\\source\\repos\\ArchSitePlan\\src/AIQ.Urban.Rhino/CONTEXT.md"
+      },
+      "file_type": "concept",
+      "id": "message-converter",
+      "community": 4,
+      "norm_label": "messageconverter"
+    },
+    {
+      "type": "interface",
+      "label": "IMessageFromUI",
+      "properties": {
+        "source_location": "C:\\Users\\AshwinAbraham\\source\\repos\\ArchSitePlan\\src/AIQ.Urban.Rhino/CONTEXT.md"
+      },
+      "file_type": "concept",
+      "id": "imessage-from-ui",
+      "community": 4,
+      "norm_label": "imessagefromui"
+    },
+    {
+      "type": "interface",
+      "label": "IMessageToUI",
+      "properties": {
+        "source_location": "C:\\Users\\AshwinAbraham\\source\\repos\\ArchSitePlan\\src/AIQ.Urban.Rhino/CONTEXT.md"
+      },
+      "file_type": "concept",
+      "id": "imessage-to-ui",
+      "community": 4,
+      "norm_label": "imessagetoui"
+    },
+    {
+      "type": "concept",
+      "label": "ProjectMetricsJsonSerializer",
+      "properties": {
+        "source_location": "C:\\Users\\AshwinAbraham\\source\\repos\\ArchSitePlan\\src/AIQ.Urban.Rhino/CONTEXT.md"
+      },
+      "file_type": "concept",
+      "id": "project-metrics-serializer",
+      "community": 0,
+      "norm_label": "projectmetricsjsonserializer"
+    },
+    {
+      "type": "document",
+      "label": "AmbitionAndPlan",
+      "properties": {
+        "source_location": "C:\\Users\\AshwinAbraham\\source\\repos\\ArchSitePlan\\src/AIQ.Urban.Rhino/AmbitionAndPlan.md",
+        "purpose": "Guides AI-assisted urban masterplanning process"
+      },
+      "file_type": "concept",
+      "id": "ambition-plan",
+      "community": 3,
+      "norm_label": "ambitionandplan"
+    },
+    {
+      "type": "concept",
+      "label": "DesignSteps",
+      "properties": {
+        "source_location": "C:\\Users\\AshwinAbraham\\source\\repos\\ArchSitePlan\\src/AIQ.Urban.Rhino/AmbitionAndPlan.md",
+        "steps": "Program Mix, Site Details, Design Principles, Concept Planning, Spatial Strategy, Geometry Generation, Verification"
+      },
+      "file_type": "concept",
+      "id": "design-steps",
+      "community": 3,
+      "norm_label": "designsteps"
+    },
+    {
+      "type": "pattern",
+      "label": "Frame-Propose-Ask",
+      "properties": {
+        "source_location": "C:\\Users\\AshwinAbraham\\source\\repos\\ArchSitePlan\\src/AIQ.Urban.Rhino/AmbitionAndPlan.md"
+      },
+      "file_type": "concept",
+      "id": "frame-propose-ask",
+      "community": 3,
+      "norm_label": "frame-propose-ask"
+    },
+    {
+      "type": "concept",
+      "label": "ConceptPlanning",
+      "properties": {
+        "source_location": "C:\\Users\\AshwinAbraham\\source\\repos\\ArchSitePlan\\src/AIQ.Urban.Rhino/AmbitionAndPlan.md"
+      },
+      "file_type": "concept",
+      "id": "concept-planning",
+      "community": 3,
+      "norm_label": "conceptplanning"
+    },
+    {
+      "type": "concept",
+      "label": "SpatialStrategy",
+      "properties": {
+        "source_location": "C:\\Users\\AshwinAbraham\\source\\repos\\ArchSitePlan\\src/AIQ.Urban.Rhino/AmbitionAndPlan.md"
+      },
+      "file_type": "concept",
+      "id": "spatial-strategy",
+      "community": 3,
+      "norm_label": "spatialstrategy"
+    },
+    {
+      "type": "file",
+      "label": "Rhino UI index.html",
+      "properties": {
+        "source_location": "C:\\Users\\AshwinAbraham\\source\\repos\\ArchSitePlan\\src/AIQ.Urban.Rhino/HTML_UI/wwwroot/index.html",
+        "description": "Vue app entry point for AIQ Urban UI"
+      },
+      "file_type": "concept",
+      "id": "rhino-ui-index",
+      "community": 36,
+      "norm_label": "rhino ui index.html"
+    },
+    {
+      "type": "file",
+      "label": "Rhino UI 404.html",
+      "properties": {
+        "source_location": "C:\\Users\\AshwinAbraham\\source\\repos\\ArchSitePlan\\src/AIQ.Urban.Rhino/HTML_UI/wwwroot/404.html",
+        "description": "Custom 404 page for UI"
+      },
+      "file_type": "concept",
+      "id": "rhino-ui-404",
+      "community": 35,
+      "norm_label": "rhino ui 404.html"
+    },
+    {
+      "type": "file",
+      "label": "Old Embedded index.html",
+      "properties": {
+        "source_location": "C:\\Users\\AshwinAbraham\\source\\repos\\ArchSitePlan\\src/ArchSitePlan.RhinoAddin/EmbeddedResources/index.html",
+        "description": "Legacy embedded Vue app (ArchSitePlan)"
+      },
+      "file_type": "concept",
+      "id": "old-embedded-index",
+      "community": 31,
+      "norm_label": "old embedded index.html"
+    },
+    {
+      "type": "file",
+      "label": "Old RhinoInterface index.html",
+      "properties": {
+        "source_location": "C:\\Users\\AshwinAbraham\\source\\repos\\ArchSitePlan\\src/ArchSitePlan.RhinoInterface/Resources/index.html",
+        "description": "Legacy RhinoInterface Vue app"
+      },
+      "file_type": "concept",
+      "id": "old-rhino-interface-index",
+      "community": 32,
+      "norm_label": "old rhinointerface index.html"
+    },
+    {
+      "type": "file",
+      "label": "Yak Package Steps",
+      "properties": {
+        "source_location": "C:\\Users\\AshwinAbraham\\source\\repos\\ArchSitePlan\\src/ArchSitePlan.RhinoAddin/YakPackageCreationSteps.txt",
+        "description": "Instructions to build and push Rhino plugin"
+      },
+      "file_type": "concept",
+      "id": "yak-package",
+      "community": 9,
+      "norm_label": "yak package steps"
+    },
+    {
+      "type": "file",
+      "label": "Plugin Manifest",
+      "properties": {
+        "source_location": "C:\\Users\\AshwinAbraham\\source\\repos\\ArchSitePlan\\src/ArchSitePlan.RhinoAddin/manifest.yml",
+        "name": "AIQ_Urban",
+        "version": "2.1.0",
+        "author": "Ashwin Abraham Mukkaranath"
+      },
+      "file_type": "concept",
+      "id": "plugin-manifest",
+      "community": 9,
+      "norm_label": "plugin manifest"
+    },
+    {
+      "type": "image",
+      "label": "AIQ Exports LEGO icon",
+      "properties": {
+        "source_location": "C:\\Users\\AshwinAbraham\\source\\repos\\ArchSitePlan\\src/AIQ.Exports/AIQ Export Resources/LEGO.png"
+      },
+      "file_type": "concept",
+      "id": "lego-png",
+      "community": 30,
+      "norm_label": "aiq exports lego icon"
+    },
+    {
+      "type": "image",
+      "label": "GH Apply LayerState icon",
+      "properties": {
+        "source_location": "C:\\Users\\AshwinAbraham\\source\\repos\\ArchSitePlan\\src/AIQ.GH.Exports/Resources/ApplyLayerStateToDetail.png"
+      },
+      "file_type": "concept",
+      "id": "gh-apply-layerstate",
+      "community": 15,
+      "norm_label": "gh apply layerstate icon"
+    },
+    {
+      "type": "image",
+      "label": "GH Copy Layout icon",
+      "properties": {
+        "source_location": "C:\\Users\\AshwinAbraham\\source\\repos\\ArchSitePlan\\src/AIQ.GH.Exports/Resources/Copy Layout.png"
+      },
+      "file_type": "concept",
+      "id": "gh-copy-layout",
+      "community": 16,
+      "norm_label": "gh copy layout icon"
+    },
+    {
+      "type": "image",
+      "label": "GH Find Detail icon",
+      "properties": {
+        "source_location": "C:\\Users\\AshwinAbraham\\source\\repos\\ArchSitePlan\\src/AIQ.GH.Exports/Resources/Find Detail.png"
+      },
+      "file_type": "concept",
+      "id": "gh-find-detail",
+      "community": 17,
+      "norm_label": "gh find detail icon"
+    },
+    {
+      "type": "image",
+      "label": "GH Print PDF icon",
+      "properties": {
+        "source_location": "C:\\Users\\AshwinAbraham\\source\\repos\\ArchSitePlan\\src/AIQ.GH.Exports/Resources/Print PDF.png"
+      },
+      "file_type": "concept",
+      "id": "gh-print-pdf",
+      "community": 18,
+      "norm_label": "gh print pdf icon"
+    },
+    {
+      "type": "image",
+      "label": "GH Save LayerState icon",
+      "properties": {
+        "source_location": "C:\\Users\\AshwinAbraham\\source\\repos\\ArchSitePlan\\src/AIQ.GH.Exports/Resources/Save LayerState.png"
+      },
+      "file_type": "concept",
+      "id": "gh-save-layerstate",
+      "community": 19,
+      "norm_label": "gh save layerstate icon"
+    },
+    {
+      "type": "image",
+      "label": "GH Save LayerState icon 2",
+      "properties": {
+        "source_location": "C:\\Users\\AshwinAbraham\\source\\repos\\ArchSitePlan\\src/AIQ.GH.Exports/Resources/Save LayerState2.png"
+      },
+      "file_type": "concept",
+      "id": "gh-save-layerstate2",
+      "community": 20,
+      "norm_label": "gh save layerstate icon 2"
+    },
+    {
+      "type": "image",
+      "label": "GH Set Detail Target icon",
+      "properties": {
+        "source_location": "C:\\Users\\AshwinAbraham\\source\\repos\\ArchSitePlan\\src/AIQ.GH.Exports/Resources/Set Detail Target.png"
+      },
+      "file_type": "concept",
+      "id": "gh-set-detail-target",
+      "community": 21,
+      "norm_label": "gh set detail target icon"
+    },
+    {
+      "type": "image",
+      "label": "GH WriteLayerState icon",
+      "properties": {
+        "source_location": "C:\\Users\\AshwinAbraham\\source\\repos\\ArchSitePlan\\src/AIQ.GH.Exports/Resources/WriteLayerState.png"
+      },
+      "file_type": "concept",
+      "id": "gh-write-layerstate",
+      "community": 22,
+      "norm_label": "gh writelayerstate icon"
+    },
+    {
+      "type": "image",
+      "label": "ArchSitePlan Core logo",
+      "properties": {
+        "source_location": "C:\\Users\\AshwinAbraham\\source\\repos\\ArchSitePlan\\src/ArchSitePlan.Core/Resources/LOGO.png"
+      },
+      "file_type": "concept",
+      "id": "core-logo",
+      "community": 13,
+      "norm_label": "archsiteplan core logo"
+    },
+    {
+      "type": "image",
+      "label": "RhinoAddin embedded logo",
+      "properties": {
+        "source_location": "C:\\Users\\AshwinAbraham\\source\\repos\\ArchSitePlan\\src/ArchSitePlan.RhinoAddin/EmbeddedResources/LOGO.png"
+      },
+      "file_type": "concept",
+      "id": "addin-embedded-logo",
+      "community": 10,
+      "norm_label": "rhinoaddin embedded logo"
+    },
+    {
+      "type": "image",
+      "label": "RhinoAddin plugin icon",
+      "properties": {
+        "source_location": "C:\\Users\\AshwinAbraham\\source\\repos\\ArchSitePlan\\src/ArchSitePlan.RhinoAddin/Icon.png"
+      },
+      "file_type": "concept",
+      "id": "addin-icon",
+      "community": 11,
+      "norm_label": "rhinoaddin plugin icon"
+    },
+    {
+      "type": "image",
+      "label": "RhinoInterface cursor icon",
+      "properties": {
+        "source_location": "C:\\Users\\AshwinAbraham\\source\\repos\\ArchSitePlan\\src/ArchSitePlan.RhinoInterface/Resources/Cursor.png"
+      },
+      "file_type": "concept",
+      "id": "interface-cursor",
+      "community": 23,
+      "norm_label": "rhinointerface cursor icon"
+    },
+    {
+      "type": "image",
+      "label": "RhinoInterface logo",
+      "properties": {
+        "source_location": "C:\\Users\\AshwinAbraham\\source\\repos\\ArchSitePlan\\src/ArchSitePlan.RhinoInterface/Resources/LOGO.png"
+      },
+      "file_type": "concept",
+      "id": "interface-logo",
+      "community": 25,
+      "norm_label": "rhinointerface logo"
+    },
+    {
+      "type": "image",
+      "label": "RhinoInterface logo black",
+      "properties": {
+        "source_location": "C:\\Users\\AshwinAbraham\\source\\repos\\ArchSitePlan\\src/ArchSitePlan.RhinoInterface/Resources/LOGO_Black.png"
+      },
+      "file_type": "concept",
+      "id": "interface-logo-black",
+      "community": 26,
+      "norm_label": "rhinointerface logo black"
+    },
+    {
+      "type": "image",
+      "label": "RhinoInterface line icon",
+      "properties": {
+        "source_location": "C:\\Users\\AshwinAbraham\\source\\repos\\ArchSitePlan\\src/ArchSitePlan.RhinoInterface/Resources/Line.png"
+      },
+      "file_type": "concept",
+      "id": "interface-line",
+      "community": 24,
+      "norm_label": "rhinointerface line icon"
+    },
+    {
+      "type": "image",
+      "label": "RhinoInterface polyline icon",
+      "properties": {
+        "source_location": "C:\\Users\\AshwinAbraham\\source\\repos\\ArchSitePlan\\src/ArchSitePlan.RhinoInterface/Resources/Pline.png"
+      },
+      "file_type": "concept",
+      "id": "interface-pline",
+      "community": 27,
+      "norm_label": "rhinointerface polyline icon"
+    },
+    {
+      "type": "image",
+      "label": "RhinoInterface question icon",
+      "properties": {
+        "source_location": "C:\\Users\\AshwinAbraham\\source\\repos\\ArchSitePlan\\src/ArchSitePlan.RhinoInterface/Resources/Question.png"
+      },
+      "file_type": "concept",
+      "id": "interface-question",
+      "community": 28,
+      "norm_label": "rhinointerface question icon"
+    }
+  ],
+  "links": [
+    {
+      "type": "references",
+      "properties": {},
+      "source_file": "",
+      "source": "aiq-urban-rhino",
+      "target": "aiq-urban-core",
+      "confidence_score": 1.0
+    },
+    {
+      "type": "operates-on",
+      "properties": {},
+      "source_file": "",
+      "source": "rhino-urban-pipeline",
+      "target": "urban-model",
+      "confidence_score": 1.0
+    },
+    {
+      "type": "contains",
+      "properties": {},
+      "source_file": "",
+      "source": "urban-model",
+      "target": "iurban-element",
+      "confidence_score": 1.0
+    },
+    {
+      "type": "implements",
+      "properties": {},
+      "source_file": "",
+      "source": "building",
+      "target": "iurban-element",
+      "confidence_score": 1.0
+    },
+    {
+      "type": "implements",
+      "properties": {},
+      "source_file": "",
+      "source": "parcel",
+      "target": "iurban-element",
+      "confidence_score": 1.0
+    },
+    {
+      "type": "implements",
+      "properties": {},
+      "source_file": "",
+      "source": "transit",
+      "target": "iurban-element",
+      "confidence_score": 1.0
+    },
+    {
+      "type": "implements",
+      "properties": {},
+      "source_file": "",
+      "source": "zone",
+      "target": "iurban-element",
+      "confidence_score": 1.0
+    },
+    {
+      "type": "part-of",
+      "properties": {},
+      "source_file": "",
+      "source": "floor-plate",
+      "target": "building",
+      "confidence_score": 1.0
+    },
+    {
+      "type": "aggregates",
+      "properties": {},
+      "source_file": "",
+      "source": "project-metrics",
+      "target": "building",
+      "confidence_score": 1.0
+    },
+    {
+      "type": "aggregates",
+      "properties": {},
+      "source_file": "",
+      "source": "project-metrics",
+      "target": "transit",
+      "confidence_score": 1.0
+    },
+    {
+      "type": "derived-from",
+      "properties": {},
+      "source_file": "",
+      "source": "transit-surface",
+      "target": "transit",
+      "confidence_score": 1.0
+    },
+    {
+      "type": "is-type",
+      "properties": {},
+      "source_file": "",
+      "source": "parcel2d",
+      "target": "parcel",
+      "confidence_score": 1.0
+    },
+    {
+      "type": "aggregates",
+      "properties": {},
+      "source_file": "",
+      "source": "project-metrics",
+      "target": "parcel",
+      "confidence_score": 1.0
+    },
+    {
+      "type": "aggregates",
+      "properties": {},
+      "source_file": "",
+      "source": "project-metrics",
+      "target": "zone",
+      "confidence_score": 1.0
+    },
+    {
+      "type": "has-use",
+      "properties": {},
+      "source_file": "",
+      "source": "floor-plate",
+      "target": "use",
+      "confidence_score": 1.0
+    },
+    {
+      "type": "wraps",
+      "properties": {},
+      "source_file": "",
+      "source": "transit-surface",
+      "target": "profile2d",
+      "confidence_score": 1.0
+    },
+    {
+      "type": "produces",
+      "properties": {},
+      "source_file": "",
+      "source": "transit-surface-unioner",
+      "target": "transit-surface",
+      "confidence_score": 1.0
+    },
+    {
+      "type": "produces",
+      "properties": {},
+      "source_file": "",
+      "source": "recalculate-parcels",
+      "target": "parcel2d",
+      "confidence_score": 1.0
+    },
+    {
+      "type": "computes",
+      "properties": {},
+      "source_file": "",
+      "source": "project-metrics-calc",
+      "target": "project-metrics",
+      "confidence_score": 1.0
+    },
+    {
+      "type": "serializes",
+      "properties": {},
+      "source_file": "",
+      "source": "project-metrics-serializer",
+      "target": "project-metrics",
+      "confidence_score": 1.0
+    },
+    {
+      "type": "part-of",
+      "properties": {},
+      "source_file": "",
+      "source": "transit-metrics",
+      "target": "project-metrics",
+      "confidence_score": 1.0
+    },
+    {
+      "type": "part-of",
+      "properties": {},
+      "source_file": "",
+      "source": "zone-metrics",
+      "target": "project-metrics",
+      "confidence_score": 1.0
+    },
+    {
+      "type": "configures",
+      "properties": {},
+      "source_file": "",
+      "source": "add-building-command",
+      "target": "rhino-urban-pipeline",
+      "confidence_score": 1.0
+    },
+    {
+      "type": "configures",
+      "properties": {},
+      "source_file": "",
+      "source": "add-transit-command",
+      "target": "rhino-urban-pipeline",
+      "confidence_score": 1.0
+    },
+    {
+      "type": "configures",
+      "properties": {},
+      "source_file": "",
+      "source": "add-zone-command",
+      "target": "rhino-urban-pipeline",
+      "confidence_score": 1.0
+    },
+    {
+      "type": "configures",
+      "properties": {},
+      "source_file": "",
+      "source": "change-use-command",
+      "target": "rhino-urban-pipeline",
+      "confidence_score": 1.0
+    },
+    {
+      "type": "uses",
+      "properties": {},
+      "source_file": "",
+      "source": "rhino-event-handler",
+      "target": "event-queue",
+      "confidence_score": 1.0
+    },
+    {
+      "type": "maintains",
+      "properties": {},
+      "source_file": "",
+      "source": "rhino-event-handler",
+      "target": "reverse-lookup",
+      "confidence_score": 1.0
+    },
+    {
+      "type": "started-by",
+      "properties": {},
+      "source_file": "",
+      "source": "html-ui",
+      "target": "start-ui-command",
+      "confidence_score": 1.0
+    },
+    {
+      "type": "defines",
+      "properties": {},
+      "source_file": "",
+      "source": "http-message-contract",
+      "target": "imessage-from-ui",
+      "confidence_score": 1.0
+    },
+    {
+      "type": "defines",
+      "properties": {},
+      "source_file": "",
+      "source": "http-message-contract",
+      "target": "imessage-to-ui",
+      "confidence_score": 1.0
+    },
+    {
+      "type": "routes",
+      "properties": {},
+      "source_file": "",
+      "source": "message-converter",
+      "target": "imessage-from-ui",
+      "confidence_score": 1.0
+    },
+    {
+      "type": "defines",
+      "properties": {},
+      "source_file": "",
+      "source": "ambition-plan",
+      "target": "design-steps",
+      "confidence_score": 1.0
+    },
+    {
+      "type": "includes",
+      "properties": {},
+      "source_file": "",
+      "source": "design-steps",
+      "target": "concept-planning",
+      "confidence_score": 1.0
+    },
+    {
+      "type": "uses-pattern",
+      "properties": {},
+      "source_file": "",
+      "source": "design-steps",
+      "target": "frame-propose-ask",
+      "confidence_score": 1.0
+    },
+    {
+      "type": "includes",
+      "properties": {},
+      "source_file": "",
+      "source": "design-steps",
+      "target": "spatial-strategy",
+      "confidence_score": 1.0
+    },
+    {
+      "type": "references",
+      "properties": {},
+      "source_file": "",
+      "source": "plugin-manifest",
+      "target": "yak-package",
+      "confidence_score": 1.0
+    }
+  ],
+  "hyperedges": [],
+  "built_at_commit": "20c7829f989e5a2d75a5fefcb1eb604042015141"
+}
