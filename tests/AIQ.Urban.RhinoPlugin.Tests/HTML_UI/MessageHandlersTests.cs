@@ -62,14 +62,14 @@ public class MessageHandlersTests
     }
 
     [Test]
-    public void ChangeBuildingUseMessage_HandleMessage_ChangesBuildingUseAndReturnsModelStateMessage()
+    public void ChangeUseMessage_WithBuildingSelected_ChangesBuildingUseAndReturnsModelStateMessage()
     {
         using var doc = RhinoDoc.CreateHeadless(null);
         var building = AddBuildingToDocAndModel(doc, DefaultUses.Residential);
 
         doc.Objects.Find(building.Envelope.Id)?.Select(true);
 
-        var message = new ChangeBuildingUseMessage { UseName = "Commercial" };
+        var message = new ChangeUseMessage { Use = "Commercial" };
 
         var result = message.HandleMessage();
 

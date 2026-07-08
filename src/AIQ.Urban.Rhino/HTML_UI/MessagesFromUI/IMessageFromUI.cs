@@ -6,7 +6,6 @@ public enum TypeOfMessage
     Building,
     Zone,
     Landuse,
-    ChangeBuildingUse,
     ToolSelection
 }
 
