@@ -14,6 +14,7 @@ public class ZoneMetrics : IMetrics
     public int ParcelCount { get; }
     public int TransitCount { get; }
     public List<(Use Use, double Area)> BuiltAreaByUse { get; }
+    public List<(Use Use, double Area)> LandAreaByUse { get; }
     public List<TransitMetrics> TransitMetrics { get; }
     public double CoveragePercentage { get; }
     public double FAR { get; }
@@ -49,6 +50,11 @@ public class ZoneMetrics : IMetrics
             .SelectMany(b => b.AreaPerUse)
             .GroupBy(kvp => kvp.Key)
             .Select(g => (g.Key, g.Sum(kvp => kvp.Value)))
+            .ToList();
+
+        LandAreaByUse = parcels
+            .GroupBy(p => p.Use)
+            .Select(g => (g.Key, g.Sum(p => p.LandArea)))
             .ToList();
 
         CoveragePercentage = TotalLandArea > 0 ? TotalFootprintArea / TotalLandArea * 100 : 0;

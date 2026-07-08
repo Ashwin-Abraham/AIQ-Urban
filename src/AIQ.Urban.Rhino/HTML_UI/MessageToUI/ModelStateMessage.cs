@@ -91,7 +91,7 @@ public class ModelStateMessage : IMessageToUI
             RoadAreaData: zone.TransitMetrics
                 .Select(t => new ChartDataPoint($"{t.Type} {t.Width}m", t.Area, ColorString(t.Type, t.Width, _colorMap)))
                 .ToList(),
-            UrbanLandAreaData: zone.BuiltAreaByUse
+            UrbanLandAreaData: zone.LandAreaByUse
                 .Select(b => new ChartDataPoint(b.Use.Name, b.Area, $"{b.Use.Color.R},{b.Use.Color.G},{b.Use.Color.B}"))
                 .ToList(),
             UrbanBuiltAreaData: zone.BuiltAreaByUse

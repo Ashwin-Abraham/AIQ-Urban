@@ -54,9 +54,13 @@ public class ProjectMetrics
     [JsonPropertyName("totalTransitArea")]
     public double TotalTransitArea { get; }
 
-    /// <summary>Total built-up area grouped by use name.</summary>
+    /// <summary>Total built-up area grouped by use.</summary>
     [JsonPropertyName("areaPerUse")]
-    public Dictionary<string, double> AreaPerUse { get; }
+    public List<(Use Use, double Area)> BuiltAreaByUse { get; }
+
+    /// <summary>Total land area grouped by use.</summary>
+    [JsonPropertyName("landAreaByUse")]
+    public List<(Use Use, double Area)> LandAreaByUse { get; }
 
     /// <summary>Construct a snapshot from pre-computed per-element metrics.</summary>
     public ProjectMetrics(
@@ -96,10 +100,16 @@ public class ProjectMetrics
             ? parcelMetrics.Sum(p => p.BuiltFootprint) / TotalLandArea * 100
             : 0;
 
-        AreaPerUse = buildingMetrics
+        BuiltAreaByUse = buildingMetrics
             .SelectMany(b => b.AreaPerUse)
-            .GroupBy(kvp => kvp.Key.Name)
-            .ToDictionary(g => g.Key, g => g.Sum(kvp => kvp.Value), StringComparer.Ordinal);
+            .GroupBy(kvp => kvp.Key)
+            .Select(g => (g.Key, g.Sum(kvp => kvp.Value)))
+            .ToList();
+
+        LandAreaByUse = parcelMetrics
+            .GroupBy(p => p.Use)
+            .Select(g => (g.Key, g.Sum(p => p.LandArea)))
+            .ToList();
 
         TotalTransitLength = transitMetrics.Sum(t => t.RunningLength);
         TotalTransitArea = transitMetrics.Sum(t => t.Area);
