@@ -5,6 +5,7 @@ namespace AIQ.Urban.Core.Models.UrbanElements;
 /// <summary>Base type for all urban model elements.</summary>
 public interface IUrbanElement
 {
+    public Guid Id { get; }
     public List<Guid> GetGeometryIds();
     public Point3d GetRepresentativeCenter();
 }

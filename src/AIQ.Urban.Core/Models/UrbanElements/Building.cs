@@ -6,6 +6,7 @@ namespace AIQ.Urban.Core.Models.UrbanElements;
 
 public class Building : IUrbanElement, IGraphableAsNode
 {
+    public Guid Id => Envelope.Id;
     public BrepElement Envelope { get; }
     public IReadOnlyList<FloorPlate> FloorPlates { get; }
     public double TypicalFloorHeight { get; }

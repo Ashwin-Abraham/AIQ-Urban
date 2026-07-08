@@ -11,6 +11,8 @@ public class Parcel : IUrbanElement, IGraphableAsNode
 
     public Use Use { get; private set; }
 
+    public Guid Id => Outline.Id;
+
     public Parcel(Polygon2D outline, Use use)
     {
         Outline = outline;

@@ -131,20 +131,9 @@ public class RhinoUrbanModelPipeline(
 
     private List<IUrbanElement> FilterElementsToAdd(List<Guid> addedIds)
     {
-        var elementsToAdd = new List<IUrbanElement>();
-        var allElements = _urbanModel.GetUrbanElements();
-
-        foreach (var element in allElements)
-        {
-            var ids = element.GetGeometryIds();
-
-            if (!ids.Any(addedIds.Contains))
-                continue;
-
-            elementsToAdd.Add(element);
-        }
-
-        return elementsToAdd;
+        return _urbanModel.GetUrbanElements()
+            .Where(elem => elem.GetGeometryIds().Any(elemtnId => addedIds.Contains(elemtnId)))
+            .ToList();
     }
 
     private void DeleteRhinoObjects(List<Guid> idsToDelete)
