@@ -1,3 +1,4 @@
+using System.Drawing;
 using Rhino.Geometry;
 using AIQ.Urban.Core.Enums;
 using AIQ.Urban.Core.Extensions;
@@ -26,6 +27,9 @@ public class Transit : IUrbanElement, IGraphableAsEdge
 
     /// <summary>Whether the corridor sits on ground level.</summary>
     public bool IsOnGround { get; }
+
+    /// <summary>Computed colour derived from transit type and comparative width. Set by TransitOutputter.</summary>
+    public Color? Color { get; set; }
 
     public Guid Id => Centerline.Id;
 
