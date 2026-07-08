@@ -48,7 +48,7 @@ public class ModelStateMessage : IMessageToUI
     private static List<(TransitType Type, double Width, Color Color)> BuildMap(UrbanModel urbanModel)
     {
         List<(TransitType Type, double Width, Color Color)> map = [];
-
+        
         foreach (var transit in urbanModel.Transits)
         {
             if (map.Any(x => x.Type == transit.TransitType && x.Width.AlmostEquals(transit.Width)))
