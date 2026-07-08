@@ -1,5 +1,4 @@
 using AIQ.Urban.Core;
-using AIQ.Urban.Core.Models;
 using AIQ.Urban.Core.Models.UrbanElements;
 using Rhino;
 using Rhino.DocObjects;

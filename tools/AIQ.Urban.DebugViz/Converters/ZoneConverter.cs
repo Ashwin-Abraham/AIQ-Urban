@@ -1,6 +1,6 @@
 using System.Drawing;
 using AIQ.PreviewHelper.Core;
-using AIQ.Urban.Core.Models;
+using AIQ.Urban.Core.Models.UrbanElements;
 using Rhino;
 
 namespace AIQ.Urban.DebugViz.Converters;

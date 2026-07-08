@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using AIQ.Urban.Core;
+using AIQ.Urban.Core.Enums;
 using AIQ.Urban.Core.Models;
 using AIQ.Urban.Core.Models.Metrics;
 
@@ -35,11 +36,22 @@ public class ModelStateMessage(UrbanModel urbanModel) : IMessageToUI
 
     private static List<StudyAreaDataForUI> BuildStudyData(UrbanModel model)
     {
-        var metrics = model.ProjectMetrics;
-        if (metrics is null || metrics.ZoneMetrics.Count == 0)
+        var projectMetrics = model.ProjectMetrics;
+        
+        if (projectMetrics is null)
             return [];
 
-        return metrics.ZoneMetrics.Select(ZoneToStudyData).ToList();
+        List<ZoneMetrics> zoneMetrics = [];
+        var projectWideZoneMetrics = new ZoneMetrics(
+            "All",
+            projectMetrics.BuildingMetrics,
+            projectMetrics.ParcelMetrics,
+            model.Transits);
+        
+        zoneMetrics.Add(projectWideZoneMetrics);
+        zoneMetrics.AddRange(projectMetrics.ZoneMetrics);
+
+        return zoneMetrics.Select(z => ZoneToStudyData(z)).ToList();
     }
 
     private static StudyAreaDataForUI ZoneToStudyData(ZoneMetrics zone)
@@ -66,11 +78,11 @@ public class ModelStateMessage(UrbanModel urbanModel) : IMessageToUI
 
     private static string ColorString(Core.Enums.TransitType type) => type switch
     {
-        Core.Enums.TransitType.Road => "128,128,128",
-        Core.Enums.TransitType.Railway => "0,0,0",
-        Core.Enums.TransitType.CyclePath => "0,128,0",
-        Core.Enums.TransitType.Pedestrian => "160,82,45",
-        Core.Enums.TransitType.Waterway => "0,119,190",
+        TransitType.Road => "128,128,128",
+        TransitType.Railway => "0,0,0",
+        TransitType.CyclePath => "0,128,0",
+        TransitType.Pedestrian => "160,82,45",
+        TransitType.Waterway => "0,119,190",
         _ => "200,200,200"
     };
 }

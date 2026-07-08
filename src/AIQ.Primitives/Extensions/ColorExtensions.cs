@@ -45,4 +45,29 @@ public static class ColorExtensions
     {
         return Color.FromArgb(color.R, color.G, color.B);
     }
+
+    public static Color FromHsl(double h, double s, double l)
+    {
+        h %= 360;
+        s /= 100.0;
+        l /= 100.0;
+
+        double c = (1 - Math.Abs(2 * l - 1)) * s;
+        double x = c * (1 - Math.Abs((h / 60.0) % 2 - 1));
+        double m = l - c / 2;
+
+        double r = 0, g = 0, b = 0;
+
+        if (h < 60) (r, g, b) = (c, x, 0);
+        else if (h < 120) (r, g, b) = (x, c, 0);
+        else if (h < 180) (r, g, b) = (0, c, x);
+        else if (h < 240) (r, g, b) = (0, x, c);
+        else if (h < 300) (r, g, b) = (x, 0, c);
+        else (r, g, b) = (c, 0, x);
+
+        return Color.FromArgb(
+            (int)Math.Round((r + m) * 255),
+            (int)Math.Round((g + m) * 255),
+            (int)Math.Round((b + m) * 255));
+    }
 }
