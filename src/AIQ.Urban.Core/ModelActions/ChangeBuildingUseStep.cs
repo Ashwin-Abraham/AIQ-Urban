@@ -9,8 +9,8 @@ public class ChangeBuildingUseStep(
 {
     public EditStepResult Run(UrbanModel model)
     {
-        var oldIds = new List<Guid>();
-        var newIds = new List<Guid>();
+        var oldIds = new HashSet<Guid>();
+        var newIds = new HashSet<Guid>();
         var touchedBuildings = new HashSet<Building>();
 
         // Pass 1: Process envelope matches (building-wide)
@@ -20,14 +20,13 @@ public class ChangeBuildingUseStep(
                 continue;
 
             touchedBuildings.Add(building);
-            oldIds.Add(building.Envelope.Id);
-            oldIds.AddRange(building.FloorPlates.Select(p => p.Outline.Id));
 
             foreach (var plate in building.FloorPlates)
+            {
+                oldIds.Add(plate.Outline.Id);
                 plate.SetUse(newUse);
-
-            newIds.Add(building.Envelope.Id);
-            newIds.AddRange(building.FloorPlates.Select(p => p.Outline.Id));
+                newIds.Add(plate.Outline.Id);
+            }
         }
 
         // Pass 2: Process floor plate outline matches (per-plate)
@@ -42,6 +41,7 @@ public class ChangeBuildingUseStep(
                 if (!geometryIds.Contains(plate.Outline.Id))
                     continue;
 
+                //oldIds.Add(building.Envelope.Id);
                 oldIds.Add(plate.Outline.Id);
                 plate.SetUse(newUse);
                 newIds.Add(plate.Outline.Id);
@@ -49,6 +49,6 @@ public class ChangeBuildingUseStep(
             }
         }
 
-        return new(newIds, oldIds);
+        return new([..newIds], [..oldIds]);
     }
 }

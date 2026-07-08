@@ -27,6 +27,8 @@ public class Transit : IUrbanElement, IGraphableAsEdge
     /// <summary>Whether the corridor sits on ground level.</summary>
     public bool IsOnGround { get; }
 
+    public Guid Id => Centerline.Id;
+
     /// <param name="centerline">Planar path at consistent Z.</param>
     /// <param name="width">Right-of-way width.</param>
     /// <param name="transitType">Type of corridor.</param>

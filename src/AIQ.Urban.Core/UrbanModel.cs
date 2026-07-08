@@ -60,6 +60,7 @@ public class UrbanModel
 
         list.AddRange(Transits);
         list.AddRange(Buildings);
+        list.AddRange(Buildings.SelectMany(x => x.FloorPlates));
         list.AddRange(Parcels);
         list.AddRange(Zones);
 
