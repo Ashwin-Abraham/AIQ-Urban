@@ -1,12 +1,12 @@
 using AIQ.Urban.Core.Models.GeometryElements;
-using AIQ.Urban.Core.Models.UrbanElements;
 using Rhino.Geometry;
 
-namespace AIQ.Urban.Core.Models;
+namespace AIQ.Urban.Core.Models.UrbanElements;
 
 public class Zone : IUrbanElement
 {
     public Polygon2D Boundary { get; }
+
     public string Name { get; }
 
     public Guid Id => Boundary.Id;

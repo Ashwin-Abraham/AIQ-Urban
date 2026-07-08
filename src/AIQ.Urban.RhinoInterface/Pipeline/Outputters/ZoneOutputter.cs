@@ -1,5 +1,5 @@
 using AIQ.Urban.Core;
-using AIQ.Urban.Core.Models;
+using AIQ.Urban.Core.Models.UrbanElements;
 using AIQ.Urban.Core.Utils;
 using AIQ.Urban.RhinoInterface.Utils;
 using Rhino;

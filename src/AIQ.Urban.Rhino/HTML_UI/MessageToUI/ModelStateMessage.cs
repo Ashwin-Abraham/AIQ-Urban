@@ -2,7 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using AIQ.Primitives.Extensions;
 using AIQ.Urban.Core;
+using AIQ.Urban.Core.Enums;
 using AIQ.Urban.Core.Models;
 using AIQ.Urban.Core.Models.Metrics;
 
@@ -23,34 +25,71 @@ public record StudyAreaDataForUI(
 
 public record LanduseInfo(string Name, string Color, string Id);
 
-public class ModelStateMessage(UrbanModel urbanModel) : IMessageToUI
+public class ModelStateMessage : IMessageToUI
 {
     public string Type => "ModelStateMessage";
 
-    public List<LanduseInfo> Landuses { get; } = DefaultUses.All
+    public List<LanduseInfo> Landuses { get; }
+
+    public List<StudyAreaDataForUI> StudyAreaDataForUI { get; init; }
+
+    private readonly List<(TransitType Type, double Width, Color Color)> _colorMap;
+
+    public ModelStateMessage(UrbanModel urbanModel)
+    {
+        _colorMap = BuildMap(urbanModel);
+        Landuses = DefaultUses.All
         .Select(u => new LanduseInfo(u.Name, $"{u.Color.R},{u.Color.G},{u.Color.B}", u.Name))
         .ToList();
 
-    public List<StudyAreaDataForUI> StudyAreaDataForUI { get; } = BuildStudyData(urbanModel);
-
-    private static List<StudyAreaDataForUI> BuildStudyData(UrbanModel model)
-    {
-        var metrics = model.ProjectMetrics;
-        if (metrics is null || metrics.ZoneMetrics.Count == 0)
-            return [];
-
-        return metrics.ZoneMetrics.Select(ZoneToStudyData).ToList();
+        StudyAreaDataForUI = BuildStudyData(urbanModel);
     }
 
-    private static StudyAreaDataForUI ZoneToStudyData(ZoneMetrics zone)
+    private static List<(TransitType Type, double Width, Color Color)> BuildMap(UrbanModel urbanModel)
+    {
+        List<(TransitType Type, double Width, Color Color)> map = [];
+
+        foreach (var transit in urbanModel.Transits)
+        {
+            if (map.Any(x => x.Type == transit.TransitType && x.Width.AlmostEquals(transit.Width)))
+                continue;
+
+            var color = transit.Color.HasValue ? transit.Color.Value : Color.DarkGray;
+            map.Add((transit.TransitType, transit.Width, color));
+        }
+
+        return map;
+    }
+
+    private List<StudyAreaDataForUI> BuildStudyData(UrbanModel model)
+    {
+        var projectMetrics = model.ProjectMetrics;
+        
+        if (projectMetrics is null)
+            return [];
+
+        List<ZoneMetrics> zoneMetrics = [];
+        var projectWideZoneMetrics = new ZoneMetrics(
+            "All",
+            projectMetrics.BuildingMetrics,
+            projectMetrics.ParcelMetrics,
+            model.Transits);
+        
+        zoneMetrics.Add(projectWideZoneMetrics);
+        zoneMetrics.AddRange(projectMetrics.ZoneMetrics);
+
+        return zoneMetrics.Select(z => ZoneToStudyData(z)).ToList();
+    }
+
+    private StudyAreaDataForUI ZoneToStudyData(ZoneMetrics zone)
     {
         return new StudyAreaDataForUI(
             StudyName: zone.ZoneName,
             RoadLengthData: zone.TransitMetrics
-                .Select(t => new ChartDataPoint($"{t.Type} {t.Width}m", t.RunningLength, ColorString(t.Type)))
+                .Select(t => new ChartDataPoint($"{t.Type} {t.Width}m", t.RunningLength, ColorString(t.Type, t.Width, _colorMap)))
                 .ToList(),
             RoadAreaData: zone.TransitMetrics
-                .Select(t => new ChartDataPoint($"{t.Type} {t.Width}m", t.Area, ColorString(t.Type)))
+                .Select(t => new ChartDataPoint($"{t.Type} {t.Width}m", t.Area, ColorString(t.Type, t.Width, _colorMap)))
                 .ToList(),
             UrbanLandAreaData: zone.BuiltAreaByUse
                 .Select(b => new ChartDataPoint(b.Use.Name, b.Area, $"{b.Use.Color.R},{b.Use.Color.G},{b.Use.Color.B}"))
@@ -64,13 +103,13 @@ public class ModelStateMessage(UrbanModel urbanModel) : IMessageToUI
             LandCoverage: zone.CoveragePercentage);
     }
 
-    private static string ColorString(Core.Enums.TransitType type) => type switch
+    private static string ColorString(TransitType type, double width, List<(TransitType Type, double Width, Color Color)> colorMap)
     {
-        Core.Enums.TransitType.Road => "128,128,128",
-        Core.Enums.TransitType.Railway => "0,0,0",
-        Core.Enums.TransitType.CyclePath => "0,128,0",
-        Core.Enums.TransitType.Pedestrian => "160,82,45",
-        Core.Enums.TransitType.Waterway => "0,119,190",
-        _ => "200,200,200"
-    };
+        foreach (var (mapType, mapWidth, mapColor) in colorMap)
+        {
+            if (mapType == type && mapWidth.AlmostEquals(width, 1e-3))
+                return $"{mapColor.R},{mapColor.G},{mapColor.B}";
+        }
+        return "200,200,200";
+    }
 }

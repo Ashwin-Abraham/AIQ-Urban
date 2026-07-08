@@ -1,5 +1,4 @@
 using AIQ.Urban.Core.Enums;
-using AIQ.Urban.Core.Models;
 using AIQ.Urban.Core.Models.GeometryElements;
 using AIQ.Urban.Core.Models.Metrics;
 using AIQ.Urban.Core.Models.UrbanElements;

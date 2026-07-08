@@ -1,5 +1,6 @@
 using AIQ.Urban.Core.Models;
 using AIQ.Urban.Core.Models.GeometryElements;
+using AIQ.Urban.Core.Models.UrbanElements;
 using Rhino.Geometry;
 
 namespace AIQ.Urban.Core.ModelActions;
