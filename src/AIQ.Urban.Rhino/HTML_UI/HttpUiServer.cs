@@ -144,6 +144,8 @@ public static class HttpUiServer
             try
             {
                 result = messageObj.HandleMessage();
+                RhinoApp.WriteLine(result.ToString());
+                RhinoApp.WriteLine(result.Type);
             }
             catch (Exception ex)
             {

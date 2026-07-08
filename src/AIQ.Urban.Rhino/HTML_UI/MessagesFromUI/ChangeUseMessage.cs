@@ -11,7 +11,7 @@ using Rhino.DocObjects;
 
 namespace AIQ.Urban.RhinoPlugin.HTML_UI.MessagesFromUI;
 
-public class ChangeParcelUseMessage : IMessageFromUI<ModelStateMessage>
+public class ChangeUseMessage : IMessageFromUI<ModelStateMessage>
 {
     public TypeOfMessage MessageType => TypeOfMessage.Landuse;
 
@@ -21,7 +21,7 @@ public class ChangeParcelUseMessage : IMessageFromUI<ModelStateMessage>
     {
         var doc = RhinoDoc.ActiveDoc ?? throw new Exception("No active Rhino document.");
         var selected = doc.Objects.GetSelectedObjects(false, false)
-            .Where(obj => obj.ObjectType == ObjectType.Curve)
+            .Where(obj => obj.ObjectType == ObjectType.Brep)
             .ToList();
 
         if (selected.Count == 0)
