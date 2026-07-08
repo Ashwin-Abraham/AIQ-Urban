@@ -132,7 +132,7 @@ public class RhinoUrbanModelPipeline(
     private List<IUrbanElement> FilterElementsToAdd(List<Guid> addedIds)
     {
         return _urbanModel.GetUrbanElements()
-            .Where(elem => addedIds.Contains(elem.Id))
+            .Where(elem => elem.GetGeometryIds().Any(elemtnId => addedIds.Contains(elemtnId)))
             .ToList();
     }
 
