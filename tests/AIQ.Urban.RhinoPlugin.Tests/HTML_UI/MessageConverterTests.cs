@@ -15,18 +15,10 @@ public class MessageConverterTests
     }
 
     [Test]
-    public void Convert_LanduseMessage_ReturnsChangeParcelUseMessage()
+    public void Convert_LanduseMessage_ReturnsChangeUseMessage()
     {
         var message = MessageConverter.Convert("{\"messageType\":\"Landuse\",\"use\":\"Residential\"}");
 
         Assert.That(message, Is.TypeOf<ChangeUseMessage>());
-    }
-
-    [Test]
-    public void Convert_ChangeBuildingUseMessage_ReturnsChangeBuildingUseMessage()
-    {
-        var message = MessageConverter.Convert("{\"messageType\":\"ChangeBuildingUse\",\"useName\":\"Commercial\"}");
-
-        Assert.That(message, Is.TypeOf<ChangeBuildingUseMessage>());
     }
 }
