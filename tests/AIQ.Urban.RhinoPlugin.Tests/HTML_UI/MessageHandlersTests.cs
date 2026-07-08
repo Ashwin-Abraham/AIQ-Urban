@@ -52,7 +52,7 @@ public class MessageHandlersTests
 
         doc.Objects.Find(parcel.Outline.Id)?.Select(true);
 
-        var message = new ChangeParcelUseMessage { Use = "Residential" };
+        var message = new ChangeUseMessage { Use = "Residential" };
 
         var result = message.HandleMessage();
 

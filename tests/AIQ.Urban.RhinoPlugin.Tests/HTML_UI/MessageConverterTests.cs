@@ -19,7 +19,7 @@ public class MessageConverterTests
     {
         var message = MessageConverter.Convert("{\"messageType\":\"Landuse\",\"use\":\"Residential\"}");
 
-        Assert.That(message, Is.TypeOf<ChangeParcelUseMessage>());
+        Assert.That(message, Is.TypeOf<ChangeUseMessage>());
     }
 
     [Test]
