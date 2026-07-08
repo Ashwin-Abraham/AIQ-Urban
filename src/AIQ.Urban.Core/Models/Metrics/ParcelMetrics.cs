@@ -1,19 +1,21 @@
 ﻿using AIQ.Urban.Core.Models.UrbanElements;
 
 namespace AIQ.Urban.Core.Models.Metrics;
-public class ParcelMetrics :IMetrics
+public class ParcelMetrics : IMetrics
 {
+    public Use Use { get; }
     public double LandArea { get; }
     public double Perimeter { get; }
     public double BuiltUpArea { get; }
     public double BuiltFootprint { get; }
-    public double FAR { get;  }
+    public double FAR { get; }
     public double CoverageRatio { get; }
 
     public ParcelMetrics(
         Parcel parcel,
         List<BuildingMetrics> buildingsOnParcel)
     {
+        Use = parcel.Use;
         LandArea = parcel.Outline.Area();
         Perimeter = parcel.Outline.Perimeter();
         BuiltUpArea = buildingsOnParcel.Sum(x => x.BuiltUpArea);

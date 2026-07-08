@@ -116,7 +116,7 @@ A `ModelGroup` — top-level container for the entire project. No extra properti
 *(deferred — not yet implemented)* Base grouping container. `List<ModelElement> Elements` + `string Name`.
 
 ### ProjectMetrics
-Aggregate metrics for the entire urban model. Contains `List<BuildingMetrics>`, `List<ParcelMetrics>`, `List<TransitMetrics>`, `List<ZoneMetrics>`, and computed roll-ups (`TotalBuiltUpArea`, `TotalLandArea`, `OverallFAR`, `OverallCoverageRatio`, `BuildingCount`, `ParcelCount`, `AreaPerUse` by use name, `TotalTransitLength`, `TotalTransitArea`). Stored on `UrbanModel.ProjectMetrics` — set by `ProjectMetricsCalculator` after pipeline runs. Defined in `Models/Metrics/ProjectMetrics.cs`.
+Aggregate metrics for the entire urban model. Contains `List<BuildingMetrics>`, `List<ParcelMetrics>`, `List<TransitMetrics>`, `List<ZoneMetrics>`, and computed roll-ups (`TotalBuiltUpArea`, `TotalLandArea`, `OverallFAR`, `OverallCoverageRatio`, `BuildingCount`, `ParcelCount`, `BuiltAreaByUse` as `List<(Use Use, double Area)>`, `LandAreaByUse` as `List<(Use Use, double Area)>`, `TotalTransitLength`, `TotalTransitArea`). Stored on `UrbanModel.ProjectMetrics` — set by `ProjectMetricsCalculator` after pipeline runs. Defined in `Models/Metrics/ProjectMetrics.cs`.
 
 ### ProjectMetricsCalculator
 Static utility in `Models/Metrics/ProjectMetricsCalculator.cs`. Reads `UrbanModel.Buildings`, `UrbanModel.Parcels`, `UrbanModel.Transits`, and `UrbanModel.Zones`; computes `BuildingMetrics` for each building, determines building-to-parcel containment via spatial query (point-in-polygon on XY plane), computes `ParcelMetrics`, groups transits by `(TransitType, Width)` and computes `TransitMetrics` per group; for each zone, finds contained elements via `Zone.GetContainedElements()`, matches them to their metrics, and computes `ZoneMetrics`. Stores the result on `UrbanModel.ProjectMetrics`.
@@ -131,7 +131,10 @@ A `PointObject` with `Transform Base` and `Geometry GeometryAtOrigin`. A placed 
 Aggregate metrics for a group of transits sharing the same `TransitType` and `Width`. Fields: `TransitType Type`, `double Width`, `double RunningLength` (sum of centerline lengths), `double Area` (= RunningLength × Width), `int Count`. Implements `IMetrics`. Defined in `Models/Metrics/TransitMetrics.cs`.
 
 ### ZoneMetrics
-Per-zone metrics. Fields: `string ZoneName`, `double TotalLandArea` (sum of contained parcel land areas), `double TotalFootprintArea` (sum of contained building footprints), `double TotalBuiltArea`, `double TotalTransitLength`, `double TotalTransitArea`, `int BuildingCount`, `int ParcelCount`, `int TransitCount`, `List<(Use Use, double Area)> BuiltAreaByUse`, `List<TransitMetrics> TransitMetrics` (zone-scoped, grouped by Type+Width), `double CoveragePercentage` (= TotalFootprintArea / TotalLandArea × 100, 0 if no parcels), `double FAR` (= TotalBuiltArea / TotalLandArea, 0 if no parcels). Implements `IMetrics`. Defined in `Models/Metrics/ZoneMetrics.cs`.
+Per-zone metrics. Fields: `string ZoneName`, `double TotalLandArea` (sum of contained parcel land areas), `double TotalFootprintArea` (sum of contained building footprints), `double TotalBuiltArea`, `double TotalTransitLength`, `double TotalTransitArea`, `int BuildingCount`, `int ParcelCount`, `int TransitCount`, `List<(Use Use, double Area)> BuiltAreaByUse` (built area from building floor plates per use), `List<(Use Use, double Area)> LandAreaByUse` (land area from parcel outlines per use), `List<TransitMetrics> TransitMetrics` (zone-scoped, grouped by Type+Width), `double CoveragePercentage` (= TotalFootprintArea / TotalLandArea × 100, 0 if no parcels), `double FAR` (= TotalBuiltArea / TotalLandArea, 0 if no parcels). Implements `IMetrics`. Defined in `Models/Metrics/ZoneMetrics.cs`.
+
+### ParcelMetrics
+Per-parcel metrics. Fields: `Use Use` (parcel's land use), `double LandArea`, `double Perimeter`, `double BuiltUpArea` (sum of buildings on parcel), `double BuiltFootprint`, `double FAR`, `double CoverageRatio`. Implements `IMetrics`. Defined in `Models/Metrics/ParcelMetrics.cs`.
 
 ### Metrics
 Abstract base for computed analytics on a `ModelGroup`. Concrete subtypes:
