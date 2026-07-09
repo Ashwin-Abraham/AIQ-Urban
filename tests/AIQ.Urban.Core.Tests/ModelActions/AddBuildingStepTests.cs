@@ -57,7 +57,7 @@ public class AddBuildingStepTests
 
     private record AddBuildingTestData(
         string CaseName,
-        List<BuildingData> Input,
+        List<BuildingFootprintData> Input,
         int ExpectedCount,
         int ExpectedGeometryIdCount);
 
@@ -83,7 +83,7 @@ public class AddBuildingStepTests
     [
         new AddBuildingTestData(
             CaseName: "SingleBuilding",
-            Input: [new BuildingData(SimpleFootprint, 3.5, 5, DefaultUses.Residential)],
+            Input: [new BuildingFootprintData(SimpleFootprint, 3.5, 5, DefaultUses.Residential)],
             ExpectedCount: 1,
             ExpectedGeometryIdCount: 6),
 
@@ -91,8 +91,8 @@ public class AddBuildingStepTests
             CaseName: "MultipleBuildings",
             Input:
             [
-                new BuildingData(SimpleFootprint, 3.5, 5, DefaultUses.Residential),
-                new BuildingData(SmallFootprint, 4.0, 3, DefaultUses.Commercial),
+                new BuildingFootprintData(SimpleFootprint, 3.5, 5, DefaultUses.Residential),
+                new BuildingFootprintData(SmallFootprint, 4.0, 3, DefaultUses.Commercial),
             ],
             ExpectedCount: 2,
             ExpectedGeometryIdCount: 10),

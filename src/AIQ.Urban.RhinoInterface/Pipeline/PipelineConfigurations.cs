@@ -10,13 +10,13 @@ public static class PipelineConfigurations
 {
     public static RhinoUrbanModelPipeline WithBuildingAdditionSteps(
         this RhinoUrbanModelPipeline pipeline,
-        List<BuildingData> buildingData,
+        List<ICreationData> buildingData,
         List<Guid> curvesToDelete)
     {
         var addBuildingStep = new AddBuildingStep();
 
         pipeline.WithRhinoObjectDeletion(curvesToDelete)
-            .WithCreationData(buildingData.Cast<ICreationData>().ToList())
+            .WithCreationData(buildingData)
             .WithUrbanElementStep(addBuildingStep);
 
         return pipeline;

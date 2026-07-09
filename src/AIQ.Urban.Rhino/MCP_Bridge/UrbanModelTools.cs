@@ -52,11 +52,11 @@ public class UrbanModelTools(RhinoDoc doc, UrbanModel urbanModel)
         {
             var use = DefaultUses.Resolve(useName);
             var footprints = footprintCurves.Select(c => Polygon2D.Create(c.ToCoreTupleList())).ToList();
-            var buildingData = footprints.Select(c => new BuildingData(c, floorHeight, floorCount, use)).ToList();
+            var buildingData = footprints.Select(c => new BuildingFootprintData(c, floorHeight, floorCount, use)).ToList();
 
             Action<RhinoUrbanModelPipeline> pipelineAction = (pipeline)
                 => PipelineConfigurations
-                .WithBuildingAdditionSteps(pipeline, buildingData, []);
+                .WithBuildingAdditionSteps(pipeline, buildingData.Cast<ICreationData>().ToList(), []);
 
             new RhinoPipelineExecutorForMcp(doc, urbanModel).Run(pipelineAction);
 

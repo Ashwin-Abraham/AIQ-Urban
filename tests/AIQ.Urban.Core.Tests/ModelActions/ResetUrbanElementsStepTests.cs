@@ -55,7 +55,7 @@ public class ResetUrbanElementsStepTests
             new Point3d(0, 0, 0),
         ]));
         IUrbanModelStep addBuilding = new AddBuildingStep();
-        addBuilding.Run(UrbanModel.Instance, [new BuildingData(footprint, 3.5, 3, DefaultUses.Residential)]);
+        addBuilding.Run(UrbanModel.Instance, [new BuildingFootprintData(footprint, 3.5, 3, DefaultUses.Residential)]);
 
         // One parcel
         var parcelPolygon = new Polygon2D(new PolylineCurve([

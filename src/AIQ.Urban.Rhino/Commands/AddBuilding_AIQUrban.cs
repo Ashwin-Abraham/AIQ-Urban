@@ -55,9 +55,9 @@ public class AddBuilding_AIQUrban : Command
 
         var rhinoObjs = new[] { rhinoObj };
 
-        var gatherStep = new SelectBuildingFootprintsStep(rhinoObjs, floorHeight, floorCount, selectedUse, "Footprint");
+        var gatherStep = new SelectBuildingFootprintStep(rhinoObjs, floorHeight, floorCount, selectedUse);
         var creationData = gatherStep.Run(doc);
-        var buildingData = creationData.OfType<BuildingData>().ToList();
+        var buildingData = creationData.OfType<BuildingFootprintData>().ToList();
         var idsToDelete = buildingData.Select(b => b.Footprint.Id).ToList();
 
         var pipeline = new RhinoUrbanModelPipeline(doc, UrbanModel.Instance)

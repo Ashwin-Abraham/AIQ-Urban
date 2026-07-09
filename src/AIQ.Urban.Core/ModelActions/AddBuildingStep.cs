@@ -2,11 +2,24 @@ using AIQ.Urban.Core.ModelActions.CreationData;
 
 namespace AIQ.Urban.Core.ModelActions;
 
-public class AddBuildingStep : IAddUrbanElementsStep
+public class AddBuildingStep(double _tolerance = 1e-5) : IAddUrbanElementsStep
 {
     List<Guid> IUrbanModelStep.Run(UrbanModel model, List<ICreationData> creationData)
     {
-        var buildings = creationData.OfType<BuildingData>().Select(x => x.ToBuilding()).ToList();
+        var buildings = new List<Models.UrbanElements.Building>();
+
+        foreach (var data in creationData)
+        {
+            if (data is BuildingFootprintData fpData)
+            {
+                buildings.Add(new Models.UrbanElements.Building(fpData.Footprint, fpData.TypicalFloorHeight, fpData.FloorCount, fpData.Use));
+            }
+            else if (data is BuildingMassData massData)
+            {
+                buildings.Add(new Models.UrbanElements.Building(massData.Envelope.Geometry, massData.FloorHeight, massData.Use, _tolerance));
+            }
+        }
+
         foreach (var building in buildings)
             model.AddBuilding(building);
 

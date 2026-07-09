@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using AIQ.Urban.Core;
 using AIQ.Urban.Core.ModelActions;
 using AIQ.Urban.Core.ModelActions.CreationData;
@@ -32,9 +33,9 @@ public class ResetUrban_AIQUrbanTests
             new Point3d(10, 10, 0), new Point3d(0, 10, 0),
             new Point3d(0, 0, 0),
         ]));
-        var buildingData = new BuildingData(footprint, 3.5, 3, DefaultUses.Residential);
+        var buildingData = new BuildingFootprintData(footprint, 3.5, 3, DefaultUses.Residential);
         var pipeline = new RhinoUrbanModelPipeline(doc, UrbanModel.Instance)
-            .WithBuildingAdditionSteps([buildingData], [])
+            .WithBuildingAdditionSteps(new System.Collections.Generic.List<ICreationData> { buildingData }, [])
             .WithMetricsCalculation(false);
 
         pipeline.Run();

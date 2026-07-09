@@ -11,7 +11,9 @@ Pure city-modelling domain logic. Models buildings, transit networks, parcels, z
 5. `Models/GeometryElements/Profile2D.cs` — planar curve wrapper, XY-validated
 6. `Models/Use.cs` — `record` with `string Name` + `Color`
 7. `Models/FloorPlate.cs` — `Profile2D Outline` + `Use`, per-storey footprint
-8. `Models/UrbanElements/Building.cs` — constructor takes `(Curve footprint, double typicalFloorHeight, int floorCount, Use use)`, eagerly computes envelope (solid Brep extrusion) and floor plates (duplicated + translated). Footprint validated by `ValidateFootprint()`: checks planar, reverses if normal points down.
+8. `Models/UrbanElements/Building.cs` — two constructors:
+   - `(Polygon2D footprint, double typicalFloorHeight, int floorCount, Use use)` — footprint mode: extrudes footprint to compute envelope, duplicates + translates footprint for each floor plate. Footprint validated by `ValidateFootprint()`: checks planar, reverses if normal points down.
+   - `(Brep envelope, double typicalFloorHeight, Use use, double tolerance = 1e-5)` — mass mode: uses the Brep as the envelope directly, derives floor plate outlines by contouring the Brep horizontally at intervals of `typicalFloorHeight` starting at `lowestZ + tolerance`. `FloorCount` = `Floor(envelopeHeight / typicalFloorHeight)`.
 9. `Models/Zone.cs` — `IUrbanElement` with `Polygon2D Boundary` and `string Name` properties. `GetContainedElements(UrbanModel)` returns all `IUrbanElement`s whose `GetRepresentativeCenter()` falls inside the zone boundary. Never returns other Zones.
 10. `Models/UrbanElements/Parcel.cs` — `SetUse(Use use)` for in-place Use mutation. `ChangeParcelUseStep` in `ModelActions/` implements `IEditUrbanElementsStep` to batch-change parcel Uses from a flat list of geometry GUIDs.
 
@@ -67,7 +69,17 @@ Pure city-modelling domain logic. Models buildings, transit networks, parcels, z
 A semantic label with visual feedback. `string Name` + `Color` (System.Drawing.Color). Stored as a `record` in `Models/Use.cs`. Not an enum — instances are created at runtime (e.g. "Residential", "Commercial", "Retail", "Industrial", "MixedUse", "Public", "Park", "Parking", "Utility"). Lookup by name via `DefaultUses.Resolve(string)` — case-insensitive, throws on unknown.
 
 ### Building
-A constructed structure. Has a collection of `FloorPlate`s and a `Brep Envelope` representing the outer shell. Added via `UrbanModel.AddBuilding(Building)`. Does not store a building-level Use — each `FloorPlate` owns its own Use. The constructor accepts a `Use` parameter to initialise all floor plates, but the value is not retained on Building.
+A constructed structure. Has a collection of `FloorPlate`s and a `Brep Envelope` representing the outer shell. Added via `UrbanModel.AddBuilding(Building)`. Does not store a building-level Use — each `FloorPlate` owns its own Use. The constructors accept a `Use` parameter to initialise all floor plates, but the value is not retained on Building.
+
+Constructed in two modes:
+- **Footprint mode**: `Building(Polygon2D footprint, double typicalFloorHeight, int floorCount, Use use)` — extrudes the footprint up to `typicalFloorHeight * floorCount` for the envelope, creates one floor plate per storey by translating the footprint.
+- **Mass mode**: `Building(Brep envelope, double typicalFloorHeight, Use use, double tolerance = 1e-5)` — preserves the supplied Brep as the envelope, derives floor plates by contouring the Brep at horizontal planes starting at `lowestZ + tolerance` and every `typicalFloorHeight` upward. All intersecting curves at each level become separate floor plates (ordered by Z). Contours with curve length < tolerance are discarded. `FloorCount` = `Floor(envelopeHeight / typicalFloorHeight)`.
+
+### BuildingFootprintData
+Creation data record for footprint-mode buildings. Fields: `Polygon2D Footprint`, `double TypicalFloorHeight`, `int FloorCount`, `Use Use`. Produced by `SelectBuildingFootprintStep`.
+
+### BuildingMassData
+Creation data record for mass-mode buildings. Fields: `BrepElement Envelope`, `double FloorHeight`, `Use Use`. Produced by `SelectBuildingEnvelopeStep`.
 
 ### FloorPlate
 A single storey of a Building. Defined by a `Profile2D Outline` and a `Use`. Each storey has its own footprint shape. Floor elevation is determined by the Profile2D curve's plane Z. Use is mutable via `SetUse()`.
