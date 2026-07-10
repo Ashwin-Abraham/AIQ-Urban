@@ -28,6 +28,7 @@ public class AddBuildingStepTests
     [TestCase("Box10m_Floor3m")]
     [TestCase("Box5m_Floor3m")]
     [TestCase("EmptyEnvelopeList")]
+    [TestCase("LoftedBrep")]
     public void Run_AddsBuildingsToModel(string testName)
     {
         var testData = _testData.Single(x => x.CaseName == testName);
@@ -87,6 +88,25 @@ public class AddBuildingStepTests
             new Point3d(0, 5, 0),
             new Point3d(0, 0, 0),
         ]));
+
+    private static Brep MakeLoftedBrep(double width, double depth, double height)
+    {
+        var baseCurve = new Polyline(
+            [
+                new Point3d(-width / 2, -depth / 2, 0),
+                new Point3d(width / 2, -depth / 2, 0),
+                new Point3d(width / 2, depth / 2, 0),
+                new Point3d(-width / 2, depth / 2, 0),
+            ]);
+
+        var midCurve = baseCurve.Duplicate();
+        midCurve.Transform(Transform.Translation(new Vector3d(width / 2, 0, height / 2)));
+
+        var topCurve = baseCurve.Duplicate();
+        midCurve.Transform(Transform.Translation(new Vector3d(0, 0, height)));
+
+        return Brep.CreateFromLoft([baseCurve.ToPolylineCurve(), midCurve.ToPolylineCurve(), topCurve.ToPolylineCurve()], baseCurve.PointAt(0), topCurve.PointAt(0), LoftType.Normal, true)[0];
+    }
 
     private static Brep MakeBoxBrep(double width, double depth, double height)
     {
@@ -159,18 +179,18 @@ public class AddBuildingStepTests
             ExpectedFirstFloorCount: 0,
             ExpectedFirstFloorPlateCount: 0),
 
-        //new AddBuildingTestData(
-        //    CaseName: "LoftedBrep",
-        //    Input:
-        //    [
-        //        new BuildingMassData(
-        //            new BrepElement(MakeLoftedBrep(10, 3), Guid.NewGuid()),
-        //            3.0,
-        //            DefaultUses.Retail),
-        //    ],
-        //    ExpectedCount: 1,
-        //    ExpectedGeometryIdCount: 4,
-        //    ExpectedFirstFloorCount: 2,
-        //    ExpectedFirstFloorPlateCount: 3),
+        new AddBuildingTestData(
+            CaseName: "LoftedBrep",
+            Input:
+            [
+                new BuildingMassData(
+                    new BrepElement(MakeLoftedBrep(10, 3, 22), Guid.NewGuid()),
+                    3.0,
+                    DefaultUses.Retail),
+            ],
+            ExpectedCount: 1,
+            ExpectedGeometryIdCount: 4,
+            ExpectedFirstFloorCount: 2,
+            ExpectedFirstFloorPlateCount: 3),
     ];
 }
