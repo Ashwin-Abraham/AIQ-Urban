@@ -1,4 +1,6 @@
 using System;
+using AIQ.Urban.Core;
+using AIQ.Urban.RhinoInterface;
 using AIQ.Urban.RhinoPlugin.HTML_UI;
 using Rhino;
 using Rhino.Commands;
@@ -24,6 +26,10 @@ public class StartUI_AIQUrban : Command
     {
         try
         {
+            var pipeline = new RhinoUrbanModelPipeline(doc, UrbanModel.Instance)
+                .WithDocModelLoad(doc);
+            pipeline.Run();
+
             HttpUiServer.Start(HttpServerPort);
             WebSocketUiServer.Start(WebSocketServerPort);
 
