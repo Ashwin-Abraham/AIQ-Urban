@@ -68,6 +68,8 @@ Pure city-modelling domain logic. Models buildings, transit networks, parcels, z
 ### Use
 A semantic label with visual feedback. `string Name` + `Color` (System.Drawing.Color). Stored as a `record` in `Models/Use.cs`. Not an enum — instances are created at runtime (e.g. "Residential", "Commercial", "Retail", "Industrial", "MixedUse", "Public", "Park", "Parking", "Utility"). Lookup by name via `DefaultUses.Resolve(string)` — case-insensitive, throws on unknown.
 
+`Undefined` is a system-invariant use: it cannot be edited (name or color) or removed from the registry via `ModifyModelUsesStep`. Attempts to do so are silently ignored.
+
 ### Building
 A constructed structure. Has a collection of `FloorPlate`s and a `Brep Envelope` representing the outer shell. Added via `UrbanModel.AddBuilding(Building)`. Does not store a building-level Use — each `FloorPlate` owns its own Use. The constructors accept a `Use` parameter to initialise all floor plates, but the value is not retained on Building.
 

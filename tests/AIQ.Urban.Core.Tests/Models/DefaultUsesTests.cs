@@ -32,7 +32,7 @@ public class DefaultUsesTests
 
         Assert.That(names, Does.Contain("Residential"));
         Assert.That(names, Does.Contain("Commercial"));
-        Assert.That(names, Does.Contain("Undefined"));
+        Assert.That(names, Does.Contain(DefaultUses.UndefinedName));
     }
 
     [Test]

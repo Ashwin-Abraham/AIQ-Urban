@@ -4,7 +4,9 @@ namespace AIQ.Urban.Core.Models;
 
 public static class DefaultUses
 {
-    public static readonly (string Name, Color Color) Undefined = ("Undefined", Color.DarkGray);
+    public const string UndefinedName = "Undefined";
+
+    public static readonly (string Name, Color Color) Undefined = (UndefinedName, Color.DarkGray);
     public static readonly (string Name, Color Color) Residential = ("Residential", Color.Gold);
     public static readonly (string Name, Color Color) Commercial = ("Commercial", Color.CornflowerBlue);
     public static readonly (string Name, Color Color) Retail = ("Retail", Color.IndianRed);
