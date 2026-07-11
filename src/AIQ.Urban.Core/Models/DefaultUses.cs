@@ -4,35 +4,40 @@ namespace AIQ.Urban.Core.Models;
 
 public static class DefaultUses
 {
-    public static readonly Use Residential = new("Residential", Color.Gold);
-    public static readonly Use Commercial = new("Commercial", Color.CornflowerBlue);
-    public static readonly Use Retail = new("Retail", Color.IndianRed);
-    public static readonly Use Industrial = new("Industrial", Color.Gray);
-    public static readonly Use MixedUse = new("MixedUse", Color.MediumPurple);
-    public static readonly Use Public = new("Public", Color.MediumSeaGreen);
-    public static readonly Use Park = new("Park", Color.ForestGreen);
-    public static readonly Use Parking = new("Parking", Color.LightSteelBlue);
-    public static readonly Use Utility = new("Utility", Color.Khaki);
+    public static readonly (string Name, Color Color) Undefined = ("Undefined", Color.DarkGray);
+    public static readonly (string Name, Color Color) Residential = ("Residential", Color.Gold);
+    public static readonly (string Name, Color Color) Commercial = ("Commercial", Color.CornflowerBlue);
+    public static readonly (string Name, Color Color) Retail = ("Retail", Color.IndianRed);
+    public static readonly (string Name, Color Color) Industrial = ("Industrial", Color.SandyBrown);
+    public static readonly (string Name, Color Color) MixedUse = ("MixedUse", Color.MediumPurple);
+    public static readonly (string Name, Color Color) Public = ("Public", Color.MediumSeaGreen);
+    public static readonly (string Name, Color Color) Park = ("Park", Color.ForestGreen);
+    public static readonly (string Name, Color Color) Parking = ("Parking", Color.LightSteelBlue);
+    public static readonly (string Name, Color Color) Utility = ("Utility", Color.Khaki);
 
-    public static readonly IReadOnlyList<Use> All =
+    public static readonly IReadOnlyList<(string Name, Color Color)> All =
     [
-        Residential, Commercial, Retail, Industrial, MixedUse,
+        Undefined, Residential, Commercial, Retail, Industrial, MixedUse,
         Public, Park, Parking, Utility
     ];
 
-    public static string[] Names { get; } = All.Select(u => u.Name).ToArray();
+    public static string[] Names { get; } = All.Select(x => x.Name).ToArray();
 
-    public static Use Resolve(string name)
+    public static List<Use> CreateDefaults()
+    {
+        return All.Select(x => new Use(Guid.NewGuid(), x.Name, x.Color)).ToList();
+    }
+
+    public static Use Create(string name)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
 
         var match = All.FirstOrDefault(
-            u => string.Equals(u.Name, name, StringComparison.OrdinalIgnoreCase));
+            x => string.Equals(x.Name, name, StringComparison.OrdinalIgnoreCase));
 
-        if (match is not null)
-            return match;
+        if (match.Name is null)
+            throw new ArgumentException($"Unknown use name '{name}'.");
 
-        var valid = string.Join(", ", Names);
-        throw new ArgumentException($"Unknown use name '{name}'. Valid uses: {valid}.");
+        return new Use(Guid.NewGuid(), match.Name, match.Color);
     }
 }

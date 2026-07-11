@@ -59,7 +59,7 @@ public class ChangeBuildingUseStepTests
 
             Assert.That(building.FloorPlates, Has.Count.EqualTo(expectedPlates.Count));
             for (int j = 0; j < expectedPlates.Count; j++)
-                Assert.That(building.FloorPlates[j].Use, Is.EqualTo(expectedPlates[j]));
+                Assert.That(building.FloorPlates[j].Use, Is.SameAs(expectedPlates[j]));
         }
 
         Assert.AreEqual(result.AddedIds.Count, testData.AddedCount);
@@ -95,24 +95,26 @@ public class ChangeBuildingUseStepTests
 
     private static List<ChangeBuildingUseTestData> BuildTestData()
     {
-        var bwB1 = MakeBuilding(10, 3.0, 3, DefaultUses.Public);
-        var ppB1 = MakeBuilding(10, 3.0, 3, DefaultUses.Public);
-        var bwB2 = MakeBuilding(8, 3.0, 2, DefaultUses.Commercial);
+        var publicUse = DefaultUses.Create("Public");
+        var commercialUse = DefaultUses.Create("Commercial");
+        var residential = DefaultUses.Create("Residential");
+        var retail = DefaultUses.Create("Retail");
 
-        var buildingWinsB = MakeBuilding(10, 3.0, 3, DefaultUses.Public);
+        var bwB1 = MakeBuilding(10, 3.0, 3, publicUse);
+        var ppB1 = MakeBuilding(10, 3.0, 3, publicUse);
+        var bwB2 = MakeBuilding(8, 3.0, 2, commercialUse);
 
-        var mixedB1 = MakeBuilding(10, 3.0, 3, DefaultUses.Public);
-        var mixedB2 = MakeBuilding(8, 3.0, 2, DefaultUses.Commercial, new(25,0,0));
+        var buildingWinsB = MakeBuilding(10, 3.0, 3, publicUse);
 
-        var multiB1 = MakeBuilding(10, 3.0, 3, DefaultUses.Public);
-        var multiB2 = MakeBuilding(8, 3.0, 2, DefaultUses.Public, new(25, 0, 0));
+        var mixedB1 = MakeBuilding(10, 3.0, 3, publicUse);
+        var mixedB2 = MakeBuilding(8, 3.0, 2, commercialUse, new(25,0,0));
 
-        var noMatchB = MakeBuilding(10, 3.0, 3, DefaultUses.Public);
+        var multiB1 = MakeBuilding(10, 3.0, 3, publicUse);
+        var multiB2 = MakeBuilding(8, 3.0, 2, publicUse, new(25, 0, 0));
 
-        var unmatchedB = MakeBuilding(10, 3.0, 3, DefaultUses.Public);
+        var noMatchB = MakeBuilding(10, 3.0, 3, publicUse);
 
-        var residential = DefaultUses.Residential;
-        var retail = DefaultUses.Retail;
+        var unmatchedB = MakeBuilding(10, 3.0, 3, publicUse);
 
         return
         [
@@ -124,7 +126,7 @@ public class ChangeBuildingUseStepTests
                 ExpectedPlateUses:
                 [
                     [residential, residential, residential], // bwB1 all plates change
-                    [DefaultUses.Commercial, DefaultUses.Commercial], // bwB2 unchanged
+                    [commercialUse, commercialUse], // bwB2 unchanged
                 ],
                 AddedCount: 4,    // 1 envelope + 3 plates (new)
                 DeletedCount: 4), // 1 envelope + 3 plates (old)
@@ -136,7 +138,7 @@ public class ChangeBuildingUseStepTests
                 NewUse: retail,
                 ExpectedPlateUses:
                 [
-                    [retail, DefaultUses.Public, DefaultUses.Public], // only plate 0 changes
+                    [retail, publicUse, publicUse], // only plate 0 changes
                 ],
                 AddedCount: 1,    // 1 new
                 DeletedCount: 1), // 1 plate outline old 
@@ -168,7 +170,7 @@ public class ChangeBuildingUseStepTests
                 ExpectedPlateUses:
                 [
                     [residential, residential, residential], // B1 all plates
-                    [residential, DefaultUses.Commercial],   // B2 only plate 0
+                    [residential, commercialUse],   // B2 only plate 0
                 ],
                 AddedCount: 5, DeletedCount: 5), // B1: 1+3 old + 1+3 new = 8; B2: 1 old + 1 new = 2; total = 10
 
@@ -191,7 +193,7 @@ public class ChangeBuildingUseStepTests
                 NewUse: residential,
                 ExpectedPlateUses:
                 [
-                    [DefaultUses.Public, DefaultUses.Public, DefaultUses.Public], // unchanged
+                    [publicUse, publicUse, publicUse], // unchanged
                 ],
                 AddedCount: 0,
                 DeletedCount: 0),

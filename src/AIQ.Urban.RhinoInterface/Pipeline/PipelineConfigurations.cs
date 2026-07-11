@@ -1,3 +1,5 @@
+using System.Drawing;
+using AIQ.Urban.Core.Enums;
 using AIQ.Urban.Core.ModelActions;
 using AIQ.Urban.Core.ModelActions.CreationData;
 using AIQ.Urban.Core.Models;
@@ -146,6 +148,19 @@ public static class PipelineConfigurations
             var path = MakeMetricsFilePath(docName);
             pipeline.WithUrbanModelPostAction(um => ProjectMetricsJsonSerializer.Save(um.ProjectMetrics!, path));
         }
+
+        return pipeline;
+    }
+
+    public static RhinoUrbanModelPipeline WithLanduseListEditSteps(
+        this RhinoUrbanModelPipeline pipeline,
+        UseEditType editType,
+        string name,
+        Color color,
+        Guid id)
+    {
+        var modifyStep = new ModifyModelUsesStep(editType, name, color, id);
+        pipeline.WithUrbanElementStep(modifyStep);
 
         return pipeline;
     }

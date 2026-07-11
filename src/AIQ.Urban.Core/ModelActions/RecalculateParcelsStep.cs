@@ -10,7 +10,7 @@ namespace AIQ.Urban.Core.ModelActions;
 /// the holes in each transit type's unioned surface.
 ///
 /// For each new parcel, the nearest old parcel's Use is preserved by matching
-/// polygon centroids. Falls back to <see cref="DefaultUses.Public"/> when no
+/// polygon centroids. Falls back to "Public" use when no
 /// old parcels exist (e.g. first run).
 ///
 /// NOTE: If multiple transit types produce overlapping holes in the same
@@ -36,7 +36,7 @@ public class RecalculateParcelsStep : IEditUrbanElementsStep
         {
             foreach (var hole in profile.Holes)
             {
-                var use = ResolveUse(hole, oldCentroids);
+                var use = ResolveUse(hole, oldCentroids, model);
                 model.Parcels.Add(new Parcel(hole, use));
             }
         }
@@ -48,14 +48,15 @@ public class RecalculateParcelsStep : IEditUrbanElementsStep
 
     private static Use ResolveUse(
         Polygon2D hole,
-        List<(Point3d Centroid, Use Use)> oldCentroids)
+        List<(Point3d Centroid, Use Use)> oldCentroids,
+        UrbanModel model)
     {
         if (oldCentroids.Count == 0)
-            return DefaultUses.Public;
+            return model.GetUse("Public");
 
         var holeCentroid = ComputeCentroid(hole.Geometry);
         if (holeCentroid is null)
-            return DefaultUses.Public;
+            return model.GetUse("Public");
 
         return oldCentroids
             .OrderBy(x => x.Centroid.DistanceTo(holeCentroid.Value))

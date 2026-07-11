@@ -104,7 +104,7 @@ public class RemoveBuildingStepTests
             CaseName: "RemoveExisting",
             InitialBuildings:
             [
-                new BuildingFootprintData(SimpleFootprint, 3.5, 5, DefaultUses.Residential),
+                new BuildingFootprintData(SimpleFootprint, 3.5, 5, DefaultUses.Create("Residential")),
             ],
             RemoveIndices: [0],        // match first geometry ID of building 1
             ExpectedRemainingCount: 0,
@@ -114,8 +114,8 @@ public class RemoveBuildingStepTests
             CaseName: "RemoveMultiple",
             InitialBuildings:
             [
-                new BuildingFootprintData(SimpleFootprint, 3.5, 5, DefaultUses.Residential),
-                new BuildingFootprintData(SmallFootprint, 4.0, 3, DefaultUses.Commercial),
+                new BuildingFootprintData(SimpleFootprint, 3.5, 5, DefaultUses.Create("Residential")),
+                new BuildingFootprintData(SmallFootprint, 4.0, 3, DefaultUses.Create("Commercial")),
             ],
             RemoveIndices: [0, 6],     // first ID of building 1 (idx 0) and building 2 (idx 6)
             ExpectedRemainingCount: 0,
@@ -125,7 +125,7 @@ public class RemoveBuildingStepTests
             CaseName: "RemoveNonexistent",
             InitialBuildings:
             [
-                new BuildingFootprintData(SimpleFootprint, 3.5, 5, DefaultUses.Residential),
+                new BuildingFootprintData(SimpleFootprint, 3.5, 5, DefaultUses.Create("Residential")),
             ],
             RemoveIndices: [],         // triggers non-existent GUID
             ExpectedRemainingCount: 1,
@@ -142,8 +142,8 @@ public class RemoveBuildingStepTests
             CaseName: "PartialMatch",
             InitialBuildings:
             [
-                new BuildingFootprintData(SimpleFootprint, 3.5, 5, DefaultUses.Residential),
-                new BuildingFootprintData(SmallFootprint, 4.0, 3, DefaultUses.Commercial),
+                new BuildingFootprintData(SimpleFootprint, 3.5, 5, DefaultUses.Create("Residential")),
+                new BuildingFootprintData(SmallFootprint, 4.0, 3, DefaultUses.Create("Commercial")),
             ],
             RemoveIndices: [0],        // only match first building
             ExpectedRemainingCount: 1,

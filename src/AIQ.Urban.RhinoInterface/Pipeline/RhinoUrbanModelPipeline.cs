@@ -22,6 +22,8 @@ public class RhinoUrbanModelPipeline(
 
     private RhinoUrbanEventHandler? _eventHandler = null;
 
+    internal UrbanModel UrbanModel => _urbanModel;
+
     public RhinoUrbanModelPipeline WithEventHandler(RhinoUrbanEventHandler eventHandler)
     {
         _eventHandler = eventHandler;

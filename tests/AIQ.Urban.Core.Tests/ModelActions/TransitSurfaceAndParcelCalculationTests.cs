@@ -58,7 +58,7 @@ public class TransitSurfaceAndParcelCalculationTests
 
         for (int i = 0; i < testData.ExpectedParcelCount; i++)
         {
-            Assert.That(UrbanModel.Instance.Parcels[i].Use, Is.EqualTo(testData.ExpectedUses[i]));
+            Assert.That(UrbanModel.Instance.Parcels[i].Use.Name, Is.EqualTo(testData.ExpectedUses[i].Name));
             Assert.That(UrbanModel.Instance.Parcels[i].GetGeometryIds(), Has.Count.EqualTo(1));
         }
     }
@@ -108,7 +108,7 @@ public class TransitSurfaceAndParcelCalculationTests
                 ExpectedParcelCount: 1,
                 AddedCount: 1,
                 DeletedCount: 0,
-                ExpectedUses: [DefaultUses.Public]),
+                ExpectedUses: [DefaultUses.Create("Public")]),
 
             new(CaseName: "TwoSeparateHoles",
                 TransitInputs:
@@ -127,7 +127,7 @@ public class TransitSurfaceAndParcelCalculationTests
                 ExpectedParcelCount: 2,
                 AddedCount: 2,
                 DeletedCount: 0,
-                ExpectedUses: [DefaultUses.Public, DefaultUses.Public]),
+                ExpectedUses: [DefaultUses.Create("Public"), DefaultUses.Create("Public")]),
         ];
     }
 }

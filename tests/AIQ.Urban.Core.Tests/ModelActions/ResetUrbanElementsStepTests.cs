@@ -55,7 +55,7 @@ public class ResetUrbanElementsStepTests
             new Point3d(0, 0, 0),
         ]));
         IUrbanModelStep addBuilding = new AddBuildingStep();
-        addBuilding.Run(UrbanModel.Instance, [new BuildingFootprintData(footprint, 3.5, 3, DefaultUses.Residential)]);
+        addBuilding.Run(UrbanModel.Instance, [new BuildingFootprintData(footprint, 3.5, 3, DefaultUses.Create("Residential"))]);
 
         // One parcel
         var parcelPolygon = new Polygon2D(new PolylineCurve([
@@ -64,7 +64,7 @@ public class ResetUrbanElementsStepTests
             new Point3d(0, 0, 0),
         ]));
         UrbanModel.Instance.Parcels.Add(
-            new Parcel(parcelPolygon, DefaultUses.Public));
+            new Parcel(parcelPolygon, DefaultUses.Create("Public")));
 
         // One zone
         var zonePolygon = new Polygon2D(new PolylineCurve([

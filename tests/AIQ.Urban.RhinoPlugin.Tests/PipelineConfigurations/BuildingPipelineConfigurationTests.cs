@@ -79,15 +79,15 @@ public class BuildingPipelineConfigurationTests
     [
         new BuildingPipelineTestData(
             CaseName: "SingleBuilding",
-            Input: [new BuildingFootprintData(Footprint1, 3.5, 5, DefaultUses.Residential)],
+            Input: [new BuildingFootprintData(Footprint1, 3.5, 5, DefaultUses.Create("Residential"))],
             ExpectedCount: 1),
 
         new BuildingPipelineTestData(
             CaseName: "MultipleBuildings",
             Input:
             [
-                new BuildingFootprintData(Footprint1, 3.5, 5, DefaultUses.Residential),
-                new BuildingFootprintData(Footprint2, 4.0, 3, DefaultUses.Commercial),
+                new BuildingFootprintData(Footprint1, 3.5, 5, DefaultUses.Create("Residential")),
+                new BuildingFootprintData(Footprint2, 4.0, 3, DefaultUses.Create("Commercial")),
             ],
             ExpectedCount: 2),
 

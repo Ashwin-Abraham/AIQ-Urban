@@ -50,7 +50,7 @@ public class ChangeParcelUseStepTests
         Assert.That(UrbanModel.Instance.Parcels, Has.Count.EqualTo(testData.InitialParcels.Count));
 
         for (int i = 0; i < testData.ExpectedUses.Count; i++)
-            Assert.That(UrbanModel.Instance.Parcels[i].Use, Is.EqualTo(testData.ExpectedUses[i]));
+            Assert.That(UrbanModel.Instance.Parcels[i].Use, Is.SameAs(testData.ExpectedUses[i]));
 
         Assert.That(result.AddedIds.Count, Is.EqualTo(testData.AddedCount));
         Assert.That(result.DeletedIds.Count, Is.EqualTo(testData.DeletedCount));
@@ -85,41 +85,46 @@ public class ChangeParcelUseStepTests
         var mp2 = MakeOutline(5);
         var pm = MakeOutline(10);
 
+        var publicUse = DefaultUses.Create("Public");
+        var residentialUse = DefaultUses.Create("Residential");
+        var commercialUse = DefaultUses.Create("Commercial");
+        var retailUse = DefaultUses.Create("Retail");
+
         return
         [
             new ChangeParcelUseTestData(
                 "SingleParcel",
-                InitialParcels: [new Parcel(sp, DefaultUses.Public)],
+                InitialParcels: [new Parcel(sp, publicUse)],
                 ParcelIdsToChange: [sp.Id],
-                NewUse: DefaultUses.Residential,
-                ExpectedUses: [DefaultUses.Residential],
+                NewUse: residentialUse,
+                ExpectedUses: [residentialUse],
                 AddedCount: 1,
                 DeletedCount: 1),
 
             new ChangeParcelUseTestData(
                 "MultipleParcels",
-                InitialParcels: [new Parcel(mp1, DefaultUses.Public), new Parcel(mp2, DefaultUses.Public)],
+                InitialParcels: [new Parcel(mp1, publicUse), new Parcel(mp2, publicUse)],
                 ParcelIdsToChange: [mp1.Id, mp2.Id],
-                NewUse: DefaultUses.Commercial,
-                ExpectedUses: [DefaultUses.Commercial, DefaultUses.Commercial],
+                NewUse: commercialUse,
+                ExpectedUses: [commercialUse, commercialUse],
                 AddedCount: 2,
                 DeletedCount: 2),
 
             new ChangeParcelUseTestData(
                 "EmptyIdList",
-                InitialParcels: [new Parcel(MakeOutline(10), DefaultUses.Public)],
+                InitialParcels: [new Parcel(MakeOutline(10), publicUse)],
                 ParcelIdsToChange: [],
-                NewUse: DefaultUses.Residential,
-                ExpectedUses: [DefaultUses.Public],
+                NewUse: residentialUse,
+                ExpectedUses: [publicUse],
                 AddedCount: 0,
                 DeletedCount: 0),
 
             new ChangeParcelUseTestData(
                 "PartialMatch",
-                InitialParcels: [new Parcel(pm, DefaultUses.Public)],
+                InitialParcels: [new Parcel(pm, publicUse)],
                 ParcelIdsToChange: [pm.Id, Guid.NewGuid(), Guid.NewGuid()],
-                NewUse: DefaultUses.Retail,
-                ExpectedUses: [DefaultUses.Retail],
+                NewUse: retailUse,
+                ExpectedUses: [retailUse],
                 AddedCount: 1,
                 DeletedCount: 1),
         ];

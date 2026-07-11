@@ -50,7 +50,7 @@ public class UrbanModelTools(RhinoDoc doc, UrbanModel urbanModel)
     {
         try
         {
-            var use = DefaultUses.Resolve(useName);
+            var use = urbanModel.GetUse(useName);
             var footprints = footprintCurves.Select(c => Polygon2D.Create(c.ToCoreTupleList())).ToList();
             var buildingData = footprints.Select(c => new BuildingFootprintData(c, floorHeight, floorCount, use)).ToList();
 
@@ -166,7 +166,7 @@ public class UrbanModelTools(RhinoDoc doc, UrbanModel urbanModel)
     {
         try
         {
-            var use = DefaultUses.Resolve(useName);
+            var use = urbanModel.GetUse(useName);
 
             Action<RhinoUrbanModelPipeline> pipelineAction = (pipeline) => PipelineConfigurations
                 .WithBuildingUseChangeSteps(pipeline, geometryIds, use);
@@ -202,7 +202,7 @@ public class UrbanModelTools(RhinoDoc doc, UrbanModel urbanModel)
     [McpTool("list_available_uses", "Returns all available use types that can be assigned to buildings or floor plates.")]
     public string ListAvailableUses()
     {
-        return JsonSerializer.Serialize(DefaultUses.Names, new JsonSerializerOptions
+        return JsonSerializer.Serialize(urbanModel.Uses.Select(u => u.Name).ToArray(), new JsonSerializerOptions
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase
         });

@@ -1,4 +1,5 @@
 using AIQ.Urban.Core.Enums;
+using AIQ.Urban.Core.Models;
 using AIQ.Urban.Core.Models.GeometryElements;
 using AIQ.Urban.Core.Models.Metrics;
 using AIQ.Urban.Core.Models.UrbanElements;
@@ -27,6 +28,8 @@ public class UrbanModel
     /// <summary>All zones in the model.</summary>
     public List<Zone> Zones { get; } = [];
 
+    public List<Use> Uses { get; private set; }
+
     public List<(Profile2D Profile, TransitType Type)> TransitSurfaces { get; } = [];
 
     /// <summary>Latest project-level metrics snapshot. Set by <c>ProjectMetricsCalculator</c> after pipeline runs.</summary>
@@ -39,7 +42,10 @@ public class UrbanModel
 
     public Plane Plane => new Plane(Point3d.Origin, Vector3d.ZAxis);
 
-    private UrbanModel() { }
+    private UrbanModel()
+    {
+        Uses = DefaultUses.CreateDefaults();
+    }
 
     /// <summary>Clears all collections and resets state. Used by tests for isolation.</summary>
     public void Reset()
@@ -49,8 +55,23 @@ public class UrbanModel
         Parcels.Clear();
         Zones.Clear();
         TransitSurfaces.Clear();
+        Uses = DefaultUses.CreateDefaults();
         ProjectMetrics = null;
         UrbanGraph = new([], []);
+    }
+
+    public Use GetUse(string name)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(name);
+
+        var match = Uses.FirstOrDefault(
+            u => string.Equals(u.Name, name, StringComparison.OrdinalIgnoreCase));
+
+        if (match is not null)
+            return match;
+
+        var valid = string.Join(", ", Uses.Select(u => u.Name));
+        throw new ArgumentException($"Unknown use name '{name}'. Valid uses: {valid}.");
     }
 
     public List<IUrbanElement> GetUrbanElements()

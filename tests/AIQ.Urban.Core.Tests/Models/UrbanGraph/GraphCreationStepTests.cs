@@ -268,8 +268,8 @@ public class GraphCreationStepTests
                 TransitCoords: MakeSquareTransitCoords(),
                 Buildings:
                 [
-                    new BuildingFootprintData(MakeFootprint(5, 15, 25, 25), 3.5, 2, DefaultUses.Residential),
-                    new BuildingFootprintData(MakeFootprint(60, 60, 70, 70), 3.5, 2, DefaultUses.Commercial),
+                    new BuildingFootprintData(MakeFootprint(5, 15, 25, 25), 3.5, 2, DefaultUses.Create("Residential")),
+                    new BuildingFootprintData(MakeFootprint(60, 60, 70, 70), 3.5, 2, DefaultUses.Create("Commercial")),
                 ],
                 ExpectedNodeCount: 7,
                 ExpectedEdgeCount: 13,

@@ -33,7 +33,7 @@ public class ResetUrban_AIQUrbanTests
             new Point3d(10, 10, 0), new Point3d(0, 10, 0),
             new Point3d(0, 0, 0),
         ]));
-        var buildingData = new BuildingFootprintData(footprint, 3.5, 3, DefaultUses.Residential);
+        var buildingData = new BuildingFootprintData(footprint, 3.5, 3, DefaultUses.Create("Residential"));
         var pipeline = new RhinoUrbanModelPipeline(doc, UrbanModel.Instance)
             .WithBuildingAdditionSteps(new System.Collections.Generic.List<ICreationData> { buildingData }, [])
             .WithMetricsCalculation(false);
@@ -43,7 +43,7 @@ public class ResetUrban_AIQUrbanTests
         // Verify model and Rhino doc have the geometry
         Assert.That(UrbanModel.Instance.Buildings, Has.Count.EqualTo(1));
         RhinoDocAssertions.AssertLayerObjectCount(doc, LayerConstants.BuildingEnvelope, 1);
-        RhinoDocAssertions.AssertLayerObjectCount(doc, LayerConstants.BuildingFloorPlate(DefaultUses.Residential), 3);
+        RhinoDocAssertions.AssertLayerObjectCount(doc, LayerConstants.BuildingFloorPlate(DefaultUses.Create("Residential")), 3);
 
         // Act: reset
         pipeline = new RhinoUrbanModelPipeline(doc, UrbanModel.Instance);
@@ -60,6 +60,6 @@ public class ResetUrban_AIQUrbanTests
 
         // Assert: Rhino doc has no objects on AIQ Urban layers
         RhinoDocAssertions.AssertLayerObjectCount(doc, LayerConstants.BuildingEnvelope, 0);
-        RhinoDocAssertions.AssertLayerObjectCount(doc, LayerConstants.BuildingFloorPlate(DefaultUses.Residential), 0);
+        RhinoDocAssertions.AssertLayerObjectCount(doc, LayerConstants.BuildingFloorPlate(DefaultUses.Create("Residential")), 0);
     }
 }

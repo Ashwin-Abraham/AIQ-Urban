@@ -31,7 +31,7 @@ public class AddBuilding_AIQUrban : Command
 
         var floorHeightOption = new OptionDouble(3.0, 0.1, 100.0);
         var floorCountOption = new OptionInteger(1, 1, 1000);
-        var useNames = DefaultUses.Names;
+        var useNames = UrbanModel.Instance.Uses.Select(u => u.Name).ToArray();
         var useListIndex = go.AddOptionList("Use", useNames, 0);
         int selectedUseIndex = 0;
 
@@ -41,7 +41,7 @@ public class AddBuilding_AIQUrban : Command
         if (!TryRunSelectionLoop(go, useListIndex, ref selectedUseIndex))
             return Result.Cancel;
 
-        var selectedUse = DefaultUses.All[selectedUseIndex];
+        var selectedUse = UrbanModel.Instance.Uses[selectedUseIndex];
         var floorHeight = floorHeightOption.CurrentValue;
         var floorCount = floorCountOption.CurrentValue;
         var curveRef = go.Object(0);

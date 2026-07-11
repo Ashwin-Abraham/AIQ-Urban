@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using AIQ.Urban.Core;
 using AIQ.Urban.Core.Models;
 using AIQ.Urban.RhinoInterface;
@@ -30,7 +31,7 @@ public class ChangeBuildingUse_AIQUrban : Command
         go.SubObjectSelect = false;
         go.GroupSelect = true;
 
-        var useNames = DefaultUses.Names;
+        var useNames = UrbanModel.Instance.Uses.Select(u => u.Name).ToArray();
         var useListIndex = go.AddOptionList("Use", useNames, 0);
         int selectedUseIndex = 0;
 
@@ -43,7 +44,7 @@ public class ChangeBuildingUse_AIQUrban : Command
             return Result.Cancel;
         }
 
-        var selectedUse = DefaultUses.All[selectedUseIndex];
+        var selectedUse = UrbanModel.Instance.Uses[selectedUseIndex];
         var geometryIds = new List<Guid>(go.ObjectCount);
 
         for (int i = 0; i < go.ObjectCount; i++)

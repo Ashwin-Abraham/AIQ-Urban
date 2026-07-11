@@ -117,7 +117,7 @@ public class AddBuildingStepTests
     [
         new AddBuildingTestData(
             CaseName: "SingleBuilding",
-            Input: [new BuildingFootprintData(SimpleFootprint, 3.5, 5, DefaultUses.Residential)],
+            Input: [new BuildingFootprintData(SimpleFootprint, 3.5, 5, DefaultUses.Create("Residential"))],
             ExpectedCount: 1,
             ExpectedGeometryIdCount: 6,
             ExpectedFirstFloorCount: 5,
@@ -127,8 +127,8 @@ public class AddBuildingStepTests
             CaseName: "MultipleBuildings",
             Input:
             [
-                new BuildingFootprintData(SimpleFootprint, 3.5, 5, DefaultUses.Residential),
-                new BuildingFootprintData(SmallFootprint, 4.0, 3, DefaultUses.Commercial),
+                new BuildingFootprintData(SimpleFootprint, 3.5, 5, DefaultUses.Create("Residential")),
+                new BuildingFootprintData(SmallFootprint, 4.0, 3, DefaultUses.Create("Commercial")),
             ],
             ExpectedCount: 2,
             ExpectedGeometryIdCount: 10,
@@ -150,7 +150,7 @@ public class AddBuildingStepTests
                 new BuildingMassData(
                     new BrepElement(MakeBoxBrep(10, 10, 10), Guid.NewGuid()),
                     3.0,
-                    DefaultUses.Residential),
+                    DefaultUses.Create("Residential")),
             ],
             ExpectedCount: 1,
             ExpectedGeometryIdCount: 5,
@@ -164,7 +164,7 @@ public class AddBuildingStepTests
                 new BuildingMassData(
                     new BrepElement(MakeBoxBrep(10, 10, 5), Guid.NewGuid()),
                     3.0,
-                    DefaultUses.Commercial),
+                    DefaultUses.Create("Commercial")),
             ],
             ExpectedCount: 1,
             ExpectedGeometryIdCount: 3,
@@ -186,7 +186,7 @@ public class AddBuildingStepTests
                 new BuildingMassData(
                     new BrepElement(MakeLoftedBrep(10, 3, 22), Guid.NewGuid()),
                     3.0,
-                    DefaultUses.Retail),
+                    DefaultUses.Create("Retail")),
             ],
             ExpectedCount: 1,
             ExpectedGeometryIdCount: 4,
