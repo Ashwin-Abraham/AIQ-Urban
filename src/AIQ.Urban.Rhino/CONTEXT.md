@@ -193,11 +193,11 @@ Returned as JSON in the HTTP response. The UI's `RhinoApiService.ts` routes by `
 ### BuildingMessage Handling
 Two modes controlled by `manual_generationType`:
 
-- **Footprint**: Get selected curves → `SelectBuildingFootprintStep` produces `BuildingFootprintData(polygon, FloorHeight, FloorCount, DefaultUses.MixedUse)`
-- **Mass**: Get selected Breps/Extrusions → `SelectBuildingEnvelopeStep` produces `BuildingMassData(envelopeBrep, FloorHeight, DefaultUses.MixedUse)`. The step contours the envelope horizontally at intervals of `FloorHeight` to derive floor plate outlines. Contours with curve length < tolerance are discarded. `FloorCount` = `Floor(envelopeHeight / FloorHeight)`.
+- **Footprint**: Get selected curves → `SelectBuildingFootprintStep` produces `BuildingFootprintData(polygon, FloorHeight, FloorCount, DefaultUses.Undefined)`
+- **Mass**: Get selected Breps/Extrusions → `SelectBuildingEnvelopeStep` produces `BuildingMassData(envelopeBrep, FloorHeight, DefaultUses.Undefined)`. The step contours the envelope horizontally at intervals of `FloorHeight` to derive floor plate outlines. Contours with curve length < tolerance are discarded. `FloorCount` = `Floor(envelopeHeight / FloorHeight)`.
 - Pipeline: `WithBuildingAdditionSteps()` + `WithMetricsCalculation()` via `RhinoUrbanModelPipeline`
 - `AddBuildingStep` discriminates by creation data type and calls the appropriate `Building` constructor
-- Building Use always defaults to `DefaultUses.MixedUse` (UI does not send useName)
+- Building Use always defaults to `DefaultUses.Undefined` (UI does not send useName)
 
 ### Thread Safety
 All `HandleMessage()` calls are marshalled to the Rhino UI thread via `RhinoApp.InvokeOnUiThread()`. The `HttpListener` runs on thread pool threads — without this marshalling, Rhino doc access would crash.

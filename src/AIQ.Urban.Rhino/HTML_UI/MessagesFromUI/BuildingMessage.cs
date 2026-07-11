@@ -25,7 +25,7 @@ public class BuildingMessage : IMessageFromUI<ModelStateMessage>
     public ModelStateMessage HandleMessage()
     {
         var doc = RhinoDoc.ActiveDoc;
-        var use = UrbanModel.Instance.GetUse("MixedUse");
+        var use = UrbanModel.Instance.GetUse(DefaultUses.UndefinedName);
 
         if (manual_generationType == "Mass")
             return HandleMassMode(doc, use);

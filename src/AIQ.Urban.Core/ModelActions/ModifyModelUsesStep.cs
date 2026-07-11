@@ -43,6 +43,9 @@ public class ModifyModelUsesStep(
         var use = model.Uses.FirstOrDefault(u => u.Id == id)
             ?? throw new ArgumentException($"Use with Id '{id}' not found.");
 
+        if (IsSystemUse(model, use))
+            return new([], []);
+
         use.Name = name;
         use.Color = color;
         AffectedUse = use;
@@ -56,7 +59,10 @@ public class ModifyModelUsesStep(
         var use = model.Uses.FirstOrDefault(u => u.Id == id)
             ?? throw new ArgumentException($"Use with Id '{id}' not found.");
 
-        var undefinedUse = model.GetUse("Undefined");
+        if (IsSystemUse(model, use))
+            return new([], []);
+
+        var undefinedUse = model.GetUse(DefaultUses.UndefinedName);
         var geometryIds = new List<Guid>();
 
         foreach (var parcel in model.Parcels)
@@ -105,5 +111,11 @@ public class ModifyModelUsesStep(
         }
 
         return geometryIds;
+    }
+
+    private static bool IsSystemUse(UrbanModel model, Use use)
+    {
+        var undefinedUse = model.GetUse(DefaultUses.UndefinedName);
+        return use.Id == undefinedUse.Id;
     }
 }
