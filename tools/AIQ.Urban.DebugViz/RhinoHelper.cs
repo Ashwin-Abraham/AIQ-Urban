@@ -14,6 +14,7 @@ public static class RhinoHelper
             doc.Layers[idx].Color = color;
             return idx;
         }
+
         return doc.Layers.AddPath(path, color);
     }
 

@@ -2,4 +2,9 @@ using System.Drawing;
 
 namespace AIQ.Urban.Core.Models;
 
-public record Use(string Name, Color Color);
+public class Use(Guid id, string name, Color color)
+{
+    public Guid Id { get; } = id;
+    public string Name { get; set; } = name;
+    public Color Color { get; set; } = color;
+}

@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using AIQ.Urban.Core.Models;
 using NUnit.Framework;
 
@@ -7,33 +8,39 @@ namespace AIQ.Urban.Core.Tests.Models;
 public class DefaultUsesTests
 {
     [Test]
-    [TestCase("Residential")]
-    [TestCase("residential")]
-    [TestCase("RESIDENTIAL")]
-    [TestCase("Commercial")]
-    [TestCase("Retail")]
-    [TestCase("Industrial")]
-    [TestCase("MixedUse")]
-    [TestCase("Public")]
-    [TestCase("Park")]
-    [TestCase("Parking")]
-    [TestCase("Utility")]
-    public void Resolve_ValidName_ReturnsUse(string name)
+    public void CreateDefaults_ReturnsExpectedCount()
     {
-        var result = DefaultUses.Resolve(name);
+        var uses = DefaultUses.CreateDefaults();
 
-        Assert.That(result, Is.Not.Null);
-        Assert.That(result.Name, Is.EqualTo(name).IgnoreCase);
+        Assert.That(uses, Has.Count.EqualTo(DefaultUses.All.Count));
     }
 
     [Test]
-    [TestCase("InvalidUse")]
-    [TestCase("Residential ")]
-    public void Resolve_InvalidName_Throws(string name)
+    public void CreateDefaults_AllHaveUniqueIds()
     {
-        var ex = Assert.Throws<ArgumentException>(() =>
-            DefaultUses.Resolve(name));
-        Assert.That(ex!.Message, Does.Contain("Unknown use name"));
-        Assert.That(ex.Message, Does.Contain("Residential"));
+        var uses = DefaultUses.CreateDefaults();
+
+        var ids = uses.Select(u => u.Id).ToList();
+        Assert.That(ids, Is.Unique);
+    }
+
+    [Test]
+    public void CreateDefaults_ContainsExpectedNames()
+    {
+        var uses = DefaultUses.CreateDefaults();
+        var names = uses.Select(u => u.Name).ToList();
+
+        Assert.That(names, Does.Contain("Residential"));
+        Assert.That(names, Does.Contain("Commercial"));
+        Assert.That(names, Does.Contain("Undefined"));
+    }
+
+    [Test]
+    public void CreateDefaults_EachInstanceIsDistinct()
+    {
+        var uses1 = DefaultUses.CreateDefaults();
+        var uses2 = DefaultUses.CreateDefaults();
+
+        Assert.That(uses1[0], Is.Not.SameAs(uses2[0]));
     }
 }

@@ -41,7 +41,7 @@ public class GraphCreationStepTests
     private record BuildingGraphTestData(
         string CaseName,
         (double X, double Y)[][] TransitCoords,
-        List<BuildingData> Buildings,
+        List<BuildingFootprintData> Buildings,
         int ExpectedNodeCount,
         int ExpectedEdgeCount,
         int ExpectedParcelNodeCount,
@@ -268,8 +268,8 @@ public class GraphCreationStepTests
                 TransitCoords: MakeSquareTransitCoords(),
                 Buildings:
                 [
-                    new BuildingData(MakeFootprint(5, 15, 25, 25), 3.5, 2, DefaultUses.Residential),
-                    new BuildingData(MakeFootprint(60, 60, 70, 70), 3.5, 2, DefaultUses.Commercial),
+                    new BuildingFootprintData(MakeFootprint(5, 15, 25, 25), 3.5, 2, DefaultUses.Create("Residential")),
+                    new BuildingFootprintData(MakeFootprint(60, 60, 70, 70), 3.5, 2, DefaultUses.Create("Commercial")),
                 ],
                 ExpectedNodeCount: 7,
                 ExpectedEdgeCount: 13,
@@ -289,7 +289,7 @@ public class GraphCreationStepTests
         addStep.Run(UrbanModel.Instance, transitData.Cast<ICreationData>().ToList());
     }
 
-    private static void AddBuildings(List<BuildingData> buildingData)
+    private static void AddBuildings(List<BuildingFootprintData> buildingData)
     {
         IUrbanModelStep addStep = new AddBuildingStep();
         addStep.Run(UrbanModel.Instance, buildingData.Cast<ICreationData>().ToList());

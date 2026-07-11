@@ -98,12 +98,12 @@ These pipeline configurations are wrapped as reusable methods (not necessarily u
 - **Known gap**: When transit is deleted/modified, previously baked unioned `Surface` geometry remains as orphans in the Rhino doc — no cleanup yet. Parcel geometry for old parcels is correctly cleaned up since `RecalculateParcelsStep` returns old parcel GUIDs as `IDeleteUrbanElementsStep` output.
 
 ### `AddBuilding_AIQUrban`
-- Collects: footprint curve, floor height, floor count, Use dropdown
-- Validates footprint is planar
-- Pipeline: `.WithRhinoObjectDeletion([footprintId]).WithUrbanElementAddition(addBuildingStep).Run()`
-- Input curve is deleted by `WithRhinoObjectDeletion` (not preserved in the doc)
-- No duplicate detection for now (input curve is destroyed, same ObjectId can never match again)
-- Only footprint+height+count+use variant; Brep/parcel variants deferred
+- Two modes selected by `manual_generationType` ("Footprint" or "Mass")
+- **Footprint mode**: collects footprint curve, floor height, floor count, Use dropdown. Validates footprint is planar. Uses `SelectBuildingFootprintStep` → produces `BuildingFootprintData`. Pipeline: `.WithRhinoObjectDeletion([footprintId]).WithUrbanElementAddition(addBuildingStep).Run()`
+- **Mass mode**: collects Brep or Extrusion envelope, floor height, Use dropdown. Uses `SelectBuildingEnvelopeStep` → produces `BuildingMassData`. Contours the envelope horizontally to derive floor plates. Pipeline: `.WithRhinoObjectDeletion([envelopeId]).WithUrbanElementAddition(addBuildingStep).Run()`
+- `AddBuildingStep` discriminates by creation data type (`BuildingFootprintData` vs `BuildingMassData`) and calls the appropriate `Building` constructor
+- Input geometry (curve or Brep) is deleted by `WithRhinoObjectDeletion` and re-baked on the proper layer
+- No duplicate detection for now (input geometry is destroyed, same ObjectId can never match again)
 
 ### `AddZone_AIQUrban`
 - User picks a closed planar curve as the zone boundary, then enters a zone name via text prompt
@@ -156,7 +156,6 @@ These pipeline configurations are wrapped as reusable methods (not necessarily u
 - CORS headers (`Access-Control-Allow-Origin: *`) are added to all HTTP responses for compatibility.
 
 ### Deferred Commands (non-exhaustive)
-- `AddBuildingFromBrep(Brep Envelope, double FloorHeight)`
 - `AddBuildingOnParcel(Brep Envelope, double FloorHeight)`
 - `AddBuildingOnParcelEdge(Brep Envelope, double FloorHeight)`
 
@@ -194,9 +193,10 @@ Returned as JSON in the HTTP response. The UI's `RhinoApiService.ts` routes by `
 ### BuildingMessage Handling
 Two modes controlled by `manual_generationType`:
 
-- **Footprint**: Get selected curves → `Polygon2D(curve)` → `BuildingData(polygon, FloorHeight, FloorCount, DefaultUses.MixedUse)`
-- **Mass**: Get selected Breps → extract lowest face boundary as footprint polygon → same `BuildingData` construction
+- **Footprint**: Get selected curves → `SelectBuildingFootprintStep` produces `BuildingFootprintData(polygon, FloorHeight, FloorCount, DefaultUses.MixedUse)`
+- **Mass**: Get selected Breps/Extrusions → `SelectBuildingEnvelopeStep` produces `BuildingMassData(envelopeBrep, FloorHeight, DefaultUses.MixedUse)`. The step contours the envelope horizontally at intervals of `FloorHeight` to derive floor plate outlines. Contours with curve length < tolerance are discarded. `FloorCount` = `Floor(envelopeHeight / FloorHeight)`.
 - Pipeline: `WithBuildingAdditionSteps()` + `WithMetricsCalculation()` via `RhinoUrbanModelPipeline`
+- `AddBuildingStep` discriminates by creation data type and calls the appropriate `Building` constructor
 - Building Use always defaults to `DefaultUses.MixedUse` (UI does not send useName)
 
 ### Thread Safety

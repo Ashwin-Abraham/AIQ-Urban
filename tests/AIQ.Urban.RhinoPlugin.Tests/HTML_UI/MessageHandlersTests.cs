@@ -1,3 +1,4 @@
+using System.Drawing;
 using System.Linq;
 using AIQ.Urban.Core;
 using AIQ.Urban.Core.Models;
@@ -48,7 +49,7 @@ public class MessageHandlersTests
     public void ChangeParcelUseMessage_HandleMessage_ChangesParcelUseAndReturnsModelStateMessage()
     {
         using var doc = RhinoDoc.CreateHeadless(null);
-        var parcel = AddParcelToDocAndModel(doc, DefaultUses.Public);
+        var parcel = AddParcelToDocAndModel(doc, DefaultUses.Create("Public"));
 
         doc.Objects.Find(parcel.Outline.Id)?.Select(true);
 
@@ -65,7 +66,7 @@ public class MessageHandlersTests
     public void ChangeUseMessage_WithBuildingSelected_ChangesBuildingUseAndReturnsModelStateMessage()
     {
         using var doc = RhinoDoc.CreateHeadless(null);
-        var building = AddBuildingToDocAndModel(doc, DefaultUses.Residential);
+        var building = AddBuildingToDocAndModel(doc, DefaultUses.Create("Residential"));
 
         doc.Objects.Find(building.Envelope.Id)?.Select(true);
 
@@ -120,5 +121,55 @@ public class MessageHandlersTests
         UrbanModel.Instance.Buildings.Add(building);
 
         return building;
+    }
+
+    [TestCase("#6d2222", 109, 34, 34)]
+    [TestCase("#FF0000", 255, 0, 0)]
+    [TestCase("#00FF00", 0, 255, 0)]
+    [TestCase("#0000FF", 0, 0, 255)]
+    public void ParseColor_HexString_ReturnsCorrectColor(string hex, int r, int g, int b)
+    {
+        var color = LanduseListEditMessage.ParseColor(hex);
+        Assert.That(color.R, Is.EqualTo(r));
+        Assert.That(color.G, Is.EqualTo(g));
+        Assert.That(color.B, Is.EqualTo(b));
+    }
+
+    [Test]
+    public void ParseColor_EightDigitHex_ReturnsWithAlpha()
+    {
+        var color = LanduseListEditMessage.ParseColor("#80FF0000");
+        Assert.That(color.A, Is.EqualTo(128));
+        Assert.That(color.R, Is.EqualTo(255));
+        Assert.That(color.G, Is.EqualTo(0));
+        Assert.That(color.B, Is.EqualTo(0));
+    }
+
+    [Test]
+    public void ParseColor_CommaSeparatedRgb_ReturnsCorrectColor()
+    {
+        var color = LanduseListEditMessage.ParseColor("255,128,0");
+        Assert.That(color, Is.EqualTo(Color.FromArgb(255, 128, 0)));
+    }
+
+    [Test]
+    public void ParseColor_NamedColor_ReturnsCorrectColor()
+    {
+        var color = LanduseListEditMessage.ParseColor("Red");
+        Assert.That(color, Is.EqualTo(Color.Red));
+    }
+
+    [Test]
+    public void ParseColor_EmptyString_ReturnsGray()
+    {
+        var color = LanduseListEditMessage.ParseColor("");
+        Assert.That(color, Is.EqualTo(Color.Gray));
+    }
+
+    [Test]
+    public void ParseColor_Null_ReturnsGray()
+    {
+        var color = LanduseListEditMessage.ParseColor(null);
+        Assert.That(color, Is.EqualTo(Color.Gray));
     }
 }

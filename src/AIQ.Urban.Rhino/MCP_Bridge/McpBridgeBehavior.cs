@@ -194,7 +194,7 @@ internal class McpBridgeBehavior : WebSocketBehavior
             && string.Equals(param.Name, "useName", StringComparison.OrdinalIgnoreCase))
         {
             schema["enum"] = new JsonArray(
-                DefaultUses.Names.Select(n => JsonValue.Create(n)).ToArray());
+                UrbanModel.Instance.Uses.Select(u => JsonValue.Create(u.Name)).ToArray());
         }
 
         return schema;

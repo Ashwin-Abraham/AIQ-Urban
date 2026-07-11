@@ -38,8 +38,8 @@ public class ModelStateMessage : IMessageToUI
     public ModelStateMessage(UrbanModel urbanModel)
     {
         _colorMap = BuildMap(urbanModel);
-        Landuses = DefaultUses.All
-        .Select(u => new LanduseInfo(u.Name, $"{u.Color.R},{u.Color.G},{u.Color.B}", u.Name))
+        Landuses = urbanModel.Uses
+        .Select(u => new LanduseInfo(u.Name, $"{u.Color.R},{u.Color.G},{u.Color.B}", u.Id.ToString()))
         .ToList();
 
         StudyAreaDataForUI = BuildStudyData(urbanModel);

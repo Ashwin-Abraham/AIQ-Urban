@@ -1,3 +1,5 @@
+using System.Drawing;
+using AIQ.Urban.Core.Enums;
 using AIQ.Urban.Core.ModelActions;
 using AIQ.Urban.Core.ModelActions.CreationData;
 using AIQ.Urban.Core.Models;
@@ -10,13 +12,13 @@ public static class PipelineConfigurations
 {
     public static RhinoUrbanModelPipeline WithBuildingAdditionSteps(
         this RhinoUrbanModelPipeline pipeline,
-        List<BuildingData> buildingData,
+        List<ICreationData> buildingData,
         List<Guid> curvesToDelete)
     {
         var addBuildingStep = new AddBuildingStep();
 
         pipeline.WithRhinoObjectDeletion(curvesToDelete)
-            .WithCreationData(buildingData.Cast<ICreationData>().ToList())
+            .WithCreationData(buildingData)
             .WithUrbanElementStep(addBuildingStep);
 
         return pipeline;
@@ -146,6 +148,19 @@ public static class PipelineConfigurations
             var path = MakeMetricsFilePath(docName);
             pipeline.WithUrbanModelPostAction(um => ProjectMetricsJsonSerializer.Save(um.ProjectMetrics!, path));
         }
+
+        return pipeline;
+    }
+
+    public static RhinoUrbanModelPipeline WithLanduseListEditSteps(
+        this RhinoUrbanModelPipeline pipeline,
+        UseEditType editType,
+        string name,
+        Color color,
+        Guid id)
+    {
+        var modifyStep = new ModifyModelUsesStep(editType, name, color, id);
+        pipeline.WithUrbanElementStep(modifyStep);
 
         return pipeline;
     }

@@ -27,7 +27,7 @@ public class ChangeUseMessage : IMessageFromUI<ModelStateMessage>
         if (selected.Count == 0)
             throw new Exception("Select one or more parcels, building envelopes, or floor plate curves first.");
 
-        var use = DefaultUses.Resolve(Use);
+        var use = UrbanModel.Instance.GetUse(Use);
         var geometryIds = selected.Select(obj => obj.Id).ToList();
         var parcelStep = new ChangeParcelUseStep(geometryIds, use);
         var buildingStep = new ChangeBuildingUseStep(geometryIds, use);

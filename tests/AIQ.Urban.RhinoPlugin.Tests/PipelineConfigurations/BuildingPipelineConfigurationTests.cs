@@ -36,7 +36,7 @@ public class BuildingPipelineConfigurationTests
 
         // Act
         pipeline
-            .WithBuildingAdditionSteps(testData.Input, [])
+            .WithBuildingAdditionSteps(testData.Input.Cast<ICreationData>().ToList(), [])
             .WithMetricsCalculation(false)
             .Run();
 
@@ -54,7 +54,7 @@ public class BuildingPipelineConfigurationTests
 
     private record BuildingPipelineTestData(
         string CaseName,
-        List<BuildingData> Input,
+        List<BuildingFootprintData> Input,
         int ExpectedCount);
 
     private static readonly Polygon2D Footprint1 = new(
@@ -79,15 +79,15 @@ public class BuildingPipelineConfigurationTests
     [
         new BuildingPipelineTestData(
             CaseName: "SingleBuilding",
-            Input: [new BuildingData(Footprint1, 3.5, 5, DefaultUses.Residential)],
+            Input: [new BuildingFootprintData(Footprint1, 3.5, 5, DefaultUses.Create("Residential"))],
             ExpectedCount: 1),
 
         new BuildingPipelineTestData(
             CaseName: "MultipleBuildings",
             Input:
             [
-                new BuildingData(Footprint1, 3.5, 5, DefaultUses.Residential),
-                new BuildingData(Footprint2, 4.0, 3, DefaultUses.Commercial),
+                new BuildingFootprintData(Footprint1, 3.5, 5, DefaultUses.Create("Residential")),
+                new BuildingFootprintData(Footprint2, 4.0, 3, DefaultUses.Create("Commercial")),
             ],
             ExpectedCount: 2),
 

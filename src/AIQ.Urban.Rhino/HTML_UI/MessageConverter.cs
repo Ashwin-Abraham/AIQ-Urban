@@ -24,6 +24,7 @@ public static class MessageConverter
             "building" => Deserialize<BuildingMessage>(json),
             "zone" => Deserialize<AddZoneMessage>(json),
 			"landuse" => Deserialize<ChangeUseMessage>(json),
+			"landuselistedit" => Deserialize<LanduseListEditMessage>(json),
 			"toolselection" => new ToolSelectionMessage(),
             _ => throw new Exception($"Unsupported messageType: {messageType}")
         };

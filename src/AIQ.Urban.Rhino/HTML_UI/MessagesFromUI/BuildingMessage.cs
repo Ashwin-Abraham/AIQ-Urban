@@ -25,7 +25,7 @@ public class BuildingMessage : IMessageFromUI<ModelStateMessage>
     public ModelStateMessage HandleMessage()
     {
         var doc = RhinoDoc.ActiveDoc;
-        var use = DefaultUses.MixedUse;
+        var use = UrbanModel.Instance.GetUse("MixedUse");
 
         if (manual_generationType == "Mass")
             return HandleMassMode(doc, use);
@@ -42,9 +42,9 @@ public class BuildingMessage : IMessageFromUI<ModelStateMessage>
         if (selected.Count == 0)
             throw new Exception("Select one or more building footprint curves first.");
 
-        var gatherStep = new SelectBuildingFootprintsStep(selected, FloorHeight, FloorCount, use, "Footprint");
+        var gatherStep = new SelectBuildingFootprintStep(selected, FloorHeight, FloorCount, use);
         var creationData = gatherStep.Run(doc);
-        var idsToDelete = creationData.OfType<BuildingData>().Select(b => b.Footprint.Id).ToList();
+        var idsToDelete = creationData.OfType<BuildingFootprintData>().Select(b => b.Footprint.Id).ToList();
 
         return RunPipeline(doc, gatherStep, idsToDelete);
     }
@@ -52,20 +52,20 @@ public class BuildingMessage : IMessageFromUI<ModelStateMessage>
     private ModelStateMessage HandleMassMode(RhinoDoc doc, Use use)
     {
         var selected = doc.Objects.GetSelectedObjects(false, false)
-            .Where(obj => obj.ObjectType == ObjectType.Brep)
+            .Where(obj => obj.ObjectType is ObjectType.Brep or ObjectType.Extrusion)
             .ToList();
 
         if (selected.Count == 0)
-            throw new Exception("Select one or more building envelope Breps first.");
+            throw new Exception("Select one or more building envelope Breps or Extrusions first.");
 
-        var gatherStep = new SelectBuildingFootprintsStep(selected, FloorHeight, FloorCount, use, "Mass");
+        var gatherStep = new SelectBuildingEnvelopeStep(selected, FloorHeight, use);
         var creationData = gatherStep.Run(doc);
-        var idsToDelete = creationData.OfType<BuildingData>().Select(b => b.Footprint.Id).ToList();
+        var idsToDelete = creationData.OfType<BuildingMassData>().Select(b => b.Envelope.Id).ToList();
 
         return RunPipeline(doc, gatherStep, idsToDelete);
     }
 
-    private ModelStateMessage RunPipeline(RhinoDoc doc, SelectBuildingFootprintsStep gatherStep, List<Guid> idsToDelete)
+    private ModelStateMessage RunPipeline(RhinoDoc doc, IRhinoDataGatherStep gatherStep, List<Guid> idsToDelete)
     {
         var pipeline = new RhinoUrbanModelPipeline(doc, UrbanModel.Instance)
             .WithDataGatherStep(gatherStep)
