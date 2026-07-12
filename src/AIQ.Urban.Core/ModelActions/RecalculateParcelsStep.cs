@@ -13,22 +13,25 @@ namespace AIQ.Urban.Core.ModelActions;
 /// polygon centroids. Falls back to "Public" use when no
 /// old parcels exist (e.g. first run).
 ///
+/// When <see cref="ExternalCentroids"/> is set and non-empty, those centroid/use
+/// pairs are used instead of computing centroids from <c>model.Parcels</c>.
+/// This supports doc loading scenarios where parcel uses must be preserved
+/// from external data rather than the current model state.
+///
 /// NOTE: If multiple transit types produce overlapping holes in the same
 /// physical area, duplicate parcels will be created. No dedup is performed.
 /// </summary>
 public class RecalculateParcelsStep : IEditUrbanElementsStep
 {
+    public List<(Point3d Centroid, Use Use)>? ExternalCentroids { get; set; }
+
     public EditStepResult Run(UrbanModel model)
     {
         var oldParcelIds = model.Parcels.SelectMany(p => p.GetGeometryIds()).ToList();
 
-        var oldCentroids = new List<(Point3d Centroid, Use Use)>();
-        foreach (var p in model.Parcels)
-        {
-            var centroid = ComputeCentroid(p.Outline.Geometry);
-            if (centroid.HasValue)
-                oldCentroids.Add((centroid.Value, p.Use));
-        }
+        var oldCentroids = ExternalCentroids is { Count: > 0 }
+            ? ExternalCentroids
+            : CaptureParcelCentroids(model);
 
         model.Parcels.Clear();
 
@@ -44,6 +47,18 @@ public class RecalculateParcelsStep : IEditUrbanElementsStep
         var newParcelIds = model.Parcels.SelectMany(p => p.GetGeometryIds()).ToList();
 
         return new(newParcelIds, oldParcelIds);
+    }
+
+    private static List<(Point3d Centroid, Use Use)> CaptureParcelCentroids(UrbanModel model)
+    {
+        var centroids = new List<(Point3d Centroid, Use Use)>();
+        foreach (var p in model.Parcels)
+        {
+            var centroid = ComputeCentroid(p.Outline.Geometry);
+            if (centroid.HasValue)
+                centroids.Add((centroid.Value, p.Use));
+        }
+        return centroids;
     }
 
     private static Use ResolveUse(

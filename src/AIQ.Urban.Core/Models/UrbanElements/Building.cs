@@ -46,6 +46,21 @@ public class Building : IUrbanElement, IGraphableAsNode
         NodePoint = GetRepresentativeCenter();
     }
 
+    public Building(Brep envelope, IReadOnlyList<FloorPlate> existingPlates)
+    {
+        ArgumentNullException.ThrowIfNull(envelope);
+        ArgumentNullException.ThrowIfNull(existingPlates);
+        if (existingPlates.Count == 0)
+            throw new ArgumentException("At least one floor plate is required.", nameof(existingPlates));
+
+        Envelope = new BrepElement(envelope.DuplicateBrep(), Guid.NewGuid());
+        FloorPlates = existingPlates;
+        FloorCount = existingPlates.Count;
+        Footprint = existingPlates[0].Outline;
+        TypicalFloorHeight = ComputeTypicalFloorHeight(existingPlates);
+        NodePoint = GetRepresentativeCenter();
+    }
+
     private static BrepElement ComputeEnvelope(Curve footprint, double height, double tolerance = 1e-5)
     {
         var extrusion = Extrusion.CreateExtrusion(footprint, new Vector3d(0, 0, height));
@@ -87,6 +102,36 @@ public class Building : IUrbanElement, IGraphableAsNode
         var ordered = plates.OrderBy(x => x.Outline.Geometry.PointAtStart.Z).ToList().AsReadOnly();
         var footprint = firstFootprint ?? throw new InvalidOperationException("No valid contours found in envelope.");
         return (ordered, footprint);
+    }
+
+    private static double ComputeTypicalFloorHeight(IReadOnlyList<FloorPlate> plates)
+    {
+        if (plates.Count < 2)
+            return 3.0;
+
+        var tolerance = 1e-6;
+        var zValues = plates
+            .OrderBy(p => p.Outline.Geometry.PointAtStart.Z)
+            .Select(p => p.Outline.Geometry.PointAtStart.Z)
+            .ToList();
+
+        var differences = new List<double>();
+        for (int i = 1; i < zValues.Count; i++)
+        {
+            var diff = zValues[i] - zValues[i - 1];
+            if (Math.Abs(diff) > tolerance)
+                differences.Add(diff);
+        }
+
+        if (differences.Count == 0)
+            return 3.0;
+
+        // Return the mode (most common value), grouped to tolerance
+        return differences
+            .GroupBy(d => Math.Round(d, 4))
+            .OrderByDescending(g => g.Count())
+            .First()
+            .Key;
     }
 
     private static List<FloorPlate> ComputeOrderedFloorPlates(Curve footprint, double floorHeight, int floorCount, Use use)

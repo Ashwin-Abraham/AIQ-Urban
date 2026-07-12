@@ -11,13 +11,13 @@ using Rhino.Geometry;
 namespace AIQ.Urban.RhinoInterface.Pipeline.RhinoDocActions;
 
 public class SelectTransitCenterlinesStep(
-    IEnumerable<RhinoObject> selectedObjects,
+    IEnumerable<RhinoObject> objectsToParse,
     double width,
     TransitType transitType) : IRhinoDataGatherStep
 {
     public List<ICreationData> Run(RhinoDoc doc)
     {
-        var selected = selectedObjects
+        var selected = objectsToParse
             .Where(obj => obj.ObjectType == ObjectType.Curve)
             .ToList();
 

@@ -3,7 +3,12 @@ using AIQ.Urban.Core.Enums;
 using AIQ.Urban.Core.ModelActions;
 using AIQ.Urban.Core.ModelActions.CreationData;
 using AIQ.Urban.Core.Models;
+using AIQ.Urban.Core.Models.GeometryElements;
 using AIQ.Urban.Core.Models.Metrics;
+using AIQ.Urban.Core.Models.UrbanElements;
+using AIQ.Urban.RhinoInterface.Pipeline.RhinoDocActions;
+using AIQ.Urban.RhinoInterface.Utils;
+using Rhino;
 using Rhino.Geometry;
 
 namespace AIQ.Urban.RhinoInterface;
@@ -161,6 +166,101 @@ public static class PipelineConfigurations
     {
         var modifyStep = new ModifyModelUsesStep(editType, name, color, id);
         pipeline.WithUrbanElementStep(modifyStep);
+
+        return pipeline;
+    }
+
+    public static RhinoUrbanModelPipeline WithDocModelLoad(
+        this RhinoUrbanModelPipeline pipeline,
+        RhinoDoc doc)
+    {
+        var model = pipeline.UrbanModel;
+
+        model.Reset();
+
+        var transitPrefix = LayerConstants.Transit + "::";
+        var centerlines = RhinoDocScanner.FindCurvesOnLayerPrefix(doc, transitPrefix)
+            .Where(c => c.LayerPath.Contains("::Centerline::"))
+            .ToList();
+
+        foreach (var (curve, objectId, layerPath) in centerlines)
+        {
+            var parsed = LayerNameParser.ParseTransitLayer(layerPath);
+            if (parsed is null) continue;
+
+            var curve2d = new Curve2D(curve, objectId);
+            var transit = new Transit(curve2d, parsed.Value.Width, parsed.Value.Type);
+            model.AddTransit([transit]);
+        }
+
+        var parcelPrefix = LayerConstants.Parcel + "::";
+        var parcelBreps = RhinoDocScanner.FindBrepsOnLayerPrefix(doc, parcelPrefix);
+        var docParcelCentroids = new List<(Point3d Centroid, Use Use)>();
+        foreach (var (brep, objectId, layerPath) in parcelBreps)
+        {
+            var useName = LayerNameParser.ParseParcelUse(layerPath);
+            if (useName is null) continue;
+            Use use;
+            try { use = model.GetUse(useName); }
+            catch { use = model.GetUse("Undefined"); }
+
+            var centroid = AreaMassProperties.Compute(brep)?.Centroid;
+            if (centroid.HasValue)
+                docParcelCentroids.Add((centroid.Value, use));
+        }
+
+        var transitUnioner = new TransitSurfaceUnioner();
+        var recalcParcels = new RecalculateParcelsStep();
+        if (docParcelCentroids.Count > 0)
+            recalcParcels.ExternalCentroids = docParcelCentroids;
+
+        pipeline.WithUrbanElementStep(transitUnioner)
+            .WithUrbanElementStep(recalcParcels);
+
+        var envelopeBreps = RhinoDocScanner.FindBrepsOnLayerPrefix(doc, LayerConstants.BuildingEnvelope);
+        var floorPlateCurves = RhinoDocScanner.FindCurvesOnLayerPrefix(doc, LayerConstants.BuildingFloorPlates + "::");
+
+        foreach (var (envelopeBrep, envelopeId, _) in envelopeBreps)
+        {
+            var associatedPlates = new List<FloorPlate>();
+            foreach (var (fpCurve, fpId, fpLayerPath) in floorPlateCurves)
+            {
+                var useName = LayerNameParser.ParseFloorPlateUse(fpLayerPath);
+                if (useName is null) continue;
+                Use use;
+                try { use = model.GetUse(useName); }
+                catch { use = model.GetUse("Undefined"); }
+
+                var fpCentroid = AreaMassProperties.Compute(fpCurve)?.Centroid;
+                if (fpCentroid is null) continue;
+
+                var isInside = envelopeBrep.IsPointInside(fpCentroid.Value, doc.ModelAbsoluteTolerance, true);
+                if (isInside)
+                {
+                    var polygon = new Polygon2D(fpCurve);
+                    associatedPlates.Add(new FloorPlate(polygon, use));
+                }
+            }
+
+            if (associatedPlates.Count == 0) continue;
+
+            var building = new Building(envelopeBrep, associatedPlates);
+            model.AddBuilding(building);
+        }
+
+        var zonePrefix = LayerConstants.ZoneRoot + "::";
+        var zoneCurves = RhinoDocScanner.FindCurvesOnLayerPrefix(doc, zonePrefix);
+        foreach (var (curve, objectId, layerPath) in zoneCurves)
+        {
+            var zoneName = LayerNameParser.ParseZoneName(layerPath);
+            if (zoneName is null) continue;
+
+            var polygon = new Polygon2D(curve) { Id = objectId };
+            var zone = new Zone(polygon, zoneName);
+            model.AddZone(zone);
+        }
+
+        pipeline.WithMetricsCalculation();
 
         return pipeline;
     }

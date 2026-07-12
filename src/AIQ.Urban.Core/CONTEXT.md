@@ -11,9 +11,10 @@ Pure city-modelling domain logic. Models buildings, transit networks, parcels, z
 5. `Models/GeometryElements/Profile2D.cs` — planar curve wrapper, XY-validated
 6. `Models/Use.cs` — `record` with `string Name` + `Color`
 7. `Models/FloorPlate.cs` — `Profile2D Outline` + `Use`, per-storey footprint
-8. `Models/UrbanElements/Building.cs` — two constructors:
+8. `Models/UrbanElements/Building.cs` — three constructors:
    - `(Polygon2D footprint, double typicalFloorHeight, int floorCount, Use use)` — footprint mode: extrudes footprint to compute envelope, duplicates + translates footprint for each floor plate. Footprint validated by `ValidateFootprint()`: checks planar, reverses if normal points down.
    - `(Brep envelope, double typicalFloorHeight, Use use, double tolerance = 1e-5)` — mass mode: uses the Brep as the envelope directly, derives floor plate outlines by contouring the Brep horizontally at intervals of `typicalFloorHeight` starting at `lowestZ + tolerance`. `FloorCount` = `Floor(envelopeHeight / typicalFloorHeight)`.
+   - `(Brep envelope, IReadOnlyList<FloorPlate> existingPlates)` — doc-load mode: preserves existing floor plate curves as-is. `TypicalFloorHeight` computed as mode of non-zero Z-differences between consecutive plates (tolerance 1e-6, fallback 3.0). `Footprint` = lowest plate outline. `FloorCount` = `existingPlates.Count`.
 9. `Models/Zone.cs` — `IUrbanElement` with `Polygon2D Boundary` and `string Name` properties. `GetContainedElements(UrbanModel)` returns all `IUrbanElement`s whose `GetRepresentativeCenter()` falls inside the zone boundary. Never returns other Zones.
 10. `Models/UrbanElements/Parcel.cs` — `SetUse(Use use)` for in-place Use mutation. `ChangeParcelUseStep` in `ModelActions/` implements `IEditUrbanElementsStep` to batch-change parcel Uses from a flat list of geometry GUIDs.
 
@@ -73,9 +74,10 @@ A semantic label with visual feedback. `string Name` + `Color` (System.Drawing.C
 ### Building
 A constructed structure. Has a collection of `FloorPlate`s and a `Brep Envelope` representing the outer shell. Added via `UrbanModel.AddBuilding(Building)`. Does not store a building-level Use — each `FloorPlate` owns its own Use. The constructors accept a `Use` parameter to initialise all floor plates, but the value is not retained on Building.
 
-Constructed in two modes:
+Constructed in three modes:
 - **Footprint mode**: `Building(Polygon2D footprint, double typicalFloorHeight, int floorCount, Use use)` — extrudes the footprint up to `typicalFloorHeight * floorCount` for the envelope, creates one floor plate per storey by translating the footprint.
 - **Mass mode**: `Building(Brep envelope, double typicalFloorHeight, Use use, double tolerance = 1e-5)` — preserves the supplied Brep as the envelope, derives floor plates by contouring the Brep at horizontal planes starting at `lowestZ + tolerance` and every `typicalFloorHeight` upward. All intersecting curves at each level become separate floor plates (ordered by Z). Contours with curve length < tolerance are discarded. `FloorCount` = `Floor(envelopeHeight / typicalFloorHeight)`.
+- **Doc-load mode**: `Building(Brep envelope, IReadOnlyList<FloorPlate> existingPlates)` — preserves existing floor plate curves as-is from the Rhino doc. `TypicalFloorHeight` is the mode of non-zero Z-differences between consecutive plates (tolerance 1e-6, fallback 3.0). `Footprint` = lowest plate outline. `FloorCount` = `existingPlates.Count`.
 
 ### BuildingFootprintData
 Creation data record for footprint-mode buildings. Fields: `Polygon2D Footprint`, `double TypicalFloorHeight`, `int FloorCount`, `Use Use`. Produced by `SelectBuildingFootprintStep`.
@@ -112,7 +114,7 @@ A `Node` with `List<Node> Neighbours`. Junction/intersection in a transit networ
 ### Parcel2D
 A 2D land parcel with a `Polygon2D Outline` and a `Use`. Stored in `UrbanModel.Parcels` — cleared and regenerated on each transit change by `RecalculateParcelsStep`. Parcels are derived from the holes in each `TransitType`'s unioned surface (`TransitSurfaces`). Default `Use` is `DefaultUses.Public`. Use is mutable via `SetUse()`. No deduplication is performed if multiple transit types produce overlapping holes.
 
-Use preservation across recalculation uses nearest-centroid matching (`ResolveUse` in `RecalculateParcelsStep`). Explicitly set uses may be lost if transit changes reshape parcels significantly — this is accepted behaviour for now.
+Use preservation across recalculation uses nearest-centroid matching (`ResolveUse` in `RecalculateParcelsStep`). When loading from doc, external centroid/use pairs can be passed via the optional `externalCentroids` parameter to override the default (empty) old-parcel lookup. Explicitly set uses may be lost if transit changes reshape parcels significantly — this is accepted behaviour for now.
 
 ### Parcel3D
 A 3D parcel extruded from a `Parcel2D FlatParcel` plus a `Mesh ProjectedParcel` (e.g. terrain-projected).
