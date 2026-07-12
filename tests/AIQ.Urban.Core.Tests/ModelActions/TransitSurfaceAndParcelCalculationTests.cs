@@ -38,9 +38,9 @@ public class TransitSurfaceAndParcelCalculationTests
 
         // Act
         var unionerStep = new TransitSurfaceUnioner();
-        unionerStep.Run(UrbanModel.Instance);
+        unionerStep.Run(UrbanModel.Instance, []);
         var parcelsStep = new RecalculateParcelsStep();
-        var result = parcelsStep.Run(UrbanModel.Instance);
+        var result = parcelsStep.Run(UrbanModel.Instance, []);
 
         // Visualise
 #if DEBUG

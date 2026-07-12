@@ -1,3 +1,4 @@
+using AIQ.Urban.Core.ModelActions.CreationData;
 using AIQ.Urban.Core.Models;
 using AIQ.Urban.Core.Models.UrbanElements;
 
@@ -7,7 +8,7 @@ public class ChangeBuildingUseStep(
     List<Guid> geometryIds,
     Use newUse) : IEditUrbanElementsStep
 {
-    public EditStepResult Run(UrbanModel model)
+    public EditStepResult Run(UrbanModel model, List<ICreationData> creationData)
     {
         var touchedBuildings = new HashSet<Building>();
 

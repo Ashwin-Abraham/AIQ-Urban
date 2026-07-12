@@ -1,10 +1,11 @@
-﻿using AIQ.Urban.Core.Models.GeometryElements;
+﻿using AIQ.Urban.Core.ModelActions.CreationData;
+using AIQ.Urban.Core.Models.GeometryElements;
 using Rhino.Geometry;
 
 namespace AIQ.Urban.Core.ModelActions;
 public class TransitSurfaceUnioner(double _tolerance = 0.001) : IEditUrbanElementsStep
 {
-    public EditStepResult Run(UrbanModel model)
+    public EditStepResult Run(UrbanModel model, List<ICreationData> creationData)
     {
         var oldIds = model.TransitSurfaces.Select(x => x.Profile.Id).ToList();
         model.TransitSurfaces.Clear();

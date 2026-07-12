@@ -5,7 +5,7 @@ using AIQ.Urban.Core;
 using AIQ.Urban.Core.Enums;
 using AIQ.Urban.Core.ModelActions.CreationData;
 using AIQ.Urban.RhinoInterface;
-using AIQ.Urban.RhinoInterface.Pipeline.RhinoDocActions;
+using AIQ.Urban.RhinoInterface.Pipeline.RhinoDataGatherSteps;
 using AIQ.Urban.RhinoPlugin.HTML_UI.MessageToUI;
 using Rhino;
 using Rhino.DocObjects;

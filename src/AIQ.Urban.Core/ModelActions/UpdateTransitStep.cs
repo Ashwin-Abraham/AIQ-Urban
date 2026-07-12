@@ -1,3 +1,4 @@
+using AIQ.Urban.Core.ModelActions.CreationData;
 using AIQ.Urban.Core.Models.GeometryElements;
 using AIQ.Urban.Core.Models.UrbanElements;
 using Rhino.Geometry;
@@ -6,7 +7,7 @@ namespace AIQ.Urban.Core.ModelActions;
 
 public class UpdateTransitStep(Guid _oldCenterlineId, Curve _newCenterline) : IEditUrbanElementsStep
 {
-    public EditStepResult Run(UrbanModel model)
+    public EditStepResult Run(UrbanModel model, List<ICreationData> creationData)
     {
         var oldTransit = model.Transits
             .FirstOrDefault(t => t.GetGeometryIds().Contains(_oldCenterlineId));

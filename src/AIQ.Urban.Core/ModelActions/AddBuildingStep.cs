@@ -18,6 +18,10 @@ public class AddBuildingStep(double _tolerance = 1e-5) : IAddUrbanElementsStep
             {
                 buildings.Add(new Models.UrbanElements.Building(massData.Envelope.Geometry, massData.FloorHeight, massData.Use, _tolerance));
             }
+            else if (data is BuildingMassAndFloorsData mfData)
+            {
+                buildings.Add(new Models.UrbanElements.Building(mfData.Envelope.Geometry, mfData.AssociatedPlates));
+            }
         }
 
         foreach (var building in buildings)

@@ -1,5 +1,6 @@
 using System.Drawing;
 using AIQ.Urban.Core.Enums;
+using AIQ.Urban.Core.ModelActions.CreationData;
 using AIQ.Urban.Core.Models;
 
 namespace AIQ.Urban.Core.ModelActions;
@@ -12,7 +13,7 @@ public class ModifyModelUsesStep(
 {
     public Use? AffectedUse { get; private set; }
 
-    public EditStepResult Run(UrbanModel model)
+    public EditStepResult Run(UrbanModel model, List<ICreationData> creationData)
     {
         switch (editType)
         {
