@@ -39,7 +39,7 @@ public class UpdateTransitStepTests
         var updateStep = new UpdateTransitStep(
             testData.UseExistingId ? oldCenterlineId : Guid.NewGuid(),
             testData.NewCenterline);
-        var result = updateStep.Run(UrbanModel.Instance);
+        var result = updateStep.Run(UrbanModel.Instance, []);
 
         // Visualise
 #if DEBUG

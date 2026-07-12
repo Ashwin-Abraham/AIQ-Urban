@@ -94,7 +94,7 @@ public class RhinoUrbanModelPipeline(
 
         foreach (var step in _editSteps)
         {
-            var result = step.Run(_urbanModel);
+            var result = step.Run(_urbanModel, creationData);
             addedIds.AddRange(result.AddedIds);
             deletedIds.AddRange(result.DeletedIds);
         }

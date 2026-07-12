@@ -1,3 +1,4 @@
+using AIQ.Urban.Core.ModelActions.CreationData;
 using AIQ.Urban.Core.Models;
 using AIQ.Urban.Core.Models.GeometryElements;
 using AIQ.Urban.Core.Models.UrbanElements;
@@ -7,7 +8,7 @@ namespace AIQ.Urban.Core.ModelActions;
 
 public class UpdateZoneStep(Guid _oldBoundaryId, Curve _newBoundary) : IEditUrbanElementsStep
 {
-    public EditStepResult Run(UrbanModel model)
+    public EditStepResult Run(UrbanModel model, List<ICreationData> creationData)
     {
         var oldZone = model.Zones
             .FirstOrDefault(z => z.GetGeometryIds().Contains(_oldBoundaryId));

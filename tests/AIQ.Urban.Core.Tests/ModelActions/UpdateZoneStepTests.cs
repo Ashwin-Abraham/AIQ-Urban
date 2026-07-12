@@ -40,7 +40,7 @@ public class UpdateZoneStepTests
         var updateStep = new UpdateZoneStep(
             testData.UseExistingId ? oldBoundaryId : Guid.NewGuid(),
             testData.NewBoundary);
-        var result = updateStep.Run(UrbanModel.Instance);
+        var result = updateStep.Run(UrbanModel.Instance, []);
 
         // Visualise
 #if DEBUG

@@ -42,7 +42,7 @@ public class ChangeBuildingUseStepTests
             testData.NewUse);
 
         // Act
-        var result = step.Run(UrbanModel.Instance);
+        var result = step.Run(UrbanModel.Instance, []);
 
         // Visualise
 #if DEBUG

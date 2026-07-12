@@ -298,16 +298,16 @@ public class GraphCreationStepTests
     private static void RunParcelCreationSteps()
     {
         var unionerStep = new TransitSurfaceUnioner();
-        unionerStep.Run(UrbanModel.Instance);
+        unionerStep.Run(UrbanModel.Instance, []);
 
         var parcelsStep = new RecalculateParcelsStep();
-        parcelsStep.Run(UrbanModel.Instance);
+        parcelsStep.Run(UrbanModel.Instance, []);
     }
 
     private static Graph RunGraphCreationStep()
     {
         var graphStep = new GraphCreationStep();
-        graphStep.Run(UrbanModel.Instance);
+        graphStep.Run(UrbanModel.Instance, []);
         return UrbanModel.Instance.UrbanGraph;
     }
 

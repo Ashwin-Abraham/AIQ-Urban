@@ -42,7 +42,7 @@ public class ModifyModelUsesStepTests
             undefinedUse.Id);
 
         // Act
-        var result = step.Run(UrbanModel.Instance);
+        var result = step.Run(UrbanModel.Instance, []);
 
         // Assert
         Assert.That(result.AddedIds, Is.Empty);
@@ -65,7 +65,7 @@ public class ModifyModelUsesStepTests
             residential.Id);
 
         // Act
-        var result = step.Run(UrbanModel.Instance);
+        var result = step.Run(UrbanModel.Instance, []);
 
         // Assert
         Assert.That(UrbanModel.Instance.Uses, Has.Count.EqualTo(9));
