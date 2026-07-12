@@ -141,6 +141,7 @@ These pipeline configurations are wrapped as reusable methods (not necessarily u
 
 ### `StartUI_AIQUrban`
 - Starts the AIQ Urban HTML UI from Rhino.
+- **Model loading**: Before starting UI servers, scans the Rhino doc and hydrates `UrbanModel` from existing baked geometry. Uses `WithDocModelLoad()` pipeline configuration. UrbanModel is nuked (`Reset()`) and rebuilt from scratch. Loading order: uses → transits (from centerlines) → transit surface union → parcels (with use preservation from doc centroids) → buildings (from envelopes + floor plates) → zones → metrics. Orphaned geometry is silently skipped.
 - Command owns UI startup only: starts local HTTP/static-file serving, starts websocket communication, then opens an Eto WebView pointed at the served `index.html`.
 - Local UI ports follow the old working pattern: HTTP on `localhost:6300`, websocket on `localhost:6400`.
 - Static UI assets are copied from the Vue UI dist into the plugin output under `HTML_UI/wwwroot` at build time; the HTTP server serves from the copied output directory, not the source tree.
