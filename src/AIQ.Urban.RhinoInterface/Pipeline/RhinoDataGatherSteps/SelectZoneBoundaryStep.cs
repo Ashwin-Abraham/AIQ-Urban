@@ -7,7 +7,7 @@ using Rhino;
 using Rhino.DocObjects;
 using Rhino.Geometry;
 
-namespace AIQ.Urban.RhinoInterface.Pipeline.RhinoDocActions;
+namespace AIQ.Urban.RhinoInterface.Pipeline.RhinoDataGatherSteps;
 
 public class SelectZoneBoundaryStep(
     IEnumerable<RhinoObject> selectedObjects,
