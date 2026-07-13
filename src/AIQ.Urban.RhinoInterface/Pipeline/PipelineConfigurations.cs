@@ -176,15 +176,31 @@ public static class PipelineConfigurations
     {
         var model = pipeline.UrbanModel;
 
+        // Construct direct delete object ids
+        var rootIndex = doc.Layers.FindByFullPath(LayerConstants.Root, -1);
+        if (rootIndex == -1)
+            return pipeline;
+
+        var aiqRootLayer = doc.Layers[rootIndex];
+        var allLayerIndices = aiqRootLayer.GetChildren(true).Append(aiqRootLayer).Select(x => x.Index).ToList();
+        var aiqLayerObjectIds = doc.Objects
+            .Where(x => allLayerIndices.Contains(x.Attributes.LayerIndex))
+            .Select(x => x.Id)
+            .ToList();
+
+        // Construct creation data gather step
         var gatherStep = new DocLoadGatherStep(model, doc.ModelAbsoluteTolerance);
 
+        // Compose pipeline
         pipeline.WithDataGatherStep(gatherStep)
+            .WithRhinoObjectDeletion(aiqLayerObjectIds)
             .WithUrbanElementStep(new ResetUrbanElementsStep())
             .WithUrbanElementStep(new AddTransitStep())
             .WithUrbanElementStep(new AddBuildingStep())
             .WithUrbanElementStep(new AddZoneStep())
             .WithUrbanElementStep(new TransitSurfaceUnioner())
             .WithUrbanElementStep(new RecalculateParcelsStep())
+            .WithFullModelOutput()
             .WithMetricsCalculation();
 
         return pipeline;
