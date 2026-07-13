@@ -36,6 +36,7 @@ public class ZonePipelineConfigurationTests
         // Act
         var pipeline = new RhinoUrbanModelPipeline(doc, UrbanModel.Instance)
             .WithZoneAdditionSteps(testData.Input, [])
+            .WithFullModelOutput()
             .WithMetricsCalculation(false);
         pipeline.Run();
 

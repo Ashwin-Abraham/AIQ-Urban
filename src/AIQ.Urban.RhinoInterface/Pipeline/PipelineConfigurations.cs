@@ -185,7 +185,6 @@ public static class PipelineConfigurations
             .WithUrbanElementStep(new AddZoneStep())
             .WithUrbanElementStep(new TransitSurfaceUnioner())
             .WithUrbanElementStep(new RecalculateParcelsStep())
-            .WithoutModelOutput()
             .WithMetricsCalculation();
 
         return pipeline;

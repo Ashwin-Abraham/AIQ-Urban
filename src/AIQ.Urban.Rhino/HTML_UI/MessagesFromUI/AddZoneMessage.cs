@@ -37,6 +37,7 @@ public class AddZoneMessage : IMessageFromUI<ModelStateMessage>
         var pipeline = new RhinoUrbanModelPipeline(doc, UrbanModel.Instance)
             .WithDataGatherStep(gatherStep)
             .WithZoneAdditionSteps([], idsToDelete)
+            .WithFullModelOutput()
             .WithMetricsCalculation(tolerance: doc.ModelAbsoluteTolerance);
 
         if (Urban_RhinoPlugin.Instance.EventHandler is { } handler)

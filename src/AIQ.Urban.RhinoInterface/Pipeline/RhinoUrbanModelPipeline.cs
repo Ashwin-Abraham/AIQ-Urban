@@ -15,13 +15,13 @@ public class RhinoUrbanModelPipeline(
     RhinoDoc _rhinoDoc,
     UrbanModel _urbanModel)
 {
-    private bool _outputToRhino = true;
     private IRhinoDataGatherStep? _objectSelectionStep;
     private List<ICreationData> _creationData = [];
     private readonly List<IUrbanModelStep> _addDeleteSteps = [];
     private readonly List<IEditUrbanElementsStep> _editSteps = [];
     private readonly List<Guid> _directDeleteIds = [];
     private readonly List<Action<UrbanModel>> _postActions = [];
+    private readonly List<IUrbanModelRhinoOutputter> _outputters = [];
 
     private RhinoUrbanEventHandler? _eventHandler = null;
 
@@ -57,14 +57,25 @@ public class RhinoUrbanModelPipeline(
         return this;
     }
 
-    public RhinoUrbanModelPipeline WithoutModelOutput()
-    {
-        _outputToRhino = false;
-        return this;
-    }
     public RhinoUrbanModelPipeline WithUrbanElementStep(IEditUrbanElementsStep step)
     {
         _editSteps.Add(step);
+        return this;
+    }
+
+    public RhinoUrbanModelPipeline WithFullModelOutput()
+    {
+        _outputters.Add(new TransitOutputter());
+        _outputters.Add(new BuildingOutputter());
+        _outputters.Add(new ParcelOutputter());
+        _outputters.Add(new ZoneOutputter());
+        _outputters.Add(new TransitSurfaceOutputter());
+        return this;
+    }
+
+    public RhinoUrbanModelPipeline WithRhinoOutputter<T>() where T : IUrbanModelRhinoOutputter, new()
+    {
+        _outputters.Add(new T());
         return this;
     }
 
@@ -109,7 +120,7 @@ public class RhinoUrbanModelPipeline(
 
         deletedIds.AddRange(_directDeleteIds);
 
-        if(_outputToRhino)
+        if(_outputters.Count > 0)
         {
             DeleteRhinoObjects(deletedIds);
             AddRhinoObjects(addedIds);
@@ -130,17 +141,8 @@ public class RhinoUrbanModelPipeline(
     {
         var elementsToAdd = FilterElementsToAdd(addedIds);
 
-        var outputters = new List<IUrbanModelRhinoOutputter>
-        {
-            new TransitOutputter(elementsToAdd.OfType<Transit>().ToList()),
-            new BuildingOutputter(elementsToAdd.OfType<Building>().ToList()),
-            new ParcelOutputter(elementsToAdd.OfType<Parcel>().ToList()),
-            new ZoneOutputter(elementsToAdd.OfType<Zone>().ToList()),
-            new TransitSurfaceOutputter()
-        };
-
-        foreach (var outputter in outputters)
-            outputter.Run(_urbanModel, _rhinoDoc);
+        foreach (var outputter in _outputters)
+            outputter.Run(_urbanModel, _rhinoDoc, elementsToAdd);
     }
 
     private List<IUrbanElement> FilterElementsToAdd(List<Guid> addedIds)

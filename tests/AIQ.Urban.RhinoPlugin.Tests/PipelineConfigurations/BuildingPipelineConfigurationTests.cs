@@ -37,6 +37,7 @@ public class BuildingPipelineConfigurationTests
         // Act
         pipeline
             .WithBuildingAdditionSteps(testData.Input.Cast<ICreationData>().ToList(), [])
+            .WithFullModelOutput()
             .WithMetricsCalculation(false)
             .Run();
 

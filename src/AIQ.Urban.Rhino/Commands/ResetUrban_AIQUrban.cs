@@ -36,6 +36,7 @@ public class ResetUrban_AIQUrban : Command
 
         var pipeline = new RhinoUrbanModelPipeline(doc, UrbanModel.Instance);
         pipeline.WithUrbanElementStep(new ResetUrbanElementsStep());
+        pipeline.WithFullModelOutput();
         pipeline.WithEventHandler(Urban_RhinoPlugin.Instance.EventHandler);
         pipeline.Run();
 

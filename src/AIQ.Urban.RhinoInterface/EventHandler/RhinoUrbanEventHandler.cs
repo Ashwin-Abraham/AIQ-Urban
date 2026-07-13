@@ -226,6 +226,7 @@ public class RhinoUrbanEventHandler : IDisposable
 
         var pipeline = new RhinoUrbanModelPipeline(_doc, UrbanModel.Instance)
             .WithTransitDeletionSteps(centerlineIds)
+            .WithFullModelOutput()
             .WithMetricsCalculation();
 
         RunPipeline(pipeline);
@@ -244,6 +245,7 @@ public class RhinoUrbanEventHandler : IDisposable
 
         var pipeline = new RhinoUrbanModelPipeline(_doc, UrbanModel.Instance)
             .WithTransitUpdateSteps(oldCenterlineId, newCurve)
+            .WithFullModelOutput()
             .WithMetricsCalculation();
 
         RunPipeline(pipeline);
@@ -255,6 +257,7 @@ public class RhinoUrbanEventHandler : IDisposable
 
         var pipeline = new RhinoUrbanModelPipeline(_doc, UrbanModel.Instance)
             .WithBuildingDeletionSteps(geometryIds)
+            .WithFullModelOutput()
             .WithMetricsCalculation();
 
         RunPipeline(pipeline);
@@ -266,6 +269,7 @@ public class RhinoUrbanEventHandler : IDisposable
 
         var pipeline = new RhinoUrbanModelPipeline(_doc, UrbanModel.Instance)
             .WithZoneDeletionSteps(geometryIds)
+            .WithFullModelOutput()
             .WithMetricsCalculation();
 
         RunPipeline(pipeline);
@@ -284,6 +288,7 @@ public class RhinoUrbanEventHandler : IDisposable
 
         var pipeline = new RhinoUrbanModelPipeline(_doc, UrbanModel.Instance)
             .WithZoneUpdateSteps(oldBoundaryId, newCurve)
+            .WithFullModelOutput()
             .WithMetricsCalculation();
 
         RunPipeline(pipeline);

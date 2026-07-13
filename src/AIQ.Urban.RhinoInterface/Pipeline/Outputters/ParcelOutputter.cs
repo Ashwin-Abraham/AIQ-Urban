@@ -5,10 +5,11 @@ using Rhino;
 
 namespace AIQ.Urban.RhinoInterface.Pipeline.Outputters;
 
-public class ParcelOutputter(List<Parcel> parcels) : IUrbanModelRhinoOutputter
+public class ParcelOutputter : IUrbanModelRhinoOutputter
 {
-    public void Run(UrbanModel model, RhinoDoc doc)
+    public void Run(UrbanModel model, RhinoDoc doc, List<IUrbanElement> elements)
     {
+        var parcels = elements.OfType<Parcel>().ToList();
         foreach (var parcel in parcels)
             RhinoOutputHelper.OutputGeometry(
                 doc, 

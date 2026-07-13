@@ -6,10 +6,11 @@ using Rhino;
 
 namespace AIQ.Urban.RhinoInterface.Pipeline.Outputters;
 
-public class BuildingOutputter(List<Building> buildings) : IUrbanModelRhinoOutputter
+public class BuildingOutputter : IUrbanModelRhinoOutputter
 {
-    public void Run(UrbanModel model, RhinoDoc doc)
+    public void Run(UrbanModel model, RhinoDoc doc, List<IUrbanElement> elements)
     {
+        var buildings = elements.OfType<Building>().ToList();
         var envelopeAttributes = RhinoOutputHelper.MakeLayerDrivenAttributes(doc, LayerConstants.BuildingEnvelope, ColorUtils.BuildingEnvelopeColor);
 
         foreach (var building in buildings)
