@@ -9,7 +9,7 @@ using Rhino;
 
 namespace AIQ.Urban.RhinoInterface.Pipeline.Outputters;
 
-public class TransitOutputter(List<Transit> transits) : IUrbanModelRhinoOutputter
+public class TransitOutputter : IUrbanModelRhinoOutputter
 {
     private static readonly Dictionary<TransitType, (int Hue, double SatMin, double SatMax, double LightMin, double LightMax)> ColorConfig = new()
     {
@@ -20,8 +20,9 @@ public class TransitOutputter(List<Transit> transits) : IUrbanModelRhinoOutputte
         [TransitType.Waterway] = (219, 55, 95, 45, 75),
     };
 
-    public void Run(UrbanModel model, RhinoDoc doc)
+    public void Run(UrbanModel model, RhinoDoc doc, List<IUrbanElement> elements)
     {
+        var transits = elements.OfType<Transit>().ToList();
         SetTransitColors(transits);
 
         foreach (var transit in transits)

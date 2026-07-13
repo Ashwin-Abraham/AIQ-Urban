@@ -67,6 +67,7 @@ public class AddZone_AIQUrban : Command
         var pipeline = new RhinoUrbanModelPipeline(doc, UrbanModel.Instance)
             .WithDataGatherStep(gatherStep)
             .WithZoneAdditionSteps([], idsToDelete)
+            .WithFullModelOutput()
             .WithMetricsCalculation(saveToFile: true, tolerance: doc.ModelAbsoluteTolerance, docName: doc.Name)
             .WithEventHandler(Urban_RhinoPlugin.Instance.EventHandler);
         pipeline.Run();

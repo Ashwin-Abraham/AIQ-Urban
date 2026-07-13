@@ -36,6 +36,7 @@ public class ResetUrban_AIQUrbanTests
         var buildingData = new BuildingFootprintData(footprint, 3.5, 3, DefaultUses.Create("Residential"));
         var pipeline = new RhinoUrbanModelPipeline(doc, UrbanModel.Instance)
             .WithBuildingAdditionSteps(new System.Collections.Generic.List<ICreationData> { buildingData }, [])
+            .WithFullModelOutput()
             .WithMetricsCalculation(false);
 
         pipeline.Run();
@@ -48,6 +49,7 @@ public class ResetUrban_AIQUrbanTests
         // Act: reset
         pipeline = new RhinoUrbanModelPipeline(doc, UrbanModel.Instance);
         pipeline.WithUrbanElementStep(new ResetUrbanElementsStep());
+        pipeline.WithFullModelOutput();
         pipeline.Run();
 
         // Assert: model is empty

@@ -35,6 +35,7 @@ public class TransitMessage : IMessageFromUI<ModelStateMessage>
         var pipeline = new RhinoUrbanModelPipeline(doc, UrbanModel.Instance)
             .WithDataGatherStep(gatherStep)
             .WithTransitAdditionSteps([], centerlineIds)
+            .WithFullModelOutput()
             .WithMetricsCalculation(tolerance: doc.ModelAbsoluteTolerance);
 
         if (Urban_RhinoPlugin.Instance.EventHandler is { } handler)

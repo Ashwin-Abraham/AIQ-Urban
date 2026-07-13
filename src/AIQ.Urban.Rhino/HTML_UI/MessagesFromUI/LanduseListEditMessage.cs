@@ -32,6 +32,7 @@ public class LanduseListEditMessage : IMessageFromUI<ModelStateMessage>
 
         var pipeline = new RhinoUrbanModelPipeline(doc, UrbanModel.Instance)
             .WithLanduseListEditSteps(editType, name, parsedColor, guid)
+            .WithFullModelOutput()
             .WithMetricsCalculation(tolerance: doc.ModelAbsoluteTolerance);
 
         if (Urban_RhinoPlugin.Instance.EventHandler is { } handler)

@@ -70,6 +70,7 @@ public class BuildingMessage : IMessageFromUI<ModelStateMessage>
         var pipeline = new RhinoUrbanModelPipeline(doc, UrbanModel.Instance)
             .WithDataGatherStep(gatherStep)
             .WithBuildingAdditionSteps([], idsToDelete)
+            .WithFullModelOutput()
             .WithMetricsCalculation(tolerance: doc.ModelAbsoluteTolerance);
 
         if (Urban_RhinoPlugin.Instance.EventHandler is { } handler)

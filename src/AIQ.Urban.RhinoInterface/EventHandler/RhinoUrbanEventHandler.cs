@@ -1,5 +1,7 @@
 using AIQ.Urban.Core;
 using AIQ.Urban.Core.Models.UrbanElements;
+using AIQ.Urban.RhinoInterface.Pipeline.Outputters;
+using AIQ.Urban.RhinoInterface.Utils;
 using Rhino;
 using Rhino.DocObjects;
 using Rhino.Geometry;
@@ -133,14 +135,14 @@ public class RhinoUrbanEventHandler : IDisposable
         }
 
         // Process replacements
-        foreach (var (_, newId) in batch.Replacements)
+        foreach (var (oldId, newId) in batch.Replacements)
         {
             var newObj = _doc.Objects.FindId(newId);
             if (!IsOnManagedLayer(newObj)) continue;
 
-            // Try to find the element by scanning UrbanModel
-            // (the old ID was a placeholder, not useful for lookup)
-            var element = FindElementByLayer(newObj);
+            IUrbanElement? element = ObjectIdToElement.TryGetValue(oldId, out var directLookup)
+                ? directLookup
+                : FindElementByLayer(newObj);
             if (element == null) continue;
 
             // Remove old mapping for this element's previous geometry IDs
@@ -153,6 +155,11 @@ public class RhinoUrbanEventHandler : IDisposable
                 case Transit transit:
                     HandleTransitReplace(transit, newId);
                     break;
+                
+                case Parcel parcel:
+                    HandleParcelReplace(parcel, newId);
+                    break;
+                
                 case Zone zone:
                     HandleZoneReplace(zone, newId);
                     break;
@@ -212,6 +219,16 @@ public class RhinoUrbanEventHandler : IDisposable
             return UrbanModel.Instance.Zones.FirstOrDefault();
         }
 
+        if (fullPath.Contains("::Parcel::", StringComparison.OrdinalIgnoreCase))
+        {
+            if (ObjectIdToElement.TryGetValue(objectId, out var existing))
+                return existing;
+
+            var useName = fullPath.Split("::Parcel::").Last();
+            return UrbanModel.Instance.Parcels
+                .FirstOrDefault(p => p.Use.Name.Equals(useName, StringComparison.OrdinalIgnoreCase));
+        }
+
         return null;
     }
 
@@ -221,6 +238,7 @@ public class RhinoUrbanEventHandler : IDisposable
 
         var pipeline = new RhinoUrbanModelPipeline(_doc, UrbanModel.Instance)
             .WithTransitDeletionSteps(centerlineIds)
+            .WithFullModelOutput()
             .WithMetricsCalculation();
 
         RunPipeline(pipeline);
@@ -239,6 +257,7 @@ public class RhinoUrbanEventHandler : IDisposable
 
         var pipeline = new RhinoUrbanModelPipeline(_doc, UrbanModel.Instance)
             .WithTransitUpdateSteps(oldCenterlineId, newCurve)
+            .WithFullModelOutput()
             .WithMetricsCalculation();
 
         RunPipeline(pipeline);
@@ -250,6 +269,7 @@ public class RhinoUrbanEventHandler : IDisposable
 
         var pipeline = new RhinoUrbanModelPipeline(_doc, UrbanModel.Instance)
             .WithBuildingDeletionSteps(geometryIds)
+            .WithFullModelOutput()
             .WithMetricsCalculation();
 
         RunPipeline(pipeline);
@@ -261,6 +281,7 @@ public class RhinoUrbanEventHandler : IDisposable
 
         var pipeline = new RhinoUrbanModelPipeline(_doc, UrbanModel.Instance)
             .WithZoneDeletionSteps(geometryIds)
+            .WithFullModelOutput()
             .WithMetricsCalculation();
 
         RunPipeline(pipeline);
@@ -279,9 +300,26 @@ public class RhinoUrbanEventHandler : IDisposable
 
         var pipeline = new RhinoUrbanModelPipeline(_doc, UrbanModel.Instance)
             .WithZoneUpdateSteps(oldBoundaryId, newCurve)
+            .WithFullModelOutput()
             .WithMetricsCalculation();
 
         RunPipeline(pipeline);
+    }
+
+    private void HandleParcelReplace(Parcel parcel, Guid newId)
+    {
+        try
+        {
+            _eventLock = true;
+            ParcelOutputter outputter = new ParcelOutputter();
+            outputter.Run(UrbanModel.Instance, _doc, [parcel]);
+            _doc.Objects.Delete(newId, true);
+            ObjectIdToElement[parcel.Outline.Id] = parcel;
+        }
+        finally
+        {
+            _eventLock = false;
+        }
     }
 
     private void RunPipeline(RhinoUrbanModelPipeline pipeline)

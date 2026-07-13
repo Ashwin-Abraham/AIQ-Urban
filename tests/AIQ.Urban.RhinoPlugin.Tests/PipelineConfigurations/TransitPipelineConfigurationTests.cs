@@ -40,6 +40,7 @@ public class TransitPipelineConfigurationTests
         // Act
         pipeline
             .WithTransitAdditionSteps(testData.Input, testData.CenterlineIds)
+            .WithFullModelOutput()
             .WithMetricsCalculation(false)
             .Run();
 

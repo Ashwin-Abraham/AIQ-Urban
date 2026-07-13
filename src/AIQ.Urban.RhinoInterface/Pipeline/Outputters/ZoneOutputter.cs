@@ -6,10 +6,11 @@ using Rhino;
 
 namespace AIQ.Urban.RhinoInterface.Pipeline.Outputters;
 
-public class ZoneOutputter(List<Zone> zones) : IUrbanModelRhinoOutputter
+public class ZoneOutputter : IUrbanModelRhinoOutputter
 {
-    public void Run(UrbanModel model, RhinoDoc doc)
+    public void Run(UrbanModel model, RhinoDoc doc, List<IUrbanElement> elements)
     {
+        var zones = elements.OfType<Zone>().ToList();
         foreach (var zone in zones)
             RhinoOutputHelper.OutputGeometry(
                 doc, 

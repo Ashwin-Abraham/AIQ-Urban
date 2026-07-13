@@ -3,8 +3,10 @@ using AIQ.Urban.Core.ModelActions;
 using AIQ.Urban.Core.ModelActions.CreationData;
 using AIQ.Urban.Core.Models.UrbanElements;
 using AIQ.Urban.RhinoInterface.EventHandler;
+using AIQ.Urban.RhinoInterface.Extensions;
 using AIQ.Urban.RhinoInterface.Pipeline.Outputters;
 using AIQ.Urban.RhinoInterface.Pipeline.RhinoDataGatherSteps;
+using AIQ.Urban.RhinoInterface.Utils;
 using Rhino;
 
 namespace AIQ.Urban.RhinoInterface;
@@ -19,6 +21,7 @@ public class RhinoUrbanModelPipeline(
     private readonly List<IEditUrbanElementsStep> _editSteps = [];
     private readonly List<Guid> _directDeleteIds = [];
     private readonly List<Action<UrbanModel>> _postActions = [];
+    private readonly List<IUrbanModelRhinoOutputter> _outputters = [];
 
     private RhinoUrbanEventHandler? _eventHandler = null;
 
@@ -60,6 +63,22 @@ public class RhinoUrbanModelPipeline(
         return this;
     }
 
+    public RhinoUrbanModelPipeline WithFullModelOutput()
+    {
+        _outputters.Add(new TransitOutputter());
+        _outputters.Add(new BuildingOutputter());
+        _outputters.Add(new ParcelOutputter());
+        _outputters.Add(new ZoneOutputter());
+        _outputters.Add(new TransitSurfaceOutputter());
+        return this;
+    }
+
+    public RhinoUrbanModelPipeline WithRhinoOutputter<T>() where T : IUrbanModelRhinoOutputter, new()
+    {
+        _outputters.Add(new T());
+        return this;
+    }
+
     /// <summary>Register an action to execute after all steps, deletions, and baking complete.</summary>
     public RhinoUrbanModelPipeline WithUrbanModelPostAction(Action<UrbanModel> action)
     {
@@ -79,8 +98,8 @@ public class RhinoUrbanModelPipeline(
 
         var creationData = _objectSelectionStep?.Run(_rhinoDoc) ?? _creationData;
 
-        if (creationData.Count == 0 && _addDeleteSteps.OfType<IAddUrbanElementsStep>().Any())
-            throw new InvalidOperationException("No creation data provided for add steps.");
+        //if (creationData.Count == 0 && _addDeleteSteps.OfType<IAddUrbanElementsStep>().Any())
+        //    return;
 
         foreach (var step in _addDeleteSteps)
         {
@@ -100,8 +119,13 @@ public class RhinoUrbanModelPipeline(
         }
 
         deletedIds.AddRange(_directDeleteIds);
-        DeleteRhinoObjects(deletedIds);
-        AddRhinoObjects(addedIds);
+
+        if(_outputters.Count > 0)
+        {
+            DeleteRhinoObjects(deletedIds);
+            AddRhinoObjects(addedIds);
+            _rhinoDoc.Layers.PurgeEmpty(_rhinoDoc, LayerConstants.Root);
+        }
 
         foreach (var action in _postActions)
             action(_urbanModel);
@@ -117,17 +141,8 @@ public class RhinoUrbanModelPipeline(
     {
         var elementsToAdd = FilterElementsToAdd(addedIds);
 
-        var outputters = new List<IUrbanModelRhinoOutputter>
-        {
-            new TransitOutputter(elementsToAdd.OfType<Transit>().ToList()),
-            new BuildingOutputter(elementsToAdd.OfType<Building>().ToList()),
-            new ParcelOutputter(elementsToAdd.OfType<Parcel>().ToList()),
-            new ZoneOutputter(elementsToAdd.OfType<Zone>().ToList()),
-            new TransitSurfaceOutputter()
-        };
-
-        foreach (var outputter in outputters)
-            outputter.Run(_urbanModel, _rhinoDoc);
+        foreach (var outputter in _outputters)
+            outputter.Run(_urbanModel, _rhinoDoc, elementsToAdd);
     }
 
     private List<IUrbanElement> FilterElementsToAdd(List<Guid> addedIds)
