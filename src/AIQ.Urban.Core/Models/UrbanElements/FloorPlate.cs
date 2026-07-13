@@ -35,7 +35,7 @@ public class FloorPlate : IUrbanElement
         return Outline.Area();
     }
 
-    internal double Z()
+    public double Z()
     {
         return Outline.Geometry.PointAtStart.Z;
     }
