@@ -57,10 +57,7 @@ public class RhinoUrbanEventHandler : IDisposable
         ObjectIdToElement.Clear();
         foreach (var element in UrbanModel.Instance.GetUrbanElements())
         {
-            foreach (var id in element.GetGeometryIds())
-            {
-                ObjectIdToElement[id] = element;
-            }
+            ObjectIdToElement[element.Id] = element;   
         }
     }
 
