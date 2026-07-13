@@ -1,7 +1,6 @@
 using AIQ.Urban.Core;
 using AIQ.Urban.Core.Models.UrbanElements;
 using AIQ.Urban.RhinoInterface.Pipeline.Outputters;
-using AIQ.Urban.RhinoInterface.Utils;
 using Rhino;
 using Rhino.DocObjects;
 using Rhino.Geometry;
@@ -108,17 +107,10 @@ public class RhinoUrbanEventHandler : IDisposable
         // Process deletions
         foreach (var id in batch.Deletes)
         {
-            var obj = _doc.Objects.FindId(id);
-            if (!IsOnManagedLayer(obj))
-            {
-                ObjectIdToElement.Remove(obj.Id);
-                continue;
-            }
-
-            if (!ObjectIdToElement.TryGetValue(obj.Id, out var element))
+            if (!ObjectIdToElement.TryGetValue(id, out var element))
                 continue;
 
-            ObjectIdToElement.Remove(obj.Id);
+            ObjectIdToElement.Remove(id);
 
             switch (element)
             {
@@ -137,12 +129,18 @@ public class RhinoUrbanEventHandler : IDisposable
         // Process replacements
         foreach (var (oldId, newId) in batch.Replacements)
         {
-            var newObj = _doc.Objects.FindId(newId);
-            if (!IsOnManagedLayer(newObj)) continue;
+            // Some cases of replacement have a Rhino bug. The newId is empty but replacement has occurred.
+            var newId2 = newId == Guid.Empty ? oldId : newId;
+            
+            if (!ObjectIdToElement.TryGetValue(oldId, out var element))
+                continue;
 
-            IUrbanElement? element = ObjectIdToElement.TryGetValue(oldId, out var directLookup)
-                ? directLookup
-                : FindElementByLayer(newObj);
+            //if (!IsOnManagedLayer(newObj)) continue;
+
+            //element = ObjectIdToElement.TryGetValue(oldId, out var directLookup)
+            //    ? directLookup
+            //    : FindElementByLayer(newObj);
+
             if (element == null) continue;
 
             // Remove old mapping for this element's previous geometry IDs
@@ -153,18 +151,20 @@ public class RhinoUrbanEventHandler : IDisposable
             switch (element)
             {
                 case Transit transit:
-                    HandleTransitReplace(transit, newId);
+                    HandleTransitReplace(transit, newId2);
                     break;
                 
                 case Parcel parcel:
-                    HandleParcelReplace(parcel, newId);
+                    HandleParcelReplace(parcel, newId2);
                     break;
                 
                 case Zone zone:
-                    HandleZoneReplace(zone, newId);
+                    HandleZoneReplace(zone, newId2);
                     break;
-                // Building replace is deferred — the envelope is a Brep
-                // and requires more involved update logic.
+                
+                case Building building:
+                    HandleBuildingReplace(building, newId2);
+                    break;
             }
         }
 
@@ -269,6 +269,29 @@ public class RhinoUrbanEventHandler : IDisposable
 
         var pipeline = new RhinoUrbanModelPipeline(_doc, UrbanModel.Instance)
             .WithBuildingDeletionSteps(geometryIds)
+            .WithFullModelOutput()
+            .WithMetricsCalculation();
+
+        RunPipeline(pipeline);
+    }
+
+
+    private void HandleBuildingReplace(Building building, Guid newEnvelopeId)
+    {
+        var newRhinoObject = _doc.Objects.FindId(newEnvelopeId);
+        if (newRhinoObject == null) return;
+
+        var newBrep = newRhinoObject.Geometry as Brep;
+        if (newBrep == null) return;
+
+        var oldPlateUses = building.FloorPlates
+            .OrderBy(p => p.Z())
+            .Select(p => p.Use)
+            .ToList();
+
+        var pipeline = new RhinoUrbanModelPipeline(_doc, UrbanModel.Instance)
+            .WithRhinoObjectDeletion([newEnvelopeId])
+            .WithBuildingUpdateSteps(building.Envelope.Id, newBrep, building.TypicalFloorHeight, oldPlateUses)
             .WithFullModelOutput()
             .WithMetricsCalculation();
 

@@ -140,6 +140,20 @@ public static class PipelineConfigurations
         return pipeline;
     }
 
+    public static RhinoUrbanModelPipeline WithBuildingUpdateSteps(
+        this RhinoUrbanModelPipeline pipeline,
+        Guid oldEnvelopeId,
+        Brep newEnvelope,
+        double typicalFloorHeight,
+        List<Use> oldPlateUses)
+    {
+        var updateStep = new UpdateBuildingStep(oldEnvelopeId, newEnvelope, typicalFloorHeight, oldPlateUses);
+
+        pipeline.WithUrbanElementStep(updateStep);
+
+        return pipeline;
+    }
+
     public static RhinoUrbanModelPipeline WithMetricsCalculation(
         this RhinoUrbanModelPipeline pipeline,
         bool saveToFile = false,
