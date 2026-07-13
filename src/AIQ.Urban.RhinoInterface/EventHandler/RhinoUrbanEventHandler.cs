@@ -153,6 +153,11 @@ public class RhinoUrbanEventHandler : IDisposable
                 case Transit transit:
                     HandleTransitReplace(transit, newId);
                     break;
+                
+                case Parcel parcel:
+
+                    break;
+                
                 case Zone zone:
                     HandleZoneReplace(zone, newId);
                     break;

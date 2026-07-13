@@ -3,8 +3,10 @@ using AIQ.Urban.Core.ModelActions;
 using AIQ.Urban.Core.ModelActions.CreationData;
 using AIQ.Urban.Core.Models.UrbanElements;
 using AIQ.Urban.RhinoInterface.EventHandler;
+using AIQ.Urban.RhinoInterface.Extensions;
 using AIQ.Urban.RhinoInterface.Pipeline.Outputters;
 using AIQ.Urban.RhinoInterface.Pipeline.RhinoDataGatherSteps;
+using AIQ.Urban.RhinoInterface.Utils;
 using Rhino;
 
 namespace AIQ.Urban.RhinoInterface;
@@ -13,6 +15,7 @@ public class RhinoUrbanModelPipeline(
     RhinoDoc _rhinoDoc,
     UrbanModel _urbanModel)
 {
+    private bool _outputToRhino = true;
     private IRhinoDataGatherStep? _objectSelectionStep;
     private List<ICreationData> _creationData = [];
     private readonly List<IUrbanModelStep> _addDeleteSteps = [];
@@ -54,6 +57,11 @@ public class RhinoUrbanModelPipeline(
         return this;
     }
 
+    public RhinoUrbanModelPipeline WithoutModelOutput()
+    {
+        _outputToRhino = false;
+        return this;
+    }
     public RhinoUrbanModelPipeline WithUrbanElementStep(IEditUrbanElementsStep step)
     {
         _editSteps.Add(step);
@@ -79,8 +87,8 @@ public class RhinoUrbanModelPipeline(
 
         var creationData = _objectSelectionStep?.Run(_rhinoDoc) ?? _creationData;
 
-        if (creationData.Count == 0 && _addDeleteSteps.OfType<IAddUrbanElementsStep>().Any())
-            throw new InvalidOperationException("No creation data provided for add steps.");
+        //if (creationData.Count == 0 && _addDeleteSteps.OfType<IAddUrbanElementsStep>().Any())
+        //    return;
 
         foreach (var step in _addDeleteSteps)
         {
@@ -100,8 +108,13 @@ public class RhinoUrbanModelPipeline(
         }
 
         deletedIds.AddRange(_directDeleteIds);
-        DeleteRhinoObjects(deletedIds);
-        AddRhinoObjects(addedIds);
+
+        if(_outputToRhino)
+        {
+            DeleteRhinoObjects(deletedIds);
+            AddRhinoObjects(addedIds);
+            _rhinoDoc.Layers.PurgeEmpty(_rhinoDoc, LayerConstants.Root);
+        }
 
         foreach (var action in _postActions)
             action(_urbanModel);

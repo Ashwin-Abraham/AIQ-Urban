@@ -37,7 +37,8 @@ public class AddBuildingStepTests
         IUrbanModelStep step = new AddBuildingStep();
 
         // Act
-        var result = step.Run(UrbanModel.Instance, testData.Input.Cast<ICreationData>().ToList());
+        var input = BuildInput(testData.CaseName);
+        var result = step.Run(UrbanModel.Instance, input);
 
         // Visualise
 #if DEBUG
@@ -65,47 +66,45 @@ public class AddBuildingStepTests
 
     private record AddBuildingTestData(
         string CaseName,
-        List<ICreationData> Input,
         int ExpectedCount,
         int ExpectedGeometryIdCount,
         int ExpectedFirstFloorCount,
         int ExpectedFirstFloorPlateCount);
 
-    private static readonly Polygon2D SimpleFootprint = new(
-        new PolylineCurve([
-            new Point3d(0, 0, 0),
-            new Point3d(10, 0, 0),
-            new Point3d(10, 10, 0),
-            new Point3d(0, 10, 0),
-            new Point3d(0, 0, 0),
-        ]));
-
-    private static readonly Polygon2D SmallFootprint = new(
-        new PolylineCurve([
-            new Point3d(0, 0, 0),
-            new Point3d(5, 0, 0),
-            new Point3d(5, 5, 0),
-            new Point3d(0, 5, 0),
-            new Point3d(0, 0, 0),
-        ]));
+    private static Polygon2D MakeFootprint(double size) => new(new PolylineCurve([
+        new Point3d(0, 0, 0),
+        new Point3d(size, 0, 0),
+        new Point3d(size, size, 0),
+        new Point3d(0, size, 0),
+        new Point3d(0, 0, 0),
+    ]));
 
     private static Brep MakeLoftedBrep(double width, double depth, double height)
     {
-        var baseCurve = new Polyline(
-            [
-                new Point3d(-width / 2, -depth / 2, 0),
-                new Point3d(width / 2, -depth / 2, 0),
-                new Point3d(width / 2, depth / 2, 0),
-                new Point3d(-width / 2, depth / 2, 0),
-            ]);
+        double topScale = 0.5;
+        var tw = width * topScale / 2;
+        var td = depth * topScale / 2;
 
-        var midCurve = baseCurve.Duplicate();
-        midCurve.Transform(Transform.Translation(new Vector3d(width / 2, 0, height / 2)));
+        var mesh = new Mesh();
+        mesh.Vertices.Add(0, 0, 0);
+        mesh.Vertices.Add(width, 0, 0);
+        mesh.Vertices.Add(width, depth, 0);
+        mesh.Vertices.Add(0, depth, 0);
+        mesh.Vertices.Add(width / 2 - tw, depth / 2 - td, height);
+        mesh.Vertices.Add(width / 2 + tw, depth / 2 - td, height);
+        mesh.Vertices.Add(width / 2 + tw, depth / 2 + td, height);
+        mesh.Vertices.Add(width / 2 - tw, depth / 2 + td, height);
 
-        var topCurve = baseCurve.Duplicate();
-        midCurve.Transform(Transform.Translation(new Vector3d(0, 0, height)));
+        mesh.Faces.AddFace(0, 1, 2, 3);
+        mesh.Faces.AddFace(4, 7, 6, 5);
+        mesh.Faces.AddFace(0, 3, 7, 4);
+        mesh.Faces.AddFace(1, 5, 6, 2);
+        mesh.Faces.AddFace(0, 4, 5, 1);
+        mesh.Faces.AddFace(3, 2, 6, 7);
 
-        return Brep.CreateFromLoft([baseCurve.ToPolylineCurve(), midCurve.ToPolylineCurve(), topCurve.ToPolylineCurve()], baseCurve.PointAt(0), topCurve.PointAt(0), LoftType.Normal, true)[0];
+        mesh.Normals.ComputeNormals();
+        mesh.Compact();
+        return Brep.CreateFromMesh(mesh, false);
     }
 
     private static Brep MakeBoxBrep(double width, double depth, double height)
@@ -113,11 +112,36 @@ public class AddBuildingStepTests
         return new Box(Plane.WorldXY, new Interval(0, width), new Interval(0, depth), new Interval(0, height)).ToBrep();
     }
 
+    private static List<ICreationData> BuildInput(string caseName) => caseName switch
+    {
+        "SingleBuilding" =>
+        [
+            new BuildingFootprintData(MakeFootprint(10), 3.5, 5, DefaultUses.Create("Residential")),
+        ],
+        "MultipleBuildings" =>
+        [
+            new BuildingFootprintData(MakeFootprint(10), 3.5, 5, DefaultUses.Create("Residential")),
+            new BuildingFootprintData(MakeFootprint(5), 4.0, 3, DefaultUses.Create("Commercial")),
+        ],
+        "Box10m_Floor3m" =>
+        [
+            new BuildingMassData(new BrepElement(MakeBoxBrep(10, 10, 10), Guid.NewGuid()), 3.0, DefaultUses.Create("Residential")),
+        ],
+        "Box5m_Floor3m" =>
+        [
+            new BuildingMassData(new BrepElement(MakeBoxBrep(10, 10, 5), Guid.NewGuid()), 3.0, DefaultUses.Create("Commercial")),
+        ],
+        "LoftedBrep" =>
+        [
+            new BuildingMassData(new BrepElement(MakeLoftedBrep(10, 3, 22), Guid.NewGuid()), 3.0, DefaultUses.Create("Retail")),
+        ],
+        _ => [],
+    };
+
     private static readonly List<AddBuildingTestData> _testData =
     [
         new AddBuildingTestData(
             CaseName: "SingleBuilding",
-            Input: [new BuildingFootprintData(SimpleFootprint, 3.5, 5, DefaultUses.Create("Residential"))],
             ExpectedCount: 1,
             ExpectedGeometryIdCount: 6,
             ExpectedFirstFloorCount: 5,
@@ -125,11 +149,6 @@ public class AddBuildingStepTests
 
         new AddBuildingTestData(
             CaseName: "MultipleBuildings",
-            Input:
-            [
-                new BuildingFootprintData(SimpleFootprint, 3.5, 5, DefaultUses.Create("Residential")),
-                new BuildingFootprintData(SmallFootprint, 4.0, 3, DefaultUses.Create("Commercial")),
-            ],
             ExpectedCount: 2,
             ExpectedGeometryIdCount: 10,
             ExpectedFirstFloorCount: 5,
@@ -137,7 +156,6 @@ public class AddBuildingStepTests
 
         new AddBuildingTestData(
             CaseName: "EmptyList",
-            Input: [],
             ExpectedCount: 0,
             ExpectedGeometryIdCount: 0,
             ExpectedFirstFloorCount: 0,
@@ -145,13 +163,6 @@ public class AddBuildingStepTests
 
         new AddBuildingTestData(
             CaseName: "Box10m_Floor3m",
-            Input:
-            [
-                new BuildingMassData(
-                    new BrepElement(MakeBoxBrep(10, 10, 10), Guid.NewGuid()),
-                    3.0,
-                    DefaultUses.Create("Residential")),
-            ],
             ExpectedCount: 1,
             ExpectedGeometryIdCount: 5,
             ExpectedFirstFloorCount: 3,
@@ -159,13 +170,6 @@ public class AddBuildingStepTests
 
         new AddBuildingTestData(
             CaseName: "Box5m_Floor3m",
-            Input:
-            [
-                new BuildingMassData(
-                    new BrepElement(MakeBoxBrep(10, 10, 5), Guid.NewGuid()),
-                    3.0,
-                    DefaultUses.Create("Commercial")),
-            ],
             ExpectedCount: 1,
             ExpectedGeometryIdCount: 3,
             ExpectedFirstFloorCount: 1,
@@ -173,7 +177,6 @@ public class AddBuildingStepTests
 
         new AddBuildingTestData(
             CaseName: "EmptyEnvelopeList",
-            Input: [],
             ExpectedCount: 0,
             ExpectedGeometryIdCount: 0,
             ExpectedFirstFloorCount: 0,
@@ -181,16 +184,9 @@ public class AddBuildingStepTests
 
         new AddBuildingTestData(
             CaseName: "LoftedBrep",
-            Input:
-            [
-                new BuildingMassData(
-                    new BrepElement(MakeLoftedBrep(10, 3, 22), Guid.NewGuid()),
-                    3.0,
-                    DefaultUses.Create("Retail")),
-            ],
             ExpectedCount: 1,
-            ExpectedGeometryIdCount: 4,
-            ExpectedFirstFloorCount: 2,
-            ExpectedFirstFloorPlateCount: 3),
+            ExpectedGeometryIdCount: 9,
+            ExpectedFirstFloorCount: 7,
+            ExpectedFirstFloorPlateCount: 8),
     ];
 }
