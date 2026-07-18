@@ -162,6 +162,10 @@ public class RhinoUrbanEventHandler : IDisposable
                 case Building building:
                     HandleBuildingReplace(building, newId2);
                     break;
+                
+                case FloorPlate floorPlate:
+                    HandleFloorPlateReplace(floorPlate, newId2);
+                    break;
             }
         }
 
@@ -289,6 +293,44 @@ public class RhinoUrbanEventHandler : IDisposable
         var pipeline = new RhinoUrbanModelPipeline(_doc, UrbanModel.Instance)
             .WithRhinoObjectDeletion([newEnvelopeId])
             .WithBuildingUpdateSteps(building.Envelope.Id, newBrep, building.TypicalFloorHeight, oldPlateUses)
+            .WithFullModelOutput()
+            .WithMetricsCalculation();
+
+        RunPipeline(pipeline);
+    }
+
+    private void HandleFloorPlateReplace(FloorPlate floorPlate, Guid newCurveId)
+    {
+        var newRhinoObject = _doc.Objects.FindId(newCurveId);
+        if (newRhinoObject?.Geometry is not Curve newCurve) return;
+
+        var building = floorPlate.Parent;
+        if (building is null) return;
+
+        var newZ = newCurve.PointAtStart.Z;
+
+        var existingAtZ = building.FloorPlates
+            .FirstOrDefault(p => p != floorPlate && Math.Abs(p.Z() - newZ) < 1e-6);
+        if (existingAtZ is not null)
+        {
+            _doc.Objects.Delete(newCurveId, true);
+            ObjectIdToElement[floorPlate.Outline.Id] = floorPlate;
+            RhinoApp.WriteLine($"[AIQ Urban] Floor plate already exists at Z={newZ:F2}. Edit rejected.");
+            return;
+        }
+
+        var bbox = building.Envelope.Geometry.GetBoundingBox(true);
+        if (newZ < bbox.Min.Z || newZ > bbox.Max.Z)
+        {
+            _doc.Objects.Delete(newCurveId, true);
+            ObjectIdToElement[floorPlate.Outline.Id] = floorPlate;
+            RhinoApp.WriteLine($"[AIQ Urban] Z={newZ:F2} is outside envelope bounds [{bbox.Min.Z:F2}, {bbox.Max.Z:F2}]. Edit rejected.");
+            return;
+        }
+
+        var pipeline = new RhinoUrbanModelPipeline(_doc, UrbanModel.Instance)
+            .WithRhinoObjectDeletion([newCurveId])
+            .WithFloorPlateReplaceSteps(floorPlate, newZ)
             .WithFullModelOutput()
             .WithMetricsCalculation();
 

@@ -8,8 +8,8 @@ public class Building : IUrbanElement, IGraphableAsNode
 {
     public Guid Id => Envelope.Id;
     public BrepElement Envelope { get; }
-    public IReadOnlyList<FloorPlate> FloorPlates { get; }
-    public double TypicalFloorHeight { get; }
+    public List<FloorPlate> FloorPlates { get; }
+    public double TypicalFloorHeight => ComputeTypicalFloorHeight(FloorPlates);
     public int FloorCount { get; }
     public Polygon2D Footprint { get; }
     public Point3d NodePoint { get; }
@@ -18,7 +18,6 @@ public class Building : IUrbanElement, IGraphableAsNode
     {
         ArgumentNullException.ThrowIfNull(footprint);
 
-        TypicalFloorHeight = typicalFloorHeight;
         FloorCount = floorCount;
 
         var curve = footprint.Geometry;
@@ -32,15 +31,18 @@ public class Building : IUrbanElement, IGraphableAsNode
         Footprint = new Polygon2D(curve);
         Envelope = ComputeEnvelope(curve, typicalFloorHeight * floorCount);
         FloorPlates = ComputeOrderedFloorPlates(curve, typicalFloorHeight, floorCount, use);
+        foreach (var plate in FloorPlates)
+            plate.Parent = this;
         NodePoint = GetRepresentativeCenter();
     }
 
     public Building(Brep envelope, double typicalFloorHeight, Use use, double tolerance = 1e-5)
     {
-        TypicalFloorHeight = typicalFloorHeight;
         FloorCount = ComputeFloorCount(envelope, typicalFloorHeight);
         var (contourPlates, footprint) = ComputeContours(envelope, typicalFloorHeight, use, tolerance);
         FloorPlates = contourPlates;
+        foreach (var plate in FloorPlates)
+            plate.Parent = this;
         Footprint = footprint;
         Envelope = new BrepElement(envelope.DuplicateBrep(), Guid.NewGuid());
         NodePoint = GetRepresentativeCenter();
@@ -54,10 +56,11 @@ public class Building : IUrbanElement, IGraphableAsNode
             throw new ArgumentException("At least one floor plate is required.", nameof(existingPlates));
 
         Envelope = new BrepElement(envelope.DuplicateBrep(), Guid.NewGuid());
-        FloorPlates = existingPlates;
+        FloorPlates = [.. existingPlates];
+        foreach (var plate in FloorPlates)
+            plate.Parent = this;
         FloorCount = existingPlates.Count;
         Footprint = existingPlates[0].Outline;
-        TypicalFloorHeight = ComputeTypicalFloorHeight(existingPlates);
         NodePoint = GetRepresentativeCenter();
     }
 
@@ -74,7 +77,7 @@ public class Building : IUrbanElement, IGraphableAsNode
         return (int)Math.Floor(envelopeHeight / typicalFloorHeight);
     }
 
-    private static (IReadOnlyList<FloorPlate> Plates, Polygon2D Footprint) ComputeContours(
+    private static (List<FloorPlate> Plates, Polygon2D Footprint) ComputeContours(
         Brep envelope, double floorHeight, Use use, double tolerance)
     {
         var bbox = envelope.GetBoundingBox(true);
@@ -99,7 +102,7 @@ public class Building : IUrbanElement, IGraphableAsNode
             }
         }
 
-        var ordered = plates.OrderBy(x => x.Outline.Geometry.PointAtStart.Z).ToList().AsReadOnly();
+        var ordered = plates.OrderBy(x => x.Outline.Geometry.PointAtStart.Z).ToList();
         var footprint = firstFootprint ?? throw new InvalidOperationException("No valid contours found in envelope.");
         return (ordered, footprint);
     }

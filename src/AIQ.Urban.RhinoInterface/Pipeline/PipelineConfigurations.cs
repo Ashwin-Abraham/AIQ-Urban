@@ -154,6 +154,18 @@ public static class PipelineConfigurations
         return pipeline;
     }
 
+    public static RhinoUrbanModelPipeline WithFloorPlateReplaceSteps(
+        this RhinoUrbanModelPipeline pipeline,
+        FloorPlate oldPlate,
+        double newZ)
+    {
+        var replaceStep = new ReplaceFloorPlateStep(oldPlate, newZ);
+
+        pipeline.WithUrbanElementStep(replaceStep);
+
+        return pipeline;
+    }
+
     public static RhinoUrbanModelPipeline WithMetricsCalculation(
         this RhinoUrbanModelPipeline pipeline,
         bool saveToFile = false,
