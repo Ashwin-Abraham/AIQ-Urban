@@ -8,6 +8,7 @@ public class FloorPlate : IUrbanElement
     public Guid Id => Outline.Id;
     public Polygon2D Outline { get; }
     public Use Use { get; private set; }
+    public Building? Parent { get; set; }
 
     public FloorPlate(Polygon2D outline, Use use)
     {

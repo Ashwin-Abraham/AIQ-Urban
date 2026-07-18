@@ -57,10 +57,7 @@ public class RhinoUrbanEventHandler : IDisposable
         ObjectIdToElement.Clear();
         foreach (var element in UrbanModel.Instance.GetUrbanElements())
         {
-            foreach (var id in element.GetGeometryIds())
-            {
-                ObjectIdToElement[id] = element;
-            }
+            ObjectIdToElement[element.Id] = element;   
         }
     }
 
@@ -164,6 +161,10 @@ public class RhinoUrbanEventHandler : IDisposable
                 
                 case Building building:
                     HandleBuildingReplace(building, newId2);
+                    break;
+                
+                case FloorPlate floorPlate:
+                    HandleFloorPlateReplace(floorPlate, newId2);
                     break;
             }
         }
@@ -292,6 +293,22 @@ public class RhinoUrbanEventHandler : IDisposable
         var pipeline = new RhinoUrbanModelPipeline(_doc, UrbanModel.Instance)
             .WithRhinoObjectDeletion([newEnvelopeId])
             .WithBuildingUpdateSteps(building.Envelope.Id, newBrep, building.TypicalFloorHeight, oldPlateUses)
+            .WithFullModelOutput()
+            .WithMetricsCalculation();
+
+        RunPipeline(pipeline);
+    }
+
+    private void HandleFloorPlateReplace(FloorPlate floorPlate, Guid newCurveId)
+    {
+        var newRhinoObject = _doc.Objects.FindId(newCurveId);
+        if (newRhinoObject?.Geometry is not Curve newCurve) return;
+
+        var newZ = newCurve.PointAtStart.Z;
+
+        var pipeline = new RhinoUrbanModelPipeline(_doc, UrbanModel.Instance)
+            .WithRhinoObjectDeletion([newCurveId])
+            .WithFloorPlateReplaceSteps(floorPlate, newZ)
             .WithFullModelOutput()
             .WithMetricsCalculation();
 
