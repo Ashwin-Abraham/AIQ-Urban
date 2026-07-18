@@ -1,3 +1,4 @@
+using AIQ.Primitives.Extensions;
 using AIQ.Urban.Core.ModelActions.CreationData;
 using AIQ.Urban.Core.Models;
 using AIQ.Urban.Core.Models.GeometryElements;
@@ -15,6 +16,12 @@ public class ReplaceFloorPlateStep(FloorPlate oldPlate, double newZ) : IEditUrba
     {
         var building = oldPlate.Parent
             ?? throw new InvalidOperationException("Floor plate has no parent building.");
+
+        var zIsOccupied = building.FloorPlates
+            .Any(p => p != oldPlate && p.Z().AlmostEquals(newZ, Tolerance));
+
+        if (zIsOccupied)
+            return new ([], oldPlate.GetGeometryIds());
 
         var plane = new Plane(new Point3d(0, 0, newZ), Vector3d.ZAxis);
         var success = Intersection.BrepPlane(
