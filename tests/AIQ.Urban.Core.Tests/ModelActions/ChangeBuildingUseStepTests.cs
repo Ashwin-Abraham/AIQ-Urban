@@ -1,4 +1,5 @@
 using AIQ.Urban.Core.ModelActions;
+using AIQ.Urban.Core.ModelActions.CreationData;
 using AIQ.Urban.Core.Models;
 using AIQ.Urban.Core.Models.GeometryElements;
 using AIQ.Urban.Core.Models.UrbanElements;
@@ -37,12 +38,10 @@ public class ChangeBuildingUseStepTests
         foreach (var building in testData.InitialBuildings)
             UrbanModel.Instance.Buildings.Add(building);
 
-        var step = new ChangeBuildingUseStep(
-            testData.GeometryIds,
-            testData.NewUse);
+        var step = new ChangeBuildingUseStep();
 
         // Act
-        var result = step.Run(UrbanModel.Instance, []);
+        var result = step.Run(UrbanModel.Instance, [new BuildingUseChangeData(testData.GeometryIds, testData.NewUse)]);
 
         // Visualise
 #if DEBUG

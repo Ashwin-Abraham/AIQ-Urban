@@ -33,13 +33,13 @@ public class RemoveBuildingStepTests
 
         // Arrange: add buildings and capture their actual geometry IDs
         IUrbanModelStep addStep = new AddBuildingStep();
-        var addedIds = addStep.Run(UrbanModel.Instance, testData.InitialBuildings.Cast<ICreationData>().ToList());
+        var addResult = addStep.Run(UrbanModel.Instance, testData.InitialBuildings.Cast<ICreationData>().ToList());
 
         var initialCount = UrbanModel.Instance.Buildings.Count;
 
         // Act
-        IUrbanModelStep removeStep = new RemoveBuildingStep(testData.GetRemoveIds(addedIds));
-        var removedIds = removeStep.Run(UrbanModel.Instance, []);
+        IUrbanModelStep removeStep = new RemoveBuildingStep();
+        var removeResult = removeStep.Run(UrbanModel.Instance, [new BuildingDeletionData(testData.GetRemoveIds(addResult.AddedIds))]);
 
         // Visualise
 #if DEBUG
@@ -48,14 +48,14 @@ public class RemoveBuildingStepTests
 
         // Assert
         Assert.That(UrbanModel.Instance.Buildings, Has.Count.EqualTo(testData.ExpectedRemainingCount));
-        Assert.That(removedIds, Has.Count.EqualTo(testData.ExpectedRemovedIdCount));
+        Assert.That(removeResult.DeletedIds, Has.Count.EqualTo(testData.ExpectedRemovedIdCount));
 
         if (testData.RemoveIndices.Count > 0 && testData.ExpectedRemainingCount < initialCount)
         {
             var remainingIds = UrbanModel.Instance.Buildings
                 .SelectMany(x => x.GetGeometryIds())
                 .ToHashSet();
-            Assert.That(removedIds.Any(id => remainingIds.Contains(id)), Is.False);
+            Assert.That(removeResult.DeletedIds.Any(id => remainingIds.Contains(id)), Is.False);
         }
     }
 

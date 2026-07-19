@@ -41,15 +41,15 @@ public class UpdateBuildingStepTests
         var oldCount = UrbanModel.Instance.Buildings.Count;
 
         // Act
-        var updateStep = new UpdateBuildingStep(
+        var updateStep = new UpdateBuildingStep();
+        var result = updateStep.Run(UrbanModel.Instance, [new BuildingUpdateData(
             testData.UseExistingId ? oldEnvelopeId : Guid.NewGuid(),
             testData.NewEnvelope,
             testData.TypicalFloorHeight,
             UrbanModel.Instance.Buildings[0].FloorPlates
                 .OrderBy(p => p.Outline.Geometry.PointAtStart.Z)
                 .Select(p => p.Use)
-                .ToList());
-        var result = updateStep.Run(UrbanModel.Instance, []);
+                .ToList())]);
 
         // Visualise
 #if DEBUG

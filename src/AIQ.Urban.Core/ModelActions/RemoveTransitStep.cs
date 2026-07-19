@@ -2,17 +2,21 @@
 
 namespace AIQ.Urban.Core.ModelActions;
 
-public class RemoveTransitStep(List<Guid> _centerlineIds) : IDeleteUrbanElementsStep
+public class RemoveTransitStep : IUrbanModelStep
 {
-    List<Guid> IUrbanModelStep.Run(UrbanModel model, List<ICreationData> creationData)
+    public StepResult Run(UrbanModel model, List<ICreationData> creationData)
     {
+        var centerlineIds = creationData.OfType<TransitDeletionData>()
+            .SelectMany(d => d.CenterlineIds)
+            .ToList();
+
         var transitsToRemove = model.Transits
             .Where(x => x.GetGeometryIds()
-                .Any(id => _centerlineIds.Contains(id)))
+                .Any(id => centerlineIds.Contains(id)))
             .ToList();
 
         model.Transits.RemoveAll(x => transitsToRemove.Contains(x));
 
-        return transitsToRemove.SelectMany(x => x.GetGeometryIds()).ToList();
+        return new([], transitsToRemove.SelectMany(x => x.GetGeometryIds()).ToList());
     }
 }

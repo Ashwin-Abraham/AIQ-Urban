@@ -4,15 +4,16 @@ using AIQ.Urban.Core.Models.UrbanElements;
 
 namespace AIQ.Urban.Core.ModelActions;
 
-public class ChangeBuildingUseStep(
-    List<Guid> geometryIds,
-    Use newUse) : IEditUrbanElementsStep
+public class ChangeBuildingUseStep : IUrbanModelStep
 {
-    public EditStepResult Run(UrbanModel model, List<ICreationData> creationData)
+    public StepResult Run(UrbanModel model, List<ICreationData> creationData)
     {
+        var data = creationData.OfType<BuildingUseChangeData>().First();
+        var geometryIds = data.GeometryIds;
+        var newUse = data.NewUse;
+
         var touchedBuildings = new HashSet<Building>();
 
-        // Pass 1: Process envelope matches (building-wide)
         foreach (var building in model.Buildings)
         {
             if (!geometryIds.Contains(building.Envelope.Id))
@@ -24,10 +25,8 @@ public class ChangeBuildingUseStep(
                 plate.SetUse(newUse);
         }
 
-        // Pass 2: Process floor plate outline matches (per-plate)
         foreach (var building in model.Buildings)
         {
-            // Skip buildings already touched in pass 1 (building-wins priority)
             if (touchedBuildings.Contains(building))
                 continue;
 
@@ -41,8 +40,7 @@ public class ChangeBuildingUseStep(
             }
         }
 
-        var newIds = touchedBuildings.SelectMany(x => x.GetGeometryIds()).ToList();
-        var oldIds = touchedBuildings.SelectMany(x => x.GetGeometryIds()).ToList();
-        return new(newIds, oldIds);
+        var touchedIds = touchedBuildings.SelectMany(x => x.GetGeometryIds()).ToList();
+        return new(touchedIds, touchedIds);
     }
 }

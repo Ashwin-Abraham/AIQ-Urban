@@ -43,7 +43,7 @@ public class AddTransitStepTests
 
         // Assert
         Assert.That(UrbanModel.Instance.Transits, Has.Count.EqualTo(testData.ExpectedCount));
-        Assert.That(result, Has.Count.EqualTo(testData.ExpectedGeometryIdCount));
+        Assert.That(result.AddedIds, Has.Count.EqualTo(testData.ExpectedGeometryIdCount));
 
         if (testData.ExpectedCount > 0)
         {
@@ -51,7 +51,7 @@ public class AddTransitStepTests
                 .SelectMany(x => x.GetGeometryIds())
                 .OrderBy(x => x)
                 .ToList();
-            var returnedIds = result.OrderBy(x => x).ToList();
+            var returnedIds = result.AddedIds.OrderBy(x => x).ToList();
             Assert.That(returnedIds, Is.EqualTo(allGeometryIds));
         }
     }

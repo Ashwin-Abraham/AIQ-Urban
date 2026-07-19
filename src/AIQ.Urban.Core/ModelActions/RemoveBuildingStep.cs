@@ -2,17 +2,21 @@ using AIQ.Urban.Core.ModelActions.CreationData;
 
 namespace AIQ.Urban.Core.ModelActions;
 
-public class RemoveBuildingStep(List<Guid> _geometryIds) : IDeleteUrbanElementsStep
+public class RemoveBuildingStep : IUrbanModelStep
 {
-    List<Guid> IUrbanModelStep.Run(UrbanModel model, List<ICreationData> creationData)
+    public StepResult Run(UrbanModel model, List<ICreationData> creationData)
     {
+        var geometryIds = creationData.OfType<BuildingDeletionData>()
+            .SelectMany(d => d.GeometryIds)
+            .ToList();
+
         var buildingsToRemove = model.Buildings
             .Where(x => x.GetGeometryIds()
-                .Any(id => _geometryIds.Contains(id)))
+                .Any(id => geometryIds.Contains(id)))
             .ToList();
 
         model.Buildings.RemoveAll(x => buildingsToRemove.Contains(x));
 
-        return buildingsToRemove.SelectMany(x => x.GetGeometryIds()).ToList();
+        return new([], buildingsToRemove.SelectMany(x => x.GetGeometryIds()).ToList());
     }
 }

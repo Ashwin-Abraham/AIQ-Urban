@@ -26,9 +26,9 @@ public class ResetUrbanElementsStepTests
     public void Run_EmptyModel_ReturnsEmptyIdsAndModelStaysEmpty()
     {
         var step = new ResetUrbanElementsStep();
-        var ids = ((IUrbanModelStep)step).Run(UrbanModel.Instance, []);
+        var result = ((IUrbanModelStep)step).Run(UrbanModel.Instance, []);
 
-        Assert.That(ids, Is.Empty);
+        Assert.That(result.DeletedIds, Is.Empty);
         Assert.That(UrbanModel.Instance.Transits, Is.Empty);
         Assert.That(UrbanModel.Instance.Buildings, Is.Empty);
         Assert.That(UrbanModel.Instance.Parcels, Is.Empty);
@@ -87,12 +87,12 @@ public class ResetUrbanElementsStepTests
 
         // Act
         var step = new ResetUrbanElementsStep();
-        var ids = ((IUrbanModelStep)step).Run(UrbanModel.Instance, []);
+        var result = ((IUrbanModelStep)step).Run(UrbanModel.Instance, []);
 
         // Assert
-        Assert.That(ids, Has.Count.EqualTo(expectedCount));
-        Assert.That(ids, Is.Unique);
-        Assert.That(ids, Has.All.Not.EqualTo(Guid.Empty));
+        Assert.That(result.DeletedIds, Has.Count.EqualTo(expectedCount));
+        Assert.That(result.DeletedIds, Is.Unique);
+        Assert.That(result.DeletedIds, Has.All.Not.EqualTo(Guid.Empty));
 
         Assert.That(UrbanModel.Instance.Transits, Is.Empty);
         Assert.That(UrbanModel.Instance.Buildings, Is.Empty);
@@ -125,12 +125,12 @@ public class ResetUrbanElementsStepTests
 
         // Act
         var step = new ResetUrbanElementsStep();
-        var ids = ((IUrbanModelStep)step).Run(UrbanModel.Instance, []);
+        var result = ((IUrbanModelStep)step).Run(UrbanModel.Instance, []);
 
         // Assert
-        Assert.That(ids, Has.Count.EqualTo(2));
-        Assert.That(ids, Does.Contain(profile1.Id));
-        Assert.That(ids, Does.Contain(profile2.Id));
+        Assert.That(result.DeletedIds, Has.Count.EqualTo(2));
+        Assert.That(result.DeletedIds, Does.Contain(profile1.Id));
+        Assert.That(result.DeletedIds, Does.Contain(profile2.Id));
 
         Assert.That(UrbanModel.Instance.TransitSurfaces, Is.Empty);
         Assert.That(UrbanModel.Instance.Transits, Is.Empty);

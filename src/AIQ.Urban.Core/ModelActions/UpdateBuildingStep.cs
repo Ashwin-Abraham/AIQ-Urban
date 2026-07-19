@@ -5,16 +5,14 @@ using Rhino.Geometry;
 
 namespace AIQ.Urban.Core.ModelActions;
 
-public class UpdateBuildingStep(
-    Guid _oldEnvelopeId,
-    Brep _newEnvelope,
-    double _typicalFloorHeight,
-    List<Use> _oldPlateUses) : IEditUrbanElementsStep
+public class UpdateBuildingStep : IUrbanModelStep
 {
-    public EditStepResult Run(UrbanModel model, List<ICreationData> creationData)
+    public StepResult Run(UrbanModel model, List<ICreationData> creationData)
     {
+        var data = creationData.OfType<BuildingUpdateData>().First();
+
         var oldBuilding = model.Buildings
-            .FirstOrDefault(b => b.Envelope.Id == _oldEnvelopeId);
+            .FirstOrDefault(b => b.Envelope.Id == data.OldEnvelopeId);
 
         if (oldBuilding is null)
             return new([], []);
@@ -22,12 +20,12 @@ public class UpdateBuildingStep(
         var oldIds = oldBuilding.GetGeometryIds();
         model.Buildings.Remove(oldBuilding);
 
-        var defaultUse = _oldPlateUses.Count > 0
-            ? _oldPlateUses[0]
+        var defaultUse = data.OldPlateUses.Count > 0
+            ? data.OldPlateUses[0]
             : DefaultUses.Create("Public");
-        var newBuilding = new Building(_newEnvelope, _typicalFloorHeight, defaultUse);
+        var newBuilding = new Building(data.NewEnvelope, data.TypicalFloorHeight, defaultUse);
 
-        MapUsesByZ(newBuilding.FloorPlates, _oldPlateUses);
+        MapUsesByZ(newBuilding.FloorPlates, data.OldPlateUses);
 
         model.AddBuilding(newBuilding);
 

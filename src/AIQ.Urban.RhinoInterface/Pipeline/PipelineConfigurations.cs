@@ -20,11 +20,9 @@ public static class PipelineConfigurations
         List<ICreationData> buildingData,
         List<Guid> curvesToDelete)
     {
-        var addBuildingStep = new AddBuildingStep();
-
         pipeline.WithRhinoObjectDeletion(curvesToDelete)
             .WithCreationData(buildingData)
-            .WithUrbanElementStep(addBuildingStep);
+            .WithUrbanElementStep(new AddBuildingStep());
 
         return pipeline;
     }
@@ -34,17 +32,13 @@ public static class PipelineConfigurations
         List<TransitData> transitData,
         List<Guid> centerlinesToRemove)
     {
-        var addTransitStep = new AddTransitStep();
-        var removeExistingTransitStep = new RemoveTransitStep(centerlinesToRemove);
-        var transitUnioner = new TransitSurfaceUnioner();
-        var recalculateParcelsStep = new RecalculateParcelsStep();
-
         pipeline.WithRhinoObjectDeletion(centerlinesToRemove)
             .WithCreationData(transitData.Cast<ICreationData>().ToList())
-            .WithUrbanElementStep(removeExistingTransitStep)
-            .WithUrbanElementStep(addTransitStep)
-            .WithUrbanElementStep(transitUnioner)
-            .WithUrbanElementStep(recalculateParcelsStep);
+            .WithCreationData([new TransitDeletionData(centerlinesToRemove)])
+            .WithUrbanElementStep(new RemoveTransitStep())
+            .WithUrbanElementStep(new AddTransitStep())
+            .WithUrbanElementStep(new TransitSurfaceUnioner())
+            .WithUrbanElementStep(new RecalculateParcelsStep());
 
         return pipeline;
     }
@@ -54,9 +48,8 @@ public static class PipelineConfigurations
         List<Guid> geometryIds,
         Use newUse)
     {
-        var changeStep = new ChangeBuildingUseStep(geometryIds, newUse);
-
-        pipeline.WithUrbanElementStep(changeStep);
+        pipeline.WithCreationData([new BuildingUseChangeData(geometryIds, newUse)])
+            .WithUrbanElementStep(new ChangeBuildingUseStep());
 
         return pipeline;
     }
@@ -66,11 +59,10 @@ public static class PipelineConfigurations
         List<ZoneData> zoneData,
         List<Guid> idsToDelete)
     {
-        var addZoneStep = new AddZoneStep();
-
         pipeline.WithRhinoObjectDeletion(idsToDelete)
             .WithCreationData(zoneData.Cast<ICreationData>().ToList())
-            .WithUrbanElementStep(addZoneStep);
+            .WithCreationData([new ZoneDeletionData(idsToDelete)])
+            .WithUrbanElementStep(new AddZoneStep());
 
         return pipeline;
     }
@@ -79,13 +71,10 @@ public static class PipelineConfigurations
         this RhinoUrbanModelPipeline pipeline,
         List<Guid> centerlineIds)
     {
-        var removeStep = new RemoveTransitStep(centerlineIds);
-        var transitUnioner = new TransitSurfaceUnioner();
-        var recalculateParcelsStep = new RecalculateParcelsStep();
-
-        pipeline.WithUrbanElementStep(removeStep)
-            .WithUrbanElementStep(transitUnioner)
-            .WithUrbanElementStep(recalculateParcelsStep);
+        pipeline.WithCreationData([new TransitDeletionData(centerlineIds)])
+            .WithUrbanElementStep(new RemoveTransitStep())
+            .WithUrbanElementStep(new TransitSurfaceUnioner())
+            .WithUrbanElementStep(new RecalculateParcelsStep());
 
         return pipeline;
     }
@@ -95,13 +84,10 @@ public static class PipelineConfigurations
         Guid oldCenterlineId, 
         Curve newCenterline)
     {
-        var updateStep = new UpdateTransitStep(oldCenterlineId, newCenterline);
-        var transitUnioner = new TransitSurfaceUnioner();
-        var recalculateParcelsStep = new RecalculateParcelsStep();
-
-        pipeline.WithUrbanElementStep(updateStep)
-            .WithUrbanElementStep(transitUnioner)
-            .WithUrbanElementStep(recalculateParcelsStep);
+        pipeline.WithCreationData([new TransitUpdateData(oldCenterlineId, newCenterline)])
+            .WithUrbanElementStep(new UpdateTransitStep())
+            .WithUrbanElementStep(new TransitSurfaceUnioner())
+            .WithUrbanElementStep(new RecalculateParcelsStep());
 
         return pipeline;
     }
@@ -110,9 +96,8 @@ public static class PipelineConfigurations
         this RhinoUrbanModelPipeline pipeline,
         List<Guid> geometryIds)
     {
-        var removeStep = new RemoveBuildingStep(geometryIds);
-
-        pipeline.WithUrbanElementStep(removeStep);
+        pipeline.WithCreationData([new BuildingDeletionData(geometryIds)])
+            .WithUrbanElementStep(new RemoveBuildingStep());
 
         return pipeline;
     }
@@ -121,9 +106,8 @@ public static class PipelineConfigurations
         this RhinoUrbanModelPipeline pipeline,
         List<Guid> geometryIds)
     {
-        var removeStep = new RemoveZoneStep(geometryIds);
-
-        pipeline.WithUrbanElementStep(removeStep);
+        pipeline.WithCreationData([new ZoneDeletionData(geometryIds)])
+            .WithUrbanElementStep(new RemoveZoneStep());
 
         return pipeline;
     }
@@ -133,9 +117,8 @@ public static class PipelineConfigurations
         Guid oldBoundaryId, 
         Curve newBoundary)
     {
-        var updateStep = new UpdateZoneStep(oldBoundaryId, newBoundary);
-
-        pipeline.WithUrbanElementStep(updateStep);
+        pipeline.WithCreationData([new ZoneUpdateData(oldBoundaryId, newBoundary)])
+            .WithUrbanElementStep(new UpdateZoneStep());
 
         return pipeline;
     }
@@ -147,9 +130,8 @@ public static class PipelineConfigurations
         double typicalFloorHeight,
         List<Use> oldPlateUses)
     {
-        var updateStep = new UpdateBuildingStep(oldEnvelopeId, newEnvelope, typicalFloorHeight, oldPlateUses);
-
-        pipeline.WithUrbanElementStep(updateStep);
+        pipeline.WithCreationData([new BuildingUpdateData(oldEnvelopeId, newEnvelope, typicalFloorHeight, oldPlateUses)])
+            .WithUrbanElementStep(new UpdateBuildingStep());
 
         return pipeline;
     }
@@ -159,9 +141,8 @@ public static class PipelineConfigurations
         FloorPlate oldPlate,
         double newZ)
     {
-        var replaceStep = new ReplaceFloorPlateStep(oldPlate, newZ);
-
-        pipeline.WithUrbanElementStep(replaceStep);
+        pipeline.WithCreationData([new FloorPlateReplaceData(oldPlate, newZ)])
+            .WithUrbanElementStep(new ReplaceFloorPlateStep());
 
         return pipeline;
     }
@@ -190,8 +171,8 @@ public static class PipelineConfigurations
         Color color,
         Guid id)
     {
-        var modifyStep = new ModifyModelUsesStep(editType, name, color, id);
-        pipeline.WithUrbanElementStep(modifyStep);
+        pipeline.WithCreationData([new UseModificationData(editType, name, color, id)])
+            .WithUrbanElementStep(new ModifyModelUsesStep());
 
         return pipeline;
     }
@@ -202,7 +183,6 @@ public static class PipelineConfigurations
     {
         var model = pipeline.UrbanModel;
 
-        // Construct direct delete object ids
         var rootIndex = doc.Layers.FindByFullPath(LayerConstants.Root, -1);
         if (rootIndex == -1)
             return pipeline;
@@ -214,10 +194,8 @@ public static class PipelineConfigurations
             .Select(x => x.Id)
             .ToList();
 
-        // Construct creation data gather step
         var gatherStep = new DocLoadGatherStep(model, doc.ModelAbsoluteTolerance);
 
-        // Compose pipeline
         pipeline.WithDataGatherStep(gatherStep)
             .WithRhinoObjectDeletion(aiqLayerObjectIds)
             .WithUrbanElementStep(new ResetUrbanElementsStep())

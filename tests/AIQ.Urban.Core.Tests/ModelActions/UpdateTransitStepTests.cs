@@ -32,14 +32,12 @@ public class UpdateTransitStepTests
         IUrbanModelStep addStep = new AddTransitStep();
         var addedIds = addStep.Run(UrbanModel.Instance, testData.InitialTransits.Cast<ICreationData>().ToList());
 
-        var oldCenterlineId = addedIds[0];
+        var oldCenterlineId = addedIds.AddedIds[0];
         var oldCount = UrbanModel.Instance.Transits.Count;
 
         // Act
-        var updateStep = new UpdateTransitStep(
-            testData.UseExistingId ? oldCenterlineId : Guid.NewGuid(),
-            testData.NewCenterline);
-        var result = updateStep.Run(UrbanModel.Instance, []);
+        var updateStep = new UpdateTransitStep();
+        var result = updateStep.Run(UrbanModel.Instance, [new TransitUpdateData(testData.UseExistingId ? oldCenterlineId : Guid.NewGuid(), testData.NewCenterline)]);
 
         // Visualise
 #if DEBUG

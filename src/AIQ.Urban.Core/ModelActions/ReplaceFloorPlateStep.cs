@@ -8,12 +8,16 @@ using Rhino.Geometry.Intersect;
 
 namespace AIQ.Urban.Core.ModelActions;
 
-public class ReplaceFloorPlateStep(FloorPlate oldPlate, double newZ) : IEditUrbanElementsStep
+public class ReplaceFloorPlateStep : IUrbanModelStep
 {
     private const double Tolerance = 1e-5;
 
-    public EditStepResult Run(UrbanModel model, List<ICreationData> creationData)
+    public StepResult Run(UrbanModel model, List<ICreationData> creationData)
     {
+        var data = creationData.OfType<FloorPlateReplaceData>().First();
+        var oldPlate = data.OldPlate;
+        var newZ = data.NewZ;
+
         var building = oldPlate.Parent
             ?? throw new InvalidOperationException("Floor plate has no parent building.");
 

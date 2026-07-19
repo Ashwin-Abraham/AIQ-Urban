@@ -1,64 +1,57 @@
-using System.Drawing;
 using AIQ.Urban.Core.Enums;
 using AIQ.Urban.Core.ModelActions.CreationData;
 using AIQ.Urban.Core.Models;
 
 namespace AIQ.Urban.Core.ModelActions;
 
-public class ModifyModelUsesStep(
-    UseEditType editType,
-    string name,
-    Color color,
-    Guid id) : IEditUrbanElementsStep
+public class ModifyModelUsesStep : IUrbanModelStep
 {
-    public Use? AffectedUse { get; private set; }
-
-    public EditStepResult Run(UrbanModel model, List<ICreationData> creationData)
+    public StepResult Run(UrbanModel model, List<ICreationData> creationData)
     {
-        switch (editType)
+        var data = creationData.OfType<UseModificationData>().First();
+
+        switch (data.EditType)
         {
             case UseEditType.Add:
-                return Add(model);
+                return Add(model, data);
 
             case UseEditType.Edit:
-                return Edit(model);
+                return Edit(model, data);
 
             case UseEditType.Remove:
-                return Remove(model);
+                return Remove(model, data);
 
             default:
-                throw new ArgumentOutOfRangeException(nameof(editType), editType, null);
+                throw new ArgumentOutOfRangeException(nameof(data.EditType), data.EditType, null);
         }
     }
 
-    private EditStepResult Add(UrbanModel model)
+    private StepResult Add(UrbanModel model, UseModificationData data)
     {
-        var use = new Use(id, name, color);
+        var use = new Use(data.Id, data.Name, data.Color);
         model.Uses.Add(use);
-        AffectedUse = use;
         return new([], []);
     }
 
-    private EditStepResult Edit(UrbanModel model)
+    private StepResult Edit(UrbanModel model, UseModificationData data)
     {
-        var use = model.Uses.FirstOrDefault(u => u.Id == id)
-            ?? throw new ArgumentException($"Use with Id '{id}' not found.");
+        var use = model.Uses.FirstOrDefault(u => u.Id == data.Id)
+            ?? throw new ArgumentException($"Use with Id '{data.Id}' not found.");
 
         if (IsSystemUse(model, use))
             return new([], []);
 
-        use.Name = name;
-        use.Color = color;
-        AffectedUse = use;
+        use.Name = data.Name;
+        use.Color = data.Color;
 
         var geometryIds = GatherIdsByUse(model, use);
         return new(geometryIds, geometryIds);
     }
 
-    private EditStepResult Remove(UrbanModel model)
+    private StepResult Remove(UrbanModel model, UseModificationData data)
     {
-        var use = model.Uses.FirstOrDefault(u => u.Id == id)
-            ?? throw new ArgumentException($"Use with Id '{id}' not found.");
+        var use = model.Uses.FirstOrDefault(u => u.Id == data.Id)
+            ?? throw new ArgumentException($"Use with Id '{data.Id}' not found.");
 
         if (IsSystemUse(model, use))
             return new([], []);
@@ -88,7 +81,6 @@ public class ModifyModelUsesStep(
         }
 
         model.Uses.Remove(use);
-        AffectedUse = undefinedUse;
         return new(geometryIds, geometryIds);
     }
 

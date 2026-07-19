@@ -17,8 +17,7 @@ public class RhinoUrbanModelPipeline(
 {
     private IRhinoDataGatherStep? _objectSelectionStep;
     private List<ICreationData> _creationData = [];
-    private readonly List<IUrbanModelStep> _addDeleteSteps = [];
-    private readonly List<IEditUrbanElementsStep> _editSteps = [];
+    private readonly List<IUrbanModelStep> _steps = [];
     private readonly List<Guid> _directDeleteIds = [];
     private readonly List<Action<UrbanModel>> _postActions = [];
     private readonly List<IUrbanModelRhinoOutputter> _outputters = [];
@@ -41,7 +40,7 @@ public class RhinoUrbanModelPipeline(
 
     public RhinoUrbanModelPipeline WithCreationData(List<ICreationData> data)
     {
-        _creationData = data;
+        _creationData.AddRange(data);
         return this;
     }
 
@@ -53,13 +52,7 @@ public class RhinoUrbanModelPipeline(
 
     public RhinoUrbanModelPipeline WithUrbanElementStep(IUrbanModelStep step)
     {
-        _addDeleteSteps.Add(step);
-        return this;
-    }
-
-    public RhinoUrbanModelPipeline WithUrbanElementStep(IEditUrbanElementsStep step)
-    {
-        _editSteps.Add(step);
+        _steps.Add(step);
         return this;
     }
 
@@ -98,20 +91,7 @@ public class RhinoUrbanModelPipeline(
 
         var creationData = _objectSelectionStep?.Run(_rhinoDoc) ?? _creationData;
 
-        //if (creationData.Count == 0 && _addDeleteSteps.OfType<IAddUrbanElementsStep>().Any())
-        //    return;
-
-        foreach (var step in _addDeleteSteps)
-        {
-            var result = step.Run(_urbanModel, creationData);
-
-            if (step is IDeleteUrbanElementsStep)
-                deletedIds.AddRange(result);
-            if (step is IAddUrbanElementsStep)
-                addedIds.AddRange(result);
-        }
-
-        foreach (var step in _editSteps)
+        foreach (var step in _steps)
         {
             var result = step.Run(_urbanModel, creationData);
             addedIds.AddRange(result.AddedIds);

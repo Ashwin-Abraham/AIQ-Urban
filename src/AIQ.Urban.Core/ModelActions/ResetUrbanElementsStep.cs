@@ -2,9 +2,9 @@ using AIQ.Urban.Core.ModelActions.CreationData;
 
 namespace AIQ.Urban.Core.ModelActions;
 
-public class ResetUrbanElementsStep : IDeleteUrbanElementsStep
+public class ResetUrbanElementsStep : IUrbanModelStep
 {
-    List<Guid> IUrbanModelStep.Run(UrbanModel model, List<ICreationData> creationData)
+    public StepResult Run(UrbanModel model, List<ICreationData> creationData)
     {
         var ids = model.GetUrbanElements()
             .SelectMany(e => e.GetGeometryIds())
@@ -13,6 +13,6 @@ public class ResetUrbanElementsStep : IDeleteUrbanElementsStep
 
         model.Reset();
 
-        return ids;
+        return new([], ids);
     }
 }

@@ -1,4 +1,5 @@
 using AIQ.Urban.Core.ModelActions;
+using AIQ.Urban.Core.ModelActions.CreationData;
 using AIQ.Urban.Core.Models;
 using AIQ.Urban.Core.Models.GeometryElements;
 using AIQ.Urban.Core.Models.UrbanElements;
@@ -37,8 +38,8 @@ public class ReplaceFloorPlateStepTests
         var oldTypicalFloorHeight = building.TypicalFloorHeight;
 
         // Act
-        var step = new ReplaceFloorPlateStep(targetPlate, testData.NewZ);
-        var result = step.Run(UrbanModel.Instance, []);
+        var step = new ReplaceFloorPlateStep();
+        var result = step.Run(UrbanModel.Instance, [new FloorPlateReplaceData(targetPlate, testData.NewZ)]);
 
         // Visualise
 #if DEBUG

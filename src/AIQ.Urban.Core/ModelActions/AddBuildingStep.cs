@@ -2,9 +2,9 @@ using AIQ.Urban.Core.ModelActions.CreationData;
 
 namespace AIQ.Urban.Core.ModelActions;
 
-public class AddBuildingStep(double _tolerance = 1e-5) : IAddUrbanElementsStep
+public class AddBuildingStep(double _tolerance = 1e-5) : IUrbanModelStep
 {
-    List<Guid> IUrbanModelStep.Run(UrbanModel model, List<ICreationData> creationData)
+    public StepResult Run(UrbanModel model, List<ICreationData> creationData)
     {
         var buildings = new List<Models.UrbanElements.Building>();
 
@@ -27,6 +27,6 @@ public class AddBuildingStep(double _tolerance = 1e-5) : IAddUrbanElementsStep
         foreach (var building in buildings)
             model.AddBuilding(building);
 
-        return buildings.SelectMany(x => x.GetGeometryIds()).ToList();
+        return new(buildings.SelectMany(x => x.GetGeometryIds()).ToList(), []);
     }
 }
