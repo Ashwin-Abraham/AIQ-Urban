@@ -6,12 +6,14 @@ using Rhino.Geometry;
 
 namespace AIQ.Urban.Core.ModelActions;
 
-public class UpdateZoneStep(Guid _oldBoundaryId, Curve _newBoundary) : IEditUrbanElementsStep
+public class UpdateZoneStep : IUrbanModelStep
 {
-    public EditStepResult Run(UrbanModel model, List<ICreationData> creationData)
+    public StepResult Run(UrbanModel model, List<ICreationData> creationData)
     {
+        var data = creationData.OfType<ZoneUpdateData>().First();
+
         var oldZone = model.Zones
-            .FirstOrDefault(z => z.GetGeometryIds().Contains(_oldBoundaryId));
+            .FirstOrDefault(z => z.GetGeometryIds().Contains(data.OldBoundaryId));
 
         if (oldZone is null)
             return new([],[]);
@@ -19,7 +21,7 @@ public class UpdateZoneStep(Guid _oldBoundaryId, Curve _newBoundary) : IEditUrba
         var oldId = oldZone.Boundary.Id;
         model.Zones.Remove(oldZone);
 
-        var newBoundary = new Polygon2D(_newBoundary);
+        var newBoundary = new Polygon2D(data.NewBoundary);
         var newZone = new Zone(newBoundary, oldZone.Name);
         model.Zones.Add(newZone);
 

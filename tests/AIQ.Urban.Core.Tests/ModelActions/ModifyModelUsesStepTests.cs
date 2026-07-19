@@ -1,5 +1,6 @@
 using AIQ.Urban.Core.Enums;
 using AIQ.Urban.Core.ModelActions;
+using AIQ.Urban.Core.ModelActions.CreationData;
 using AIQ.Urban.Core.Models;
 using AIQ.Urban.Core.Models.GeometryElements;
 using AIQ.Urban.Core.Models.UrbanElements;
@@ -35,14 +36,10 @@ public class ModifyModelUsesStepTests
         var parcel = new Parcel(MakeOutline(10), undefinedUse);
         UrbanModel.Instance.Parcels.Add(parcel);
 
-        var step = new ModifyModelUsesStep(
-            testData.EditType,
-            testData.NewName,
-            testData.NewColor,
-            undefinedUse.Id);
+        var step = new ModifyModelUsesStep();
 
         // Act
-        var result = step.Run(UrbanModel.Instance, []);
+        var result = step.Run(UrbanModel.Instance, [new UseModificationData(testData.EditType, testData.NewName, testData.NewColor, undefinedUse.Id)]);
 
         // Assert
         Assert.That(result.AddedIds, Is.Empty);
@@ -58,14 +55,10 @@ public class ModifyModelUsesStepTests
     {
         // Arrange
         var residential = UrbanModel.Instance.GetUse("Residential");
-        var step = new ModifyModelUsesStep(
-            UseEditType.Remove,
-            "Residential",
-            Color.Gold,
-            residential.Id);
+        var step = new ModifyModelUsesStep();
 
         // Act
-        var result = step.Run(UrbanModel.Instance, []);
+        var result = step.Run(UrbanModel.Instance, [new UseModificationData(UseEditType.Remove, "Residential", Color.Gold, residential.Id)]);
 
         // Assert
         Assert.That(UrbanModel.Instance.Uses, Has.Count.EqualTo(9));

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using AIQ.Urban.Core;
 using AIQ.Urban.Core.ModelActions;
+using AIQ.Urban.Core.ModelActions.CreationData;
 using AIQ.Urban.Core.Models;
 using AIQ.Urban.RhinoInterface;
 using AIQ.Urban.RhinoPlugin.HTML_UI.MessageToUI;
@@ -29,12 +30,11 @@ public class ChangeUseMessage : IMessageFromUI<ModelStateMessage>
 
         var use = UrbanModel.Instance.GetUse(Use);
         var geometryIds = selected.Select(obj => obj.Id).ToList();
-        var parcelStep = new ChangeParcelUseStep(geometryIds, use);
-        var buildingStep = new ChangeBuildingUseStep(geometryIds, use);
 
         var pipeline = new RhinoUrbanModelPipeline(doc, UrbanModel.Instance)
-            .WithUrbanElementStep(parcelStep)
-            .WithUrbanElementStep(buildingStep)
+            .WithCreationData([new ParcelUseChangeData(geometryIds, use), new BuildingUseChangeData(geometryIds, use)])
+            .WithUrbanElementStep(new ChangeParcelUseStep())
+            .WithUrbanElementStep(new ChangeBuildingUseStep())
             .WithFullModelOutput()
             .WithMetricsCalculation(tolerance: doc.ModelAbsoluteTolerance);
 

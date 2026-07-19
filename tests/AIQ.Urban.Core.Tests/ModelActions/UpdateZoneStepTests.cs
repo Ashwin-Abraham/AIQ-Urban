@@ -32,15 +32,13 @@ public class UpdateZoneStepTests
         IUrbanModelStep addStep = new AddZoneStep();
         var addedIds = addStep.Run(UrbanModel.Instance, testData.InitialZones.Cast<ICreationData>().ToList());
 
-        var oldBoundaryId = addedIds[0];
+        var oldBoundaryId = addedIds.AddedIds[0];
         var oldCount = UrbanModel.Instance.Zones.Count;
         var oldName = UrbanModel.Instance.Zones[0].Name;
 
         // Act
-        var updateStep = new UpdateZoneStep(
-            testData.UseExistingId ? oldBoundaryId : Guid.NewGuid(),
-            testData.NewBoundary);
-        var result = updateStep.Run(UrbanModel.Instance, []);
+        var updateStep = new UpdateZoneStep();
+        var result = updateStep.Run(UrbanModel.Instance, [new ZoneUpdateData(testData.UseExistingId ? oldBoundaryId : Guid.NewGuid(), testData.NewBoundary)]);
 
         // Visualise
 #if DEBUG

@@ -22,9 +22,9 @@ namespace AIQ.Urban.Core.ModelActions;
 /// NOTE: If multiple transit types produce overlapping holes in the same
 /// physical area, duplicate parcels will be created. No dedup is performed.
 /// </summary>
-public class RecalculateParcelsStep : IEditUrbanElementsStep
+public class RecalculateParcelsStep : IUrbanModelStep
 {
-    public EditStepResult Run(UrbanModel model, List<ICreationData> creationData)
+    public StepResult Run(UrbanModel model, List<ICreationData> creationData)
     {
         var oldParcelIds = model.Parcels.SelectMany(p => p.GetGeometryIds()).ToList();
 

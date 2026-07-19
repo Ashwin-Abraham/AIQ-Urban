@@ -2,13 +2,13 @@
 
 namespace AIQ.Urban.Core.ModelActions;
 
-public class AddTransitStep : IAddUrbanElementsStep
+public class AddTransitStep : IUrbanModelStep
 {
-    List<Guid> IUrbanModelStep.Run(UrbanModel model, List<ICreationData> creationData)
+    public StepResult Run(UrbanModel model, List<ICreationData> creationData)
     {
         var transits = creationData.OfType<TransitData>().Select(x => x.ToTransit()).ToList();
         model.AddTransit(transits);
 
-        return transits.SelectMany(x => x.GetGeometryIds()).ToList();
+        return new(transits.SelectMany(x => x.GetGeometryIds()).ToList(), []);
     }
 }

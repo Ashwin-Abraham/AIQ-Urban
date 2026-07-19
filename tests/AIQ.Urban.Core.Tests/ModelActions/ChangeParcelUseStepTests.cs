@@ -1,4 +1,5 @@
 using AIQ.Urban.Core.ModelActions;
+using AIQ.Urban.Core.ModelActions.CreationData;
 using AIQ.Urban.Core.Models;
 using AIQ.Urban.Core.Models.GeometryElements;
 using AIQ.Urban.Core.Models.UrbanElements;
@@ -34,12 +35,10 @@ public class ChangeParcelUseStepTests
         foreach (var parcel in testData.InitialParcels)
             UrbanModel.Instance.Parcels.Add(parcel);
 
-        var step = new ChangeParcelUseStep(
-            testData.ParcelIdsToChange,
-            testData.NewUse);
+        var step = new ChangeParcelUseStep();
 
         // Act
-        var result = step.Run(UrbanModel.Instance, []);
+        var result = step.Run(UrbanModel.Instance, [new ParcelUseChangeData(testData.ParcelIdsToChange, testData.NewUse)]);
 
         // Visualise
 #if DEBUG

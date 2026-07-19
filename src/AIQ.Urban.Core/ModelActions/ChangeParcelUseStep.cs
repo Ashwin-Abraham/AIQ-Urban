@@ -3,18 +3,20 @@ using AIQ.Urban.Core.Models;
 
 namespace AIQ.Urban.Core.ModelActions;
 
-public class ChangeParcelUseStep(
-    List<Guid> parcelGeometryIds,
-    Use newUse) : IEditUrbanElementsStep
+public class ChangeParcelUseStep : IUrbanModelStep
 {
-    public EditStepResult Run(UrbanModel model, List<ICreationData> creationData)
+    public StepResult Run(UrbanModel model, List<ICreationData> creationData)
     {
+        var data = creationData.OfType<ParcelUseChangeData>().First();
+        var geometryIds = data.GeometryIds;
+        var newUse = data.NewUse;
+
         var oldIds = new List<Guid>();
         var newIds = new List<Guid>();
 
         foreach (var parcel in model.Parcels)
         {
-            if (parcelGeometryIds.Contains(parcel.Outline.Id))
+            if (geometryIds.Contains(parcel.Outline.Id))
             {
                 oldIds.Add(parcel.Outline.Id);
                 parcel.SetUse(newUse);
