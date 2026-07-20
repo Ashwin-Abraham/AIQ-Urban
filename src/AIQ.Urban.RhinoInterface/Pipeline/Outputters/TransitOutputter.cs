@@ -5,12 +5,16 @@ using AIQ.Urban.Core.Enums;
 using AIQ.Urban.Core.Models.UrbanElements;
 using AIQ.Urban.Core.Utils;
 using AIQ.Urban.RhinoInterface.Utils;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Rhino;
 
 namespace AIQ.Urban.RhinoInterface.Pipeline.Outputters;
 
-public class TransitOutputter : IUrbanModelRhinoOutputter
+public class TransitOutputter(ILoggerFactory? _loggerFactory = null) : IUrbanModelRhinoOutputter
 {
+    private readonly ILogger _logger = (_loggerFactory ?? NullLoggerFactory.Instance).CreateLogger<TransitOutputter>();
+
     private static readonly Dictionary<TransitType, (int Hue, double SatMin, double SatMax, double LightMin, double LightMax)> ColorConfig = new()
     {
         [TransitType.Road] = (0, 0, 0, 45, 85),
@@ -32,6 +36,8 @@ public class TransitOutputter : IUrbanModelRhinoOutputter
             RhinoOutputHelper.OutputGeometry(doc, transit.Outline, RhinoOutputHelper.MakeLayerDrivenAttributes(doc, LayerConstants.TransitOutline(transit.TransitType, transit.Width), transitColor), false);
             RhinoOutputHelper.OutputGeometry(doc, transit.Centerline, RhinoOutputHelper.MakeLayerDrivenAttributes(doc, LayerConstants.TransitCenterline(transit.TransitType, transit.Width), transitColor));
         }
+
+        _logger.LogInformation("Output {Count} transits to Rhino", transits.Count);
     }
 
     private static void SetTransitColors(List<Transit> transits)

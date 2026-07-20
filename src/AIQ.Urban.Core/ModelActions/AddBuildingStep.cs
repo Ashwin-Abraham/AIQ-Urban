@@ -1,9 +1,13 @@
 using AIQ.Urban.Core.ModelActions.CreationData;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AIQ.Urban.Core.ModelActions;
 
-public class AddBuildingStep(double _tolerance = 1e-5) : IUrbanModelStep
+public class AddBuildingStep(double _tolerance = 1e-5, ILoggerFactory? _loggerFactory = null) : IUrbanModelStep
 {
+    private readonly ILogger _logger = (_loggerFactory ?? NullLoggerFactory.Instance).CreateLogger<AddBuildingStep>();
+
     public StepResult Run(UrbanModel model, List<ICreationData> creationData)
     {
         var buildings = new List<Models.UrbanElements.Building>();
@@ -26,6 +30,8 @@ public class AddBuildingStep(double _tolerance = 1e-5) : IUrbanModelStep
 
         foreach (var building in buildings)
             model.AddBuilding(building);
+
+        _logger.LogInformation("Added {Count} buildings", buildings.Count);
 
         return new(buildings.SelectMany(x => x.GetGeometryIds()).ToList(), []);
     }

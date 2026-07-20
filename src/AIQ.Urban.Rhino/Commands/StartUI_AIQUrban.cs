@@ -1,7 +1,9 @@
 using System;
 using AIQ.Urban.Core;
 using AIQ.Urban.RhinoInterface;
+using AIQ.Urban.RhinoInterface.Logging;
 using AIQ.Urban.RhinoPlugin.HTML_UI;
+using Microsoft.Extensions.Logging;
 using Rhino;
 using Rhino.Commands;
 using MessageBox = Eto.Forms.MessageBox;
@@ -24,9 +26,11 @@ public class StartUI_AIQUrban : Command
 
     protected override Result RunCommand(RhinoDoc doc, RunMode mode)
     {
+        using var loggerFactory = new LoggerFactory().AddRhinoLog();
+
         try
         {
-            var pipeline = new RhinoUrbanModelPipeline(doc, UrbanModel.Instance)
+            var pipeline = new RhinoUrbanModelPipeline(doc, UrbanModel.Instance, loggerFactory)
                 .WithDocModelLoad(doc);
             pipeline.Run();
 

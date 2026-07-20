@@ -22,7 +22,7 @@ public static class PipelineConfigurations
     {
         pipeline.WithRhinoObjectDeletion(curvesToDelete)
             .WithCreationData(buildingData)
-            .WithUrbanElementStep(new AddBuildingStep());
+            .WithUrbanElementStep(new AddBuildingStep(_loggerFactory: pipeline.LoggerFactory));
 
         return pipeline;
     }
@@ -35,10 +35,10 @@ public static class PipelineConfigurations
         pipeline.WithRhinoObjectDeletion(centerlinesToRemove)
             .WithCreationData(transitData.Cast<ICreationData>().ToList())
             .WithCreationData([new TransitDeletionData(centerlinesToRemove)])
-            .WithUrbanElementStep(new RemoveTransitStep())
-            .WithUrbanElementStep(new AddTransitStep())
-            .WithUrbanElementStep(new TransitSurfaceUnioner())
-            .WithUrbanElementStep(new RecalculateParcelsStep());
+            .WithUrbanElementStep(new RemoveTransitStep(pipeline.LoggerFactory))
+            .WithUrbanElementStep(new AddTransitStep(pipeline.LoggerFactory))
+            .WithUrbanElementStep(new TransitSurfaceUnioner(_loggerFactory: pipeline.LoggerFactory))
+            .WithUrbanElementStep(new RecalculateParcelsStep(pipeline.LoggerFactory));
 
         return pipeline;
     }
@@ -49,7 +49,7 @@ public static class PipelineConfigurations
         Use newUse)
     {
         pipeline.WithCreationData([new BuildingUseChangeData(geometryIds, newUse)])
-            .WithUrbanElementStep(new ChangeBuildingUseStep());
+            .WithUrbanElementStep(new ChangeBuildingUseStep(pipeline.LoggerFactory));
 
         return pipeline;
     }
@@ -62,7 +62,7 @@ public static class PipelineConfigurations
         pipeline.WithRhinoObjectDeletion(idsToDelete)
             .WithCreationData(zoneData.Cast<ICreationData>().ToList())
             .WithCreationData([new ZoneDeletionData(idsToDelete)])
-            .WithUrbanElementStep(new AddZoneStep());
+            .WithUrbanElementStep(new AddZoneStep(pipeline.LoggerFactory));
 
         return pipeline;
     }
@@ -72,9 +72,9 @@ public static class PipelineConfigurations
         List<Guid> centerlineIds)
     {
         pipeline.WithCreationData([new TransitDeletionData(centerlineIds)])
-            .WithUrbanElementStep(new RemoveTransitStep())
-            .WithUrbanElementStep(new TransitSurfaceUnioner())
-            .WithUrbanElementStep(new RecalculateParcelsStep());
+            .WithUrbanElementStep(new RemoveTransitStep(pipeline.LoggerFactory))
+            .WithUrbanElementStep(new TransitSurfaceUnioner(_loggerFactory: pipeline.LoggerFactory))
+            .WithUrbanElementStep(new RecalculateParcelsStep(pipeline.LoggerFactory));
 
         return pipeline;
     }
@@ -85,9 +85,9 @@ public static class PipelineConfigurations
         Curve newCenterline)
     {
         pipeline.WithCreationData([new TransitUpdateData(oldCenterlineId, newCenterline)])
-            .WithUrbanElementStep(new UpdateTransitStep())
-            .WithUrbanElementStep(new TransitSurfaceUnioner())
-            .WithUrbanElementStep(new RecalculateParcelsStep());
+            .WithUrbanElementStep(new UpdateTransitStep(pipeline.LoggerFactory))
+            .WithUrbanElementStep(new TransitSurfaceUnioner(_loggerFactory: pipeline.LoggerFactory))
+            .WithUrbanElementStep(new RecalculateParcelsStep(pipeline.LoggerFactory));
 
         return pipeline;
     }
@@ -97,7 +97,7 @@ public static class PipelineConfigurations
         List<Guid> geometryIds)
     {
         pipeline.WithCreationData([new BuildingDeletionData(geometryIds)])
-            .WithUrbanElementStep(new RemoveBuildingStep());
+            .WithUrbanElementStep(new RemoveBuildingStep(pipeline.LoggerFactory));
 
         return pipeline;
     }
@@ -107,7 +107,7 @@ public static class PipelineConfigurations
         List<Guid> geometryIds)
     {
         pipeline.WithCreationData([new ZoneDeletionData(geometryIds)])
-            .WithUrbanElementStep(new RemoveZoneStep());
+            .WithUrbanElementStep(new RemoveZoneStep(pipeline.LoggerFactory));
 
         return pipeline;
     }
@@ -118,7 +118,7 @@ public static class PipelineConfigurations
         Curve newBoundary)
     {
         pipeline.WithCreationData([new ZoneUpdateData(oldBoundaryId, newBoundary)])
-            .WithUrbanElementStep(new UpdateZoneStep());
+            .WithUrbanElementStep(new UpdateZoneStep(pipeline.LoggerFactory));
 
         return pipeline;
     }
@@ -131,7 +131,7 @@ public static class PipelineConfigurations
         List<Use> oldPlateUses)
     {
         pipeline.WithCreationData([new BuildingUpdateData(oldEnvelopeId, newEnvelope, typicalFloorHeight, oldPlateUses)])
-            .WithUrbanElementStep(new UpdateBuildingStep());
+            .WithUrbanElementStep(new UpdateBuildingStep(pipeline.LoggerFactory));
 
         return pipeline;
     }
@@ -142,7 +142,7 @@ public static class PipelineConfigurations
         double newZ)
     {
         pipeline.WithCreationData([new FloorPlateReplaceData(oldPlate, newZ)])
-            .WithUrbanElementStep(new ReplaceFloorPlateStep());
+            .WithUrbanElementStep(new ReplaceFloorPlateStep(pipeline.LoggerFactory));
 
         return pipeline;
     }
@@ -172,7 +172,7 @@ public static class PipelineConfigurations
         Guid id)
     {
         pipeline.WithCreationData([new UseModificationData(editType, name, color, id)])
-            .WithUrbanElementStep(new ModifyModelUsesStep());
+            .WithUrbanElementStep(new ModifyModelUsesStep(pipeline.LoggerFactory));
 
         return pipeline;
     }
@@ -194,16 +194,16 @@ public static class PipelineConfigurations
             .Select(x => x.Id)
             .ToList();
 
-        var gatherStep = new DocLoadGatherStep(model, doc.ModelAbsoluteTolerance);
+        var gatherStep = new DocLoadGatherStep(model, doc.ModelAbsoluteTolerance, pipeline.LoggerFactory);
 
         pipeline.WithDataGatherStep(gatherStep)
             .WithRhinoObjectDeletion(aiqLayerObjectIds)
             .WithUrbanElementStep(new ResetUrbanElementsStep())
-            .WithUrbanElementStep(new AddTransitStep())
-            .WithUrbanElementStep(new AddBuildingStep())
-            .WithUrbanElementStep(new AddZoneStep())
-            .WithUrbanElementStep(new TransitSurfaceUnioner())
-            .WithUrbanElementStep(new RecalculateParcelsStep())
+            .WithUrbanElementStep(new AddTransitStep(pipeline.LoggerFactory))
+            .WithUrbanElementStep(new AddBuildingStep(_loggerFactory: pipeline.LoggerFactory))
+            .WithUrbanElementStep(new AddZoneStep(pipeline.LoggerFactory))
+            .WithUrbanElementStep(new TransitSurfaceUnioner(_loggerFactory: pipeline.LoggerFactory))
+            .WithUrbanElementStep(new RecalculateParcelsStep(pipeline.LoggerFactory))
             .WithFullModelOutput()
             .WithMetricsCalculation();
 

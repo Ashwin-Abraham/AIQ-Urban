@@ -1,6 +1,8 @@
 using AIQ.Urban.Core.ModelActions.CreationData;
 using AIQ.Urban.Core.Models;
 using AIQ.Urban.Core.Models.GeometryElements;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Rhino;
 using Rhino.DocObjects;
 using Rhino.Geometry;
@@ -10,8 +12,11 @@ namespace AIQ.Urban.RhinoInterface.Pipeline.RhinoDataGatherSteps;
 public class SelectBuildingEnvelopeStep(
     IEnumerable<RhinoObject> selectedObjects,
     double floorHeight,
-    Use use) : IRhinoDataGatherStep
+    Use use,
+    ILoggerFactory? _loggerFactory = null) : IRhinoDataGatherStep
 {
+    private readonly ILogger _logger = (_loggerFactory ?? NullLoggerFactory.Instance).CreateLogger<SelectBuildingEnvelopeStep>();
+
     public List<ICreationData> Run(RhinoDoc doc)
     {
         var selected = selectedObjects
@@ -41,6 +46,8 @@ public class SelectBuildingEnvelopeStep(
 
         if (massData.Count == 0)
             throw new Exception("Selected objects could not be converted to Brep envelopes.");
+
+        _logger.LogInformation("SelectBuildingEnvelopeStep gathered {Count} building envelopes", massData.Count);
 
         return massData.Cast<ICreationData>().ToList();
     }

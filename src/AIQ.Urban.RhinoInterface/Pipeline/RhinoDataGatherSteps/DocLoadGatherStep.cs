@@ -4,13 +4,17 @@ using AIQ.Urban.Core.Models;
 using AIQ.Urban.Core.Models.GeometryElements;
 using AIQ.Urban.Core.Models.UrbanElements;
 using AIQ.Urban.RhinoInterface.Utils;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Rhino;
 using Rhino.Geometry;
 
 namespace AIQ.Urban.RhinoInterface.Pipeline.RhinoDataGatherSteps;
 
-public class DocLoadGatherStep(UrbanModel model, double _tolerance) : IRhinoDataGatherStep
+public class DocLoadGatherStep(UrbanModel model, double _tolerance, ILoggerFactory? _loggerFactory = null) : IRhinoDataGatherStep
 {
+    private readonly ILogger _logger = (_loggerFactory ?? NullLoggerFactory.Instance).CreateLogger<DocLoadGatherStep>();
+
     public List<ICreationData> Run(RhinoDoc doc)
     {
         var result = new List<ICreationData>();
@@ -19,6 +23,8 @@ public class DocLoadGatherStep(UrbanModel model, double _tolerance) : IRhinoData
         GatherParcelCentroids(doc, result);
         GatherBuildings(doc, result);
         GatherZones(doc, result);
+
+        _logger.LogInformation("DocLoadGatherStep gathered {Count} items", result.Count);
 
         return result;
     }

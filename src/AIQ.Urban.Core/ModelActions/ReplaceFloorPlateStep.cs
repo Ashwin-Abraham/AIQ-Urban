@@ -3,13 +3,16 @@ using AIQ.Urban.Core.ModelActions.CreationData;
 using AIQ.Urban.Core.Models;
 using AIQ.Urban.Core.Models.GeometryElements;
 using AIQ.Urban.Core.Models.UrbanElements;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Rhino.Geometry;
 using Rhino.Geometry.Intersect;
 
 namespace AIQ.Urban.Core.ModelActions;
 
-public class ReplaceFloorPlateStep : IUrbanModelStep
+public class ReplaceFloorPlateStep(ILoggerFactory? _loggerFactory = null) : IUrbanModelStep
 {
+    private readonly ILogger _logger = (_loggerFactory ?? NullLoggerFactory.Instance).CreateLogger<ReplaceFloorPlateStep>();
     private const double Tolerance = 1e-5;
 
     public StepResult Run(UrbanModel model, List<ICreationData> creationData)
@@ -50,6 +53,8 @@ public class ReplaceFloorPlateStep : IUrbanModelStep
         building.FloorPlates[index] = newPlate;
 
         building.FloorPlates.Sort((a, b) => a.Z().CompareTo(b.Z()));
+
+        _logger.LogInformation("Replaced floor plate at Z={Z:F2}", newZ);
 
         return new(newPlate.GetGeometryIds(), oldPlate.GetGeometryIds());
     }
