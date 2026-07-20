@@ -2,6 +2,8 @@
 using AIQ.Urban.Core.Models;
 using AIQ.Urban.Core.Models.GeometryElements;
 using AIQ.Urban.Core.Models.UrbanElements;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Rhino.Geometry;
 
 namespace AIQ.Urban.Core.ModelActions;
@@ -22,8 +24,10 @@ namespace AIQ.Urban.Core.ModelActions;
 /// NOTE: If multiple transit types produce overlapping holes in the same
 /// physical area, duplicate parcels will be created. No dedup is performed.
 /// </summary>
-public class RecalculateParcelsStep : IUrbanModelStep
+public class RecalculateParcelsStep(ILoggerFactory? _loggerFactory = null) : IUrbanModelStep
 {
+    private readonly ILogger _logger = (_loggerFactory ?? NullLoggerFactory.Instance).CreateLogger<RecalculateParcelsStep>();
+
     public StepResult Run(UrbanModel model, List<ICreationData> creationData)
     {
         var oldParcelIds = model.Parcels.SelectMany(p => p.GetGeometryIds()).ToList();
@@ -46,6 +50,8 @@ public class RecalculateParcelsStep : IUrbanModelStep
                 model.Parcels.Add(new Parcel(hole, use));
             }
         }
+
+        _logger.LogInformation("Recalculated {Count} parcels", model.Parcels.Count);
 
         var newParcelIds = model.Parcels.SelectMany(p => p.GetGeometryIds()).ToList();
 

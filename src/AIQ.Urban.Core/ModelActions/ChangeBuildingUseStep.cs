@@ -1,11 +1,15 @@
 using AIQ.Urban.Core.ModelActions.CreationData;
 using AIQ.Urban.Core.Models;
 using AIQ.Urban.Core.Models.UrbanElements;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AIQ.Urban.Core.ModelActions;
 
-public class ChangeBuildingUseStep : IUrbanModelStep
+public class ChangeBuildingUseStep(ILoggerFactory? _loggerFactory = null) : IUrbanModelStep
 {
+    private readonly ILogger _logger = (_loggerFactory ?? NullLoggerFactory.Instance).CreateLogger<ChangeBuildingUseStep>();
+
     public StepResult Run(UrbanModel model, List<ICreationData> creationData)
     {
         var data = creationData.OfType<BuildingUseChangeData>().First();
@@ -39,6 +43,8 @@ public class ChangeBuildingUseStep : IUrbanModelStep
                 touchedBuildings.Add(building);
             }
         }
+
+        _logger.LogInformation("Changed use of {Count} buildings to {Use}", touchedBuildings.Count, newUse.Name);
 
         var touchedIds = touchedBuildings.SelectMany(x => x.GetGeometryIds()).ToList();
         return new(touchedIds, touchedIds);

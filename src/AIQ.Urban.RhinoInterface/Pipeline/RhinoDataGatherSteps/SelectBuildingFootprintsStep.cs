@@ -4,6 +4,8 @@ using System.Linq;
 using AIQ.Urban.Core.ModelActions.CreationData;
 using AIQ.Urban.Core.Models;
 using AIQ.Urban.Core.Models.GeometryElements;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Rhino;
 using Rhino.DocObjects;
 using Rhino.Geometry;
@@ -14,8 +16,11 @@ public class SelectBuildingFootprintStep(
     IEnumerable<RhinoObject> selectedObjects,
     double floorHeight,
     int floorCount,
-    Use use) : IRhinoDataGatherStep
+    Use use,
+    ILoggerFactory? _loggerFactory = null) : IRhinoDataGatherStep
 {
+    private readonly ILogger _logger = (_loggerFactory ?? NullLoggerFactory.Instance).CreateLogger<SelectBuildingFootprintStep>();
+
     public List<ICreationData> Run(RhinoDoc doc)
     {
         var selected = selectedObjects
@@ -38,6 +43,8 @@ public class SelectBuildingFootprintStep(
 
         if (buildingData.Count == 0)
             throw new Exception("Selected objects must be curves.");
+
+        _logger.LogInformation("SelectBuildingFootprintStep gathered {Count} building footprints", buildingData.Count);
 
         return buildingData.Cast<ICreationData>().ToList();
     }

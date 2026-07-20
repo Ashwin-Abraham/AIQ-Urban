@@ -5,8 +5,10 @@ using AIQ.Urban.Core;
 using AIQ.Urban.Core.Enums;
 using AIQ.Urban.Core.ModelActions.CreationData;
 using AIQ.Urban.RhinoInterface;
+using AIQ.Urban.RhinoInterface.Logging;
 using AIQ.Urban.RhinoInterface.Pipeline.RhinoDataGatherSteps;
 using AIQ.Urban.RhinoPlugin.HTML_UI.MessageToUI;
+using Microsoft.Extensions.Logging;
 using Rhino;
 using Rhino.DocObjects;
 
@@ -28,11 +30,13 @@ public class TransitMessage : IMessageFromUI<ModelStateMessage>
         if (selected.Count == 0)
             throw new Exception("Select one or more transit centerline curves first.");
 
-        var gatherStep = new SelectTransitCenterlinesStep(selected, RoadWidth, TransitType.Road);
+        using var loggerFactory = new LoggerFactory().AddRhinoLog();
+
+        var gatherStep = new SelectTransitCenterlinesStep(selected, RoadWidth, TransitType.Road, loggerFactory);
         var creationData = gatherStep.Run(doc);
         var centerlineIds = creationData.OfType<TransitData>().Select(t => t.Centerline.Id).ToList();
 
-        var pipeline = new RhinoUrbanModelPipeline(doc, UrbanModel.Instance)
+        var pipeline = new RhinoUrbanModelPipeline(doc, UrbanModel.Instance, loggerFactory)
             .WithDataGatherStep(gatherStep)
             .WithTransitAdditionSteps([], centerlineIds)
             .WithFullModelOutput()

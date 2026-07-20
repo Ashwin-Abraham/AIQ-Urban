@@ -4,8 +4,10 @@ using System.Linq;
 using AIQ.Urban.Core;
 using AIQ.Urban.Core.ModelActions.CreationData;
 using AIQ.Urban.RhinoInterface;
+using AIQ.Urban.RhinoInterface.Logging;
 using AIQ.Urban.RhinoInterface.Pipeline.RhinoDataGatherSteps;
 using AIQ.Urban.RhinoPlugin.HTML_UI.MessageToUI;
+using Microsoft.Extensions.Logging;
 using Rhino;
 using Rhino.DocObjects;
 
@@ -30,11 +32,13 @@ public class AddZoneMessage : IMessageFromUI<ModelStateMessage>
         if (selected.Count > 1)
             throw new Exception("Select exactly one zone boundary curve first.");
 
-        var gatherStep = new SelectZoneBoundaryStep(selected, Name);
+        using var loggerFactory = new LoggerFactory().AddRhinoLog();
+
+        var gatherStep = new SelectZoneBoundaryStep(selected, Name, loggerFactory);
         var creationData = gatherStep.Run(doc);
         var idsToDelete = creationData.OfType<ZoneData>().Select(zone => zone.Boundary.Id).ToList();
 
-        var pipeline = new RhinoUrbanModelPipeline(doc, UrbanModel.Instance)
+        var pipeline = new RhinoUrbanModelPipeline(doc, UrbanModel.Instance, loggerFactory)
             .WithDataGatherStep(gatherStep)
             .WithZoneAdditionSteps([], idsToDelete)
             .WithFullModelOutput()

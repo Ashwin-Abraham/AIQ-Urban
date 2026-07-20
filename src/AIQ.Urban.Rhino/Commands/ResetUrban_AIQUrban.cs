@@ -2,6 +2,8 @@ using System;
 using AIQ.Urban.Core;
 using AIQ.Urban.Core.ModelActions;
 using AIQ.Urban.RhinoInterface;
+using AIQ.Urban.RhinoInterface.Logging;
+using Microsoft.Extensions.Logging;
 using Rhino;
 using Rhino.Commands;
 using Rhino.Input.Custom;
@@ -34,7 +36,9 @@ public class ResetUrban_AIQUrban : Command
             return Result.Cancel;
         }
 
-        var pipeline = new RhinoUrbanModelPipeline(doc, UrbanModel.Instance);
+        using var loggerFactory = new LoggerFactory().AddRhinoLog();
+
+        var pipeline = new RhinoUrbanModelPipeline(doc, UrbanModel.Instance, loggerFactory);
         pipeline.WithUrbanElementStep(new ResetUrbanElementsStep());
         pipeline.WithFullModelOutput();
         pipeline.WithEventHandler(Urban_RhinoPlugin.Instance.EventHandler);

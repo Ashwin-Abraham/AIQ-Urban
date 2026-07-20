@@ -1,12 +1,16 @@
 using AIQ.Urban.Core.ModelActions.CreationData;
 using AIQ.Urban.Core.Models;
 using AIQ.Urban.Core.Models.UrbanElements;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Rhino.Geometry;
 
 namespace AIQ.Urban.Core.ModelActions;
 
-public class UpdateBuildingStep : IUrbanModelStep
+public class UpdateBuildingStep(ILoggerFactory? _loggerFactory = null) : IUrbanModelStep
 {
+    private readonly ILogger _logger = (_loggerFactory ?? NullLoggerFactory.Instance).CreateLogger<UpdateBuildingStep>();
+
     public StepResult Run(UrbanModel model, List<ICreationData> creationData)
     {
         var data = creationData.OfType<BuildingUpdateData>().First();
@@ -28,6 +32,8 @@ public class UpdateBuildingStep : IUrbanModelStep
         MapUsesByZ(newBuilding.FloorPlates, data.OldPlateUses);
 
         model.AddBuilding(newBuilding);
+
+        _logger.LogInformation("Updated building {Id}", data.OldEnvelopeId);
 
         return new(newBuilding.GetGeometryIds(), oldIds);
     }

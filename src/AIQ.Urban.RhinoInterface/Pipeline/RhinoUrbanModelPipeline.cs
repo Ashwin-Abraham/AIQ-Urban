@@ -7,14 +7,20 @@ using AIQ.Urban.RhinoInterface.Extensions;
 using AIQ.Urban.RhinoInterface.Pipeline.Outputters;
 using AIQ.Urban.RhinoInterface.Pipeline.RhinoDataGatherSteps;
 using AIQ.Urban.RhinoInterface.Utils;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Rhino;
 
 namespace AIQ.Urban.RhinoInterface;
 
 public class RhinoUrbanModelPipeline(
     RhinoDoc _rhinoDoc,
-    UrbanModel _urbanModel)
+    UrbanModel _urbanModel,
+    ILoggerFactory? _loggerFactory = null)
 {
+    private readonly ILogger _logger = (_loggerFactory ?? NullLoggerFactory.Instance)
+        .CreateLogger<RhinoUrbanModelPipeline>();
+
     private IRhinoDataGatherStep? _objectSelectionStep;
     private List<ICreationData> _creationData = [];
     private readonly List<IUrbanModelStep> _steps = [];
@@ -25,6 +31,7 @@ public class RhinoUrbanModelPipeline(
     private RhinoUrbanEventHandler? _eventHandler = null;
 
     internal UrbanModel UrbanModel => _urbanModel;
+    public ILoggerFactory LoggerFactory => _loggerFactory ?? NullLoggerFactory.Instance;
 
     public RhinoUrbanModelPipeline WithEventHandler(RhinoUrbanEventHandler eventHandler)
     {
@@ -89,32 +96,64 @@ public class RhinoUrbanModelPipeline(
         var deletedIds = new List<Guid>();
         var addedIds = new List<Guid>();
 
-        var creationData = _objectSelectionStep?.Run(_rhinoDoc) ?? _creationData;
+        _logger.LogInformation("Pipeline started ({StepCount} steps)", _steps.Count);
 
-        foreach (var step in _steps)
+        try
         {
-            var result = step.Run(_urbanModel, creationData);
-            addedIds.AddRange(result.AddedIds);
-            deletedIds.AddRange(result.DeletedIds);
+            var creationData = _objectSelectionStep?.Run(_rhinoDoc) ?? _creationData;
+
+            foreach (var step in _steps)
+            {
+                try
+                {
+                    var result = step.Run(_urbanModel, creationData);
+                    addedIds.AddRange(result.AddedIds);
+                    deletedIds.AddRange(result.DeletedIds);
+                    _logger.LogInformation("{StepType}: +{Added} -{Deleted}",
+                        step.GetType().Name, result.AddedIds.Count, result.DeletedIds.Count);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "{StepType} failed", step.GetType().Name);
+                }
+            }
+
+            deletedIds.AddRange(_directDeleteIds);
+
+            if (_outputters.Count > 0)
+            {
+                DeleteRhinoObjects(deletedIds);
+                AddRhinoObjects(addedIds);
+                _rhinoDoc.Layers.PurgeEmpty(_rhinoDoc, LayerConstants.Root);
+            }
+
+            foreach (var action in _postActions)
+            {
+                try
+                {
+                    action(_urbanModel);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Post-action failed");
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Pipeline failed during data gather");
+        }
+        finally
+        {
+            if (_eventHandler is not null)
+            {
+                _eventHandler.RebuildLookup();
+                _eventHandler.EventLock = false;
+            }
         }
 
-        deletedIds.AddRange(_directDeleteIds);
-
-        if(_outputters.Count > 0)
-        {
-            DeleteRhinoObjects(deletedIds);
-            AddRhinoObjects(addedIds);
-            _rhinoDoc.Layers.PurgeEmpty(_rhinoDoc, LayerConstants.Root);
-        }
-
-        foreach (var action in _postActions)
-            action(_urbanModel);
-
-        if (_eventHandler is not null)
-        {
-            _eventHandler.RebuildLookup();
-            _eventHandler.EventLock = false;
-        }
+        _logger.LogInformation("Pipeline completed — {Added} added, {Deleted} deleted",
+            addedIds.Count, deletedIds.Count);
     }
 
     private void AddRhinoObjects(List<Guid> addedIds)
@@ -122,7 +161,16 @@ public class RhinoUrbanModelPipeline(
         var elementsToAdd = FilterElementsToAdd(addedIds);
 
         foreach (var outputter in _outputters)
-            outputter.Run(_urbanModel, _rhinoDoc, elementsToAdd);
+        {
+            try
+            {
+                outputter.Run(_urbanModel, _rhinoDoc, elementsToAdd);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "{OutputterType} failed", outputter.GetType().Name);
+            }
+        }
     }
 
     private List<IUrbanElement> FilterElementsToAdd(List<Guid> addedIds)

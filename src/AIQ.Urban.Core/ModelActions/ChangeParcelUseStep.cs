@@ -1,10 +1,14 @@
 using AIQ.Urban.Core.ModelActions.CreationData;
 using AIQ.Urban.Core.Models;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AIQ.Urban.Core.ModelActions;
 
-public class ChangeParcelUseStep : IUrbanModelStep
+public class ChangeParcelUseStep(ILoggerFactory? _loggerFactory = null) : IUrbanModelStep
 {
+    private readonly ILogger _logger = (_loggerFactory ?? NullLoggerFactory.Instance).CreateLogger<ChangeParcelUseStep>();
+
     public StepResult Run(UrbanModel model, List<ICreationData> creationData)
     {
         var data = creationData.OfType<ParcelUseChangeData>().First();
@@ -23,6 +27,8 @@ public class ChangeParcelUseStep : IUrbanModelStep
                 newIds.Add(parcel.Outline.Id);
             }
         }
+
+        _logger.LogInformation("Changed use of {Count} parcels to {Use}", newIds.Count, newUse.Name);
 
         return new(newIds, oldIds);
     }

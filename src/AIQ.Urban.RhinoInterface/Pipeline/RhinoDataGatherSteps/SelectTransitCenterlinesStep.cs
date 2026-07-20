@@ -4,6 +4,8 @@ using System.Linq;
 using AIQ.Urban.Core.Enums;
 using AIQ.Urban.Core.ModelActions.CreationData;
 using AIQ.Urban.Core.Models.GeometryElements;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Rhino;
 using Rhino.DocObjects;
 using Rhino.Geometry;
@@ -13,8 +15,11 @@ namespace AIQ.Urban.RhinoInterface.Pipeline.RhinoDataGatherSteps;
 public class SelectTransitCenterlinesStep(
     IEnumerable<RhinoObject> objectsToParse,
     double width,
-    TransitType transitType) : IRhinoDataGatherStep
+    TransitType transitType,
+    ILoggerFactory? _loggerFactory = null) : IRhinoDataGatherStep
 {
+    private readonly ILogger _logger = (_loggerFactory ?? NullLoggerFactory.Instance).CreateLogger<SelectTransitCenterlinesStep>();
+
     public List<ICreationData> Run(RhinoDoc doc)
     {
         var selected = objectsToParse
@@ -37,6 +42,8 @@ public class SelectTransitCenterlinesStep(
 
         if (transitData.Count == 0)
             throw new Exception("Selected objects must be curves.");
+
+        _logger.LogInformation("SelectTransitCenterlinesStep gathered {Count} transit centerlines", transitData.Count);
 
         return transitData.Cast<ICreationData>().ToList();
     }

@@ -3,7 +3,9 @@ using AIQ.Urban.Core;
 using AIQ.Urban.Core.ModelActions.CreationData;
 using AIQ.Urban.Core.Models;
 using AIQ.Urban.RhinoInterface;
+using AIQ.Urban.RhinoInterface.Logging;
 using AIQ.Urban.RhinoInterface.Pipeline.RhinoDataGatherSteps;
+using Microsoft.Extensions.Logging;
 using Rhino;
 using Rhino.Commands;
 using Rhino.DocObjects;
@@ -55,12 +57,14 @@ public class AddBuilding_AIQUrban : Command
 
         var rhinoObjs = new[] { rhinoObj };
 
-        var gatherStep = new SelectBuildingFootprintStep(rhinoObjs, floorHeight, floorCount, selectedUse);
+        using var loggerFactory = new LoggerFactory().AddRhinoLog();
+
+        var gatherStep = new SelectBuildingFootprintStep(rhinoObjs, floorHeight, floorCount, selectedUse, loggerFactory);
         var creationData = gatherStep.Run(doc);
         var buildingData = creationData.OfType<BuildingFootprintData>().ToList();
         var idsToDelete = buildingData.Select(b => b.Footprint.Id).ToList();
 
-        var pipeline = new RhinoUrbanModelPipeline(doc, UrbanModel.Instance)
+        var pipeline = new RhinoUrbanModelPipeline(doc, UrbanModel.Instance, loggerFactory)
             .WithDataGatherStep(gatherStep)
             .WithBuildingAdditionSteps([], idsToDelete)
             .WithFullModelOutput()

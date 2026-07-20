@@ -1,6 +1,8 @@
 using AIQ.Urban.Core;
 using AIQ.Urban.Core.Models.UrbanElements;
+using AIQ.Urban.RhinoInterface.Logging;
 using AIQ.Urban.RhinoInterface.Pipeline.Outputters;
+using Microsoft.Extensions.Logging;
 using Rhino;
 using Rhino.DocObjects;
 using Rhino.Geometry;
@@ -237,7 +239,9 @@ public class RhinoUrbanEventHandler : IDisposable
     {
         var centerlineIds = transit.GetGeometryIds().ToList();
 
-        var pipeline = new RhinoUrbanModelPipeline(_doc, UrbanModel.Instance)
+        using var loggerFactory = new LoggerFactory().AddRhinoLog();
+
+        var pipeline = new RhinoUrbanModelPipeline(_doc, UrbanModel.Instance, loggerFactory)
             .WithTransitDeletionSteps(centerlineIds)
             .WithFullModelOutput()
             .WithMetricsCalculation();
@@ -256,7 +260,9 @@ public class RhinoUrbanEventHandler : IDisposable
         var oldCenterlineId = transit.GetGeometryIds().FirstOrDefault();
         if (oldCenterlineId == Guid.Empty) return;
 
-        var pipeline = new RhinoUrbanModelPipeline(_doc, UrbanModel.Instance)
+        using var loggerFactory = new LoggerFactory().AddRhinoLog();
+
+        var pipeline = new RhinoUrbanModelPipeline(_doc, UrbanModel.Instance, loggerFactory)
             .WithTransitUpdateSteps(oldCenterlineId, newCurve)
             .WithFullModelOutput()
             .WithMetricsCalculation();
@@ -268,7 +274,9 @@ public class RhinoUrbanEventHandler : IDisposable
     {
         var geometryIds = building.GetGeometryIds();
 
-        var pipeline = new RhinoUrbanModelPipeline(_doc, UrbanModel.Instance)
+        using var loggerFactory = new LoggerFactory().AddRhinoLog();
+
+        var pipeline = new RhinoUrbanModelPipeline(_doc, UrbanModel.Instance, loggerFactory)
             .WithBuildingDeletionSteps(geometryIds)
             .WithFullModelOutput()
             .WithMetricsCalculation();
@@ -290,7 +298,9 @@ public class RhinoUrbanEventHandler : IDisposable
             .Select(p => p.Use)
             .ToList();
 
-        var pipeline = new RhinoUrbanModelPipeline(_doc, UrbanModel.Instance)
+        using var loggerFactory = new LoggerFactory().AddRhinoLog();
+
+        var pipeline = new RhinoUrbanModelPipeline(_doc, UrbanModel.Instance, loggerFactory)
             .WithRhinoObjectDeletion([newEnvelopeId])
             .WithBuildingUpdateSteps(building.Envelope.Id, newBrep, building.TypicalFloorHeight, oldPlateUses)
             .WithFullModelOutput()
@@ -306,7 +316,9 @@ public class RhinoUrbanEventHandler : IDisposable
 
         var newZ = newCurve.PointAtStart.Z;
 
-        var pipeline = new RhinoUrbanModelPipeline(_doc, UrbanModel.Instance)
+        using var loggerFactory = new LoggerFactory().AddRhinoLog();
+
+        var pipeline = new RhinoUrbanModelPipeline(_doc, UrbanModel.Instance, loggerFactory)
             .WithRhinoObjectDeletion([newCurveId])
             .WithFloorPlateReplaceSteps(floorPlate, newZ)
             .WithFullModelOutput()
@@ -319,7 +331,9 @@ public class RhinoUrbanEventHandler : IDisposable
     {
         var geometryIds = zone.GetGeometryIds();
 
-        var pipeline = new RhinoUrbanModelPipeline(_doc, UrbanModel.Instance)
+        using var loggerFactory = new LoggerFactory().AddRhinoLog();
+
+        var pipeline = new RhinoUrbanModelPipeline(_doc, UrbanModel.Instance, loggerFactory)
             .WithZoneDeletionSteps(geometryIds)
             .WithFullModelOutput()
             .WithMetricsCalculation();
@@ -338,7 +352,9 @@ public class RhinoUrbanEventHandler : IDisposable
         var oldBoundaryId = zone.GetGeometryIds().FirstOrDefault();
         if (oldBoundaryId == Guid.Empty) return;
 
-        var pipeline = new RhinoUrbanModelPipeline(_doc, UrbanModel.Instance)
+        using var loggerFactory = new LoggerFactory().AddRhinoLog();
+
+        var pipeline = new RhinoUrbanModelPipeline(_doc, UrbanModel.Instance, loggerFactory)
             .WithZoneUpdateSteps(oldBoundaryId, newCurve)
             .WithFullModelOutput()
             .WithMetricsCalculation();

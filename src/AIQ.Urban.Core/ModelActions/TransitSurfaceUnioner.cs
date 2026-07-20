@@ -1,10 +1,14 @@
 ﻿using AIQ.Urban.Core.ModelActions.CreationData;
 using AIQ.Urban.Core.Models.GeometryElements;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Rhino.Geometry;
 
 namespace AIQ.Urban.Core.ModelActions;
-public class TransitSurfaceUnioner(double _tolerance = 0.001) : IUrbanModelStep
+public class TransitSurfaceUnioner(double _tolerance = 0.001, ILoggerFactory? _loggerFactory = null) : IUrbanModelStep
 {
+    private readonly ILogger _logger = (_loggerFactory ?? NullLoggerFactory.Instance).CreateLogger<TransitSurfaceUnioner>();
+
     public StepResult Run(UrbanModel model, List<ICreationData> creationData)
     {
         var oldIds = model.TransitSurfaces.Select(x => x.Profile.Id).ToList();
@@ -39,6 +43,8 @@ public class TransitSurfaceUnioner(double _tolerance = 0.001) : IUrbanModelStep
                 surfaceIds.Add(profile.Id);
             }
         }
+
+        _logger.LogInformation("Unioned transit surfaces for {Count} types", model.TransitSurfaces.Count);
 
         return new(surfaceIds, oldIds);
     }

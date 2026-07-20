@@ -6,7 +6,9 @@ using AIQ.Urban.Core.ModelActions;
 using AIQ.Urban.Core.ModelActions.CreationData;
 using AIQ.Urban.Core.Models;
 using AIQ.Urban.RhinoInterface;
+using AIQ.Urban.RhinoInterface.Logging;
 using AIQ.Urban.RhinoPlugin.HTML_UI.MessageToUI;
+using Microsoft.Extensions.Logging;
 using Rhino;
 using Rhino.DocObjects;
 
@@ -31,7 +33,9 @@ public class ChangeUseMessage : IMessageFromUI<ModelStateMessage>
         var use = UrbanModel.Instance.GetUse(Use);
         var geometryIds = selected.Select(obj => obj.Id).ToList();
 
-        var pipeline = new RhinoUrbanModelPipeline(doc, UrbanModel.Instance)
+        using var loggerFactory = new LoggerFactory().AddRhinoLog();
+
+        var pipeline = new RhinoUrbanModelPipeline(doc, UrbanModel.Instance, loggerFactory)
             .WithCreationData([new ParcelUseChangeData(geometryIds, use), new BuildingUseChangeData(geometryIds, use)])
             .WithUrbanElementStep(new ChangeParcelUseStep())
             .WithUrbanElementStep(new ChangeBuildingUseStep())
