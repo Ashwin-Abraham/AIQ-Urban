@@ -79,7 +79,7 @@ public class RecalculateParcelsStep(ILoggerFactory? _loggerFactory = null) : IUr
     }
 
     private static Use ResolveUse(
-        Polygon2D hole,
+        PolyCurve2D hole,
         List<(Point3d Centroid, Use Use)> oldCentroids,
         Point3d? originalHoleCentroid,
         UrbanModel model)

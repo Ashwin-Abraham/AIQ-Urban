@@ -10,10 +10,16 @@ public class Profile2D : IGeometryElement<Brep>
         set => Outline.Id = value;
     }
     public Brep Geometry => GetBrep();
-    public Polygon2D Outline { get; }
-    public List<Polygon2D> Holes { get; }
+    public PolyCurve2D Outline { get; }
+    public List<PolyCurve2D> Holes { get; }
 
-    public Profile2D(Polygon2D outline, List<Polygon2D> holes, double tolerance = 1e-5)
+    public Profile2D(Polygon2D outline, List<Polygon2D> holes)
+    {
+        Outline = new PolyCurve2D(outline.Geometry);
+        Holes = holes.Select(x => new PolyCurve2D(x.Geometry)).ToList();
+    }
+
+    public Profile2D(PolyCurve2D outline, List<PolyCurve2D> holes)
     {
         Outline = outline;
         Holes = holes;
@@ -37,27 +43,29 @@ public class Profile2D : IGeometryElement<Brep>
 
     public static Profile2D? Create(Brep profileBrep)
     {
-        Polygon2D? outline = null;
-        var holes = new List<Polygon2D>();
+        PolyCurve2D? outline = null;
+        var holes = new List<PolyCurve2D>();
 
         profileBrep.Faces[0].TryGetPlane(out var plane);
         var faceTransform = Transform.PlaneToPlane(Plane.WorldXY, plane);
 
         foreach (var loop in profileBrep.Faces[0].Loops)
         {
-            if(!loop.To2dCurve().TryGetPolyline(out var pline))
-                return null;
+            var polycurve = PolyCurve2D.Create(loop.To2dCurve());
 
+            if (polycurve == null)
+                continue;
+            
             if (loop.LoopType == BrepLoopType.Outer)
             {
-                pline.Transform(faceTransform);
-                outline = new(pline.ToPolylineCurve());
+                polycurve.Geometry.Transform(faceTransform);
+                outline = polycurve;
             }
 
             if (loop.LoopType == BrepLoopType.Inner)
             {
-                pline.Transform(faceTransform);
-                holes.Add(new(pline.ToPolylineCurve()));
+                polycurve.Geometry.Transform(faceTransform);
+                holes.Add(polycurve);
             }
         }
 

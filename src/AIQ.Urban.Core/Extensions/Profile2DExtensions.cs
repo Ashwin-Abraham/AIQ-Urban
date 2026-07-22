@@ -11,8 +11,8 @@ public static class Profile2DExtensions
 {
     public static Profile2D WithoutPeripheralVoids(this Profile2D profile, double tolerance = 1e-5)
     {
-        var internalVoids = new List<Polygon2D>();
-        var peripheralVoids = new List<Polygon2D>();
+        var internalVoids = new List<PolyCurve2D>();
+        var peripheralVoids = new List<PolyCurve2D>();
         var outline = profile.Outline.Geometry;
 
         foreach (var hole in profile.Holes)
@@ -31,7 +31,7 @@ public static class Profile2DExtensions
         if (remainingOutlines.Length != 1)
             return profile;
 
-        var newProfile = new Profile2D(new Polygon2D(remainingOutlines[0]), internalVoids, tolerance);
+        var newProfile = new Profile2D(new PolyCurve2D(remainingOutlines[0]), internalVoids);
         return newProfile ?? profile;
     }
 

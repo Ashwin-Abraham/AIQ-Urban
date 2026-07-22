@@ -11,6 +11,7 @@ using NUnit.Framework;
 using Rhino;
 using Rhino.Geometry;
 using Rhino.Testing.Fixtures;
+using AIQ.Urban.Core.Extensions;
 
 namespace AIQ.Urban.RhinoInterface.Tests;
 
@@ -90,7 +91,7 @@ public class MessageHandlersTests
             new Point3d(0, 0, 0),
         ]));
 
-        var parcel = new Parcel(polygon, use);
+        var parcel = new Parcel(polygon.ToPolyCurve2d(), use);
         var curveId = doc.Objects.AddCurve(polygon.Geometry);
         parcel.Outline.Id = curveId;
         UrbanModel.Instance.Parcels.Add(parcel);

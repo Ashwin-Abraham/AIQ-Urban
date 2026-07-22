@@ -41,7 +41,7 @@ public class LongEdgeToCenter(int _dividerCount = 2, double _tolerance = 1e-6) :
             .Select(x =>
             {
                 var pline = x.ToPolylineCurve();
-                var polygon = new Polygon2D(pline);
+                var polygon = new PolyCurve2D(pline);
                 return new Profile2D(polygon, []);
             })
             .ToList();
@@ -49,7 +49,7 @@ public class LongEdgeToCenter(int _dividerCount = 2, double _tolerance = 1e-6) :
         return new DivisionResult(fragments, dividers);
     }
 
-    private List<PolylineCurve> ToRegions(PolylineCurve outline, List<int> divisionSegments)
+    private List<PolylineCurve> ToRegions(PolyCurve outline, List<int> divisionSegments)
     {
         var centroid = AreaMassProperties.Compute(outline).Centroid;
 
@@ -64,7 +64,9 @@ public class LongEdgeToCenter(int _dividerCount = 2, double _tolerance = 1e-6) :
             var nextOne = divisionSegments[(i + 1) % divisionSegments.Count];
 
             var firstPoint = segments[thisOne].PointAtMid;
-            var interveningPoints = GetInterveningPoints(outline, thisOne, nextOne).ToList();
+
+            var outlinePoints = outline.ToNurbsCurve().Points.Select(x => new Point3d(x.X, x.Y, x.Z)).ToList();
+            var interveningPoints = GetInterveningPoints(outlinePoints, thisOne, nextOne).ToList();
             var lastPoint = segments[nextOne].PointAtMid;
             var points = interveningPoints
                 .Prepend(firstPoint)
@@ -102,12 +104,12 @@ public class LongEdgeToCenter(int _dividerCount = 2, double _tolerance = 1e-6) :
         return [polyline];
     }
 
-    private static IEnumerable<Point3d> GetInterveningPoints(PolylineCurve curve, int thisSegmentIndex, int nextSegmentIndex)
+    private static IEnumerable<Point3d> GetInterveningPoints(List<Point3d> points, int thisSegmentIndex, int nextSegmentIndex)
     {
         if(thisSegmentIndex < 0 || nextSegmentIndex < 0)
             yield break;
 
-        var count = curve.PointCount - 1;
+        var count = points.Count - 1;
 
         var thisPointIndex = (thisSegmentIndex + 1) % count;
         var lastPointIndex = (nextSegmentIndex + 1) % count;
@@ -117,7 +119,7 @@ public class LongEdgeToCenter(int _dividerCount = 2, double _tolerance = 1e-6) :
 
         while (thisPointIndex != lastPointIndex)
         {
-            yield return curve.Point(thisPointIndex);
+            yield return points[thisPointIndex];
             thisPointIndex = (thisPointIndex + 1) % count;
         }
     }

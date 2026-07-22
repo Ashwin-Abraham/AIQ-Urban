@@ -1,3 +1,4 @@
+using AIQ.Urban.Core.Extensions;
 using AIQ.Urban.Core.ModelActions;
 using AIQ.Urban.Core.ModelActions.CreationData;
 using AIQ.Urban.Core.Models;
@@ -64,7 +65,7 @@ public class ChangeParcelUseStepTests
         int AddedCount,
         int DeletedCount);
 
-    private static Polygon2D MakeOutline(double size)
+    private static PolyCurve2D MakeOutline(double size)
     {
         return new Polygon2D(new PolylineCurve([
             new Point3d(0, 0, 0),
@@ -72,7 +73,8 @@ public class ChangeParcelUseStepTests
             new Point3d(size, size, 0),
             new Point3d(0, size, 0),
             new Point3d(0, 0, 0),
-        ]));
+        ]))
+            .ToPolyCurve2d();
     }
 
     private static readonly List<ChangeParcelUseTestData> _testData = BuildTestData();
