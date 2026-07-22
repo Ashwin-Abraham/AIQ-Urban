@@ -40,12 +40,29 @@ public class Polygon2D : IGeometryElement<PolylineCurve>
             ]);
     }
 
-    public static Polygon2D Create(List<(double X, double Y)> coordinates)
+    public static Polygon2D? Create(Curve curve)
     {
-        ArgumentNullException.ThrowIfNull(coordinates);
+        if(curve.Degree > 1)
+            return null;
 
+        if (curve is not PolylineCurve pline)
+            return null;
+
+        var points = new List<(double X, double Y)>();
+
+        for(int i = 0; i < pline.PointCount; i++)
+        {
+            var point = pline.PointAt(i);
+            points.Add((point.X, point.Y));
+        }
+
+        return Create(points);
+    }
+
+    public static Polygon2D? Create(List<(double X, double Y)> coordinates)
+    {
         if (coordinates.Count < 3)
-            throw new ArgumentException("At least 3 coordinate pairs are required.", nameof(coordinates));
+            return null;
 
         var points = coordinates.Select(c => new Point3d(c.X, c.Y, 0)).ToList();
 
@@ -57,7 +74,7 @@ public class Polygon2D : IGeometryElement<PolylineCurve>
         var curve = new PolylineCurve(points);
 
         if (!curve.IsClosed)
-            throw new ArgumentException("Coordinates must form a closed ring.");
+            return null;
 
         return new Polygon2D(curve);
     }
