@@ -4,6 +4,21 @@ using Rhino.Geometry;
 namespace AIQ.Urban.Core.Extensions;
 public static class CurveExtensions
 {
+    public static IEnumerable<Point3d> Points(this Curve curve)
+    {
+        NurbsCurve nurbs = curve.ToNurbsCurve();
+
+        for (int i = 0; i < nurbs.Points.Count; i++)
+            yield return nurbs.Points[i].Location;
+    }
+
+    public static PolyCurve ToPolyCurve(this PolylineCurve curve)
+    {
+        var polyCurve = new PolyCurve();
+        polyCurve.AppendSegment(curve);
+        return polyCurve;
+    }
+
     public static bool IsPlanarInXY(this Curve curve)
     {
         var xyPlane = new Plane(curve.PointAtStart, Vector3d.ZAxis);

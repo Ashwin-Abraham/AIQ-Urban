@@ -20,7 +20,7 @@ public class Graph(List<GraphNode> nodes, List<Edge> edges)
         return graph;
     }
 
-    public static void AddToGraph(Graph graph, Polygon2D polygon, double tolerance = 1e-5)
+    public static void AddToGraph(Graph graph, PolyCurve2D polygon, double tolerance = 1e-5)
     {
         var points = polygon.Geometry.ToNurbsCurve().Points
             .Select(x => new Point3d(x.X, x.Y, 0))

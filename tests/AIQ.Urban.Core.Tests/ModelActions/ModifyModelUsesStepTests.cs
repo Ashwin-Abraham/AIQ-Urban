@@ -1,4 +1,5 @@
 using AIQ.Urban.Core.Enums;
+using AIQ.Urban.Core.Extensions;
 using AIQ.Urban.Core.ModelActions;
 using AIQ.Urban.Core.ModelActions.CreationData;
 using AIQ.Urban.Core.Models;
@@ -33,7 +34,7 @@ public class ModifyModelUsesStepTests
 
         // Arrange
         var undefinedUse = UrbanModel.Instance.GetUse(DefaultUses.UndefinedName);
-        var parcel = new Parcel(MakeOutline(10), undefinedUse);
+        var parcel = new Parcel(MakeOutline(10).ToPolyCurve2d(), undefinedUse);
         UrbanModel.Instance.Parcels.Add(parcel);
 
         var step = new ModifyModelUsesStep();

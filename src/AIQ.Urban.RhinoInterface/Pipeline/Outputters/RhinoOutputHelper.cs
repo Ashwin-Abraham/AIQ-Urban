@@ -27,6 +27,17 @@ internal static class RhinoOutputHelper
         geometry.Id = doc.Objects.AddCurve(curve, attributes);
     }
 
+    internal static void OutputGeometry(RhinoDoc doc, PolyCurve2D geometry, ObjectAttributes attributes, bool asBrep)
+    {
+        if (asBrep)
+        {
+            var brep = geometry.ToBrep();
+            geometry.Id = doc.Objects.AddBrep(brep, attributes);
+        }
+        else
+            geometry.Id = doc.Objects.AddCurve(geometry.Geometry.Duplicate() as Curve, attributes);
+    }
+
     internal static void OutputGeometry(RhinoDoc doc, Profile2D geometry, ObjectAttributes attributes, bool asBrep)
     {
         if (asBrep)

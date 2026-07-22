@@ -25,48 +25,21 @@ public static class Polygon2DExtensions
 
     public static List<Polygon2D> Split(this Polygon2D polygon, IEnumerable<Curve2D> splitters, double tolerance = 1e-6)
     {
-        var smallOffset = tolerance * 10;
 
-        List<Curve> splitterCrvs = [];
+        var splitterList = splitters.ToList();
 
-        foreach(var splitter in splitters)
-        {
-            List<Curve> asCurves;
-
-            if (splitter.Geometry.IsClosed)
-                asCurves = splitter.Geometry.Split(0.5).ToList();
-            else
-                asCurves = [splitter.Geometry];
-
-            splitterCrvs.AddRange(asCurves);
-        }
-
-        if (splitterCrvs.Count == 0)
+        bool highDegree = splitterList.Any(x => x.Geometry.Degree > 1);
+        if (highDegree)
             return [polygon];
 
-        var splitterExpanded = splitterCrvs.SelectMany(x => x.OffsetBothWays(smallOffset, Plane.WorldXY, tolerance));
-        var polygonShrunk = polygon.Geometry.Offset(Plane.WorldXY, smallOffset, tolerance, CurveOffsetCornerStyle.Sharp).FirstOrDefault();
+        var asPolycurve = PolyCurve2D.Create(polygon.Geometry);
+        var splitPolyCurves = asPolycurve.Split(splitters, tolerance);
 
-        if (polygonShrunk == null)
-            return [polygon];
-
-        var splitPolygon = Curve.CreateBooleanDifference(polygonShrunk, splitterExpanded, tolerance).ToList();
-
-        // If the splitters didnt go all the way through, or didnt even touch the polygon, then you wont have more than 1 result
-        if (splitPolygon.Count <= 1)
-            return [polygon];
-
-        splitPolygon = splitPolygon.SelectMany(x => x.Offset(Plane.WorldXY, smallOffset, tolerance, CurveOffsetCornerStyle.Sharp)).ToList();
-
-        var result = splitPolygon
-            .Select(x => Polygon2D.Create(x))
-            .OfType<Polygon2D>()
+        var splitPolygons = splitPolyCurves
+            .Select(x => Polygon2D.Create(x.Geometry))
             .ToList();
 
-        if(result.Count == 0)
-            return [polygon];
-
-        return result;
+        return splitPolygons;
     }
 
     public static List<Point3d> Points(this Polygon2D polygon)
@@ -94,5 +67,10 @@ public static class Polygon2DExtensions
 
         var containment = polygon.Geometry.Contains(line.PointAt(0.5), Plane.WorldXY, tolerance);
         return containment == PointContainment.Inside || containment == PointContainment.Coincident;
+    }
+
+    public static PolyCurve2D ToPolyCurve2d(this Polygon2D polygon)
+    {
+        return new PolyCurve2D(polygon.Geometry);
     }
 }

@@ -37,7 +37,9 @@ public class BisectingCrossSection(double _tolerance = 1e-6) : IShapeSubdivider
                 boxPts[(longestIdx + 2) % 4],
                 scanlineEnd,
                 scanlineStart
-            ]),
+            ])
+            .ToPolyCurve(),
+
             new PolylineCurve([
                 scanlineEnd,
                 boxPts[(longestIdx + 3) % 4],
@@ -45,9 +47,11 @@ public class BisectingCrossSection(double _tolerance = 1e-6) : IShapeSubdivider
                 scanlineStart,
                 scanlineEnd
             ])
+            .ToPolyCurve()
         };
 
         var fragments = new List<Profile2D>();
+
 
         foreach (var region in halfRegions)
         {
@@ -69,14 +73,14 @@ public class BisectingCrossSection(double _tolerance = 1e-6) : IShapeSubdivider
         return new DivisionResult(fragments, [divider]);
     }
 
-    private Profile2D? BuildProfile(Curve outlineFrag, List<Polygon2D> originalHoles, PolylineCurve region)
+    private Profile2D? BuildProfile(Curve outlineFrag, List<PolyCurve2D> originalHoles, PolyCurve region)
     {
         var outlinePline = CurveToPolyline(outlineFrag, _tolerance);
         if (outlinePline.Count < 3)
             return null;
 
         var outlineCurve = new PolylineCurve(outlinePline);
-        var polygon = new Polygon2D(outlineCurve);
+        var outline2D = new PolyCurve2D(outlineCurve);
 
         var holeCurves = new List<PolylineCurve>();
         foreach (var hole in originalHoles)
@@ -109,11 +113,11 @@ public class BisectingCrossSection(double _tolerance = 1e-6) : IShapeSubdivider
         if (brep.Length != 1)
             return null;
 
-        var holePolygons = new List<Polygon2D>();
+        var holePolygons = new List<PolyCurve2D>();
         foreach (var hc in holeCurves)
-            holePolygons.Add(new Polygon2D(hc));
+            holePolygons.Add(new PolyCurve2D(hc));
 
-        return new Profile2D(polygon, holePolygons);
+        return new Profile2D(outline2D, holePolygons);
     }
 
     private static Polyline EnsureWinding(Polyline pline, bool clockwise)

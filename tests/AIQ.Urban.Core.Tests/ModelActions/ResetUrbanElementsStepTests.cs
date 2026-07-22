@@ -1,7 +1,6 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using AIQ.Urban.Core.Enums;
+using AIQ.Urban.Core.Extensions;
 using AIQ.Urban.Core.ModelActions;
 using AIQ.Urban.Core.ModelActions.CreationData;
 using AIQ.Urban.Core.Models;
@@ -64,7 +63,7 @@ public class ResetUrbanElementsStepTests
             new Point3d(0, 0, 0),
         ]));
         UrbanModel.Instance.Parcels.Add(
-            new Parcel(parcelPolygon, DefaultUses.Create("Public")));
+            new Parcel(parcelPolygon.ToPolyCurve2d(), DefaultUses.Create("Public")));
 
         // One zone
         var zonePolygon = new Polygon2D(new PolylineCurve([
