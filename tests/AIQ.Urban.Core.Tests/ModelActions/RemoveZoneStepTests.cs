@@ -76,9 +76,9 @@ public class RemoveZoneStepTests
         }
     }
 
-    private static Polygon2D MakeBoundary(double x, double y)
+    private static Polycurve2D MakeBoundary(double x, double y)
     {
-        return new Polygon2D(new PolylineCurve([
+        return new Polycurve2D(new PolylineCurve([
             new Point3d(x, y, 0),
             new Point3d(x + 10, y, 0),
             new Point3d(x + 10, y + 10, 0),

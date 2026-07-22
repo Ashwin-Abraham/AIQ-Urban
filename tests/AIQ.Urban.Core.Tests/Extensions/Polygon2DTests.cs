@@ -20,7 +20,7 @@ public class Polygon2DTests
     {
         var testData = _validTestData.Single(x => x.CaseName == testName);
 
-        var result = Polygon2D.Create(testData.Input);
+        var result = Polycurve2D.Create(testData.Input);
 
         Assert.That(result, Is.Not.Null);
         Assert.That(result.Id, Is.Not.EqualTo(Guid.Empty));
@@ -39,7 +39,7 @@ public class Polygon2DTests
         var testData = _invalidTestData.Single(x => x.CaseName == testName);
 
         var ex = Assert.Throws<ArgumentException>(() =>
-            Polygon2D.Create(testData.Input));
+            Polycurve2D.Create(testData.Input));
         Assert.That(ex!.Message, Does.Contain(testData.ExpectedMessageFragment));
     }
 
@@ -79,7 +79,7 @@ public class Polygon2DTests
         var obj = doc.Objects.Find(id);
         var curve = obj!.Geometry as Curve;
 
-        var sut = new Polygon2D(curve!);
+        var sut = new Polycurve2D(curve!);
         doc.Objects.Delete(obj, true);
 
         Assert.That(sut.Geometry.IsValid, Is.True);
@@ -99,7 +99,7 @@ public class Polygon2DTests
         var obj = doc.Objects.Find(id);
         var curve = obj!.Geometry as Curve;
 
-        var sut = new Polygon2D(curve!);
+        var sut = new Polycurve2D(curve!);
         doc.Objects.AddLine(new Line(new Point3d(99, 0, 0), new Point3d(99, 10, 0)));
 
         Assert.That(sut.Geometry.IsValid, Is.True);

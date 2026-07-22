@@ -7,19 +7,19 @@ namespace AIQ.Urban.DebugViz.Converters;
 
 public class Polygon2DConverter : IGeometryPreviewConverter
 {
-    public bool IsPreviewable(object @object) => @object is Polygon2D || @object is IEnumerable<Polygon2D>;
+    public bool IsPreviewable(object @object) => @object is Polycurve2D || @object is IEnumerable<Polycurve2D>;
 
     public void AddToPreviewDoc(object @object, RhinoDoc doc, Color? color = null)
     {
-        if (@object is Polygon2D polygon)
+        if (@object is Polycurve2D polygon)
             AddToPreviewDoc(polygon, doc, color);
 
-        if (@object is IEnumerable<Polygon2D> polygons)
+        if (@object is IEnumerable<Polycurve2D> polygons)
             foreach (var p in polygons)
                 AddToPreviewDoc(p, doc, color);
     }
 
-    private static void AddToPreviewDoc(Polygon2D polygon, RhinoDoc doc, Color? color)
+    private static void AddToPreviewDoc(Polycurve2D polygon, RhinoDoc doc, Color? color)
     {
         var attributes = RhinoHelper.MakeAttributes(
             doc, PreviewConstants.DebugCurveLayer, PreviewConstants.DebugGeometryColor, color);

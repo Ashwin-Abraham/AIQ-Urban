@@ -37,7 +37,7 @@ public class SelectBuildingFootprintStep(
             if (obj.Geometry is not Curve curve)
                 continue;
 
-            var polygon = new Polygon2D(curve);
+            var polygon = new Polycurve2D(curve);
             buildingData.Add(new BuildingFootprintData(polygon, floorHeight, floorCount, use));
         }
 

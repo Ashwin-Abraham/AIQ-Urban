@@ -58,7 +58,7 @@ public class BuildingPipelineConfigurationTests
         List<BuildingFootprintData> Input,
         int ExpectedCount);
 
-    private static readonly Polygon2D Footprint1 = new(
+    private static readonly Polycurve2D Footprint1 = new(
         new PolylineCurve([
             new Point3d(0, 0, 0),
             new Point3d(10, 0, 0),
@@ -67,7 +67,7 @@ public class BuildingPipelineConfigurationTests
             new Point3d(0, 0, 0),
         ]));
 
-    private static readonly Polygon2D Footprint2 = new(
+    private static readonly Polycurve2D Footprint2 = new(
         new PolylineCurve([
             new Point3d(13, 13, 0),
             new Point3d(15, 13, 0),

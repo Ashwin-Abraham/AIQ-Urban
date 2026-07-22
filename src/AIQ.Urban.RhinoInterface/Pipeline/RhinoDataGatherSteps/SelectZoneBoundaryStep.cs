@@ -32,7 +32,7 @@ public class SelectZoneBoundaryStep(
         if (curve is null)
             throw new Exception("Selected curve is not a valid closed planar boundary.");
 
-        var boundary = new Polygon2D(curve);
+        var boundary = new Polycurve2D(curve);
 
         _logger.LogInformation("SelectZoneBoundaryStep gathered 1 zone boundary");
 

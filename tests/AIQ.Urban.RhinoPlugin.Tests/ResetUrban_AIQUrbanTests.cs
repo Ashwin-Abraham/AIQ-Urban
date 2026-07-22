@@ -28,7 +28,7 @@ public class ResetUrban_AIQUrbanTests
         using var doc = RhinoDoc.CreateHeadless(null);
 
         // Arrange: add a building via the pipeline (bakes to Rhino doc)
-        var footprint = new Polygon2D(new PolylineCurve([
+        var footprint = new Polycurve2D(new PolylineCurve([
             new Point3d(0, 0, 0), new Point3d(10, 0, 0),
             new Point3d(10, 10, 0), new Point3d(0, 10, 0),
             new Point3d(0, 0, 0),

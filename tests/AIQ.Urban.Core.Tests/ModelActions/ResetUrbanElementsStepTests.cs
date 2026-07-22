@@ -49,7 +49,7 @@ public class ResetUrbanElementsStepTests
         addTransit.Run(UrbanModel.Instance, [new TransitData(centerline1, 6, TransitType.Road)]);
 
         // One building, 3 floors
-        var footprint = new Polygon2D(new PolylineCurve([
+        var footprint = new Polycurve2D(new PolylineCurve([
             new Point3d(0, 0, 0), new Point3d(10, 0, 0),
             new Point3d(10, 10, 0), new Point3d(0, 10, 0),
             new Point3d(0, 0, 0),
@@ -58,7 +58,7 @@ public class ResetUrbanElementsStepTests
         addBuilding.Run(UrbanModel.Instance, [new BuildingFootprintData(footprint, 3.5, 3, DefaultUses.Create("Residential"))]);
 
         // One parcel
-        var parcelPolygon = new Polygon2D(new PolylineCurve([
+        var parcelPolygon = new Polycurve2D(new PolylineCurve([
             new Point3d(0, 0, 0), new Point3d(100, 0, 0),
             new Point3d(100, 100, 0), new Point3d(0, 100, 0),
             new Point3d(0, 0, 0),
@@ -67,7 +67,7 @@ public class ResetUrbanElementsStepTests
             new Parcel(parcelPolygon, DefaultUses.Create("Public")));
 
         // One zone
-        var zonePolygon = new Polygon2D(new PolylineCurve([
+        var zonePolygon = new Polycurve2D(new PolylineCurve([
             new Point3d(0, 0, 0), new Point3d(100, 0, 0),
             new Point3d(100, 100, 0), new Point3d(0, 100, 0),
             new Point3d(0, 0, 0),
@@ -75,7 +75,7 @@ public class ResetUrbanElementsStepTests
         UrbanModel.Instance.AddZone(new Zone(zonePolygon, "TestZone"));
 
         // One transit surface
-        var surfaceOutline = new Polygon2D(new PolylineCurve([
+        var surfaceOutline = new Polycurve2D(new PolylineCurve([
             new Point3d(0, 0, 0), new Point3d(50, 0, 0),
             new Point3d(50, 10, 0), new Point3d(0, 10, 0),
             new Point3d(0, 0, 0),
@@ -106,14 +106,14 @@ public class ResetUrbanElementsStepTests
     public void Run_TransitSurfacesOnly_ReturnsSurfaceIdsAndModelIsEmpty()
     {
         // Arrange
-        var outline1 = new Polygon2D(new PolylineCurve([
+        var outline1 = new Polycurve2D(new PolylineCurve([
             new Point3d(0, 0, 0), new Point3d(50, 0, 0),
             new Point3d(50, 10, 0), new Point3d(0, 10, 0),
             new Point3d(0, 0, 0),
         ]));
         var profile1 = new Profile2D(outline1, [])!;
 
-        var outline2 = new Polygon2D(new PolylineCurve([
+        var outline2 = new Polycurve2D(new PolylineCurve([
             new Point3d(60, 0, 0), new Point3d(100, 0, 0),
             new Point3d(100, 10, 0), new Point3d(60, 10, 0),
             new Point3d(60, 0, 0),

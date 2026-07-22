@@ -4,7 +4,7 @@ using AIQ.Urban.Core.Models.GeometryElements;
 namespace AIQ.Urban.Core.ModelActions.CreationData;
 
 public record BuildingFootprintData(
-    Polygon2D Footprint,
+    Polycurve2D Footprint,
     double TypicalFloorHeight,
     int FloorCount,
     Use Use) : ICreationData;

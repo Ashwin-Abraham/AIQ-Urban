@@ -61,31 +61,31 @@ public class Mesh2DTests
     private static Profile2D MakeSquare()
     {
         return new Profile2D(
-            Polygon2D.Create([(0, 0), (10, 0), (10, 10), (0, 10)]),
+            Polycurve2D.Create([(0, 0), (10, 0), (10, 10), (0, 10)]),
             []);
     }
 
     private static Profile2D MakeRectangleWithHole()
     {
         return new Profile2D(
-            Polygon2D.Create([(0, 0), (20, 0), (20, 10), (0, 10)]),
-            [Polygon2D.Create([(5, 2), (15, 2), (15, 8), (5, 8)])]);
+            Polycurve2D.Create([(0, 0), (20, 0), (20, 10), (0, 10)]),
+            [Polycurve2D.Create([(5, 2), (15, 2), (15, 8), (5, 8)])]);
     }
 
     private static Profile2D MakeLShape()
     {
         return new Profile2D(
-            Polygon2D.Create([(0, 0), (10, 0), (10, 5), (5, 5), (5, 10), (0, 10)]),
+            Polycurve2D.Create([(0, 0), (10, 0), (10, 5), (5, 5), (5, 10), (0, 10)]),
             []);
     }
 
     private static Profile2D MakeTwoHoles()
     {
         return new Profile2D(
-            Polygon2D.Create([(0, 0), (4,0), (7,2), (10,0), (14, 0), (14, 6), (10, 6), (7, 4), (4, 6), (0, 6)]),
+            Polycurve2D.Create([(0, 0), (4,0), (7,2), (10,0), (14, 0), (14, 6), (10, 6), (7, 4), (4, 6), (0, 6)]),
             [
-                Polygon2D.Create([(2, 1), (4, 1), (4, 3), (2, 3)]),
-                Polygon2D.Create([(10, 1), (12, 1), (12, 3), (10, 3)]),
+                Polycurve2D.Create([(2, 1), (4, 1), (4, 3), (2, 3)]),
+                Polycurve2D.Create([(10, 1), (12, 1), (12, 3), (10, 3)]),
             ]);
     }
 }

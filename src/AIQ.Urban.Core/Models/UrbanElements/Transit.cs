@@ -66,9 +66,9 @@ public class Transit : IUrbanElement, IGraphableAsEdge
     {
         outlines = outlines.OrderByDescending(x => x.GetLength()).ToList();
 
-        var perimeter = new Polygon2D(outlines[0]);
+        var perimeter = new Polycurve2D(outlines[0]);
         var holes = outlines.Except([outlines[0]])
-            .Select(x => new Polygon2D(x))
+            .Select(x => new Polycurve2D(x))
             .ToList();
 
         return new Profile2D(perimeter, holes);

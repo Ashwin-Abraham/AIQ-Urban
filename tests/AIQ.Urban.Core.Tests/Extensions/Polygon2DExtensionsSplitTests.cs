@@ -24,7 +24,7 @@ public class Polygon2DExtensionsSplitTests
     {
         // Arrange
         var testData = GetTestData(caseName);
-        var polygon = Polygon2D.Create([(0, 0), (10, 0), (10, 10), (0, 10)])!;
+        var polygon = Polycurve2D.Create([(0, 0), (10, 0), (10, 10), (0, 10)])!;
         var splitter = new Curve2D(CreateSplitterGeometry(testData), Guid.NewGuid());
 
         // Act
@@ -41,7 +41,7 @@ public class Polygon2DExtensionsSplitTests
 
         // Assert
         Assert.That(result, Has.Count.EqualTo(testData.ExpectedRegionCount));
-        Assert.That(result, Has.All.Matches<Polygon2D>(fragment =>
+        Assert.That(result, Has.All.Matches<Polycurve2D>(fragment =>
             fragment.Geometry.IsValid && fragment.Geometry.IsClosed));
 
         if (testData.ExpectedRegionCount == 1)
@@ -50,7 +50,7 @@ public class Polygon2DExtensionsSplitTests
             return;
         }
 
-        Assert.That(result, Has.All.Matches<Polygon2D>(fragment =>
+        Assert.That(result, Has.All.Matches<Polycurve2D>(fragment =>
             fragment.Geometry.GetLength() > 0));
         Assert.That(result, Has.None.SameAs(polygon));
     }

@@ -6,12 +6,12 @@ using Rhino.Geometry.Intersect;
 namespace AIQ.Urban.Core.Extensions;
 public static class Polygon2DExtensions
 {
-    public static Point3d Centroid(this Polygon2D polygon)
+    public static Point3d Centroid(this Polycurve2D polygon)
     {
         return AreaMassProperties.Compute(polygon.Geometry).Centroid;
     }
 
-    public static IEnumerable<Line> Segments(this Polygon2D polygon)
+    public static IEnumerable<Line> Segments(this Polycurve2D polygon)
     {
         for(int i = 0; i < polygon.Geometry.PointCount; i++)
         {
@@ -23,7 +23,7 @@ public static class Polygon2DExtensions
         }
     }
 
-    public static List<Polygon2D> Split(this Polygon2D polygon, IEnumerable<Curve2D> splitters, double tolerance = 1e-6)
+    public static List<Polycurve2D> Split(this Polycurve2D polygon, IEnumerable<Curve2D> splitters, double tolerance = 1e-6)
     {
         var smallOffset = tolerance * 10;
 
@@ -59,8 +59,8 @@ public static class Polygon2DExtensions
         splitPolygon = splitPolygon.SelectMany(x => x.Offset(Plane.WorldXY, smallOffset, tolerance, CurveOffsetCornerStyle.Sharp)).ToList();
 
         var result = splitPolygon
-            .Select(x => Polygon2D.Create(x))
-            .OfType<Polygon2D>()
+            .Select(x => Polycurve2D.Create(x))
+            .OfType<Polycurve2D>()
             .ToList();
 
         if(result.Count == 0)
@@ -69,14 +69,14 @@ public static class Polygon2DExtensions
         return result;
     }
 
-    public static List<Point3d> Points(this Polygon2D polygon)
+    public static List<Point3d> Points(this Polycurve2D polygon)
     {
         polygon.Geometry.TryGetPolyline(out var polyline);
         return [.. polyline];
     }
 
 
-    public static bool ContainsOrCoincides(this Polygon2D polygon, Line line, double tolerance = 1e-5)
+    public static bool ContainsOrCoincides(this Polycurve2D polygon, Line line, double tolerance = 1e-5)
     {
         var intersections = Intersection.CurveCurve(polygon.Geometry, line.ToNurbsCurve(), tolerance, tolerance);
         var lineStart = line.PointAt(0);

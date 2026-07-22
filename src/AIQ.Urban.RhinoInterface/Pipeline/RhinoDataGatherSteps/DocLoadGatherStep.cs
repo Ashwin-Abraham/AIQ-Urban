@@ -83,7 +83,7 @@ public class DocLoadGatherStep(UrbanModel model, double _tolerance, ILoggerFacto
                 var isInside = envelopeBrep.IsPointInside(fpCentroid.Value, doc.ModelAbsoluteTolerance, true);
                 if (isInside)
                 {
-                    var polygon = new Polygon2D(fpCurve);
+                    var polygon = new Polycurve2D(fpCurve);
                     associatedPlates.Add(new FloorPlate(polygon, use));
                 }
             }
@@ -105,7 +105,7 @@ public class DocLoadGatherStep(UrbanModel model, double _tolerance, ILoggerFacto
             var zoneName = LayerNameParser.ParseZoneName(layerPath);
             if (zoneName is null) continue;
 
-            var polygon = new Polygon2D(curve) { Id = objectId };
+            var polygon = new Polycurve2D(curve) { Id = objectId };
             result.Add(new ZoneData(polygon, zoneName));
         }
     }

@@ -45,7 +45,7 @@ public class ReplaceFloorPlateStep(ILoggerFactory? _loggerFactory = null) : IUrb
         if (contour is null)
             return new([], []);
 
-        var newProfile = new Polygon2D(contour);
+        var newProfile = new Polycurve2D(contour);
         var newPlate = new FloorPlate(newProfile, oldPlate.Use);
         newPlate.Parent = building;
 

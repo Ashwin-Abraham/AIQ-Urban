@@ -24,7 +24,7 @@ public class Polygon2DExtensionTests
     {
         // Arrange
         var td = GetPolygonContainsLineTestData(testName);
-        var polygon = Polygon2D.Create(td.Outline.Select(v => (v[0], v[1])).ToList());
+        var polygon = Polycurve2D.Create(td.Outline.Select(v => (v[0], v[1])).ToList());
         var line = new Line(new Point3d(td.LineFrom[0], td.LineFrom[1], 0),
                             new Point3d(td.LineTo[0], td.LineTo[1], 0));
 

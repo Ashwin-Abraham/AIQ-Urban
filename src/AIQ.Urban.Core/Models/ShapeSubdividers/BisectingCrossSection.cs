@@ -69,14 +69,14 @@ public class BisectingCrossSection(double _tolerance = 1e-6) : IShapeSubdivider
         return new DivisionResult(fragments, [divider]);
     }
 
-    private Profile2D? BuildProfile(Curve outlineFrag, List<Polygon2D> originalHoles, PolylineCurve region)
+    private Profile2D? BuildProfile(Curve outlineFrag, List<Polycurve2D> originalHoles, PolylineCurve region)
     {
         var outlinePline = CurveToPolyline(outlineFrag, _tolerance);
         if (outlinePline.Count < 3)
             return null;
 
         var outlineCurve = new PolylineCurve(outlinePline);
-        var polygon = new Polygon2D(outlineCurve);
+        var polygon = new Polycurve2D(outlineCurve);
 
         var holeCurves = new List<PolylineCurve>();
         foreach (var hole in originalHoles)
@@ -109,9 +109,9 @@ public class BisectingCrossSection(double _tolerance = 1e-6) : IShapeSubdivider
         if (brep.Length != 1)
             return null;
 
-        var holePolygons = new List<Polygon2D>();
+        var holePolygons = new List<Polycurve2D>();
         foreach (var hc in holeCurves)
-            holePolygons.Add(new Polygon2D(hc));
+            holePolygons.Add(new Polycurve2D(hc));
 
         return new Profile2D(polygon, holePolygons);
     }

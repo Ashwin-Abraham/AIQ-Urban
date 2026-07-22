@@ -3,12 +3,12 @@ using AIQ.Urban.Core.Extensions;
 
 namespace AIQ.Urban.Core.Models.GeometryElements;
 
-public class Polygon2D : IGeometryElement<PolylineCurve>
+public class Polycurve2D : IGeometryElement<PolylineCurve>
 {
     public PolylineCurve Geometry { get; }
     public Guid Id { get; set; } = Guid.NewGuid();
 
-    public Polygon2D(Curve geometry)
+    public Polycurve2D(Curve geometry)
     {
         PolylineCurve? plineCrv = null;
         if (geometry is PolylineCurve)
@@ -30,7 +30,7 @@ public class Polygon2D : IGeometryElement<PolylineCurve>
         Geometry = copy;
     }
 
-    public static Polygon2D Rectangle(Point2d min, Point2d max)
+    public static Polycurve2D Rectangle(Point2d min, Point2d max)
     {
         return Create([
             (min.X, min.Y),
@@ -40,7 +40,7 @@ public class Polygon2D : IGeometryElement<PolylineCurve>
             ]);
     }
 
-    public static Polygon2D? Create(Curve curve)
+    public static Polycurve2D? Create(Curve curve)
     {
         if(curve.Degree > 1)
             return null;
@@ -59,7 +59,7 @@ public class Polygon2D : IGeometryElement<PolylineCurve>
         return Create(points);
     }
 
-    public static Polygon2D? Create(List<(double X, double Y)> coordinates)
+    public static Polycurve2D? Create(List<(double X, double Y)> coordinates)
     {
         if (coordinates.Count < 3)
             return null;
@@ -76,7 +76,7 @@ public class Polygon2D : IGeometryElement<PolylineCurve>
         if (!curve.IsClosed)
             return null;
 
-        return new Polygon2D(curve);
+        return new Polycurve2D(curve);
     }
 
     internal double Area()

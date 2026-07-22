@@ -43,7 +43,7 @@ internal static class RhinoOutputHelper
         }
     }
 
-    internal static void OutputGeometry(RhinoDoc doc, Polygon2D geometry, ObjectAttributes attributes, bool asBrep)
+    internal static void OutputGeometry(RhinoDoc doc, Polycurve2D geometry, ObjectAttributes attributes, bool asBrep)
     {
         if(asBrep)
         {

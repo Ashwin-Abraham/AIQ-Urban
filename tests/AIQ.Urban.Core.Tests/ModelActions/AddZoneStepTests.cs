@@ -61,7 +61,7 @@ public class AddZoneStepTests
         int ExpectedCount,
         int ExpectedGeometryIdCount);
 
-    private static readonly Polygon2D BigBoundary = new(
+    private static readonly Polycurve2D BigBoundary = new(
         new PolylineCurve([
             new Point3d(0, 0, 0),
             new Point3d(100, 0, 0),
@@ -70,7 +70,7 @@ public class AddZoneStepTests
             new Point3d(0, 0, 0),
         ]));
 
-    private static readonly Polygon2D SmallBoundary = new(
+    private static readonly Polycurve2D SmallBoundary = new(
         new PolylineCurve([
             new Point3d(10, 10, 0),
             new Point3d(30, 10, 0),

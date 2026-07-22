@@ -6,14 +6,14 @@ namespace AIQ.Urban.Core.Models.UrbanElements;
 
 public class Parcel : IUrbanElement, IGraphableAsNode
 {
-    public Polygon2D Outline { get; }
+    public Polycurve2D Outline { get; }
     public Point3d NodePoint { get; }
 
     public Use Use { get; private set; }
 
     public Guid Id => Outline.Id;
 
-    public Parcel(Polygon2D outline, Use use)
+    public Parcel(Polycurve2D outline, Use use)
     {
         Outline = outline;
         Use = use;

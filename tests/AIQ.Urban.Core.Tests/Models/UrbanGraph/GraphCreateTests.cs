@@ -107,7 +107,7 @@ public class GraphCreateTests
 
     private static Profile2D MakeSquare()
     {
-        var outline = new Polygon2D(new PolylineCurve([
+        var outline = new Polycurve2D(new PolylineCurve([
             new Point3d(0, 0, 0),
             new Point3d(10, 0, 0),
             new Point3d(10, 10, 0),
@@ -119,7 +119,7 @@ public class GraphCreateTests
 
     private static Profile2D MakeTriangle()
     {
-        var outline = new Polygon2D(new PolylineCurve([
+        var outline = new Polycurve2D(new PolylineCurve([
             new Point3d(0, 0, 0),
             new Point3d(5, 10, 0),
             new Point3d(10, 0, 0),
@@ -130,7 +130,7 @@ public class GraphCreateTests
 
     private static Profile2D MakeLShape()
     {
-        var outline = new Polygon2D(new PolylineCurve([
+        var outline = new Polycurve2D(new PolylineCurve([
             new Point3d(0, 0, 0),
             new Point3d(10, 0, 0),
             new Point3d(10, 5, 0),
@@ -144,14 +144,14 @@ public class GraphCreateTests
 
     private static Profile2D MakeRectangleWithHole()
     {
-        var outline = new Polygon2D(new PolylineCurve([
+        var outline = new Polycurve2D(new PolylineCurve([
             new Point3d(0, 0, 0),
             new Point3d(20, 0, 0),
             new Point3d(20, 10, 0),
             new Point3d(0, 10, 0),
             new Point3d(0, 0, 0),
         ]));
-        var hole = new Polygon2D(new PolylineCurve([
+        var hole = new Polycurve2D(new PolylineCurve([
             new Point3d(5, 2, 0),
             new Point3d(15, 2, 0),
             new Point3d(15, 8, 0),
@@ -163,14 +163,14 @@ public class GraphCreateTests
 
     private static Profile2D MakeHoleOnCorner()
     {
-        var outline = new Polygon2D(new PolylineCurve([
+        var outline = new Polycurve2D(new PolylineCurve([
             new Point3d(0, 0, 0),
             new Point3d(20, 0, 0),
             new Point3d(20, 20, 0),
             new Point3d(0, 20, 0),
             new Point3d(0, 0, 0),
         ]));
-        var hole = new Polygon2D(new PolylineCurve([
+        var hole = new Polycurve2D(new PolylineCurve([
             new Point3d(0, 0, 0),
             new Point3d(10, 0, 0),
             new Point3d(10, 10, 0),
@@ -182,14 +182,14 @@ public class GraphCreateTests
 
     private static Profile2D MakeHoleOnEdge()
     {
-        var outline = new Polygon2D(new PolylineCurve([
+        var outline = new Polycurve2D(new PolylineCurve([
             new Point3d(0, 0, 0),
             new Point3d(20, 0, 0),
             new Point3d(20, 20, 0),
             new Point3d(0, 20, 0),
             new Point3d(0, 0, 0),
         ]));
-        var hole = new Polygon2D(new PolylineCurve([
+        var hole = new Polycurve2D(new PolylineCurve([
             new Point3d(5, 20, 0),
             new Point3d(15, 20, 0),
             new Point3d(15, 10, 0),

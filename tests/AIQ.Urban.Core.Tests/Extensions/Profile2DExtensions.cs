@@ -70,31 +70,31 @@ public class Profile2DExtensionTests
     private static PeripheralVoidTestData[] BuildPeripheralVoidTestData()
     {
         var mixedHolesInput = new Profile2D(
-            Polygon2D.Create([(0, 0), (20, 0), (20, 10), (0, 10)]),
+            Polycurve2D.Create([(0, 0), (20, 0), (20, 10), (0, 10)]),
             [
-                Polygon2D.Create([(0, 0), (4, 0), (4, 3), (0, 3)]),
-                Polygon2D.Create([(5, 2), (15, 2), (15, 8), (5, 8)]),
+                Polycurve2D.Create([(0, 0), (4, 0), (4, 3), (0, 3)]),
+                Polycurve2D.Create([(5, 2), (15, 2), (15, 8), (5, 8)]),
             ])!;
 
         return
         [
             new(CaseName: "NoHoles",
                 Input: new Profile2D(
-                    Polygon2D.Create([(0, 0), (10, 0), (10, 10), (0, 10)]), [])!,
+                    Polycurve2D.Create([(0, 0), (10, 0), (10, 10), (0, 10)]), [])!,
                 ExpectedArea: 100,
                 ExpectedHoleCount: 0),
 
             new(CaseName: "OnlyInternalHoles",
                 Input: new Profile2D(
-                    Polygon2D.Create([(0, 0), (20, 0), (20, 10), (0, 10)]),
-                    [Polygon2D.Create([(5, 2), (15, 2), (15, 8), (5, 8)])])!,
+                    Polycurve2D.Create([(0, 0), (20, 0), (20, 10), (0, 10)]),
+                    [Polycurve2D.Create([(5, 2), (15, 2), (15, 8), (5, 8)])])!,
                 ExpectedArea: 140,
                 ExpectedHoleCount: 1),
 
             new(CaseName: "OnlyPeripheralVoids",
                 Input: new Profile2D(
-                    Polygon2D.Create([(0, 0), (10, 0), (10, 10), (0, 10)]),
-                    [Polygon2D.Create([(0, 0), (5, 0), (5, 4), (0, 4)])])!,
+                    Polycurve2D.Create([(0, 0), (10, 0), (10, 10), (0, 10)]),
+                    [Polycurve2D.Create([(0, 0), (5, 0), (5, 4), (0, 4)])])!,
                 ExpectedArea: 80,
                 ExpectedHoleCount: 0),
 
@@ -115,8 +115,8 @@ public class Profile2DExtensionTests
     {
         // Arrange
         var td = GetContainsLineTestData(testName);
-        var outline = Polygon2D.Create(td.Outline.Select(v => (v[0], v[1])).ToList());
-        var holes = td.Holes.Select(h => Polygon2D.Create(h.Select(v => (v[0], v[1])).ToList())).ToList();
+        var outline = Polycurve2D.Create(td.Outline.Select(v => (v[0], v[1])).ToList());
+        var holes = td.Holes.Select(h => Polycurve2D.Create(h.Select(v => (v[0], v[1])).ToList())).ToList();
         var profile = new Profile2D(outline, holes)!;
         var line = new Line(new Point3d(td.LineFrom[0], td.LineFrom[1], 0),
                             new Point3d(td.LineTo[0], td.LineTo[1], 0));

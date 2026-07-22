@@ -26,7 +26,7 @@ public class BuildingConstructorTests
             new Point3d(0, size, z),
             new Point3d(0, 0, z),
         ]);
-        return new FloorPlate(new Polygon2D(curve), DefaultUses.Create("Residential"));
+        return new FloorPlate(new Polycurve2D(curve), DefaultUses.Create("Residential"));
     }
 
     [Test]

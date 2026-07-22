@@ -25,7 +25,7 @@ public class UpdateZoneStep(ILoggerFactory? _loggerFactory = null) : IUrbanModel
         var oldId = oldZone.Boundary.Id;
         model.Zones.Remove(oldZone);
 
-        var newBoundary = new Polygon2D(data.NewBoundary);
+        var newBoundary = new Polycurve2D(data.NewBoundary);
         var newZone = new Zone(newBoundary, oldZone.Name);
         model.Zones.Add(newZone);
 

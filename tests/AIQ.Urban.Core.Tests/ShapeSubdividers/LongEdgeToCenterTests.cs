@@ -113,7 +113,7 @@ public class LongEdgeToCenterTests
 
     private static Profile2D MakeSquare()
     {
-        var poly = new Polygon2D(new PolylineCurve([
+        var poly = new Polycurve2D(new PolylineCurve([
             new Point3d(0, 0, 0),
             new Point3d(10, 0, 0),
             new Point3d(10, 10, 0),
@@ -125,7 +125,7 @@ public class LongEdgeToCenterTests
 
     private static Profile2D MakeRectangle(double w, double h)
     {
-        var poly = new Polygon2D(new PolylineCurve([
+        var poly = new Polycurve2D(new PolylineCurve([
             new Point3d(0, 0, 0),
             new Point3d(w, 0, 0),
             new Point3d(w, h, 0),
@@ -137,7 +137,7 @@ public class LongEdgeToCenterTests
 
     private static Profile2D MakeTriangle()
     {
-        var poly = new Polygon2D(new PolylineCurve([
+        var poly = new Polycurve2D(new PolylineCurve([
             new Point3d(0, 0, 0),
             new Point3d(10, 0, 0),
             new Point3d(5, 10, 0),

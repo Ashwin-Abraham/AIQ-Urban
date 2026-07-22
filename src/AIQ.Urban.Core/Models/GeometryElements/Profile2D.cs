@@ -10,10 +10,10 @@ public class Profile2D : IGeometryElement<Brep>
         set => Outline.Id = value;
     }
     public Brep Geometry => GetBrep();
-    public Polygon2D Outline { get; }
-    public List<Polygon2D> Holes { get; }
+    public Polycurve2D Outline { get; }
+    public List<Polycurve2D> Holes { get; }
 
-    public Profile2D(Polygon2D outline, List<Polygon2D> holes, double tolerance = 1e-5)
+    public Profile2D(Polycurve2D outline, List<Polycurve2D> holes, double tolerance = 1e-5)
     {
         Outline = outline;
         Holes = holes;
@@ -37,8 +37,8 @@ public class Profile2D : IGeometryElement<Brep>
 
     public static Profile2D? Create(Brep profileBrep)
     {
-        Polygon2D? outline = null;
-        var holes = new List<Polygon2D>();
+        Polycurve2D? outline = null;
+        var holes = new List<Polycurve2D>();
 
         profileBrep.Faces[0].TryGetPlane(out var plane);
         var faceTransform = Transform.PlaneToPlane(Plane.WorldXY, plane);

@@ -64,9 +64,9 @@ public class ChangeParcelUseStepTests
         int AddedCount,
         int DeletedCount);
 
-    private static Polygon2D MakeOutline(double size)
+    private static Polycurve2D MakeOutline(double size)
     {
-        return new Polygon2D(new PolylineCurve([
+        return new Polycurve2D(new PolylineCurve([
             new Point3d(0, 0, 0),
             new Point3d(size, 0, 0),
             new Point3d(size, size, 0),

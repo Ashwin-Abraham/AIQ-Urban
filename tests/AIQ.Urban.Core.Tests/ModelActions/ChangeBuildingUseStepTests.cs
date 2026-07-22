@@ -74,9 +74,9 @@ public class ChangeBuildingUseStepTests
         int AddedCount,
         int DeletedCount);
 
-    private static Polygon2D MakeOutline(double size, Point3d origin = default)
+    private static Polycurve2D MakeOutline(double size, Point3d origin = default)
     {
-        return new Polygon2D(new PolylineCurve([
+        return new Polycurve2D(new PolylineCurve([
             new Point3d(origin.X, origin.Y, 0),
             new Point3d(origin.X + size, origin.Y, 0),
             new Point3d(origin.X + size, origin.Y + size, 0),

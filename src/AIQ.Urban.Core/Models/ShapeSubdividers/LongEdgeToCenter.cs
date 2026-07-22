@@ -41,7 +41,7 @@ public class LongEdgeToCenter(int _dividerCount = 2, double _tolerance = 1e-6) :
             .Select(x =>
             {
                 var pline = x.ToPolylineCurve();
-                var polygon = new Polygon2D(pline);
+                var polygon = new Polycurve2D(pline);
                 return new Profile2D(polygon, []);
             })
             .ToList();

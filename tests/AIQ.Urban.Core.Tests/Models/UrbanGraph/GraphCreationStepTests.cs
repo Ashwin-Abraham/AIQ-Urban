@@ -321,9 +321,9 @@ public class GraphCreationStepTests
         ];
     }
 
-    private static Polygon2D MakeFootprint(double minX, double minY, double maxX, double maxY)
+    private static Polycurve2D MakeFootprint(double minX, double minY, double maxX, double maxY)
     {
-        return new Polygon2D(new PolylineCurve([
+        return new Polycurve2D(new PolylineCurve([
             new Point3d(minX, minY, 0),
             new Point3d(maxX, minY, 0),
             new Point3d(maxX, maxY, 0),

@@ -11,10 +11,10 @@ public class Building : IUrbanElement, IGraphableAsNode
     public List<FloorPlate> FloorPlates { get; }
     public double TypicalFloorHeight => ComputeTypicalFloorHeight(FloorPlates);
     public int FloorCount { get; }
-    public Polygon2D Footprint { get; }
+    public Polycurve2D Footprint { get; }
     public Point3d NodePoint { get; }
 
-    public Building(Polygon2D footprint, double typicalFloorHeight, int floorCount, Use use)
+    public Building(Polycurve2D footprint, double typicalFloorHeight, int floorCount, Use use)
     {
         ArgumentNullException.ThrowIfNull(footprint);
 
@@ -28,7 +28,7 @@ public class Building : IUrbanElement, IGraphableAsNode
             curve.Reverse();
         }
 
-        Footprint = new Polygon2D(curve);
+        Footprint = new Polycurve2D(curve);
         Envelope = ComputeEnvelope(curve, typicalFloorHeight * floorCount);
         FloorPlates = ComputeOrderedFloorPlates(curve, typicalFloorHeight, floorCount, use);
         foreach (var plate in FloorPlates)
@@ -77,7 +77,7 @@ public class Building : IUrbanElement, IGraphableAsNode
         return (int)Math.Floor(envelopeHeight / typicalFloorHeight);
     }
 
-    private static (List<FloorPlate> Plates, Polygon2D Footprint) ComputeContours(
+    private static (List<FloorPlate> Plates, Polycurve2D Footprint) ComputeContours(
         Brep envelope, double floorHeight, Use use, double tolerance)
     {
         var bbox = envelope.GetBoundingBox(true);
@@ -86,7 +86,7 @@ public class Building : IUrbanElement, IGraphableAsNode
         var contours = Brep.CreateContourCurves(envelope, startPt, endPt, floorHeight);
 
         var plates = new List<FloorPlate>();
-        Polygon2D? firstFootprint = null;
+        Polycurve2D? firstFootprint = null;
 
         if (contours != null)
         {
@@ -95,7 +95,7 @@ public class Building : IUrbanElement, IGraphableAsNode
                 if (curve.GetLength() < tolerance)
                     continue;
 
-                var profile = new Polygon2D(curve);
+                var profile = new Polycurve2D(curve);
 
                 firstFootprint ??= profile;
                 plates.Add(new FloorPlate(profile, use));
@@ -146,7 +146,7 @@ public class Building : IUrbanElement, IGraphableAsNode
             var curve = footprint.DuplicateCurve();
             var translate = Transform.Translation(0, 0, i * floorHeight);
             curve.Transform(translate);
-            var profile = new Polygon2D(curve);
+            var profile = new Polycurve2D(curve);
             plates.Add(new FloorPlate(profile, use));
         }
 

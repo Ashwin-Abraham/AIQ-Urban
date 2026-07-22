@@ -82,7 +82,7 @@ public class MessageHandlersTests
 
     private static Parcel AddParcelToDocAndModel(RhinoDoc doc, Use use)
     {
-        var polygon = new Polygon2D(new PolylineCurve([
+        var polygon = new Polycurve2D(new PolylineCurve([
             new Point3d(0, 0, 0),
             new Point3d(10, 0, 0),
             new Point3d(10, 10, 0),
@@ -100,7 +100,7 @@ public class MessageHandlersTests
 
     private static Building AddBuildingToDocAndModel(RhinoDoc doc, Use use)
     {
-        var footprint = new Polygon2D(new PolylineCurve([
+        var footprint = new Polycurve2D(new PolylineCurve([
             new Point3d(0, 0, 0),
             new Point3d(10, 0, 0),
             new Point3d(10, 10, 0),

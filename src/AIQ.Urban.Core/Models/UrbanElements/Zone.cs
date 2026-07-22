@@ -5,13 +5,13 @@ namespace AIQ.Urban.Core.Models.UrbanElements;
 
 public class Zone : IUrbanElement
 {
-    public Polygon2D Boundary { get; }
+    public Polycurve2D Boundary { get; }
 
     public string Name { get; }
 
     public Guid Id => Boundary.Id;
 
-    public Zone(Polygon2D boundary, string name)
+    public Zone(Polycurve2D boundary, string name)
     {
         Boundary = boundary;
         Name = name;

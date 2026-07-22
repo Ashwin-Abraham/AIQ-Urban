@@ -71,7 +71,7 @@ public class AddBuildingStepTests
         int ExpectedFirstFloorCount,
         int ExpectedFirstFloorPlateCount);
 
-    private static Polygon2D MakeFootprint(double size) => new(new PolylineCurve([
+    private static Polycurve2D MakeFootprint(double size) => new(new PolylineCurve([
         new Point3d(0, 0, 0),
         new Point3d(size, 0, 0),
         new Point3d(size, size, 0),

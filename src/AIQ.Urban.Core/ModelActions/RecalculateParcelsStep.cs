@@ -79,7 +79,7 @@ public class RecalculateParcelsStep(ILoggerFactory? _loggerFactory = null) : IUr
     }
 
     private static Use ResolveUse(
-        Polygon2D hole,
+        Polycurve2D hole,
         List<(Point3d Centroid, Use Use)> oldCentroids,
         Point3d? originalHoleCentroid,
         UrbanModel model)
@@ -118,8 +118,8 @@ public class RecalculateParcelsStep(ILoggerFactory? _loggerFactory = null) : IUr
     /// The default implementation returns the hole unchanged — the implementer should replace
     /// this with actual curve-based splitting logic.
     /// </summary>
-    private static List<(Polygon2D Polygon, Point3d? OriginalCentroid)> SplitHoleWithSeparators(
-        Polygon2D hole,
+    private static List<(Polycurve2D Polygon, Point3d? OriginalCentroid)> SplitHoleWithSeparators(
+        Polycurve2D hole,
         List<Curve2D> splitters)
     {
         // Expand polygon

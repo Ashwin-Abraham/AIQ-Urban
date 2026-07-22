@@ -79,7 +79,7 @@ public class RemoveBuildingStepTests
         }
     }
 
-    private static readonly Polygon2D SimpleFootprint = new(
+    private static readonly Polycurve2D SimpleFootprint = new(
         new PolylineCurve([
             new Point3d(0, 0, 0),
             new Point3d(10, 0, 0),
@@ -88,7 +88,7 @@ public class RemoveBuildingStepTests
             new Point3d(0, 0, 0),
         ]));
 
-    private static readonly Polygon2D SmallFootprint = new(
+    private static readonly Polycurve2D SmallFootprint = new(
         new PolylineCurve([
             new Point3d(0, 0, 0),
             new Point3d(5, 0, 0),

@@ -58,7 +58,7 @@ public class RhinoOutputHelperTests
         var id = doc.Objects.AddCurve(polyline);
         var obj = doc.Objects.Find(id);
         var curve = obj!.Geometry as Curve;
-        var sut = new Polygon2D(curve!);
+        var sut = new Polycurve2D(curve!);
         var attrs = new ObjectAttributes();
 
         RhinoOutputHelper.OutputGeometry(doc, sut, attrs, false);
@@ -80,7 +80,7 @@ public class RhinoOutputHelperTests
         var id = doc.Objects.AddCurve(polyline);
         var obj = doc.Objects.Find(id);
         var curve = obj!.Geometry as Curve;
-        var sut = new Polygon2D(curve!);
+        var sut = new Polycurve2D(curve!);
         var attrs = new ObjectAttributes();
 
         RhinoOutputHelper.OutputGeometry(doc, sut, attrs, false);

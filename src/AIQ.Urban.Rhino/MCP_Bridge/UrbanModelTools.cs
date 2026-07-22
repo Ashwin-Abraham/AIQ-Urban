@@ -52,7 +52,7 @@ public class UrbanModelTools(RhinoDoc doc, UrbanModel urbanModel)
         try
         {
             var use = urbanModel.GetUse(useName);
-            var footprints = footprintCurves.Select(c => Polygon2D.Create(c.ToCoreTupleList())).ToList();
+            var footprints = footprintCurves.Select(c => Polycurve2D.Create(c.ToCoreTupleList())).ToList();
             var buildingData = footprints.Select(c => new BuildingFootprintData(c, floorHeight, floorCount, use)).ToList();
 
             Action<RhinoUrbanModelPipeline> pipelineAction = (pipeline)
@@ -80,7 +80,7 @@ public class UrbanModelTools(RhinoDoc doc, UrbanModel urbanModel)
             if (boundaryCoordinates.Count == 0)
                 return "Failed. No boundary coordinates provided.";
 
-            var boundary = Polygon2D.Create(boundaryCoordinates[0].ToCoreTupleList());
+            var boundary = Polycurve2D.Create(boundaryCoordinates[0].ToCoreTupleList());
             var zoneData = new List<ZoneData> { new(boundary, name) };
 
             Action<RhinoUrbanModelPipeline> pipelineAction = (pipeline) => PipelineConfigurations
