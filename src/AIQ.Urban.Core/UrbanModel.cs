@@ -28,6 +28,9 @@ public class UrbanModel
     /// <summary>All zones in the model.</summary>
     public List<Zone> Zones { get; } = [];
 
+    /// <summary>All parcel boundary curves in the model.</summary>
+    public List<ParcelBoundary> ParcelBoundaries { get; } = [];
+
     public List<Use> Uses { get; private set; }
 
     public List<(Profile2D Profile, TransitType Type)> TransitSurfaces { get; } = [];
@@ -54,6 +57,7 @@ public class UrbanModel
         Buildings.Clear();
         Parcels.Clear();
         Zones.Clear();
+        ParcelBoundaries.Clear();
         TransitSurfaces.Clear();
         Uses = DefaultUses.CreateDefaults();
         ProjectMetrics = null;
@@ -83,6 +87,7 @@ public class UrbanModel
         list.AddRange(Buildings.SelectMany(x => x.FloorPlates));
         list.AddRange(Parcels);
         list.AddRange(Zones);
+        list.AddRange(ParcelBoundaries);
 
         return list;
     }
@@ -105,5 +110,8 @@ public class UrbanModel
     {
         Zones.Add(zone);
     }
+
+    /// <summary>Add a parcel boundary to the model.</summary>
+    public void AddParcelBoundary(ParcelBoundary boundary) { ParcelBoundaries.Add(boundary); }
 
 }

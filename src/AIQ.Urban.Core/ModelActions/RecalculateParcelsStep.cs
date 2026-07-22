@@ -1,4 +1,5 @@
-﻿using AIQ.Urban.Core.ModelActions.CreationData;
+﻿using AIQ.Urban.Core.Extensions;
+using AIQ.Urban.Core.ModelActions.CreationData;
 using AIQ.Urban.Core.Models;
 using AIQ.Urban.Core.Models.GeometryElements;
 using AIQ.Urban.Core.Models.UrbanElements;
@@ -41,13 +42,20 @@ public class RecalculateParcelsStep(ILoggerFactory? _loggerFactory = null) : IUr
             : CaptureParcelCentroids(model);
 
         model.Parcels.Clear();
+        var splitters = model.ParcelBoundaries.Select(x => x.Curve).ToList();
 
         foreach (var (profile, _) in model.TransitSurfaces)
         {
             foreach (var hole in profile.Holes)
             {
-                var use = ResolveUse(hole, oldCentroids, model);
-                model.Parcels.Add(new Parcel(hole, use));
+                var splitOutlines = hole.Split(splitters);
+                var originalCentroid = hole.Centroid();
+
+                foreach (var parcelOutline in splitOutlines)
+                {
+                    var use = ResolveUse(parcelOutline, oldCentroids, originalCentroid, model);
+                    model.Parcels.Add(new Parcel(parcelOutline, use));
+                }
             }
         }
 
@@ -73,10 +81,20 @@ public class RecalculateParcelsStep(ILoggerFactory? _loggerFactory = null) : IUr
     private static Use ResolveUse(
         Polygon2D hole,
         List<(Point3d Centroid, Use Use)> oldCentroids,
+        Point3d? originalHoleCentroid,
         UrbanModel model)
     {
         if (oldCentroids.Count == 0)
             return model.GetUse("Public");
+
+        if (originalHoleCentroid.HasValue)
+        {
+            var matchByOrigin = oldCentroids
+                .OrderBy(x => x.Centroid.DistanceTo(originalHoleCentroid.Value))
+                .First();
+            if (matchByOrigin.Centroid.DistanceTo(originalHoleCentroid.Value) < 1e-6)
+                return matchByOrigin.Use;
+        }
 
         var holeCentroid = ComputeCentroid(hole.Geometry);
         if (holeCentroid is null)
@@ -91,5 +109,37 @@ public class RecalculateParcelsStep(ILoggerFactory? _loggerFactory = null) : IUr
     {
         var props = AreaMassProperties.Compute(curve);
         return props?.Centroid;
+    }
+
+    /// <summary>
+    /// Splits a single transit-defined hole into multiple parcels using parcel boundary curves.
+    /// Returns each resulting sub-polygon paired with the original hole's centroid (for Use resolution).
+    ///
+    /// The default implementation returns the hole unchanged — the implementer should replace
+    /// this with actual curve-based splitting logic.
+    /// </summary>
+    private static List<(Polygon2D Polygon, Point3d? OriginalCentroid)> SplitHoleWithSeparators(
+        Polygon2D hole,
+        List<Curve2D> splitters)
+    {
+        // Expand polygon
+
+        
+        // boolean difference out the split
+
+
+        // Shrink the polygon.
+
+
+        //////
+        // OPTION 2
+        // Find intersection positions
+
+        // Walk along the polygon legs to group them up into new fragment polygons
+
+
+        /////
+        var centroid = ComputeCentroid(hole.Geometry);
+        return [(hole, centroid)];
     }
 }
