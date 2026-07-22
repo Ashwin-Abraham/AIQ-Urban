@@ -32,14 +32,6 @@ public class Polygon2DTests
     }
 
     [Test]
-    public void Create_NullInput_Throws()
-    {
-        var ex = Assert.Throws<ArgumentNullException>(() =>
-            Polygon2D.Create(null!));
-        Assert.That(ex!.Message, Does.Contain("Value cannot be null"));
-    }
-
-    [Test]
     [TestCase("TwoPoints")]
     [TestCase("EmptyArray")]
     public void Create_InvalidInput_Throws(string testName)

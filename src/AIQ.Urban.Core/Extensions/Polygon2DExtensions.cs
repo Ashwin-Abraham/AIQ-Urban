@@ -52,6 +52,10 @@ public static class Polygon2DExtensions
 
         var splitPolygon = Curve.CreateBooleanDifference(polygonShrunk, splitterExpanded, tolerance).ToList();
 
+        // If the splitters didnt go all the way through, or didnt even touch the polygon, then you wont have more than 1 result
+        if (splitPolygon.Count <= 1)
+            return [polygon];
+
         splitPolygon = splitPolygon.SelectMany(x => x.Offset(Plane.WorldXY, smallOffset, tolerance, CurveOffsetCornerStyle.Sharp)).ToList();
 
         var result = splitPolygon
