@@ -31,6 +31,7 @@ public class SelectBuildingFootprintStep(
             throw new Exception("Select one or more building footprint curves first.");
 
         var buildingData = new List<BuildingFootprintData>();
+        var deleteData = new List<RhinoObjectDeletionData>();
 
         foreach (var obj in selected)
         {
@@ -39,6 +40,7 @@ public class SelectBuildingFootprintStep(
 
             var polygon = new Polygon2D(curve);
             buildingData.Add(new BuildingFootprintData(polygon, floorHeight, floorCount, use));
+            deleteData.Add(new(obj.Id));
         }
 
         if (buildingData.Count == 0)

@@ -50,7 +50,7 @@ public class BuildingMessage : IMessageFromUI<ModelStateMessage>
         var creationData = gatherStep.Run(doc);
         var idsToDelete = creationData.OfType<BuildingFootprintData>().Select(b => b.Footprint.Id).ToList();
 
-        return RunPipeline(doc, gatherStep, idsToDelete, loggerFactory);
+        return RunPipeline(doc, creationData, idsToDelete, loggerFactory);
     }
 
     private ModelStateMessage HandleMassMode(RhinoDoc doc, Use use)
@@ -68,13 +68,13 @@ public class BuildingMessage : IMessageFromUI<ModelStateMessage>
         var creationData = gatherStep.Run(doc);
         var idsToDelete = creationData.OfType<BuildingMassData>().Select(b => b.Envelope.Id).ToList();
 
-        return RunPipeline(doc, gatherStep, idsToDelete, loggerFactory);
+        return RunPipeline(doc, creationData, idsToDelete, loggerFactory);
     }
 
-    private ModelStateMessage RunPipeline(RhinoDoc doc, IRhinoDataGatherStep gatherStep, List<Guid> idsToDelete, ILoggerFactory loggerFactory)
+    private ModelStateMessage RunPipeline(RhinoDoc doc, List<ICreationData> creationData, List<Guid> idsToDelete, ILoggerFactory loggerFactory)
     {
         var pipeline = new RhinoUrbanModelPipeline(doc, UrbanModel.Instance, loggerFactory)
-            .WithDataGatherStep(gatherStep)
+            .WithCreationData(creationData)
             .WithBuildingAdditionSteps([], idsToDelete)
             .WithFullModelOutput()
             .WithMetricsCalculation(tolerance: doc.ModelAbsoluteTolerance);

@@ -1,5 +1,6 @@
 ﻿using AIQ.Urban.Core.Extensions;
 using Rhino.Geometry;
+using Rhino.Geometry.Intersect;
 
 namespace AIQ.Urban.Core.Models.GeometryElements;
 public class Profile2D : IGeometryElement<Brep>
@@ -64,19 +65,24 @@ public class Profile2D : IGeometryElement<Brep>
 
         if (Holes.Count > 0)
         {
-            var holeCurves = Holes.Select(x => x.Geometry).ToList();
-            var holesInOutline = holeCurves
-                .SelectMany(x => Curve.CreateBooleanIntersection(Outline.Geometry, x, tolerance))
-                .Where(x => x.IsClosed)
-                .ToArray();
+            var holes = Holes
+                .Where(h => !HasIntersection(Outline, h) && h.Geometry.IsClosed)
+                .Select(x => x.Geometry)
+                .ToList();
 
-            curves.AddRange(holesInOutline);
+            curves.AddRange(holes);
         }
 
         var crvsCopy = curves.Select(x => x.DuplicateCurve());
         profileBreps = Brep.CreatePlanarBreps(crvsCopy, tolerance);
 
         return profileBreps?.First();
+    }
+
+    private static bool HasIntersection(PolyCurve2D outline, PolyCurve2D h, double tolerance = 1e-5)
+    {
+        var intersection = Intersection.CurveCurve(outline.Geometry, h.Geometry, tolerance, tolerance);
+        return intersection.Count > 0;
     }
 
     public static Profile2D? Create(Brep profileBrep)

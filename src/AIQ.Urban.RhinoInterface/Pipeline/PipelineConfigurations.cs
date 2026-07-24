@@ -18,9 +18,9 @@ public static class PipelineConfigurations
     public static RhinoUrbanModelPipeline WithBuildingAdditionSteps(
         this RhinoUrbanModelPipeline pipeline,
         List<ICreationData> buildingData,
-        List<Guid> curvesToDelete)
+        List<Guid> idsToDelete)
     {
-        pipeline.WithRhinoObjectDeletion(curvesToDelete)
+        pipeline.WithRhinoObjectDeletion(idsToDelete)
             .WithCreationData(buildingData)
             .WithUrbanElementStep(new AddBuildingStep(_loggerFactory: pipeline.LoggerFactory));
 
@@ -59,9 +59,11 @@ public static class PipelineConfigurations
         List<ZoneData> zoneData,
         List<Guid> idsToDelete)
     {
+        var deleteData = idsToDelete.Select(id => new RhinoObjectDeletionData(id)).Cast<ICreationData>().ToList();
+
         pipeline.WithRhinoObjectDeletion(idsToDelete)
             .WithCreationData(zoneData.Cast<ICreationData>().ToList())
-            .WithCreationData([new ZoneDeletionData(idsToDelete)])
+            .WithCreationData(deleteData)
             .WithUrbanElementStep(new AddZoneStep(pipeline.LoggerFactory));
 
         return pipeline;
@@ -106,7 +108,9 @@ public static class PipelineConfigurations
         this RhinoUrbanModelPipeline pipeline,
         List<Guid> geometryIds)
     {
-        pipeline.WithCreationData([new ZoneDeletionData(geometryIds)])
+        var deleteData = geometryIds.Select(id => new RhinoObjectDeletionData(id)).Cast<ICreationData>().ToList();
+
+        pipeline.WithCreationData(deleteData)
             .WithUrbanElementStep(new RemoveZoneStep(pipeline.LoggerFactory));
 
         return pipeline;
