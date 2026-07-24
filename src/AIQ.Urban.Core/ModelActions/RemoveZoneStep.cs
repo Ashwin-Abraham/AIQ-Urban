@@ -10,8 +10,8 @@ public class RemoveZoneStep(ILoggerFactory? _loggerFactory = null) : IUrbanModel
 
     public StepResult Run(UrbanModel model, List<ICreationData> creationData)
     {
-        var geometryIds = creationData.OfType<ZoneDeletionData>()
-            .SelectMany(d => d.GeometryIds)
+        var geometryIds = creationData.OfType<RhinoObjectDeletionData>()
+            .Select(d => d.Id)
             .ToList();
 
         var zonesToRemove = model.Zones

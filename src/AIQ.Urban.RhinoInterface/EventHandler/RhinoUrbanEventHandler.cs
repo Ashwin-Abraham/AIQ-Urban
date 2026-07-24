@@ -134,14 +134,8 @@ public class RhinoUrbanEventHandler : IDisposable
             if (!ObjectIdToElement.TryGetValue(oldId, out var element))
                 continue;
 
-            //if (!IsOnManagedLayer(newObj)) continue;
-
-            //element = ObjectIdToElement.TryGetValue(oldId, out var directLookup)
-            //    ? directLookup
-            //    : FindElementByLayer(newObj);
-
             if (element == null) continue;
-
+            
             // Remove old mapping for this element's previous geometry IDs
             var oldIds = element.GetGeometryIds();
             foreach (var oid in oldIds)

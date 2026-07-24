@@ -25,6 +25,7 @@ public static class PreviewAssemblyBootstrap
         {
             new DefaultCurveConverter(),
             new Curve2DConverter(),
+            new PolyCurve2DConverter(),
             new Polygon2DConverter(),
             new Profile2DConverter(),
             new CurveElementConverter(),

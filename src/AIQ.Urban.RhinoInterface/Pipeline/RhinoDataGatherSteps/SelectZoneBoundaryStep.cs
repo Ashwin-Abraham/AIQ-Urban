@@ -36,7 +36,10 @@ public class SelectZoneBoundaryStep(
 
         _logger.LogInformation("SelectZoneBoundaryStep gathered 1 zone boundary");
 
-        return [new ZoneData(boundary, name)];
+        var zoneData = new ZoneData(boundary, name);
+        var deleteData = new RhinoObjectDeletionData(obj.Id);
+
+        return [zoneData, deleteData];
     }
 
     private static Curve? TryValidateBoundaryCurve(Curve? curve)

@@ -1,5 +1,6 @@
 ﻿using AIQ.Urban.Core.Extensions;
 using Rhino.Geometry;
+using Rhino.Geometry.Intersect;
 
 namespace AIQ.Urban.Core.Models.GeometryElements;
 public class Profile2D : IGeometryElement<Brep>
@@ -25,20 +26,63 @@ public class Profile2D : IGeometryElement<Brep>
         Holes = holes;
     }
 
+    public double Area()
+    {
+        var outlineArea = Outline.Area();
+        var holeArea = Holes.Sum(x => x.Area());
+
+        return outlineArea - holeArea;
+    }
+
+    //public Brep GetBrep2(double tolerance = 1e-5)
+    //{
+    //    if (Holes.Count == 0)
+    //        return Brep.CreatePlanarBreps(Outline.Geometry, tolerance).FirstOrDefault()!;
+
+    //    var bounds = new BoundingBox(Outline.Points());
+    //    Surface boundsSurface = new PlaneSurface(
+    //        Plane.WorldXY,
+    //        new Interval(bounds.Min.X, bounds.Max.X),
+    //        new Interval(bounds.Min.Y, bounds.Max.Y)
+    //    );
+
+    //    var allCurves = Holes
+    //        .Append(Outline)
+    //        .Select(x => x.Geometry)
+    //        .ToList();
+
+    //    var result = Brep
+    //        .CutUpSurface(boundsSurface, allCurves, useEdgeCurves: false, tolerance * 10)
+    //        .MaxBy(x => x.GetArea());
+
+    //    return result;
+    //}
+
     public Brep GetBrep(double tolerance = 1e-5)
     {
         Brep[] profileBreps;
         List<Curve> curves = [Outline.Geometry];
+
         if (Holes.Count > 0)
         {
-            var holeCurves = Holes.Select(x => x.Geometry).ToList();
-            var holesInOutline = holeCurves.SelectMany(x => Curve.CreateBooleanIntersection(Outline.Geometry, x, tolerance)).ToArray();
-            curves.AddRange(holesInOutline);
+            var holes = Holes
+                .Where(h => !HasIntersection(Outline, h) && h.Geometry.IsClosed)
+                .Select(x => x.Geometry)
+                .ToList();
+
+            curves.AddRange(holes);
         }
-        
-        profileBreps = Brep.CreatePlanarBreps(curves, tolerance);
+
+        var crvsCopy = curves.Select(x => x.DuplicateCurve());
+        profileBreps = Brep.CreatePlanarBreps(crvsCopy, tolerance);
 
         return profileBreps?.First();
+    }
+
+    private static bool HasIntersection(PolyCurve2D outline, PolyCurve2D h, double tolerance = 1e-5)
+    {
+        var intersection = Intersection.CurveCurve(outline.Geometry, h.Geometry, tolerance, tolerance);
+        return intersection.Count > 0;
     }
 
     public static Profile2D? Create(Brep profileBrep)
