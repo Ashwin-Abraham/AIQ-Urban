@@ -25,18 +25,56 @@ public class Profile2D : IGeometryElement<Brep>
         Holes = holes;
     }
 
+    public double Area()
+    {
+        var outlineArea = Outline.Area();
+        var holeArea = Holes.Sum(x => x.Area());
+
+        return outlineArea - holeArea;
+    }
+
+    //public Brep GetBrep2(double tolerance = 1e-5)
+    //{
+    //    if (Holes.Count == 0)
+    //        return Brep.CreatePlanarBreps(Outline.Geometry, tolerance).FirstOrDefault()!;
+
+    //    var bounds = new BoundingBox(Outline.Points());
+    //    Surface boundsSurface = new PlaneSurface(
+    //        Plane.WorldXY,
+    //        new Interval(bounds.Min.X, bounds.Max.X),
+    //        new Interval(bounds.Min.Y, bounds.Max.Y)
+    //    );
+
+    //    var allCurves = Holes
+    //        .Append(Outline)
+    //        .Select(x => x.Geometry)
+    //        .ToList();
+
+    //    var result = Brep
+    //        .CutUpSurface(boundsSurface, allCurves, useEdgeCurves: false, tolerance * 10)
+    //        .MaxBy(x => x.GetArea());
+
+    //    return result;
+    //}
+
     public Brep GetBrep(double tolerance = 1e-5)
     {
         Brep[] profileBreps;
         List<Curve> curves = [Outline.Geometry];
+
         if (Holes.Count > 0)
         {
             var holeCurves = Holes.Select(x => x.Geometry).ToList();
-            var holesInOutline = holeCurves.SelectMany(x => Curve.CreateBooleanIntersection(Outline.Geometry, x, tolerance)).ToArray();
+            var holesInOutline = holeCurves
+                .SelectMany(x => Curve.CreateBooleanIntersection(Outline.Geometry, x, tolerance))
+                .Where(x => x.IsClosed)
+                .ToArray();
+
             curves.AddRange(holesInOutline);
         }
-        
-        profileBreps = Brep.CreatePlanarBreps(curves, tolerance);
+
+        var crvsCopy = curves.Select(x => x.DuplicateCurve());
+        profileBreps = Brep.CreatePlanarBreps(crvsCopy, tolerance);
 
         return profileBreps?.First();
     }
