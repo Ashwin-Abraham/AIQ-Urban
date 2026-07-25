@@ -115,6 +115,9 @@ public class ExcelDocumentWriterTests
             Assert.Equal(
                 XLColor.FromColor(Color.DarkBlue),
                 cell.Style.Fill.BackgroundColor);
+            Assert.Equal(
+                XLFillPatternValues.Solid,
+                cell.Style.Fill.PatternType);
             Assert.Equal("0.0%", cell.Style.NumberFormat.Format);
             Assert.Equal(
                 XLAlignmentHorizontalValues.Center,

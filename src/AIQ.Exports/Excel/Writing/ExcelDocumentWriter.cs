@@ -1,5 +1,7 @@
 using AIQ.Exports.Excel.Models;
 using ClosedXML.Excel;
+using DocumentFormat.OpenXml.Packaging;
+using DocumentFormat.OpenXml.Spreadsheet;
 
 namespace AIQ.Exports.Excel.Writing;
 
@@ -58,9 +60,51 @@ public sealed class ExcelDocumentWriter
             }
 
             worksheet.ColumnsUsed().AdjustToContents();
+            ApplyWorksheetOptions(worksheet, definition.Options);
         }
 
+        workbook.RecalculateAllFormulas();
         workbook.SaveAs(absolutePath);
+        EnsureFillFormatsApplied(absolutePath);
+    }
+
+    private static void EnsureFillFormatsApplied(string filePath)
+    {
+        using var document = SpreadsheetDocument.Open(filePath, true);
+        var stylesheet = document.WorkbookPart?
+            .WorkbookStylesPart?
+            .Stylesheet;
+        var cellFormats = stylesheet?.CellFormats;
+
+        if (stylesheet is null || cellFormats is null)
+            return;
+
+        foreach (var format in cellFormats.Elements<CellFormat>())
+        {
+            if (format.FillId?.Value > 0)
+                format.ApplyFill = true;
+        }
+
+        stylesheet.Save();
+    }
+
+    private static void ApplyWorksheetOptions(
+        IXLWorksheet worksheet,
+        ExcelWorksheetOptions? options)
+    {
+        if (options is null)
+            return;
+
+        worksheet.ShowGridLines = !options.HideGridlines;
+
+        if (options.FrozenRowCount > 0)
+            worksheet.SheetView.FreezeRows(options.FrozenRowCount);
+
+        if (options.ColumnWidths is null)
+            return;
+
+        foreach (var (column, width) in options.ColumnWidths)
+            worksheet.Column(column).Width = width;
     }
 
     private static void ValidateWorksheetNames(

@@ -118,8 +118,10 @@ internal sealed class TableBlockWriter : IExcelBlockWriter
 
         if (style.FillColor.HasValue)
         {
-            target.Style.Fill.SetBackgroundColor(
-                XLColor.FromColor(style.FillColor.Value));
+            var fillColor = XLColor.FromColor(style.FillColor.Value);
+            target.Style.Fill.PatternType = XLFillPatternValues.Solid;
+            target.Style.Fill.PatternColor = fillColor;
+            target.Style.Fill.BackgroundColor = fillColor;
         }
 
         if (style.NumberFormat is not null)
