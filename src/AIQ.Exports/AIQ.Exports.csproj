@@ -11,33 +11,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Remove="AIQ Export Resources\AIQUrbanTemplate.pptx" />
-    <None Remove="AIQ Export Resources\LEGO.png" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="ClosedXML" Version="0.105.0" />
-    <PackageReference Include="DocumentFormat.OpenXml" Version="3.3.0" />
     <!-- Base package for Google APIs -->
     <PackageReference Include="Google.Apis.Slides.v1" Version="1.69.0.3701" />
     <PackageReference Include="Google.Apis.Drive.v3" Version="1.69.0.3790" />
     <PackageReference Include="ShapeCrawler" Version="0.75.2" />
     <PackageReference Include="System.Drawing.Common" Version="8.0.0" />
   </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\ArchSitePlan.Core\ArchSitePlan.Core.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Include="AIQ Export Resources\AIQUrbanTemplate.pptx">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </EmbeddedResource>
-    <EmbeddedResource Include="AIQ Export Resources\LEGO.png">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </EmbeddedResource>
-  </ItemGroup>
-
-
 
 </Project>

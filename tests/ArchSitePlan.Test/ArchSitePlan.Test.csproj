@@ -45,8 +45,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\ArchSitePlan.OSM\ArchSitePlan.OSM.csproj" />
-    <ProjectReference Include="..\..\src\ArchSitePlan.RhinoBhomInterop\ArchSitePlan.RhinoBhomInterop.csproj" />
     <ProjectReference Include="..\ArchSitePlan.DebugModel\ArchSitePlan.DebugModel.csproj" />
   </ItemGroup>
 
