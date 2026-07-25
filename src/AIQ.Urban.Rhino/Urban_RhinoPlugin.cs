@@ -32,6 +32,7 @@ public class Urban_RhinoPlugin : PlugIn
         {
             _eventHandler = new RhinoUrbanEventHandler(doc);
             _eventHandler.SelectionChanged += OnSelectionChanged;
+            _eventHandler.ModelChanged += OnModelChanged;
         }
 
         return LoadReturnCode.Success;
@@ -40,6 +41,12 @@ public class Urban_RhinoPlugin : PlugIn
     private void OnSelectionChanged(object? sender, EventArgs e)
     {
         PublishCurrentSelection();
+    }
+
+    private void OnModelChanged(object? sender, EventArgs e)
+    {
+        var message = new ModelStateMessage(UrbanModel.Instance);
+        WebSocketUiServer.Publish(message);
     }
 
     public void PublishCurrentSelection()
@@ -115,6 +122,7 @@ public class Urban_RhinoPlugin : PlugIn
         if (_eventHandler != null)
         {
             _eventHandler.SelectionChanged -= OnSelectionChanged;
+            _eventHandler.ModelChanged -= OnModelChanged;
             _eventHandler.Dispose();
         }
 

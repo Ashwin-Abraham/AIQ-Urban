@@ -12,6 +12,8 @@ public static class WebSocketUiServer
     private static readonly object _selectionMessageLock = new();
     private static string _latestSelectionMessageJson =
         JsonSerializer.Serialize(SelectionMetricsMessage.Empty);
+    private static readonly object _modelStateMessageLock = new();
+    private static string _latestModelStateMessageJson = "null";
 
     private const string BridgeHost = "127.0.0.1";
 
@@ -55,6 +57,29 @@ public static class WebSocketUiServer
         lock (_selectionMessageLock)
         {
             return _latestSelectionMessageJson;
+        }
+    }
+
+    public static void Publish(ModelStateMessage message)
+    {
+        var json = JsonSerializer.Serialize(message);
+
+        lock (_modelStateMessageLock)
+        {
+            _latestModelStateMessageJson = json;
+        }
+
+        if (_server?.IsListening != true)
+            return;
+
+        _server.WebSocketServices["/"].Sessions.Broadcast(json);
+    }
+
+    internal static string LatestModelStateMessageJson()
+    {
+        lock (_modelStateMessageLock)
+        {
+            return _latestModelStateMessageJson;
         }
     }
 }

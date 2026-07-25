@@ -30,6 +30,7 @@ Graphify is forbidden in this context. Do not run `graphify query`, `graphify pa
 - Created in `Urban_RhinoPlugin.OnLoad()` → calls `SubscribeModelEvents()` on the singleton handler
 - Disposed in `Urban_RhinoPlugin.OnShutdown()` → calls `Dispose()` which unsubscribes all events
 - `EventLock` guards against event processing during file loads, pipeline output, and bulk operations
+- `ModelChanged` event fires at the end of each non-empty `ProcessQueue` batch after `_doc.Views.Redraw()`. `Urban_RhinoPlugin` subscribes and publishes `ModelStateMessage` over WebSocket so the UI stays in sync with Rhino-side model changes.
 
 ## RhinoUrbanModelPipeline
 Fluent pipeline in `Pipeline/RhinoUrbanModelPipeline.cs` under the `AIQ.Urban.RhinoInterface` namespace. Step-based, with a single ordered step list:
@@ -203,18 +204,20 @@ _Avoid_: event deltas, legacy `SelectedObjectMetricsMessage` compatibility emiss
 | Message | `Type` | Content |
 |---|---|---|
 | `SelectionMetricsMessage` | `"SelectionMetricsMessage"` | Typed `Buildings`, `Parcels`, and `Transits` aggregates filtered from the current `ProjectMetrics` by `SourceElementId` |
+| `ModelStateMessage` | `"ModelStateMessage"` | Landuses (from `DefaultUses.All`) + per-zone chart metrics (from `ProjectMetrics`). Published after each non-empty `ProcessQueue` batch so the UI stays in sync when model changes originate from Rhino viewport interactions. |
 
 ### Relationships
 
 - A selected **FloorPlate** contributes to selection of its owning **Building**.
 - All **Selected Urban Elements** produce one **Selection Metrics Snapshot** over the UI websocket.
 - Every select, partial-deselect, and deselect-all event produces the complete, deduplicated current snapshot.
-- A newly connected UI websocket client immediately receives the current snapshot.
+- A newly connected UI websocket client immediately receives the current selection snapshot and the current model state snapshot.
 - A selected Parcel's building-dependent metrics include every Building contained by that Parcel; the Building aggregate includes only explicitly selected Buildings.
 - Across multiple selected Parcels, FAR and coverage are calculated from combined totals.
 - Zone aggregation remains in `ModelStateMessage`; its synthetic `"All"` zone uses `SourceElementId = Guid.Empty`.
 - Selection aggregate records belong to the Rhino UI transport contract; Core remains unaware of websocket messages and Rhino selection state.
 - UI selection messages broadcast only on websocket path `/`; `/mcp-bridge` does not receive them.
+- `ModelStateMessage` is published over WebSocket after each non-empty `ProcessQueue` batch (deletes, replacements) so the UI charts update when model changes originate from Rhino viewport interactions (not just from UI POST commands).
 
 ### TransitMessage Handling
 1. Get `RhinoDoc.ActiveDoc`
