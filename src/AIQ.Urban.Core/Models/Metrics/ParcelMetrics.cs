@@ -3,6 +3,7 @@
 namespace AIQ.Urban.Core.Models.Metrics;
 public class ParcelMetrics : IMetrics
 {
+    public Guid SourceElementId { get; }
     public Use Use { get; }
     public double LandArea { get; }
     public double Perimeter { get; }
@@ -15,6 +16,7 @@ public class ParcelMetrics : IMetrics
         Parcel parcel,
         List<BuildingMetrics> buildingsOnParcel)
     {
+        SourceElementId = parcel.Id;
         Use = parcel.Use;
         LandArea = parcel.Outline.Area();
         Perimeter = parcel.Outline.Perimeter();

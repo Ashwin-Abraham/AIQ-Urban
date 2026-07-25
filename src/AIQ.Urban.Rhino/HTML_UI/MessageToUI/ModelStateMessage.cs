@@ -70,6 +70,7 @@ public class ModelStateMessage : IMessageToUI
 
         List<ZoneMetrics> zoneMetrics = [];
         var projectWideZoneMetrics = new ZoneMetrics(
+            Guid.Empty,
             "All",
             projectMetrics.BuildingMetrics,
             projectMetrics.ParcelMetrics,
@@ -83,12 +84,23 @@ public class ModelStateMessage : IMessageToUI
 
     private StudyAreaDataForUI ZoneToStudyData(ZoneMetrics zone)
     {
+        var groupedTransitMetrics = zone.TransitMetrics
+            .GroupBy(t => (t.Type, t.Width))
+            .Select(group => new
+            {
+                group.Key.Type,
+                group.Key.Width,
+                RunningLength = group.Sum(t => t.RunningLength),
+                Area = group.Sum(t => t.Area),
+            })
+            .ToList();
+
         return new StudyAreaDataForUI(
             StudyName: zone.ZoneName,
-            RoadLengthData: zone.TransitMetrics
+            RoadLengthData: groupedTransitMetrics
                 .Select(t => new ChartDataPoint($"{t.Type} {t.Width}m", t.RunningLength, ColorString(t.Type, t.Width, _colorMap)))
                 .ToList(),
-            RoadAreaData: zone.TransitMetrics
+            RoadAreaData: groupedTransitMetrics
                 .Select(t => new ChartDataPoint($"{t.Type} {t.Width}m", t.Area, ColorString(t.Type, t.Width, _colorMap)))
                 .ToList(),
             UrbanLandAreaData: zone.LandAreaByUse

@@ -34,6 +34,7 @@ public class StartUI_AIQUrban : Command
                 .WithDocModelLoad(doc);
             pipeline.Run();
 
+            Urban_RhinoPlugin.Instance.PublishCurrentSelection();
             HttpUiServer.Start(HttpServerPort);
             WebSocketUiServer.Start(WebSocketServerPort);
 
