@@ -27,6 +27,7 @@ Pure city-modelling domain logic. Models buildings, transit networks, parcels, z
 - **AIQ.Urban.Core** references RhinoCommon as its geometry kernel (Curve, Brep, Mesh, Point3d, Transform, etc.)
 - **AIQ.Urban.RhinoPlugin** references AIQ.Urban.Core + RhinoCommon separately for the Rhino interface
 - Core depends on **no** other solution projects (especially not the old `ArchSitePlan.*` or `BHoM.*` projects)
+- Export composition belongs to the consuming interface layer. `AIQ.Urban.Core` supplies `ProjectMetrics`; `AIQ.Urban.RhinoInterface` translates those metrics into export documents and delegates file-format writing to `AIQ.Exports`.
 
 ### Model State
 - `UrbanModel` is a singleton in AIQ.Urban.Core holding all `IUrbanElement`s. It is the single source of truth for the in-memory model. Rhino doc serialization is a future concern.
@@ -138,6 +139,18 @@ Each concrete `IMetrics` record has a singular `SourceElementId` identifying the
 
 ### ProjectMetricsCalculator
 Static utility in `Models/Metrics/ProjectMetricsCalculator.cs`. Reads `UrbanModel.Buildings`, `UrbanModel.Parcels`, `UrbanModel.Transits`, and `UrbanModel.Zones`; computes source-addressable metrics for each element, determines building-to-parcel containment via spatial query (point-in-polygon on XY plane), and computes `ZoneMetrics`. It does not group project Transit metrics by type or width. Stores the result on `UrbanModel.ProjectMetrics`.
+
+### Built Area by Use
+An export roll-up of floor-plate area grouped by each `FloorPlate`'s **Use**. It is not a count or classification of **Buildings**, because a Building may contain floor plates with different Uses.
+
+### Land Area by Use
+An export roll-up of parcel land area grouped by each `Parcel`'s **Use**. It is distinct from a parcel-detail export, which would retain one row per source Parcel.
+
+### Transit by Type and Width
+An export hierarchy that groups source `TransitMetrics` first by `TransitType` and then by corridor width. Width rows report corridor count, running length, and area; each type has a subtotal and the report scope has a grand total.
+
+### Overall Zone Metrics
+The summary shared by project and named-zone workbook sheets: contained parcel land area, building footprint and built area, transit length and area, element counts, coverage, and FAR. It excludes geometric boundary area so project and named-zone scopes retain the same meaning.
 
 ### TopoMesh
 A terrain mesh. Wraps a Rhino `Mesh`.

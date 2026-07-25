@@ -6,4 +6,5 @@ public sealed record ExcelWorksheetDefinition(
     string Name,
     IReadOnlyList<IExcelBlock> Blocks,
     IExcelBlockPlacementStrategy PlacementStrategy,
-    ExcelCellAddress StartingAddress);
+    ExcelCellAddress StartingAddress,
+    ExcelWorksheetOptions? Options = null);
