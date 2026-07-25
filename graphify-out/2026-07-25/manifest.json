@@ -85,8 +85,8 @@
     "semantic_hash": ""
   },
   "src/AIQ.Exports/AIQ.Exports.csproj": {
-    "mtime": 1784536923.7294855,
-    "ast_hash": "4a35c82aec8fce7082bebe1551c432ab",
+    "mtime": 1785002582.9387329,
+    "ast_hash": "b884509b01bddfa103a47b1c200ee812",
     "semantic_hash": ""
   },
   "src/AIQ.Exports/Excel/Builders/TableBlockBuilder.cs": {
@@ -100,12 +100,12 @@
     "semantic_hash": ""
   },
   "src/AIQ.Exports/Excel/Models/ExcelCellAddress.cs": {
-    "mtime": 1784987669.4762564,
+    "mtime": 1784989863.4313257,
     "ast_hash": "7069d15cc079e0f33d8189358e145aff",
     "semantic_hash": ""
   },
   "src/AIQ.Exports/Excel/Models/ExcelCellContent.cs": {
-    "mtime": 1784987334.1635995,
+    "mtime": 1784989528.464813,
     "ast_hash": "f0156d9447a72236efb1c3708ea5b0b5",
     "semantic_hash": ""
   },
@@ -135,8 +135,8 @@
     "semantic_hash": ""
   },
   "src/AIQ.Exports/Excel/Models/ExcelWorksheetDefinition.cs": {
-    "mtime": 1784987762.1412117,
-    "ast_hash": "9936724d490839e2ab71d7765c7e5bdc",
+    "mtime": 1785001893.418264,
+    "ast_hash": "3d3fd90e62d469582e8f772f29a1de9d",
     "semantic_hash": ""
   },
   "src/AIQ.Exports/Excel/Models/IExcelBlock.cs": {
@@ -160,8 +160,8 @@
     "semantic_hash": ""
   },
   "src/AIQ.Exports/Excel/Writing/ExcelDocumentWriter.cs": {
-    "mtime": 1784988074.4715118,
-    "ast_hash": "8d11b3e95f5dfa0e0bb981684a193089",
+    "mtime": 1785002584.1728857,
+    "ast_hash": "7c53837d5625788aba1ebcd980c0b099",
     "semantic_hash": ""
   },
   "src/AIQ.Exports/Excel/Writing/IExcelBlockWriter.cs": {
@@ -170,8 +170,8 @@
     "semantic_hash": ""
   },
   "src/AIQ.Exports/Excel/Writing/TableBlockWriter.cs": {
-    "mtime": 1784988073.0458372,
-    "ast_hash": "a9cc93286a299832db9cd70f68460d4a",
+    "mtime": 1785002477.7101681,
+    "ast_hash": "9b4e8ca1491ef3a893cf28a47dee25df",
     "semantic_hash": ""
   },
   "src/AIQ.Exports/GoogleSlides/Actions/CopySlideAction.cs": {
@@ -1125,8 +1125,8 @@
     "semantic_hash": ""
   },
   "src/AIQ.Urban.RhinoInterface/AIQ.Urban.RhinoInterface.csproj": {
-    "mtime": 1784536924.0146506,
-    "ast_hash": "edb41b49bfae2c4ae7789f9d4a69402b",
+    "mtime": 1785001994.8649507,
+    "ast_hash": "28ff94d3a6a38fe2948258e504b68944",
     "semantic_hash": ""
   },
   "src/AIQ.Urban.RhinoInterface/EventHandler/EventQueue.cs": {
@@ -2440,8 +2440,8 @@
     "semantic_hash": ""
   },
   "tests/AIQ.Exports.Tests/Excel/ExcelDocumentWriterTests.cs": {
-    "mtime": 1784987831.0059557,
-    "ast_hash": "d277fcb83f3a86731938bdce3be9cc77",
+    "mtime": 1785002422.1911936,
+    "ast_hash": "79f2bc62fd8cf3cc35f44805e84850c1",
     "semantic_hash": ""
   },
   "tests/AIQ.Exports.Tests/Excel/ExcelExampleWorkbookTests.cs": {
@@ -2770,8 +2770,8 @@
     "semantic_hash": ""
   },
   "tests/AIQ.Urban.RhinoPlugin.Tests/AIQ.Urban.RhinoInterface.Tests.csproj": {
-    "mtime": 1784536924.3712735,
-    "ast_hash": "f860c7f10739a3f067cc0c7b3c5293a0",
+    "mtime": 1785002088.1982641,
+    "ast_hash": "38c6b1344dd633c5553228309adcd690",
     "semantic_hash": ""
   },
   "tests/AIQ.Urban.RhinoPlugin.Tests/HTML_UI/MessageConverterTests.cs": {
@@ -3360,8 +3360,8 @@
     "semantic_hash": ""
   },
   "docs/plans/implement-aiq-exports-excel-foundation.md": {
-    "mtime": 1784988752.0354602,
-    "ast_hash": "25171e585409373053843db0f57a4a03",
+    "mtime": 1784989055.9349594,
+    "ast_hash": "48e6f9bb02b176e3c15969b14b4dc9bb",
     "semantic_hash": ""
   },
   "docs/plans/implement-ui-post-handler.md": {
@@ -3440,8 +3440,8 @@
     "semantic_hash": ""
   },
   "src/AIQ.Urban.Core/CONTEXT.md": {
-    "mtime": 1784933176.9519687,
-    "ast_hash": "81d32980763c60dc479bbff67395fb4a",
+    "mtime": 1785001764.6500373,
+    "ast_hash": "224debeab0cb8b3e61cc712750128826",
     "semantic_hash": ""
   },
   "src/AIQ.Urban.Rhino/AmbitionAndPlan.md": {
@@ -3592,6 +3592,36 @@
   "tests/AIQ.Exports.Tests/ExportTestResources/TestMasterplan.jpg": {
     "mtime": 1784536924.3088531,
     "ast_hash": "6831a8b8850bc5a52c493cd64c6de190",
+    "semantic_hash": ""
+  },
+  "src/AIQ.Exports/Excel/Models/ExcelWorksheetOptions.cs": {
+    "mtime": 1785001891.305282,
+    "ast_hash": "ba265ffbae2e1835fbb8a765e714c4cc",
+    "semantic_hash": ""
+  },
+  "src/AIQ.Exports/Excel/Reports/MetricsWorkbookBuilder.cs": {
+    "mtime": 1785002657.7050529,
+    "ast_hash": "2f80e66403e050dd72e2cf6f8df28500",
+    "semantic_hash": ""
+  },
+  "src/AIQ.Exports/Excel/Reports/MetricsWorkbookData.cs": {
+    "mtime": 1785001889.664528,
+    "ast_hash": "29a6e8c3b65a86e488451cc1d43b304a",
+    "semantic_hash": ""
+  },
+  "src/AIQ.Urban.RhinoInterface/Exports/UrbanMetricsExcelExporter.cs": {
+    "mtime": 1785001922.646033,
+    "ast_hash": "9963a91779842c786e36571d5eee65c9",
+    "semantic_hash": ""
+  },
+  "tests/AIQ.Exports.Tests/Excel/MetricsWorkbookBuilderTests.cs": {
+    "mtime": 1785002195.001805,
+    "ast_hash": "aaddc56b0365e4ff94876e6eb4b85eec",
+    "semantic_hash": ""
+  },
+  "tests/AIQ.Urban.RhinoPlugin.Tests/Exports/UrbanMetricsExcelExporterTests.cs": {
+    "mtime": 1785002087.1312385,
+    "ast_hash": "3a721246cf993e32e83c50529ee074f8",
     "semantic_hash": ""
   }
 }
