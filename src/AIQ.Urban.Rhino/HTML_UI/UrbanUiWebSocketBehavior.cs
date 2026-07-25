@@ -9,5 +9,6 @@ public class UrbanUiWebSocketBehavior : WebSocketBehavior
     {
         RhinoApp.WriteLine("AIQ Urban UI websocket connected.");
         Send(WebSocketUiServer.LatestSelectionMessageJson());
+        Send(WebSocketUiServer.LatestModelStateMessageJson());
     }
 }

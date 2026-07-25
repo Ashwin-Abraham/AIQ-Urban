@@ -21,8 +21,14 @@ public class RhinoUrbanEventHandler : IDisposable
     private readonly EventQueue _queue = new();
     private bool _eventLock;
     private bool _disposed;
+    private bool _modelStateChanged;
 
     public event System.EventHandler? SelectionChanged;
+
+    /// <summary>
+    /// Fired at the end of each ProcessQueue batch when a pipeline mutation occurred.
+    /// </summary>
+    public event System.EventHandler? ModelChanged;
 
     /// <summary>
     /// Reverse-lookup: Rhino ObjectId → owning IUrbanElement.
@@ -118,6 +124,8 @@ public class RhinoUrbanEventHandler : IDisposable
         var batch = _queue.Drain();
         if (batch.IsEmpty) return;
 
+        _modelStateChanged = false;
+
         // Process deletions
         foreach (var id in batch.Deletes)
         {
@@ -181,67 +189,12 @@ public class RhinoUrbanEventHandler : IDisposable
         }
 
         _doc.Views.Redraw();
-    }
 
-    private bool IsOnManagedLayer(RhinoObject rhinoObject)
-    {
-        var layerIndex = rhinoObject.Attributes.LayerIndex;
-        var layer = _doc.Layers[layerIndex];
-        if (layer == null) return false;
-
-        var fullPath = layer.FullPath;
-        return fullPath.StartsWith("AIQ Urban::", StringComparison.OrdinalIgnoreCase);
-    }
-
-    private IUrbanElement? FindElementByLayer(RhinoObject rhinoObject)
-    {
-        var objectId = rhinoObject.Id;
-        var layerIndex = rhinoObject.Attributes.LayerIndex;
-        var layer = _doc.Layers[layerIndex];
-        if (layer == null) return null;
-
-        var fullPath = layer.FullPath;
-
-        // Match layer to element type and find the most recently modified element
-        if (fullPath.Contains("::Transit::", StringComparison.OrdinalIgnoreCase))
+        if (_modelStateChanged)
         {
-            // For transits, the centerline is on AIQ Urban::Transit::{Type}::Centerline
-            // Since we're processing a replace on a centerline, find the transit
-            // that has geometry on this layer. Use the objectId in the reverse-lookup.
-            if (ObjectIdToElement.TryGetValue(objectId, out var existing))
-                return existing;
-
-            // Fallback: return first transit (will be refined in later slices)
-            return UrbanModel.Instance.Transits.FirstOrDefault();
+            _modelStateChanged = false;
+            ModelChanged?.Invoke(this, EventArgs.Empty);
         }
-
-        if (fullPath.Contains("::Building::", StringComparison.OrdinalIgnoreCase))
-        {
-            if (ObjectIdToElement.TryGetValue(objectId, out var existing))
-                return existing;
-
-            return UrbanModel.Instance.Buildings.FirstOrDefault();
-        }
-
-        if (fullPath.Contains("::Zone::", StringComparison.OrdinalIgnoreCase))
-        {
-            if (ObjectIdToElement.TryGetValue(objectId, out var existing))
-                return existing;
-
-            return UrbanModel.Instance.Zones.FirstOrDefault();
-        }
-
-        if (fullPath.Contains("::Parcel::", StringComparison.OrdinalIgnoreCase))
-        {
-            if (ObjectIdToElement.TryGetValue(objectId, out var existing))
-                return existing;
-
-            var useName = fullPath.Split("::Parcel::").Last();
-            return UrbanModel.Instance.Parcels
-                .FirstOrDefault(p => p.Use.Name.Equals(useName, StringComparison.OrdinalIgnoreCase));
-        }
-
-        return null;
     }
 
     private void HandleTransitDelete(Transit transit)
@@ -392,7 +345,8 @@ public class RhinoUrbanEventHandler : IDisposable
         _eventLock = true;
         try
         {
-            pipeline.Run();
+            int mutationCount = pipeline.Run();
+            _modelStateChanged |= mutationCount > 0;
             RebuildLookup();
         }
         finally
@@ -423,5 +377,6 @@ public class RhinoUrbanEventHandler : IDisposable
         ObjectIdToElement.Clear();
         _queue.Clear();
         SelectionChanged = null;
+        ModelChanged = null;
     }
 }

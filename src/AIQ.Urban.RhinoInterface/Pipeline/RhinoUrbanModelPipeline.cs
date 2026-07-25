@@ -86,7 +86,7 @@ public class RhinoUrbanModelPipeline(
         return this;
     }
 
-    public void Run()
+    public int Run()
     {
         if (_eventHandler is not null)
         {
@@ -154,6 +154,8 @@ public class RhinoUrbanModelPipeline(
 
         _logger.LogInformation("Pipeline completed — {Added} added, {Deleted} deleted",
             addedIds.Count, deletedIds.Count);
+
+        return addedIds.Count + deletedIds.Count;
     }
 
     private void AddRhinoObjects(List<Guid> addedIds)
