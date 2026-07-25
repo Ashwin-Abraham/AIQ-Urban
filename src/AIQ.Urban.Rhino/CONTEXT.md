@@ -3,6 +3,10 @@
 ## Purpose
 Rhino 8 plugin (`AIQ.Urban.RhinoPlugin.rhp`) owning the native Rhino commands and the document event handler that bridges Rhino's interaction model with the domain in `AIQ.Urban.Core`.
 
+## Agent Tooling
+
+Graphify is forbidden in this context. Do not run `graphify query`, `graphify path`, `graphify explain`, `graphify update`, or any other Graphify command when working on `AIQ.Urban.Rhino`.
+
 ## Design Constraints
 - **Nullable reference types enabled** — `?` marks values that can legitimately be null; unadorned types are assumed non-null and need not be checked.
 - References `AIQ.Urban.RhinoInterface` for pipeline orchestration
@@ -11,7 +15,7 @@ Rhino 8 plugin (`AIQ.Urban.RhinoPlugin.rhp`) owning the native Rhino commands an
 - **Commands for creation, events for mutation/deletion**: explicit Rhino commands (`AddTransit_AIQUrban`, `AddBuilding_AIQUrban`, etc.) are used to create urban elements. Document events (`ReplaceRhinoObject`, `DeleteRhinoObject`) handle modification and deletion after the fact. A user drawing geometry on a managed layer does NOT automatically create an urban element — that requires an explicit command.
 - **RhinoUrbanEventHandler**: instance class implementing `IDisposable`, owned by `Urban_RhinoPlugin`. Subscribes to RhinoDoc events in its constructor, unsubscribes in `Dispose()`. Lives in `AIQ.Urban.RhinoPlugin` (not `RhinoInterface`) because it manages RhinoDoc interaction lifecycle.
 - **Deferred event processing**: events are queued into lists (add/remove/replace), then processed on `RhinoApp.Idle` to coalesce multiple Rhino events from a single user action. An `EventLock` guard suppresses event capture while the pipeline writes geometry back to Rhino, preventing re-entrant feedback loops.
-- **Events subscribed**: `ReplaceRhinoObject` (modification), `DeleteRhinoObject` (deletion), `BeginOpenDocument` / `EndOpenDocument` (file load lifecycle), `RhinoApp.Idle` (processing trigger). **Not** subscribed: `AddRhinoObject` (objects are only added via explicit commands). `UndeleteRhinoObject` deferred for now.
+- **Events subscribed**: `ReplaceRhinoObject` (modification), `DeleteRhinoObject` (deletion), `SelectObjects`, `DeselectObjects`, `DeselectAllObjects` (selection snapshots), `BeginOpenDocument` / `EndOpenDocument` (file load lifecycle), `RhinoApp.Idle` (processing trigger). **Not** subscribed: `AddRhinoObject` (objects are only added via explicit commands). `UndeleteRhinoObject` deferred for now.
 - **Reverse-lookup dictionary**: `Dictionary<Guid, IUrbanElement>` maintained alongside `UrbanModel`, keyed by Rhino ObjectId. Updated when the pipeline bakes new geometry or deletes elements. Used by the event handler to correlate a modified/deleted Rhino object to its owning `IUrbanElement`.
 - **Layer filtering**: the event handler checks each object's layer path. Only objects on layers starting with `AIQ Urban::` are processed. Non-urban geometry is ignored.
 - **Reverse-lookup dict lifecycle**: the handler owns the dict and wraps each pipeline run. After `pipeline.Run()` returns, the handler iterates the added/deleted GUIDs to update the dict. On `ReplaceRhinoObject`, the handler swaps old ObjectId → new ObjectId in the dict.
@@ -24,7 +28,7 @@ Rhino 8 plugin (`AIQ.Urban.RhinoPlugin.rhp`) owning the native Rhino commands an
 
 ## Event Handler Lifecycle
 - Created in `Urban_RhinoPlugin.OnLoad()` → calls `SubscribeModelEvents()` on the singleton handler
-- Disposed in `Urban_RhinoPlugin.OnUnload()` → calls `Dispose()` which unsubscribes all events
+- Disposed in `Urban_RhinoPlugin.OnShutdown()` → calls `Dispose()` which unsubscribes all events
 - `EventLock` guards against event processing during file loads, pipeline output, and bulk operations
 
 ## RhinoUrbanModelPipeline
@@ -183,6 +187,34 @@ Returned as JSON in the HTTP response. The UI's `RhinoApiService.ts` routes by `
 |---|---|---|
 | `ModelStateMessage` | `"ModelStateMessage"` | Landuses (from `DefaultUses.All`) + per-zone chart metrics (from `ProjectMetrics`) |
 | `EmptyMessage` | `"EmptyMessage"` | No content (used for stubs) |
+
+## Selection Metrics
+
+**Selected Urban Element**:
+A selected user-facing Building, Parcel, or Transit whose aggregate metrics are shown in the UI.
+_Avoid_: treating derived transit surfaces, parcel boundaries, unmanaged Rhino geometry, or individual floor plates as separate selected element categories.
+
+**Selection Metrics Snapshot**:
+A complete point-in-time summary containing non-null Building, Parcel, and Transit aggregates, including zero-count aggregates for unselected categories.
+_Avoid_: event deltas, legacy `SelectedObjectMetricsMessage` compatibility emissions, or choosing one selected category according to the active UI tool.
+
+### Websocket Message Contract
+
+| Message | `Type` | Content |
+|---|---|---|
+| `SelectionMetricsMessage` | `"SelectionMetricsMessage"` | Typed `Buildings`, `Parcels`, and `Transits` aggregates filtered from the current `ProjectMetrics` by `SourceElementId` |
+
+### Relationships
+
+- A selected **FloorPlate** contributes to selection of its owning **Building**.
+- All **Selected Urban Elements** produce one **Selection Metrics Snapshot** over the UI websocket.
+- Every select, partial-deselect, and deselect-all event produces the complete, deduplicated current snapshot.
+- A newly connected UI websocket client immediately receives the current snapshot.
+- A selected Parcel's building-dependent metrics include every Building contained by that Parcel; the Building aggregate includes only explicitly selected Buildings.
+- Across multiple selected Parcels, FAR and coverage are calculated from combined totals.
+- Zone aggregation remains in `ModelStateMessage`; its synthetic `"All"` zone uses `SourceElementId = Guid.Empty`.
+- Selection aggregate records belong to the Rhino UI transport contract; Core remains unaware of websocket messages and Rhino selection state.
+- UI selection messages broadcast only on websocket path `/`; `/mcp-bridge` does not receive them.
 
 ### TransitMessage Handling
 1. Get `RhinoDoc.ActiveDoc`

@@ -22,6 +22,8 @@ public class RhinoUrbanEventHandler : IDisposable
     private bool _eventLock;
     private bool _disposed;
 
+    public event System.EventHandler? SelectionChanged;
+
     /// <summary>
     /// Reverse-lookup: Rhino ObjectId → owning IUrbanElement.
     /// Rebuilt after each pipeline run by scanning UrbanModel.
@@ -38,6 +40,9 @@ public class RhinoUrbanEventHandler : IDisposable
         RhinoDoc.AddRhinoObject += OnAddRhinoObject;
         RhinoDoc.DeleteRhinoObject += OnDeleteRhinoObject;
         RhinoDoc.ReplaceRhinoObject += OnReplaceRhinoObject;
+        RhinoDoc.SelectObjects += OnSelectionChanged;
+        RhinoDoc.DeselectObjects += OnSelectionChanged;
+        RhinoDoc.DeselectAllObjects += OnDeselectAllObjects;
         RhinoDoc.BeginOpenDocument += OnBeginOpenDocument;
         RhinoDoc.EndOpenDocument += OnEndOpenDocument;
         RhinoApp.Idle += OnIdle;
@@ -79,6 +84,16 @@ public class RhinoUrbanEventHandler : IDisposable
     {
         if (_eventLock || e?.NewRhinoObject == null) return;
         _queue.EnqueueReplace(e.OldRhinoObject.Id, e.NewRhinoObject.Id);
+    }
+
+    private void OnSelectionChanged(object? sender, RhinoObjectSelectionEventArgs e)
+    {
+        SelectionChanged?.Invoke(this, EventArgs.Empty);
+    }
+
+    private void OnDeselectAllObjects(object? sender, RhinoDeselectAllObjectsEventArgs e)
+    {
+        SelectionChanged?.Invoke(this, EventArgs.Empty);
     }
 
     private void OnBeginOpenDocument(object? sender, EventArgs e)
@@ -398,11 +413,15 @@ public class RhinoUrbanEventHandler : IDisposable
         RhinoDoc.AddRhinoObject -= OnAddRhinoObject;
         RhinoDoc.DeleteRhinoObject -= OnDeleteRhinoObject;
         RhinoDoc.ReplaceRhinoObject -= OnReplaceRhinoObject;
+        RhinoDoc.SelectObjects -= OnSelectionChanged;
+        RhinoDoc.DeselectObjects -= OnSelectionChanged;
+        RhinoDoc.DeselectAllObjects -= OnDeselectAllObjects;
         RhinoDoc.BeginOpenDocument -= OnBeginOpenDocument;
         RhinoDoc.EndOpenDocument -= OnEndOpenDocument;
         RhinoApp.Idle -= OnIdle;
 
         ObjectIdToElement.Clear();
         _queue.Clear();
+        SelectionChanged = null;
     }
 }

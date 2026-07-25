@@ -14,7 +14,7 @@ public class ProjectMetrics
     [JsonIgnore]
     public List<ParcelMetrics> ParcelMetrics { get; }
 
-    /// <summary>Aggregated transit metrics grouped by (Type, Width).</summary>
+    /// <summary>Metrics for every transit in the model.</summary>
     [JsonPropertyName("transitMetrics")]
     public List<TransitMetrics> TransitMetrics { get; }
 

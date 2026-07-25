@@ -1,7 +1,11 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
+using AIQ.Urban.Core;
 using AIQ.Urban.RhinoInterface.EventHandler;
+using AIQ.Urban.RhinoPlugin.HTML_UI;
+using AIQ.Urban.RhinoPlugin.HTML_UI.MessageToUI;
 using Rhino;
 using Rhino.PlugIns;
 
@@ -27,9 +31,33 @@ public class Urban_RhinoPlugin : PlugIn
         if (doc != null && _eventHandler == null)
         {
             _eventHandler = new RhinoUrbanEventHandler(doc);
+            _eventHandler.SelectionChanged += OnSelectionChanged;
         }
 
         return LoadReturnCode.Success;
+    }
+
+    private void OnSelectionChanged(object? sender, EventArgs e)
+    {
+        PublishCurrentSelection();
+    }
+
+    public void PublishCurrentSelection()
+    {
+        var doc = RhinoDoc.ActiveDoc;
+        if (doc is null)
+            return;
+
+        var selectedObjectIds = doc.Objects
+            .GetSelectedObjects(includeLights: false, includeGrips: false)
+            .Select(rhinoObject => rhinoObject.Id)
+            .ToList();
+
+        var message = SelectionMetricsMessage.FromSelection(
+            UrbanModel.Instance,
+            selectedObjectIds);
+
+        WebSocketUiServer.Publish(message);
     }
 
     public void StartMcpProcess()
@@ -84,6 +112,12 @@ public class Urban_RhinoPlugin : PlugIn
 
     protected override void OnShutdown()
     {
+        if (_eventHandler != null)
+        {
+            _eventHandler.SelectionChanged -= OnSelectionChanged;
+            _eventHandler.Dispose();
+        }
+
         if (_mcpProcess is not null && !_mcpProcess.HasExited)
         {
             RhinoApp.WriteLine("Stopping AIQ.MCP process...");

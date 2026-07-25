@@ -27,13 +27,8 @@ public static class ProjectMetricsCalculator
             .Zip(parcelMetrics, (p, m) => (p, m))
             .ToDictionary(x => x.p, x => x.m);
 
-        var perTransitMetrics = urbanModel.Transits
+        var transitMetrics = urbanModel.Transits
             .Select(t => new TransitMetrics(t))
-            .ToList();
-
-        var transitMetrics = perTransitMetrics
-            .GroupBy(t => (t.Type, t.Width))
-            .Select(g => TransitMetrics.Sum(g))
             .ToList();
 
         var zoneMetrics = ComputeZoneMetrics(
@@ -65,6 +60,7 @@ public static class ProjectMetricsCalculator
                     .ToList();
 
                 return new ZoneMetrics(
+                    zone.Id,
                     zone.Name,
                     zoneBuildingMetrics,
                     zoneParcelMetrics,

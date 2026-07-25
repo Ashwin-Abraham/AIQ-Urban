@@ -4,6 +4,7 @@ using AIQ.Urban.Core.Models.UrbanElements;
 namespace AIQ.Urban.Core.Models.Metrics;
 public class BuildingMetrics : IMetrics
 {
+    public Guid SourceElementId { get; }
     public double BuiltUpArea { get; }
     public double Volume { get; }
     public double FootprintArea { get; }
@@ -13,6 +14,7 @@ public class BuildingMetrics : IMetrics
 
     public BuildingMetrics(Building building)
     {
+        SourceElementId = building.Id;
         var groundFloor = building.GroundFloor();
         FootprintArea = groundFloor.Outline.Area();
         Volume = building.Envelope.Volume();

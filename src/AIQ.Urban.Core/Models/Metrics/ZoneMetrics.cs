@@ -4,6 +4,7 @@ namespace AIQ.Urban.Core.Models.Metrics;
 
 public class ZoneMetrics : IMetrics
 {
+    public Guid SourceElementId { get; }
     public string ZoneName { get; }
     public double TotalLandArea { get; }
     public double TotalFootprintArea { get; }
@@ -20,11 +21,13 @@ public class ZoneMetrics : IMetrics
     public double FAR { get; }
 
     public ZoneMetrics(
+        Guid sourceElementId,
         string zoneName,
         List<BuildingMetrics> buildings,
         List<ParcelMetrics> parcels,
         IEnumerable<Transit> transits)
     {
+        SourceElementId = sourceElementId;
         ZoneName = zoneName;
 
         BuildingCount = buildings.Count;
@@ -37,10 +40,8 @@ public class ZoneMetrics : IMetrics
         var transitList = transits.ToList();
         TransitCount = transitList.Count;
 
-        var perTransit = transitList.Select(t => new TransitMetrics(t)).ToList();
-        TransitMetrics = perTransit
-            .GroupBy(t => (t.Type, t.Width))
-            .Select(g => global::AIQ.Urban.Core.Models.Metrics.TransitMetrics.Sum(g))
+        TransitMetrics = transitList
+            .Select(t => new TransitMetrics(t))
             .ToList();
 
         TotalTransitLength = TransitMetrics.Sum(t => t.RunningLength);
