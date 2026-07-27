@@ -182,9 +182,10 @@ Each implements `IMessageFromUI<T>` with a `HandleMessage()` method that returns
 | `ToolSelectionMessage` | `"ToolSelection"` | `ModellingTools.vue` | `Tool` (name) | None (stub) |
 
 ### Outgoing Messages (`MessageToUI/`)
-Returned as JSON in the HTTP response. The UI's `RhinoApiService.ts` routes by `Type` field.
+Returned as JSON in HTTP responses or published to the UI websocket. Both transports use the
+same camelCase JSON field names, and the UI routes by the `type` field.
 
-| Message | `Type` | Content |
+| Message | `type` | Content |
 |---|---|---|
 | `ModelStateMessage` | `"ModelStateMessage"` | Landuses (from `DefaultUses.All`) + per-zone chart metrics (from `ProjectMetrics`) |
 | `EmptyMessage` | `"EmptyMessage"` | No content (used for stubs) |
@@ -201,9 +202,9 @@ _Avoid_: event deltas, legacy `SelectedObjectMetricsMessage` compatibility emiss
 
 ### Websocket Message Contract
 
-| Message | `Type` | Content |
+| Message | `type` | Content |
 |---|---|---|
-| `SelectionMetricsMessage` | `"SelectionMetricsMessage"` | Typed `Buildings`, `Parcels`, and `Transits` aggregates filtered from the current `ProjectMetrics` by `SourceElementId` |
+| `SelectionMetricsMessage` | `"SelectionMetricsMessage"` | Typed `buildings`, `parcels`, and `transits` aggregates filtered from the current `ProjectMetrics` by `SourceElementId` |
 | `ModelStateMessage` | `"ModelStateMessage"` | Landuses (from `DefaultUses.All`) + per-zone chart metrics (from `ProjectMetrics`). Published after each non-empty `ProcessQueue` batch so the UI stays in sync when model changes originate from Rhino viewport interactions. |
 
 ### Relationships
@@ -211,13 +212,15 @@ _Avoid_: event deltas, legacy `SelectedObjectMetricsMessage` compatibility emiss
 - A selected **FloorPlate** contributes to selection of its owning **Building**.
 - All **Selected Urban Elements** produce one **Selection Metrics Snapshot** over the UI websocket.
 - Every select, partial-deselect, and deselect-all event produces the complete, deduplicated current snapshot.
-- A newly connected UI websocket client immediately receives the current selection snapshot and the current model state snapshot.
+- After document loading, Rhino caches the current model state and selection snapshots before the UI websocket accepts connections.
+- A newly connected UI websocket client immediately receives the current model state snapshot followed by the current selection snapshot.
 - A selected Parcel's building-dependent metrics include every Building contained by that Parcel; the Building aggregate includes only explicitly selected Buildings.
 - Across multiple selected Parcels, FAR and coverage are calculated from combined totals.
 - Zone aggregation remains in `ModelStateMessage`; its synthetic `"All"` zone uses `SourceElementId = Guid.Empty`.
 - Selection aggregate records belong to the Rhino UI transport contract; Core remains unaware of websocket messages and Rhino selection state.
 - UI selection messages broadcast only on websocket path `/`; `/mcp-bridge` does not receive them.
-- `ModelStateMessage` is published over WebSocket after each non-empty `ProcessQueue` batch (deletes, replacements) so the UI charts update when model changes originate from Rhino viewport interactions (not just from UI POST commands).
+- A non-empty `ProcessQueue` batch publishes `ModelStateMessage` followed by a recomputed `SelectionMetricsMessage`.
+- A successful UI POST returns `ModelStateMessage`, refreshes its websocket cache without echoing it, and publishes a recomputed `SelectionMetricsMessage`.
 
 ### TransitMessage Handling
 1. Get `RhinoDoc.ActiveDoc`

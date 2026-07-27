@@ -47,6 +47,7 @@ public class Urban_RhinoPlugin : PlugIn
     {
         var message = new ModelStateMessage(UrbanModel.Instance);
         WebSocketUiServer.Publish(message);
+        PublishCurrentSelection();
     }
 
     public void PublishCurrentSelection()

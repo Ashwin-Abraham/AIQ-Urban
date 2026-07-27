@@ -146,6 +146,12 @@ public static class HttpUiServer
                 result = messageObj.HandleMessage();
                 RhinoApp.WriteLine(result.ToString());
                 RhinoApp.WriteLine(result.Type);
+
+                if (result is ModelStateMessage modelState)
+                {
+                    WebSocketUiServer.CacheModelState(modelState);
+                    Urban_RhinoPlugin.Instance.PublishCurrentSelection();
+                }
             }
             catch (Exception ex)
             {

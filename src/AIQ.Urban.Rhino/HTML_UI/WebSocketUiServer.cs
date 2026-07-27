@@ -9,9 +9,13 @@ namespace AIQ.Urban.RhinoPlugin.HTML_UI;
 public static class WebSocketUiServer
 {
     private static WebSocketServer? _server;
+    private static readonly JsonSerializerOptions JsonOptions = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+    };
     private static readonly object _selectionMessageLock = new();
     private static string _latestSelectionMessageJson =
-        JsonSerializer.Serialize(SelectionMetricsMessage.Empty);
+        JsonSerializer.Serialize(SelectionMetricsMessage.Empty, JsonOptions);
     private static readonly object _modelStateMessageLock = new();
     private static string _latestModelStateMessageJson = "null";
 
@@ -39,7 +43,7 @@ public static class WebSocketUiServer
 
     public static void Publish(SelectionMetricsMessage message)
     {
-        var json = JsonSerializer.Serialize(message);
+        var json = JsonSerializer.Serialize(message, JsonOptions);
 
         lock (_selectionMessageLock)
         {
@@ -62,17 +66,24 @@ public static class WebSocketUiServer
 
     public static void Publish(ModelStateMessage message)
     {
-        var json = JsonSerializer.Serialize(message);
+        var json = CacheModelState(message);
+
+        if (_server?.IsListening != true)
+            return;
+
+        _server.WebSocketServices["/"].Sessions.Broadcast(json);
+    }
+
+    public static string CacheModelState(ModelStateMessage message)
+    {
+        var json = JsonSerializer.Serialize(message, JsonOptions);
 
         lock (_modelStateMessageLock)
         {
             _latestModelStateMessageJson = json;
         }
 
-        if (_server?.IsListening != true)
-            return;
-
-        _server.WebSocketServices["/"].Sessions.Broadcast(json);
+        return json;
     }
 
     internal static string LatestModelStateMessageJson()
