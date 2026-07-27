@@ -3,6 +3,7 @@ using AIQ.Urban.Core;
 using AIQ.Urban.RhinoInterface;
 using AIQ.Urban.RhinoInterface.Logging;
 using AIQ.Urban.RhinoPlugin.HTML_UI;
+using AIQ.Urban.RhinoPlugin.HTML_UI.MessageToUI;
 using Microsoft.Extensions.Logging;
 using Rhino;
 using Rhino.Commands;
@@ -34,6 +35,7 @@ public class StartUI_AIQUrban : Command
                 .WithDocModelLoad(doc);
             pipeline.Run();
 
+            WebSocketUiServer.CacheModelState(new ModelStateMessage(UrbanModel.Instance));
             Urban_RhinoPlugin.Instance.PublishCurrentSelection();
             HttpUiServer.Start(HttpServerPort);
             WebSocketUiServer.Start(WebSocketServerPort);
