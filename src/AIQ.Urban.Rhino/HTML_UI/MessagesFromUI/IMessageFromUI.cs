@@ -7,7 +7,8 @@ public enum TypeOfMessage
     Zone,
     Landuse,
     LanduseListEdit,
-    ToolSelection
+    ToolSelection,
+    GetInstallationId
 }
 
 public interface IMessageFromUI<out T> where T : MessageToUI.IMessageToUI

@@ -180,6 +180,7 @@ Each implements `IMessageFromUI<T>` with a `HandleMessage()` method that returns
 | `AddZoneMessage` | `"Zone"` | `ZonesTool.vue` | `name` | Selected closed curve in RhinoDoc |
 | `ChangeUseMessage` | `"Landuse"` | `LanduseTool.vue` | `use` | Selected parcel outlines, building envelopes, or floor-plate curves in RhinoDoc |
 | `ToolSelectionMessage` | `"ToolSelection"` | `ModellingTools.vue` | `Tool` (name) | None (stub) |
+| `GetInstallationIdMessage` | `"GetInstallationId"` | On-demand UI caller | None | None |
 
 ### Outgoing Messages (`MessageToUI/`)
 Returned as JSON in HTTP responses or published to the UI websocket. Both transports use the
@@ -189,6 +190,30 @@ same camelCase JSON field names, and the UI routes by the `type` field.
 |---|---|---|
 | `ModelStateMessage` | `"ModelStateMessage"` | Landuses (from `DefaultUses.All`) + per-zone chart metrics (from `ProjectMetrics`) |
 | `EmptyMessage` | `"EmptyMessage"` | No content (used for stubs) |
+| `InstallationIdMessage` | `"InstallationIdMessage"` | `installationId`, the persisted AIQ Urban Installation ID |
+| `ErrorMessage` | `"Error"` | `message`, returned when a handler fails |
+
+## Installation Identity
+
+**Installation ID**:
+An application-generated UUID v4, represented by its canonical hyphenated string, that identifies one AIQ Urban installation and remains stable across Rhino and plugin upgrades while its persisted application data remains intact.
+_Avoid_: Machine ID, Device ID, Hardware ID
+
+The Installation ID does not derive from operating-system or hardware identifiers and may change after an operating-system reinstall or deliberate removal of AIQ Urban's persisted application data.
+
+The Installation ID is scoped to the operating-system user and persisted as `installation-id` beneath an `AIQ Urban` directory in the user-local application-data location resolved through .NET. Different operating-system users on the same device therefore receive different Installation IDs; persistence must not require administrator privileges.
+
+The storage location is unversioned. AIQ Urban plugins hosted by different Rhino versions share the same Installation ID for the same operating-system user.
+
+On first access, a missing Installation ID is generated and persisted. An empty or malformed persisted value is treated as lost application data: AIQ Urban logs a warning, replaces it with a newly generated UUID, and returns the replacement rather than failing the UI request.
+
+An Installation ID is returned only after persistence succeeds. If the local application-data directory cannot be read or written, the HTTP request returns the existing `ErrorMessage` contract rather than an ephemeral ID that could change on the next request. This feature preserves the HTTP server's current handler-error response and status-code behavior.
+
+`GetInstallationIdMessage` follows the standard UI-to-Rhino POST dispatch and executes on Rhino's UI thread. The HTTP server does not special-case this non-document request.
+
+The persisted Installation ID is the sole source of truth. It is read and validated on every request rather than cached in plugin memory.
+
+Installation ID retrieval is lazy: AIQ Urban performs it only when the UI sends `GetInstallationId` through the existing HTTP POST pathway. The plugin does not fetch or push the ID during UI startup. Retrieval failures return `ErrorMessage` to the requesting UI call.
 
 ## Selection Metrics
 

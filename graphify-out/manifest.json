@@ -1275,18 +1275,18 @@
     "semantic_hash": ""
   },
   "src/AIQ.Urban.Rhino/Commands/StartUI_AIQUrban.cs": {
-    "mtime": 1784936961.3348668,
-    "ast_hash": "07feda560e0ed31c0863b0d07bc0e987",
+    "mtime": 1785142642.980162,
+    "ast_hash": "d0343dde38f73112e023013e43bd9ce3",
     "semantic_hash": ""
   },
   "src/AIQ.Urban.Rhino/HTML_UI/HttpUiServer.cs": {
-    "mtime": 1784536923.954191,
-    "ast_hash": "ef60b573fd5a1eb589a4d220daf5fbf4",
+    "mtime": 1785142644.478125,
+    "ast_hash": "56e64e42cd1dede14fde6579be3822ba",
     "semantic_hash": ""
   },
   "src/AIQ.Urban.Rhino/HTML_UI/MessageConverter.cs": {
-    "mtime": 1784536923.9564626,
-    "ast_hash": "6f4ced060b129b5a08f7a9d336c37745",
+    "mtime": 1785195634.2504027,
+    "ast_hash": "d6334d76174e5936b9c5f5ea5f143d1c",
     "semantic_hash": ""
   },
   "src/AIQ.Urban.Rhino/HTML_UI/MessageToUI/BuildingSelectionMetrics.cs": {
@@ -1345,8 +1345,8 @@
     "semantic_hash": ""
   },
   "src/AIQ.Urban.Rhino/HTML_UI/MessagesFromUI/IMessageFromUI.cs": {
-    "mtime": 1784536923.9666631,
-    "ast_hash": "0df1527a7fd67ca5585b5678e671a2f4",
+    "mtime": 1785195478.3446527,
+    "ast_hash": "605034ed3ef2b61178d167a5fca6f7f5",
     "semantic_hash": ""
   },
   "src/AIQ.Urban.Rhino/HTML_UI/MessagesFromUI/LanduseListEditMessage.cs": {
@@ -1370,13 +1370,13 @@
     "semantic_hash": ""
   },
   "src/AIQ.Urban.Rhino/HTML_UI/UrbanUiWebSocketBehavior.cs": {
-    "mtime": 1784971685.1115122,
-    "ast_hash": "e962a029574723af99bab9d119abd330",
+    "mtime": 1785142153.6837983,
+    "ast_hash": "1e41c17a93e128e59cf22a8e19267d96",
     "semantic_hash": ""
   },
   "src/AIQ.Urban.Rhino/HTML_UI/WebSocketUiServer.cs": {
-    "mtime": 1784971663.117802,
-    "ast_hash": "d3a2a1623d71ee337fa8cb30cf5bf50f",
+    "mtime": 1785142641.3360176,
+    "ast_hash": "8c1936f73fdc999c6ed684f1c0c3487e",
     "semantic_hash": ""
   },
   "src/AIQ.Urban.Rhino/HTML_UI/wwwroot/assets/index-DMW0YN7E.js": {
@@ -1435,8 +1435,8 @@
     "semantic_hash": ""
   },
   "src/AIQ.Urban.Rhino/Urban_RhinoPlugin.cs": {
-    "mtime": 1784971719.9110289,
-    "ast_hash": "c538c972cc757bbcc45d49fabccdbdd3",
+    "mtime": 1785142156.0598423,
+    "ast_hash": "99b14a3d951db10580c9404ef1ec2cf7",
     "semantic_hash": ""
   },
   "src/AIQ.Urban.Tests/AIQ.Urban.Tests.csproj": {
@@ -2740,8 +2740,8 @@
     "semantic_hash": ""
   },
   "tests/AIQ.Urban.RhinoPlugin.Tests/HTML_UI/MessageConverterTests.cs": {
-    "mtime": 1784536924.3722734,
-    "ast_hash": "021da4869df93e017958cced7ac84b69",
+    "mtime": 1785227404.6755805,
+    "ast_hash": "f6198ffe8284ca93ba08a0cf09fd790a",
     "semantic_hash": ""
   },
   "tests/AIQ.Urban.RhinoPlugin.Tests/HTML_UI/MessageHandlersTests.cs": {
@@ -3415,8 +3415,8 @@
     "semantic_hash": ""
   },
   "src/AIQ.Urban.Rhino/CONTEXT.md": {
-    "mtime": 1784984509.7115045,
-    "ast_hash": "60a6f9afe13339857025f621bc9a2354",
+    "mtime": 1785195639.0711863,
+    "ast_hash": "ea75c2031fdcadb70360f9cf98128b65",
     "semantic_hash": ""
   },
   "src/AIQ.Urban.Rhino/HTML_UI/wwwroot/404.html": {
@@ -3592,6 +3592,36 @@
   "src/AIQ.Exports/PowerpointExport/ShapeActions/GraphData.cs": {
     "mtime": 1785005094.7617164,
     "ast_hash": "459b79939cf3370a3a63037806f4e7a0",
+    "semantic_hash": ""
+  },
+  "src/AIQ.Urban.Rhino/HTML_UI/InstallationIdProvider.cs": {
+    "mtime": 1785228872.2857401,
+    "ast_hash": "14b5026904e6914eb91f26569d3215a5",
+    "semantic_hash": ""
+  },
+  "src/AIQ.Urban.Rhino/HTML_UI/MessageToUI/InstallationIdMessage.cs": {
+    "mtime": 1785195481.3735743,
+    "ast_hash": "b45c9dc82a651a187534537378933a7f",
+    "semantic_hash": ""
+  },
+  "src/AIQ.Urban.Rhino/HTML_UI/MessagesFromUI/GetInstallationIdMessage.cs": {
+    "mtime": 1785228873.251395,
+    "ast_hash": "0fccf0a5cc0a7b6cb2cd020409110ab2",
+    "semantic_hash": ""
+  },
+  "tests/AIQ.Urban.RhinoPlugin.Tests/HTML_UI/GetInstallationIdMessageTests.cs": {
+    "mtime": 1785227403.3838973,
+    "ast_hash": "2e5592e909ee3c2f6f56fde344c3f060",
+    "semantic_hash": ""
+  },
+  "tests/AIQ.Urban.RhinoPlugin.Tests/HTML_UI/InstallationIdProviderTests.cs": {
+    "mtime": 1785228874.6326156,
+    "ast_hash": "eaae2d8e15387de808b2a8b421d5c857",
+    "semantic_hash": ""
+  },
+  "docs/recommendations/secure-local-ui-http-origin.md": {
+    "mtime": 1785195206.9861882,
+    "ast_hash": "ba9ffc2135c11a18905c49d3ff448b6f",
     "semantic_hash": ""
   }
 }

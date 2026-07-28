@@ -9,16 +9,48 @@ public class MessageConverterTests
     [Test]
     public void Convert_ZoneMessage_ReturnsAddZoneMessage()
     {
-        var message = MessageConverter.Convert("{\"messageType\":\"Zone\",\"name\":\"Downtown\"}");
+        // Arrange
+        const string json = "{\"messageType\":\"Zone\",\"name\":\"Downtown\"}";
 
+        // Act
+        var message = MessageConverter.Convert(json);
+
+        // Preview
+        TestContext.WriteLine($"Converted message type: {message.GetType().Name}");
+
+        // Assert
         Assert.That(message, Is.TypeOf<AddZoneMessage>());
     }
 
     [Test]
     public void Convert_LanduseMessage_ReturnsChangeUseMessage()
     {
-        var message = MessageConverter.Convert("{\"messageType\":\"Landuse\",\"use\":\"Residential\"}");
+        // Arrange
+        const string json = "{\"messageType\":\"Landuse\",\"use\":\"Residential\"}";
 
+        // Act
+        var message = MessageConverter.Convert(json);
+
+        // Preview
+        TestContext.WriteLine($"Converted message type: {message.GetType().Name}");
+
+        // Assert
         Assert.That(message, Is.TypeOf<ChangeUseMessage>());
+    }
+
+    [Test]
+    public void Convert_GetInstallationIdMessage_ReturnsGetInstallationIdMessage()
+    {
+        // Arrange
+        const string json = "{\"messageType\":\"GetInstallationId\"}";
+
+        // Act
+        var message = MessageConverter.Convert(json);
+
+        // Preview
+        TestContext.WriteLine($"Converted message type: {message.GetType().Name}");
+
+        // Assert
+        Assert.That(message, Is.TypeOf<GetInstallationIdMessage>());
     }
 }
