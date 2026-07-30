@@ -7,6 +7,7 @@ using AIQ.Urban.Core.ModelActions;
 using AIQ.Urban.Core.ModelActions.CreationData;
 using AIQ.Urban.Core.Models.GeometryElements;
 using AIQ.Urban.DebugViz;
+using AIQ.Urban.RhinoInterface.Pipeline.RhinoDataGatherSteps;
 using AIQ.Urban.RhinoInterface.Tests.Helpers;
 using NUnit.Framework;
 using Rhino;
@@ -59,6 +60,45 @@ public class TransitPipelineConfigurationTests
             foreach (var (layer, count) in testData.ExpectedRhinoLayerCounts)
                 RhinoDocAssertions.AssertLayerObjectCount(doc, layer, count);
         }
+    }
+
+    [Test]
+    public void WithTransitAdditionSteps_GatheredExistingCenterline_ReplacesRhinoObjectWithoutDuplicate()
+    {
+        // Arrange
+        using var doc = RhinoDoc.CreateHeadless(null);
+        var centerline = new LineCurve(new Point3d(0, 0, 0), new Point3d(50, 0, 0));
+        var centerlineId = doc.Objects.AddCurve(centerline);
+        var rhinoObject = doc.Objects.Find(centerlineId)!;
+        var existingTransit = new TransitData(
+            new Curve2D(centerline, centerlineId),
+            6,
+            TransitType.Road);
+        UrbanModel.Instance.AddTransit([existingTransit.ToTransit()]);
+
+        var gatherStep = new SelectTransitCenterlinesStep(
+            [rhinoObject],
+            6,
+            TransitType.Road);
+
+        // Act
+        new RhinoUrbanModelPipeline(doc, UrbanModel.Instance)
+            .WithDataGatherStep(gatherStep)
+            .WithTransitAdditionSteps([], [centerlineId])
+            .WithFullModelOutput()
+            .Run();
+
+        // Assert
+        Assert.That(UrbanModel.Instance.Transits, Has.Count.EqualTo(1));
+        Assert.That(doc.Objects.Find(centerlineId), Is.Null);
+
+        var replacementCenterlineId = UrbanModel.Instance.Transits.Single().Centerline.Id;
+        Assert.That(replacementCenterlineId, Is.Not.EqualTo(centerlineId));
+        Assert.That(doc.Objects.Find(replacementCenterlineId), Is.Not.Null);
+        RhinoDocAssertions.AssertLayerObjectCount(
+            doc,
+            "AIQ Urban::Transit::Road::Centerline::6",
+            1);
     }
 
     private record TransitPipelineTestData(

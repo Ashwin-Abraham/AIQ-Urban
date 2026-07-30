@@ -100,7 +100,10 @@ public class RhinoUrbanModelPipeline(
 
         try
         {
-            var creationData = _objectSelectionStep?.Run(_rhinoDoc) ?? _creationData;
+            var creationData = new List<ICreationData>(_creationData);
+
+            if (_objectSelectionStep is not null)
+                creationData.AddRange(_objectSelectionStep.Run(_rhinoDoc));
 
             foreach (var step in _steps)
             {
