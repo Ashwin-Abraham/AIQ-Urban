@@ -29,7 +29,9 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\AIQ.Exports\AIQ.Exports.csproj" />
     <ProjectReference Include="..\..\src\AIQ.Urban.RhinoInterface\AIQ.Urban.RhinoInterface.csproj" />
-    <ProjectReference Include="..\..\src\AIQ.Urban.Rhino\AIQ.Urban.RhinoPlugin.csproj" />
+    <ProjectReference Include="..\..\src\AIQ.Urban.Rhino\AIQ.Urban.RhinoPlugin.csproj">
+      <Private Condition="'$(ExcludeRhinoPluginFromTestOutput)' == 'true'">false</Private>
+    </ProjectReference>
     <ProjectReference Include="..\..\tools\AIQ.Urban.DebugViz\AIQ.Urban.DebugViz.csproj" />
   </ItemGroup>
 

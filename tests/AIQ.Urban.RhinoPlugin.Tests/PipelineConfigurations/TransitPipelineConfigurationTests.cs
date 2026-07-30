@@ -90,6 +90,7 @@ public class TransitPipelineConfigurationTests
 
         // Assert
         Assert.That(UrbanModel.Instance.Transits, Has.Count.EqualTo(1));
+        Assert.That(doc.Objects.Count(), Is.EqualTo(4));
         Assert.That(doc.Objects.Find(centerlineId), Is.Null);
 
         var replacementCenterlineId = UrbanModel.Instance.Transits.Single().Centerline.Id;
