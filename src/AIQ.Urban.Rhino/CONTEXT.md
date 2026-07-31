@@ -259,8 +259,12 @@ Two modes controlled by `manual_generationType`:
 
 - **Footprint**: Get selected curves → `SelectBuildingFootprintStep` produces `BuildingFootprintData(polygon, FloorHeight, FloorCount, DefaultUses.Undefined)`
 - **Mass**: Get selected Breps/Extrusions → `SelectBuildingEnvelopeStep` produces `BuildingMassData(envelopeBrep, FloorHeight, DefaultUses.Undefined)`. The step contours the envelope horizontally at intervals of `FloorHeight` to derive floor plate outlines. Contours with curve length < tolerance are discarded. `FloorCount` = `Floor(envelopeHeight / FloorHeight)`.
-- Pipeline: `WithBuildingAdditionSteps()` + `WithMetricsCalculation()` via `RhinoUrbanModelPipeline`
-- `AddBuildingStep` discriminates by creation data type and calls the appropriate `Building` constructor
+- In Mass mode, a resolver classifies every selected envelope before model mutation. An unmanaged envelope produces `BuildingMassData` for `AddBuildingStep`. A managed Building envelope produces `BuildingUpdateData` for `UpdateBuildingStep`, replacing the old Building and its floor plates while mapping the existing floor-plate Uses onto the replacement plates.
+- For a managed envelope, `BuildingUpdateData.TypicalFloorHeight` comes from the new `BuildingMessage.FloorHeight`; the old Building contributes its ordered floor-plate Uses, not its previous floor height.
+- Both add and update steps run in the same pipeline, ignore absent creation-data types, and support multiple selected envelopes in one operation.
+- Only a managed Building envelope is authoritative for an update. Selecting a floor plate never produces `BuildingUpdateData` and does not remove or update its owning Building.
+- Pipeline: resolver → `WithBuildingAddOrUpdateSteps()` (`AddBuildingStep` + `UpdateBuildingStep`) → full model output → metrics via `RhinoUrbanModelPipeline`
+- `AddBuildingStep` discriminates between its supported creation-data types and calls the appropriate `Building` constructor; `UpdateBuildingStep` consumes only `BuildingUpdateData`.
 - Building Use always defaults to `DefaultUses.Undefined` (UI does not send useName)
 
 ### Thread Safety

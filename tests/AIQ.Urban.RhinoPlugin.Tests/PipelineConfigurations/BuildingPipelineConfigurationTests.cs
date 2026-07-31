@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using AIQ.Urban.Core;
@@ -27,7 +28,7 @@ public class BuildingPipelineConfigurationTests
     [TestCase("SingleBuilding")]
     [TestCase("MultipleBuildings")]
     [TestCase("EmptyList")]
-    public void WithBuildingAdditionSteps_AddsBuildingsToModel(string testName)
+    public void WithBuildingAddOrUpdateSteps_AddsBuildingsToModel(string testName)
     {
         // Arrange
         var testData = _testData.Single(x => x.CaseName == testName);
@@ -37,7 +38,7 @@ public class BuildingPipelineConfigurationTests
 
         // Act
         pipeline
-            .WithBuildingAdditionSteps(testData.Input.Cast<ICreationData>().ToList(), [])
+            .WithBuildingAddOrUpdateSteps(testData.Input.Cast<ICreationData>().ToList(), [])
             .WithFullModelOutput()
             .WithMetricsCalculation(false)
             .Run();
@@ -55,7 +56,7 @@ public class BuildingPipelineConfigurationTests
     }
 
     [Test]
-    public void WithBuildingAdditionSteps_GatheredFootprint_DeletesInputCurve()
+    public void WithBuildingAddOrUpdateSteps_GatheredFootprint_DeletesInputCurve()
     {
         // Arrange
         using var doc = RhinoDoc.CreateHeadless(null);
@@ -82,7 +83,7 @@ public class BuildingPipelineConfigurationTests
         // Act
         new RhinoUrbanModelPipeline(doc, UrbanModel.Instance)
             .WithDataGatherStep(gatherStep)
-            .WithBuildingAdditionSteps([], idsToDelete)
+            .WithBuildingAddOrUpdateSteps([], idsToDelete)
             .WithFullModelOutput()
             .Run();
 
@@ -97,7 +98,7 @@ public class BuildingPipelineConfigurationTests
     }
 
     [Test]
-    public void WithBuildingAdditionSteps_GatheredEnvelope_DeletesInputBrep()
+    public void WithBuildingAddOrUpdateSteps_GatheredEnvelope_DeletesInputBrep()
     {
         // Arrange
         using var doc = RhinoDoc.CreateHeadless(null);
@@ -119,7 +120,7 @@ public class BuildingPipelineConfigurationTests
         // Act
         new RhinoUrbanModelPipeline(doc, UrbanModel.Instance)
             .WithCreationData(creationData)
-            .WithBuildingAdditionSteps([], idsToDelete)
+            .WithBuildingAddOrUpdateSteps([], idsToDelete)
             .WithFullModelOutput()
             .Run();
 
@@ -131,6 +132,84 @@ public class BuildingPipelineConfigurationTests
         var building = UrbanModel.Instance.Buildings.Single();
         Assert.That(building.Envelope.Id, Is.Not.EqualTo(inputId));
         Assert.That(doc.Objects.Find(building.Envelope.Id), Is.Not.Null);
+    }
+
+    [Test]
+    public void WithBuildingAddOrUpdateSteps_ManagedAndUnmanagedEnvelopes_UpdatesAndAddsBuildings()
+    {
+        // Arrange
+        using var doc = RhinoDoc.CreateHeadless(null);
+        var residential = DefaultUses.Create("Residential");
+        var commercial = DefaultUses.Create("Commercial");
+        var undefined = DefaultUses.Create(DefaultUses.UndefinedName);
+
+        var initialEnvelope = Brep.CreateFromBox(new BoundingBox(
+            new Point3d(0, 0, 0),
+            new Point3d(10, 10, 9)));
+        var initialInputId = doc.Objects.AddBrep(initialEnvelope);
+        var initialData = new BuildingMassData(
+            new BrepElement(initialEnvelope, initialInputId),
+            3,
+            residential);
+
+        new RhinoUrbanModelPipeline(doc, UrbanModel.Instance)
+            .WithBuildingAddOrUpdateSteps([initialData], [initialInputId])
+            .WithFullModelOutput()
+            .Run();
+
+        var existingBuilding = UrbanModel.Instance.Buildings.Single();
+        existingBuilding.FloorPlates[1].SetUse(commercial);
+        var oldGeometryIds = existingBuilding.GetGeometryIds();
+
+        var unmanagedEnvelope = Brep.CreateFromBox(new BoundingBox(
+            new Point3d(20, 0, 0),
+            new Point3d(30, 10, 9)));
+        var unmanagedInputId = doc.Objects.AddBrep(unmanagedEnvelope);
+
+        List<BuildingMassData> selectedEnvelopeData =
+        [
+            new BuildingMassData(
+                new BrepElement(existingBuilding.Envelope.Geometry, existingBuilding.Envelope.Id),
+                3,
+                undefined),
+            new BuildingMassData(
+                new BrepElement(unmanagedEnvelope, unmanagedInputId),
+                3,
+                undefined),
+        ];
+        var resolver = new BuildingEnvelopeCreationDataResolver(UrbanModel.Instance);
+        var creationData = resolver.Resolve(selectedEnvelopeData);
+        var selectedEnvelopeIds = selectedEnvelopeData
+            .Select(data => data.Envelope.Id)
+            .ToList();
+
+        // Act
+        new RhinoUrbanModelPipeline(doc, UrbanModel.Instance)
+            .WithBuildingAddOrUpdateSteps(creationData, selectedEnvelopeIds)
+            .WithFullModelOutput()
+            .Run();
+
+        // Preview
+#if DEBUG
+        UrbanModel.Instance.VisualizeBuildings();
+#endif
+
+        // Assert
+        Assert.That(UrbanModel.Instance.Buildings, Has.Count.EqualTo(2));
+        Assert.That(
+            UrbanModel.Instance.Buildings.SelectMany(building => building.GetGeometryIds()),
+            Has.None.Matches<Guid>(id => oldGeometryIds.Contains(id)));
+        Assert.That(oldGeometryIds.Select(doc.Objects.Find), Has.All.Null);
+        Assert.That(doc.Objects.Find(unmanagedInputId), Is.Null);
+
+        var updatedBuilding = UrbanModel.Instance.Buildings
+            .Single(building => building.FloorPlates.Any(plate => plate.Use.Name == commercial.Name));
+        Assert.That(
+            updatedBuilding.FloorPlates.OrderBy(plate => plate.Z()).Select(plate => plate.Use.Name),
+            Is.EqualTo(new[] { residential.Name, commercial.Name, residential.Name }));
+
+        var addedBuilding = UrbanModel.Instance.Buildings.Single(building => building != updatedBuilding);
+        Assert.That(addedBuilding.FloorPlates.Select(plate => plate.Use.Name), Has.All.EqualTo(undefined.Name));
     }
 
     private record BuildingPipelineTestData(
