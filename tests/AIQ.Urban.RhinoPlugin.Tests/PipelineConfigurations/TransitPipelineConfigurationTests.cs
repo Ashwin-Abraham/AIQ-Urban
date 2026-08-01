@@ -1,13 +1,19 @@
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using AIQ.Urban.Core;
 using AIQ.Urban.Core.Enums;
+using AIQ.Urban.Core.Extensions;
 using AIQ.Urban.Core.ModelActions.CreationData;
 using AIQ.Urban.Core.Models.GeometryElements;
 using AIQ.Urban.DebugViz;
+using AIQ.Urban.RhinoInterface.EventHandler;
+using AIQ.Urban.RhinoInterface.Pipeline.Outputters;
 using AIQ.Urban.RhinoInterface.Pipeline.RhinoDataGatherSteps;
 using AIQ.Urban.RhinoInterface.Tests.Helpers;
+using AIQ.Urban.RhinoInterface.Utils;
+using Microsoft.Extensions.Logging;
 using NUnit.Framework;
 using Rhino;
 using Rhino.Geometry;
@@ -99,6 +105,160 @@ public class TransitPipelineConfigurationTests
             doc,
             "AIQ Urban::Transit::Road::Centerline::6",
             1);
+    }
+
+    [Test]
+    public void SelectTransitCenterlinesStep_MixedGroundPlaneInputs_ReturnsDataAndWarningsPerCurve()
+    {
+        using var doc = RhinoDoc.CreateHeadless(null);
+        var validId = doc.Objects.AddLine(new Line(new Point3d(0, 0, 0), new Point3d(10, 0, 0)));
+        var nearGroundId = doc.Objects.AddLine(new Line(new Point3d(0, 5, 0.000009), new Point3d(10, 5, -0.000009)));
+        var invalidId = doc.Objects.AddLine(new Line(new Point3d(0, 10, 1), new Point3d(10, 10, 1)));
+        var selected = new[] { validId, nearGroundId, invalidId }
+            .Select(id => doc.Objects.FindId(id)!)
+            .ToList();
+        var loggerProvider = new CapturingLoggerProvider();
+        using var loggerFactory = new LoggerFactory([loggerProvider]);
+        var step = new SelectTransitCenterlinesStep(selected, 6, TransitType.Road, loggerFactory);
+
+        var result = step.Run(doc);
+
+        var transitData = result.OfType<TransitData>().ToList();
+        var deletionIds = result.OfType<RhinoObjectDeletionData>().Select(x => x.Id).ToList();
+        Assert.That(transitData, Has.Count.EqualTo(2));
+        Assert.That(deletionIds, Is.EquivalentTo(new[] { validId, nearGroundId }));
+        Assert.That(deletionIds, Does.Not.Contain(invalidId));
+        Assert.That(transitData.SelectMany(x => x.Centerline.Geometry.Points()).Select(x => x.Z), Is.All.EqualTo(0));
+
+        var warnings = loggerProvider.Entries.Where(x => x.Level == LogLevel.Warning).ToList();
+        Assert.That(warnings, Has.Count.EqualTo(1));
+        Assert.That(warnings[0].Message, Does.Contain(invalidId.ToString()));
+        Assert.That(warnings[0].Message, Does.Contain("Z range"));
+    }
+
+    [Test]
+    public void WithTransitAdditionSteps_MixedGroundPlaneInputs_LeavesRejectedCurveUntouched()
+    {
+        using var doc = RhinoDoc.CreateHeadless(null);
+        var validId = doc.Objects.AddLine(new Line(new Point3d(0, 0, 0.000009), new Point3d(10, 0, 0.000009)));
+        var invalidId = doc.Objects.AddLine(new Line(new Point3d(0, 10, 1), new Point3d(10, 10, 1)));
+        var selected = new[] { validId, invalidId }.Select(id => doc.Objects.FindId(id)!).ToList();
+        var gatherStep = new SelectTransitCenterlinesStep(selected, 6, TransitType.Road);
+
+        var mutationCount = new RhinoUrbanModelPipeline(doc, UrbanModel.Instance)
+            .WithDataGatherStep(gatherStep)
+            .WithTransitAdditionSteps()
+            .WithFullModelOutput()
+            .Run();
+
+        Assert.That(mutationCount, Is.GreaterThan(0));
+        Assert.That(UrbanModel.Instance.Transits, Has.Count.EqualTo(1));
+        Assert.That(doc.Objects.FindId(validId), Is.Null);
+        Assert.That(doc.Objects.FindId(invalidId), Is.Not.Null);
+        var centerlineBounds = UrbanModel.Instance.Transits.Single().Centerline.Geometry.GetBoundingBox(true);
+        Assert.That(centerlineBounds.Min.Z, Is.EqualTo(0));
+        Assert.That(centerlineBounds.Max.Z, Is.EqualTo(0));
+    }
+
+    [Test]
+    public void WithTransitAdditionSteps_AllInputsInvalid_CompletesWithNoMutations()
+    {
+        using var doc = RhinoDoc.CreateHeadless(null);
+        var invalidId = doc.Objects.AddLine(new Line(new Point3d(0, 0, 1), new Point3d(10, 0, 1)));
+        var gatherStep = new SelectTransitCenterlinesStep([doc.Objects.FindId(invalidId)!], 6, TransitType.Road);
+
+        var mutationCount = new RhinoUrbanModelPipeline(doc, UrbanModel.Instance)
+            .WithDataGatherStep(gatherStep)
+            .WithTransitAdditionSteps()
+            .WithFullModelOutput()
+            .Run();
+
+        Assert.That(mutationCount, Is.EqualTo(0));
+        Assert.That(UrbanModel.Instance.Transits, Is.Empty);
+        Assert.That(doc.Objects.FindId(invalidId), Is.Not.Null);
+    }
+
+    [Test]
+    public void WithTransitRestoreSteps_InvalidReplacement_RebakesLastValidTransit()
+    {
+        using var doc = RhinoDoc.CreateHeadless(null);
+        var oldCenterlineId = Guid.NewGuid();
+        var oldTransit = new TransitData(
+            new Curve2D(
+                new LineCurve(new Point3d(0, 0, 0), new Point3d(10, 0, 0)),
+                oldCenterlineId),
+            6,
+            TransitType.Road).ToTransit();
+        UrbanModel.Instance.AddTransit([oldTransit]);
+        var rejectedId = doc.Objects.AddLine(new Line(new Point3d(0, 0, 1), new Point3d(10, 0, 1)));
+
+        new RhinoUrbanModelPipeline(doc, UrbanModel.Instance)
+            .WithTransitRestoreSteps(oldCenterlineId, rejectedId)
+            .WithRhinoOutputter(new TransitOutputter())
+            .Run();
+
+        Assert.That(doc.Objects.FindId(rejectedId), Is.Null);
+        Assert.That(UrbanModel.Instance.Transits, Has.Count.EqualTo(1));
+        var restored = UrbanModel.Instance.Transits.Single();
+        Assert.That(restored.Width, Is.EqualTo(6));
+        Assert.That(restored.TransitType, Is.EqualTo(TransitType.Road));
+        Assert.That(restored.Centerline.Id, Is.Not.EqualTo(oldCenterlineId));
+        Assert.That(doc.Objects.FindId(restored.Centerline.Id), Is.Not.Null);
+    }
+
+    [Test]
+    public void HandleTransitReplace_CenterlineOutsideGroundTolerance_RestoresLastValidTransit()
+    {
+        using var doc = RhinoDoc.CreateHeadless(null);
+        var oldCenterlineId = Guid.NewGuid();
+        var oldTransit = new TransitData(
+            new Curve2D(
+                new LineCurve(new Point3d(0, 0, 0), new Point3d(10, 0, 0)),
+                oldCenterlineId),
+            6,
+            TransitType.Road).ToTransit();
+        UrbanModel.Instance.AddTransit([oldTransit]);
+        var rejectedId = doc.Objects.AddLine(new Line(new Point3d(0, 0, 1), new Point3d(10, 0, 1)));
+        using var handler = new RhinoUrbanEventHandler(doc);
+
+        handler.HandleTransitReplace(oldTransit, rejectedId);
+
+        Assert.That(doc.Objects.FindId(rejectedId), Is.Null);
+        Assert.That(UrbanModel.Instance.Transits, Has.Count.EqualTo(1));
+        var restored = UrbanModel.Instance.Transits.Single();
+        Assert.That(restored.Width, Is.EqualTo(6));
+        Assert.That(restored.TransitType, Is.EqualTo(TransitType.Road));
+        Assert.That(restored.Centerline.Geometry.GetBoundingBox(true).Min.Z, Is.EqualTo(0));
+        Assert.That(doc.Objects.FindId(restored.Centerline.Id), Is.Not.Null);
+    }
+
+    [Test]
+    public void WithDocModelLoad_InvalidManagedCenterline_SkipsWarnsAndPreservesRhinoObject()
+    {
+        using var doc = RhinoDoc.CreateHeadless(null);
+        var attributes = RhinoOutputHelper.MakeLayerDrivenAttributes(
+            doc,
+            LayerConstants.TransitCenterline(TransitType.Road, 6),
+            Color.Black);
+        var validId = doc.Objects.AddLine(
+            new Line(new Point3d(0, 0, 0), new Point3d(10, 0, 0)),
+            attributes);
+        var invalidId = doc.Objects.AddLine(
+            new Line(new Point3d(0, 10, 1), new Point3d(10, 10, 1)),
+            attributes);
+        var loggerProvider = new CapturingLoggerProvider();
+        using var loggerFactory = new LoggerFactory([loggerProvider]);
+
+        new RhinoUrbanModelPipeline(doc, UrbanModel.Instance, loggerFactory)
+            .WithDocModelLoad(doc)
+            .Run();
+
+        Assert.That(UrbanModel.Instance.Transits, Has.Count.EqualTo(1));
+        Assert.That(doc.Objects.FindId(validId), Is.Null);
+        Assert.That(doc.Objects.FindId(invalidId), Is.Not.Null);
+        var warnings = loggerProvider.Entries.Where(x => x.Level == LogLevel.Warning).ToList();
+        Assert.That(warnings, Has.Count.EqualTo(1));
+        Assert.That(warnings[0].Message, Does.Contain(invalidId.ToString()));
     }
 
     private record TransitPipelineTestData(
