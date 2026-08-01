@@ -57,7 +57,7 @@ public class UrbanModelTools(RhinoDoc doc, UrbanModel urbanModel)
 
             Action<RhinoUrbanModelPipeline> pipelineAction = (pipeline)
                 => PipelineConfigurations
-                .WithBuildingAdditionSteps(pipeline, buildingData.Cast<ICreationData>().ToList(), [])
+                .WithBuildingAddOrUpdateSteps(pipeline, buildingData.Cast<ICreationData>().ToList(), [])
                 .WithFullModelOutput();
 
             new RhinoPipelineExecutorForMcp(doc, urbanModel).Run(pipelineAction);

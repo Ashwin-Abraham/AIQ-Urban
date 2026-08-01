@@ -1,16 +1,16 @@
-# Graph Report - ArchSitePlan  (2026-07-28)
+# Graph Report - ArchSitePlan  (2026-08-01)
 
 ## Corpus Check
-- 696 files · ~250,032 words
+- 698 files · ~251,496 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 8109 nodes · 16576 edges · 443 communities (349 shown, 94 thin omitted)
-- Extraction: 95% EXTRACTED · 5% INFERRED · 0% AMBIGUOUS · INFERRED: 802 edges (avg confidence: 0.58)
+- 8129 nodes · 16624 edges · 430 communities (339 shown, 91 thin omitted)
+- Extraction: 95% EXTRACTED · 5% INFERRED · 0% AMBIGUOUS · INFERRED: 809 edges (avg confidence: 0.58)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `6009b7c0`
+- Built from commit: `5b7b323d`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -255,7 +255,6 @@
 - [[_COMMUNITY_.CreateDefaults|.CreateDefaults]]
 - [[_COMMUNITY_.Create|.Create]]
 - [[_COMMUNITY_hT|hT]]
-- [[_COMMUNITY_zD|zD]]
 - [[_COMMUNITY_wx|wx]]
 - [[_COMMUNITY_BoundingBoxExtensions|BoundingBoxExtensions]]
 - [[_COMMUNITY_LineExtensions|LineExtensions]]
@@ -313,16 +312,15 @@
 - [[_COMMUNITY_.ComputeMinAreaOrientedBox|.ComputeMinAreaOrientedBox]]
 - [[_COMMUNITY_iw|iw]]
 - [[_COMMUNITY_od|od]]
-- [[_COMMUNITY_Vn|Vn]]
+- [[_COMMUNITY_Parcel|Parcel]]
 - [[_COMMUNITY_DomainExtensions|DomainExtensions]]
 - [[_COMMUNITY_.ToggleLayerStateBasedOnAppMode|.ToggleLayerStateBasedOnAppMode]]
 - [[_COMMUNITY_.DeleteRhinoObjectsIfPresent|.DeleteRhinoObjectsIfPresent]]
 - [[_COMMUNITY_RhinoOsm|RhinoOsm]]
 - [[_COMMUNITY_Task 3 Add Layer Name Parsing Utilities|Task 3: Add Layer Name Parsing Utilities]]
 - [[_COMMUNITY_Task 6 — Update StartUI_AIQUrban to call WithDocModelLoad|Task 6 — Update StartUI_AIQUrban to call WithDocModelLoad]]
-- [[_COMMUNITY_.AssertLayerObjectCount|.AssertLayerObjectCount]]
+- [[_COMMUNITY_.Run|.Run]]
 - [[_COMMUNITY_PeripheralBuildingFactoryTests|PeripheralBuildingFactoryTests]]
-- [[_COMMUNITY_iI|iI]]
 - [[_COMMUNITY_AIQ.Exports.Helpers|AIQ.Exports.Helpers]]
 - [[_COMMUNITY_.AveragePoint|.AveragePoint]]
 - [[_COMMUNITY_Global Constraints|Global Constraints]]
@@ -336,7 +334,7 @@
 - [[_COMMUNITY_.GrahamConvexHull|.GrahamConvexHull]]
 - [[_COMMUNITY_.Save|.Save]]
 - [[_COMMUNITY_oS|oS]]
-- [[_COMMUNITY_HttpServerComms|HttpServerComms]]
+- [[_COMMUNITY_.Intersects_ReturnsExpectedResult|.Intersects_ReturnsExpectedResult]]
 - [[_COMMUNITY_NaturalOpenOsm|NaturalOpenOsm]]
 - [[_COMMUNITY_PowerOsm|PowerOsm]]
 - [[_COMMUNITY_rl|rl]]
@@ -353,17 +351,17 @@
 - [[_COMMUNITY_.CreateArcedProfile|.CreateArcedProfile]]
 - [[_COMMUNITY_ExcelCellContent|ExcelCellContent]]
 - [[_COMMUNITY_ExcelDocument|ExcelDocument]]
-- [[_COMMUNITY_._createAnimations|._createAnimations]]
+- [[_COMMUNITY_.AddToPreviewDoc|.AddToPreviewDoc]]
 - [[_COMMUNITY_U0|U0]]
 - [[_COMMUNITY_AIQ.Urban.Tests.csproj|AIQ.Urban.Tests.csproj]]
-- [[_COMMUNITY_Command|Command]]
+- [[_COMMUNITY_BisectingCrossSectionTests.cs|BisectingCrossSectionTests.cs]]
 - [[_COMMUNITY_AIQ.Mapbox.Tests.csproj|AIQ.Mapbox.Tests.csproj]]
 - [[_COMMUNITY_BootstrapForceInitialize.cs|BootstrapForceInitialize.cs]]
 - [[_COMMUNITY_AQI.Urban.Core.Tests.csproj|AQI.Urban.Core.Tests.csproj]]
 - [[_COMMUNITY_RectangularBuildingFactoryTests|RectangularBuildingFactoryTests]]
 - [[_COMMUNITY_SampleCommand.cs|SampleCommand.cs]]
 - [[_COMMUNITY_AIQ_GH_ExportsInfo|AIQ_GH_ExportsInfo]]
-- [[_COMMUNITY_.RunCommand|.RunCommand]]
+- [[_COMMUNITY_ReplaceTextActionComponent|ReplaceTextActionComponent]]
 - [[_COMMUNITY_FilePathConstants|FilePathConstants]]
 - [[_COMMUNITY_ADR 1 FileGltf for test debug visualization|ADR 1: FileGltf for test debug visualization]]
 - [[_COMMUNITY_TableBlockBuilder|TableBlockBuilder]]
@@ -373,12 +371,11 @@
 - [[_COMMUNITY_ArchSitePlan.RhinoAddin.csproj|ArchSitePlan.RhinoAddin.csproj]]
 - [[_COMMUNITY_ADR Format|ADR Format]]
 - [[_COMMUNITY_Process|Process]]
-- [[_COMMUNITY_._get|._get]]
+- [[_COMMUNITY_Edge|Edge]]
 - [[_COMMUNITY_on|on]]
 - [[_COMMUNITY_q2|q2]]
 - [[_COMMUNITY_VectorExtensions.cs|VectorExtensions.cs]]
 - [[_COMMUNITY_RHGeneralConstants|RHGeneralConstants]]
-- [[_COMMUNITY_.GrahamConvexHull_ReturnsConvexHull|.GrahamConvexHull_ReturnsConvexHull]]
 - [[_COMMUNITY_Domain Docs|Domain Docs]]
 - [[_COMMUNITY_Issue tracker GitHub|Issue tracker: GitHub]]
 - [[_COMMUNITY_Testing approach|Testing approach]]
@@ -387,12 +384,7 @@
 - [[_COMMUNITY_SKILL|SKILL.md]]
 - [[_COMMUNITY_Process|Process]]
 - [[_COMMUNITY_Language|Language]]
-- [[_COMMUNITY_.OpenWindow|.OpenWindow]]
 - [[_COMMUNITY_ColouredMeshTests.cs|ColouredMeshTests.cs]]
-- [[_COMMUNITY_.UnsubscribeModelEvents|.UnsubscribeModelEvents]]
-- [[_COMMUNITY_IEnumerableExtensions|IEnumerableExtensions]]
-- [[_COMMUNITY_TransformMatrixExtensions|TransformMatrixExtensions]]
-- [[_COMMUNITY_PathConstants|PathConstants]]
 - [[_COMMUNITY_LayerConstants|LayerConstants]]
 - [[_COMMUNITY_hitl-loop.template.sh|hitl-loop.template.sh]]
 - [[_COMMUNITY_BridgeMessage.cs|BridgeMessage.cs]]
@@ -407,14 +399,11 @@
 - [[_COMMUNITY_Slice 8 — Formulas and styles survive writing|Slice 8 — Formulas and styles survive writing]]
 - [[_COMMUNITY_Slice 9 — Multiple blocks and worksheets|Slice 9 — Multiple blocks and worksheets]]
 - [[_COMMUNITY_Slice 10 — Inspectable example workbook|Slice 10 — Inspectable example workbook]]
-- [[_COMMUNITY_UsageLogEmitter|UsageLogEmitter]]
 - [[_COMMUNITY_TextObjectExtensions.cs|TextObjectExtensions.cs]]
 - [[_COMMUNITY_IconLoader.cs|IconLoader.cs]]
 - [[_COMMUNITY_Cw|Cw]]
 - [[_COMMUNITY_d0|d0]]
 - [[_COMMUNITY_InputHelpers|InputHelpers]]
-- [[_COMMUNITY_.FromOsmWay|.FromOsmWay]]
-- [[_COMMUNITY_ArchSitePlan.Core.ModelEditActions|ArchSitePlan.Core.ModelEditActions]]
 - [[_COMMUNITY_dependencies|dependencies]]
 - [[_COMMUNITY_graphify.js|graphify.js]]
 - [[_COMMUNITY_GoogleSlidesConstants.cs|GoogleSlidesConstants.cs]]
@@ -431,57 +420,53 @@
 - [[_COMMUNITY_task-2-brief|task-2-brief.md]]
 - [[_COMMUNITY_task-3-brief|task-3-brief.md]]
 - [[_COMMUNITY_linkedin-article|linkedin-article.md]]
-- [[_COMMUNITY_.CanDivideByCount_SimpleCurves|.CanDivideByCount_SimpleCurves]]
 - [[_COMMUNITY_ComponentGuids.cs|ComponentGuids.cs]]
 - [[_COMMUNITY_Constants.cs|Constants.cs]]
-- [[_COMMUNITY_._createAnimations|._createAnimations]]
 - [[_COMMUNITY_Enums.cs|Enums.cs]]
 - [[_COMMUNITY_OSMConstants|OSMConstants]]
 - [[_COMMUNITY_ArchSitePlan.Core.ModelEditActions|ArchSitePlan.Core.ModelEditActions]]
-- [[_COMMUNITY_UIMessages.cs|UIMessages.cs]]
 - [[_COMMUNITY_.Build_ZoneMetrics_CreatesGroupedAndFormulaDrivenWorkbook|.Build_ZoneMetrics_CreatesGroupedAndFormulaDrivenWorkbook]]
 - [[_COMMUNITY_ArchSitePlan.OSM.csproj|ArchSitePlan.OSM.csproj]]
 - [[_COMMUNITY_.PolygonContains_Line|.PolygonContains_Line]]
-- [[_COMMUNITY_.AddToPreviewDoc|.AddToPreviewDoc]]
-- [[_COMMUNITY_.OpenWindow|.OpenWindow]]
+- [[_COMMUNITY_PathConstants|PathConstants]]
 - [[_COMMUNITY_ConditionalSetShapeTextAction|ConditionalSetShapeTextAction]]
 - [[_COMMUNITY_DeleteTableRowAction|DeleteTableRowAction]]
 - [[_COMMUNITY_EditShapeFillColorAction|EditShapeFillColorAction]]
 - [[_COMMUNITY_ReplaceTableTextAction|ReplaceTableTextAction]]
 - [[_COMMUNITY_IUrbanLogger|IUrbanLogger]]
 - [[_COMMUNITY_.ReplaceShape|.ReplaceShape]]
+- [[_COMMUNITY_IEnumerableExtensions|IEnumerableExtensions]]
+- [[_COMMUNITY_TransformMatrixExtensions|TransformMatrixExtensions]]
 - [[_COMMUNITY_kn|kn]]
-- [[_COMMUNITY_ExcelCellContent|ExcelCellContent]]
-- [[_COMMUNITY_.DiscoverToolMethods|.DiscoverToolMethods]]
 
 ## God Nodes (most connected - your core abstractions)
 1. `n()` - 213 edges
 2. `s()` - 198 edges
-3. `iS` - 102 edges
+3. `iS` - 107 edges
 4. `an()` - 101 edges
 5. `l()` - 96 edges
 6. `AIQ.Urban.Core.Models.GeometryElements` - 95 edges
 7. `ak` - 88 edges
-8. `AIQ.Urban.Core.ModelActions.CreationData` - 75 edges
+8. `AIQ.Urban.Core.ModelActions.CreationData` - 76 edges
 9. `ci()` - 73 edges
 10. `Pn` - 73 edges
 
 ## Surprising Connections (you probably didn't know these)
+- `BrepElementConverter` --implements--> `IGeometryPreviewConverter`  [EXTRACTED]
+  tools/AIQ.Urban.DebugViz/Converters/BrepElementConverter.cs → AIQ.PreviewHelper.Core/IGeometryPreviewConverter.cs
+- `DefaultBrepConverter` --implements--> `IGeometryPreviewConverter`  [EXTRACTED]
+  tools/AIQ.Urban.DebugViz/Converters/DefaultBrepConverter.cs → AIQ.PreviewHelper.Core/IGeometryPreviewConverter.cs
+- `DefaultCurveConverter` --implements--> `IGeometryPreviewConverter`  [EXTRACTED]
+  tools/AIQ.Urban.DebugViz/Converters/DefaultCurveConverter.cs → AIQ.PreviewHelper.Core/IGeometryPreviewConverter.cs
+- `GraphConverter` --implements--> `IGeometryPreviewConverter`  [EXTRACTED]
+  tools/AIQ.Urban.DebugViz/Converters/GraphConverter.cs → AIQ.PreviewHelper.Core/IGeometryPreviewConverter.cs
 - `Mesh2DConverter` --implements--> `IGeometryPreviewConverter`  [EXTRACTED]
   tools/AIQ.Urban.DebugViz/Converters/Mesh2DConverter.cs → AIQ.PreviewHelper.Core/IGeometryPreviewConverter.cs
-- `cR()` --references--> `url`  [EXTRACTED]
-  src/AIQ.Urban.Rhino/HTML_UI/wwwroot/assets/index-DMW0YN7E.js → opencode.json
-- `cx()` --references--> `url`  [EXTRACTED]
-  src/AIQ.Urban.Rhino/HTML_UI/wwwroot/assets/index-DMW0YN7E.js → opencode.json
-- `dm` --references--> `url`  [EXTRACTED]
-  src/AIQ.Urban.Rhino/HTML_UI/wwwroot/assets/index-DMW0YN7E.js → opencode.json
-- `ev()` --references--> `url`  [EXTRACTED]
-  src/AIQ.Urban.Rhino/HTML_UI/wwwroot/assets/index-DMW0YN7E.js → opencode.json
 
 ## Import Cycles
 - None detected.
 
-## Communities (443 total, 94 thin omitted)
+## Communities (430 total, 91 thin omitted)
 
 ### Community 0 - "Domain Model & Urban Elements"
 Cohesion: 0.10
@@ -489,11 +474,11 @@ Nodes (23): AddBuilding_AIQUrban, AddTransit_AIQUrban, AddZone_AIQUrban, Buildin
 
 ### Community 1 - "Rhino Plugin & Pipeline"
 Cohesion: 0.01
-Nodes (186): $1, accessor(), am(), Ap(), aw, ax(), b1(), bT() (+178 more)
+Nodes (180): $1, accessor(), aE(), Af(), Ap(), aw, ax(), bb() (+172 more)
 
 ### Community 2 - "Command Surface"
 Cohesion: 0.03
-Nodes (35): al(), Bo(), cv(), Dl(), ev(), Ff(), gv(), gx() (+27 more)
+Nodes (35): a2(), aA, al(), Bo(), cv(), cy, e2(), ev() (+27 more)
 
 ### Community 3 - "UI Message Contract"
 Cohesion: 0.40
@@ -505,7 +490,7 @@ Nodes (4): HTTP_POST_MessageContract, IMessageFromUI, IMessageToUI, MessageConve
 
 ### Community 5 - "UI Infrastructure"
 Cohesion: 0.03
-Nodes (15): _d(), eI(), hA, hl(), lh, Ml(), ng(), NT() (+7 more)
+Nodes (14): dataset(), eI(), El(), hA, hl(), Ll, nearest(), nl (+6 more)
 
 ### Community 6 - "Masterplan Design Process"
 Cohesion: 0.67
@@ -513,59 +498,59 @@ Nodes (3): EventQueue, ReverseLookupDict, RhinoUrbanEventHandler
 
 ### Community 41 - "n"
 Cohesion: 0.02
-Nodes (76): EdgeDescriptor, ak, aR(), aT, bc(), beforeLayout(), Bi(), bR() (+68 more)
+Nodes (71): $a(), aR(), aT, b2(), bc(), Bi(), bu(), _c() (+63 more)
 
 ### Community 42 - "url"
 Cohesion: 0.03
-Nodes (92): url, ad(), As(), au(), ay, bE, bp(), _c() (+84 more)
+Nodes (60): url, As(), au(), bE, bl, cc(), CS, cT() (+52 more)
 
 ### Community 43 - ".resolve"
-Cohesion: 0.11
-Nodes (6): a1(), addBox(), Gh(), start(), v1(), xb
+Cohesion: 0.20
+Nodes (6): TableBlockBuilder, IEnumerable, List, ExcelCell, ExcelCellStyle, ExcelFormulaNotation
 
 ### Community 44 - ".toString"
-Cohesion: 0.05
-Nodes (11): ao, dO, fO, gT, Hr(), Ko, Kr(), _M() (+3 more)
+Cohesion: 0.03
+Nodes (19): _2(), cE(), dO, eo, Fn(), gT, hv(), jm (+11 more)
 
 ### Community 45 - "Fn"
-Cohesion: 0.05
-Nodes (24): ArchSitePlan.Core.Pipeline, ArchSitePlan.Core.Models, ArchSitePlan.Core.Factories.Models, ArchSitePlan.RhinoInterface.Models, AQI.Urban.Core.Tests.Pipeline, ArchSitePlan.BHoM.Geometry.Extensions, ArchSitePlan.Core.ModelEditActions.MiscActions, ArchSitePlan.Core.Extensions (+16 more)
+Cohesion: 0.07
+Nodes (24): ArchSitePlan.Core.Pipeline, ArchSitePlan.Core.Models, AIQ.Urban.Core.Tests.Factories, ArchSitePlan.Core.Factories.Models, AQI.Urban.Core.Tests.Pipeline, AQI.Urban.Core.Tests.TestUtils, ArchSitePlan.BHoM.Geometry.Extensions, ArchSitePlan.Core.Factories (+16 more)
 
 ### Community 46 - "TriangulationTrapezoid"
 Cohesion: 0.05
 Nodes (32): A, B, Bottom, C, AIQ.Urban.Core.GeometryOperations.Triangulation, Exception, IComparable, IEquatable (+24 more)
 
 ### Community 47 - "AIQ.Urban.Core.Models.GeometryElements"
-Cohesion: 0.04
-Nodes (38): AIQ.Urban.Core.Tests.Models.UrbanGraph, AIQ.Urban.Core.Models.UrbanGraph, AIQ.Urban.Core.GeometryOperations, AIQ.Primitives.Extensions, AIQ.Urban.Core.Tests.GeometryOperations, AIQ.Urban.Core.Extensions, AIQ.Urban.Core.Tests.Extensions, StringExtensions (+30 more)
+Cohesion: 0.03
+Nodes (41): AIQ.Urban.Core.Tests.Models.UrbanGraph, AIQ.Urban.Core.Models.UrbanGraph, AIQ.Urban.Core.GeometryOperations, AIQ.Urban.Core.Models.GeometryElements, AIQ.Primitives.Extensions, AIQ.Urban.Core.Tests.Models, AIQ.Urban.Core.Tests.ShapeSubdividers, AIQ.Urban.Core.Tests.GeometryOperations (+33 more)
 
 ### Community 48 - "pt"
-Cohesion: 0.06
-Nodes (10): bA, bM(), jC(), jD(), Q_(), ql, sw, wl() (+2 more)
+Cohesion: 0.03
+Nodes (67): EdgeDescriptor, ac(), ad(), ay, bn(), bS, Cf(), cp() (+59 more)
 
 ### Community 49 - "an"
 Cohesion: 0.04
-Nodes (3): an(), iN(), parse()
+Nodes (3): an(), parse(), pg()
 
 ### Community 50 - "ci"
-Cohesion: 0.06
-Nodes (3): ci(), gn(), mh
+Cohesion: 0.05
+Nodes (4): ci(), Fr(), gn(), mh
 
 ### Community 51 - "AIQ.Urban.Core.ModelActions.CreationData"
-Cohesion: 0.05
-Nodes (31): AIQ.Urban.Core.Models.GeometryElements, AIQ.Urban.Core.Tests.ModelActions, AIQ.Urban.Core.Models.Metrics, AIQ.Urban.Core.Tests.Models, AIQ.Urban.RhinoInterface.Exports, AIQ.Urban.Core.ModelActions, AIQ.Urban.RhinoInterface.Tests.Helpers, AIQ.Urban.Core.Tests.Models.Metrics (+23 more)
+Cohesion: 0.07
+Nodes (21): AIQ.Urban.Core.Tests.ModelActions, AIQ.Urban.Core.ModelActions, AIQ.Urban.DebugViz, AIQ.Urban.Core.ModelActions.CreationData, AIQ.Urban.Core.Models, AddBuildingTestData, AddParcelBoundaryTestData, AddTransitTestData (+13 more)
 
 ### Community 52 - "Pn"
-Cohesion: 0.06
-Nodes (8): afterDatasetsUpdate(), ag(), beforeDatasetsDraw(), cb, ig(), jo(), onClick(), Pn
+Cohesion: 0.05
+Nodes (9): afterDatasetsUpdate(), ag(), beforeDatasetsDraw(), cb, generateLabels(), ig(), jo(), onClick() (+1 more)
 
 ### Community 53 - "ArchSitePlan.Core.Models"
 Cohesion: 0.40
 Nodes (3): ArcExtensions, Arc, Point
 
 ### Community 54 - "Co"
-Cohesion: 0.03
-Nodes (43): $a(), a2(), aA, av(), _b(), C0(), cg(), cR() (+35 more)
+Cohesion: 0.08
+Nodes (16): ArchSitePlan.Core.ModelEditActions.MetricsActions, FloorplateId, IModelEditAction, AssignUseToFloorplatesWithoutUse, FloorplateEditUseAction, Guid, List, Use (+8 more)
 
 ### Community 55 - "AIQ.GH.Exports.Utils"
 Cohesion: 0.08
@@ -573,43 +558,43 @@ Nodes (15): AIQ.GH.Exports.Components, AIQ.Exports.GoogleSlides, AIQ.GH.Exports.
 
 ### Community 56 - "CoreModelEditStepLibrary"
 Cohesion: 0.13
-Nodes (13): IEnumerable, Result, RhinoDoc, RunMode, ModelBuilderPipelines, Guid, List, ModellingTool (+5 more)
+Nodes (14): StudyData, IEnumerable, Result, RhinoDoc, RunMode, ModelBuilderPipelines, Guid, List (+6 more)
 
 ### Community 57 - "ArchSitePlan.RhinoInterface.Constants"
 Cohesion: 0.07
-Nodes (26): ArchSitePlan.RhinoInterface.HTML_UI.Websockets, ArchSitePlan.RhinoInterface.Constants, ArchSitePlan.RhinoInterface.HTML_UI.MessageToUI, ArchSitePlan.RhinoInterface.InputValidation.Results, ArchSitePlan.RhinoBhomInterop, ArchSitePlan.RhinoInterface.Helpers, ArchSitePlan.OSM.Models.OsmPolyline, ArchSitePlan.RhinoInterface.HTML_UI (+18 more)
+Nodes (21): ArchSitePlan.RhinoInterface.HTML_UI.Websockets, ArchSitePlan.RhinoInterface.Constants, ArchSitePlan.RhinoInterface.HTML_UI.MessageToUI, ArchSitePlan.RhinoInterface.InputValidation.Results, ArchSitePlan.RhinoInterface.Models, ArchSitePlan.RhinoBhomInterop, ArchSitePlan.RhinoInterface.Helpers, ArchSitePlan.OSM.Models.OsmPolyline (+13 more)
 
 ### Community 58 - "StepResult"
 Cohesion: 0.03
-Nodes (54): AddBuildingStep, ILogger, List, UrbanModel, AddTransitStep, ILogger, List, UrbanModel (+46 more)
+Nodes (56): AddBuildingStep, ILogger, AddParcelBoundaryStep, ILogger, List, UrbanModel, AddTransitStep, ILogger (+48 more)
 
 ### Community 59 - ".MakeAttributes"
-Cohesion: 0.05
-Nodes (13): bl, CS, dataset(), du, El(), f2(), index(), nearest() (+5 more)
+Cohesion: 0.21
+Nodes (7): ConverterTestData, TriangleToQuadConverterTests, List, Mesh, Test, TestCase, PreviewMesh()
 
 ### Community 60 - "ModelStateMessage"
-Cohesion: 0.10
-Nodes (25): LayerManager, List, ModellingTool, RhinoDoc, AutoBuildingMessage, AutoGenerationType, BuildingMessage, string (+17 more)
+Cohesion: 0.08
+Nodes (29): LayerManager, List, ModellingTool, RhinoDoc, AutoBuildingMessage, AutoGenerationType, BuildingMessage, string (+21 more)
 
 ### Community 61 - "ModelStateMessage"
 Cohesion: 0.06
 Nodes (33): InstallationIdProvider, MessageConverter, JsonSerializerOptions, AddZoneMessage, BuildingMessage, Guid, ILoggerFactory, List (+25 more)
 
 ### Community 62 - "GraphNode"
-Cohesion: 0.09
-Nodes (22): NodeData, EdgeExtensions, Line, GraphNodeExtensions, Line, Edge, Curve, Lazy (+14 more)
+Cohesion: 0.05
+Nodes (36): NodeData, PrimitiveIntersectTestCase, EdgeExtensions, Line, GraphNodeExtensions, Line, Parcel, Guid (+28 more)
 
 ### Community 63 - "HE"
-Cohesion: 0.05
-Nodes (9): check(), fg(), h2, HE, il, isRed(), xE, xx() (+1 more)
+Cohesion: 0.06
+Nodes (6): check(), h2, HE, isRed(), xE, yL
 
 ### Community 64 - "Landuse"
-Cohesion: 0.07
-Nodes (20): Bounds, CalculateZoneMetricsAction, CalculateStudyBoundsAction, BoundingBox, List, Zone, CoreModel, Color (+12 more)
+Cohesion: 0.06
+Nodes (23): Bounds, CalculateStudyBoundsAction, BoundingBox, List, Zone, CoreModel, Color, Dictionary (+15 more)
 
 ### Community 65 - "IUrbanElement"
-Cohesion: 0.05
-Nodes (37): Brep, IUrbanElement, Guid, List, Point3d, ColorUtils, Color, BuildingOutputter (+29 more)
+Cohesion: 0.06
+Nodes (32): ColorUtils, Color, BuildingOutputter, ILogger, List, RhinoDoc, IUrbanModelRhinoOutputter, List (+24 more)
 
 ### Community 66 - "BridgeClient"
 Cohesion: 0.06
@@ -620,20 +605,20 @@ Cohesion: 0.06
 Nodes (22): BatchExecuteComponent, Bitmap, GH_InputParamManager, GH_OutputParamManager, Guid, IGH_DataAccess, CopyPresentationComponent, Bitmap (+14 more)
 
 ### Community 68 - "BuildingLayoutFactoryBase"
-Cohesion: 0.08
-Nodes (26): BuildingTargetMode, RenderMesh, BuildingLayoutFactoryBase, ICurve, List, Mesh, Point, PolyCurve (+18 more)
+Cohesion: 0.07
+Nodes (27): BuildingTargetMode, RenderMesh, BuildingLayoutFactoryBase, ICurve, List, Mesh, Point, PolyCurve (+19 more)
 
 ### Community 69 - "AIQ.Urban.Core.Models.UrbanElements"
-Cohesion: 0.05
-Nodes (15): $_, aE(), beforeUpdate(), c2(), clear(), fd(), Kp, lp() (+7 more)
+Cohesion: 0.07
+Nodes (16): $_, bx(), Cw, ey(), fc, iy, jC(), Jh() (+8 more)
 
 ### Community 70 - ".resolveDataElementOptions"
 Cohesion: 0.06
-Nodes (8): ab, db(), generateLabels(), Ja, oo, pg(), yg(), Za
+Nodes (9): ab, bR(), db(), Ja, oo, reset(), Tl(), yg() (+1 more)
 
 ### Community 71 - "RhinoUrbanModelPipeline"
-Cohesion: 0.09
-Nodes (20): UseEditType, Result, RhinoDoc, RunMode, RhinoPipelineExecutorForMcp, Action, PipelineConfigurations, Brep (+12 more)
+Cohesion: 0.10
+Nodes (19): UseEditType, RhinoPipelineExecutorForMcp, Action, PipelineConfigurations, Brep, Color, Curve, Guid (+11 more)
 
 ### Community 72 - "Profile2D"
 Cohesion: 0.10
@@ -644,8 +629,8 @@ Cohesion: 0.11
 Nodes (12): EndCapType, ICurveExtensions, BoundaryCurve, ICurve, IEnumerable, Line, List, PlanarSurface (+4 more)
 
 ### Community 74 - "zi"
-Cohesion: 0.33
-Nodes (4): AIQ.Primitives.Tests, DoubleExtensionTests, InlineData, Theory
+Cohesion: 0.14
+Nodes (11): ParcelConverter, Color, RhinoDoc, ZoneConverter, Color, RhinoDoc, UrbanSceneBuilder, IEnumerable (+3 more)
 
 ### Community 75 - "BuildingData"
 Cohesion: 0.07
@@ -655,41 +640,49 @@ Nodes (26): Floor, AddBuildingAction, List, DeleteBuildingAction, Guid, List, Bu
 Cohesion: 0.07
 Nodes (17): GH_Goo, ReplaceTextAction, IEnumerable, Presentation, Request, LayerProperties, DocLayerStateGoo, IGH_Goo (+9 more)
 
+### Community 77 - "vo"
+Cohesion: 0.08
+Nodes (4): Gu(), iI(), rv(), vo
+
 ### Community 78 - "Delaunator"
 Cohesion: 0.07
 Nodes (14): DelaunatorTestData, Delaunator, double, IEnumerable, int, Mesh, Point2d, DelaunatorTests (+6 more)
 
 ### Community 79 - ".Debug"
-Cohesion: 0.10
-Nodes (20): Extrude, FontSize, BoundedCurve, Circle, Color, Element, IEnumerable, List (+12 more)
+Cohesion: 0.08
+Nodes (26): Domain1d, Extrude, FontSize, DEBUGMODEL, bool, BoundedCurve, Circle, Color (+18 more)
 
 ### Community 80 - "RhinoEventHandler"
-Cohesion: 0.08
-Nodes (23): EventHandler, RhinoEventHandler, bool, EventArgs, List, RhinoDoc, RhinoObject, RhinoObjectEventArgs (+15 more)
+Cohesion: 0.09
+Nodes (21): EventHandler, RhinoEventHandler, bool, EventArgs, List, RhinoDoc, RhinoObject, RhinoObjectEventArgs (+13 more)
 
 ### Community 81 - "dn"
-Cohesion: 0.08
-Nodes (16): Key, MessageConverter, string, PickFileMessage, DirectoryPickedMessage, FilePickedMessage, IMessageToUI, OsmTagsMessage (+8 more)
+Cohesion: 0.07
+Nodes (20): Key, RhinoDeselectAllObjectsEventArgs, RhinoObjectSelectionEventArgs, MessageConverter, string, IMessageToUI, OsmTagsMessage, List (+12 more)
 
 ### Community 82 - "AIQ.Urban.Core"
-Cohesion: 0.09
-Nodes (18): Attribute, AIQ.Urban.RhinoInterface.Tests, AIQ.Urban.RhinoInterface, AIQ.Urban.RhinoInterface.Pipeline.RhinoDataGatherSteps, AIQ.Urban.RhinoInterface.Utils, AIQ.Urban.RhinoInterface.Pipeline.Outputters, AIQ.Urban.Core.Utils, AIQ.Urban.RhinoPlugin (+10 more)
+Cohesion: 0.10
+Nodes (16): Attribute, AIQ.Urban.RhinoInterface.Tests, AIQ.Urban.RhinoInterface, AIQ.Urban.RhinoInterface.Pipeline.RhinoDataGatherSteps, AIQ.Urban.RhinoPlugin, AIQ.Urban.RhinoPlugin.MCP_Bridge, AIQ.Urban.Core, AIQ.Urban.RhinoPlugin.HTML_UI.MessagesFromUI (+8 more)
 
 ### Community 83 - "MergePdfsComponent"
-Cohesion: 0.06
-Nodes (24): MergePdfsComponent, Bitmap, GH_InputParamManager, GH_OutputParamManager, Guid, IGH_DataAccess, string, PrintLayoutToPdfComponent (+16 more)
+Cohesion: 0.08
+Nodes (17): PrintLayoutToPdfComponent, Bitmap, GH_InputParamManager, GH_OutputParamManager, Guid, IGH_DataAccess, LoggerExtensions, GH_Component (+9 more)
+
+### Community 84 - ".apply"
+Cohesion: 0.05
+Nodes (24): ak, bT(), ck(), cn, Da(), dp(), em(), I2() (+16 more)
 
 ### Community 85 - ".OpenAsGlb"
 Cohesion: 0.12
-Nodes (8): ICurveExtensionsTests, Fact, InlineData, Theory, ICurveExtensionsTests, Fact, IEnumerable, Polygon
+Nodes (7): ICurveExtensionsTests, Fact, ICurve, IEnumerable, MemberData, Polygon, Theory
 
 ### Community 86 - "AGENTS.md — ArchSitePlan Development Guide"
 Cohesion: 0.05
 Nodes (39): Agent skills, AGENTS.md — ArchSitePlan Development Guide, Build Commands, Build Solution, Build Specific Configuration, Build Specific Project, Code Patterns, Code Style Guidelines (+31 more)
 
 ### Community 87 - "IModelEditAction"
-Cohesion: 0.09
-Nodes (20): Boundary, FloorplateId, IModelEditAction, JsonSerializerSettings, AssignUseToFloorplatesWithoutUse, FloorplateEditUseAction, Guid, List (+12 more)
+Cohesion: 0.35
+Nodes (8): Boundary, StudyAreaAction, EditType, Guid, ICurve, Id, List, Name
 
 ### Community 88 - "Domain Glossary"
 Cohesion: 0.05
@@ -704,64 +697,64 @@ Cohesion: 0.15
 Nodes (10): IDisposable, RhinoUrbanEventHandler, bool, Dictionary, EventArgs, Guid, RhinoDeselectAllObjectsEventArgs, RhinoDoc (+2 more)
 
 ### Community 91 - "Li"
-Cohesion: 0.10
-Nodes (15): BuildingDefinition, PolyCurve, Polyline, TransformMatrix, BuildingInstance, Polygon, TransformMatrix, SampleBuildingDefinition (+7 more)
+Cohesion: 0.09
+Nodes (20): BUA, ParcelId, BuildingLayout, Guid, ICurve, List, Building, Guid (+12 more)
 
 ### Community 92 - "concat"
-Cohesion: 0.10
-Nodes (10): cy, fw, hy, lc(), mu(), oc(), pI(), Rn() (+2 more)
+Cohesion: 0.08
+Nodes (7): Dl(), Lr(), mu(), pI(), ro(), throwIfRequested(), Vn
 
 ### Community 93 - "LayerNameParserTests"
 Cohesion: 0.13
 Nodes (5): LayerNameParser, Type, Width, LayerNameParserTests, Test
 
 ### Community 94 - "ICreationData"
-Cohesion: 0.09
-Nodes (11): _2(), b2(), bu(), d2, kv(), Ld, Ra(), remove() (+3 more)
+Cohesion: 0.04
+Nodes (17): bM(), fb, $h(), Hr(), il, iN(), iv(), jl() (+9 more)
 
 ### Community 95 - "vk"
-Cohesion: 0.10
-Nodes (7): bb(), bd(), bk(), lv, og(), Pa(), vk()
+Cohesion: 0.06
+Nodes (7): ao, bk(), gb(), lv, rE(), vk(), zD()
 
 ### Community 96 - "UrbanSceneBuilder"
-Cohesion: 0.07
-Nodes (17): TransitType, StringExtensions, LayerConstants, StringExtensionTests, Test, TestCase, ColorHelpers, Color (+9 more)
+Cohesion: 0.12
+Nodes (11): ColorHelpers, Color, TransitConverter, Color, RhinoDoc, TransitSurfacesConverter, Color, RhinoDoc (+3 more)
 
 ### Community 97 - "ArchSitePlan.DebugModel"
-Cohesion: 0.07
-Nodes (25): AIQ.Urban.Core.Tests.Factories, ArchSitePlan.Test, AQI.Urban.Core.Tests.TestUtils, ArchSitePlan.Core.Factories, ArchSitePlan.Test.ArchSitePlan.BHoM.Geometry.Extensions, ArchSitePlan.BHoM.Geometry.DebugHelpers, ArchSitePlan.Test.BHoM.Geometry.Models, ArchSitePlan.DebugModel.BHoMExtensions (+17 more)
+Cohesion: 0.05
+Nodes (29): ArchSitePlan.Test, ArchSitePlan.Test.ArchSitePlan.BHoM.Geometry.Extensions, ArchSitePlan.BHoM.Geometry.DebugHelpers, ArchSitePlan.Test.BHoM.Geometry.Models, ArchSitePlan.DebugModel.BHoMExtensions, ArchSitePlan.DebugModel, ArchSitePlan.BHoM.Geometry.Models, Extrusion (+21 more)
 
 ### Community 98 - "Sf"
-Cohesion: 0.08
-Nodes (16): bv, cx(), dv(), eN(), fv(), Hn(), hv(), jf() (+8 more)
+Cohesion: 0.05
+Nodes (24): av(), bA, bv, cx(), dv(), eN(), fd(), fv() (+16 more)
 
 ### Community 99 - ".CalculateAndStore"
-Cohesion: 0.17
-Nodes (11): Buildings, Parcels, BuildingSelectionMetrics, ParcelSelectionMetrics, SelectionMetricsMessage, Guid, HashSet, IEnumerable (+3 more)
+Cohesion: 0.14
+Nodes (10): DefaultBrepConverter, Brep, Color, RhinoDoc, PolyCurve2DConverter, Color, RhinoDoc, Profile2DConverter (+2 more)
 
 ### Community 100 - ".ToHypar"
 Cohesion: 0.08
 Nodes (26): ColorSys, Perimeter, ToHyparInterop, Arc, BoundaryCurve, BoundedCurve, Circle, Face (+18 more)
 
 ### Community 101 - ".RunCommand"
-Cohesion: 0.15
-Nodes (10): DisplayModeDescription, OpenSitePlannerRhinoCommand, EventArgs, int, Result, RhinoDoc, RunMode, WebSocketComms (+2 more)
+Cohesion: 0.07
+Nodes (21): DisplayModeDescription, OpenSitePlannerRhinoCommand, EventArgs, int, Result, RhinoDoc, RunMode, HttpServerComms (+13 more)
 
 ### Community 102 - "Rectangle"
 Cohesion: 0.09
-Nodes (17): Polygon, MinBox, PolyCurveExtensions, ICurve, List, PolyCurve, Polygon, Vector (+9 more)
+Nodes (16): Polygon, PolyCurveExtensions, ICurve, List, PolyCurve, Polygon, Vector, Rectangle (+8 more)
 
 ### Community 103 - "DocLayerState"
 Cohesion: 0.11
-Nodes (15): DocLayerStateFromDocumentComponent, Bitmap, GH_InputParamManager, GH_OutputParamManager, Guid, IGH_DataAccess, DetailExtensions, DetailViewObject (+7 more)
+Nodes (15): DocLayerStateFromRhinoLayerState, Bitmap, GH_InputParamManager, GH_OutputParamManager, Guid, IGH_DataAccess, DetailExtensions, DetailViewObject (+7 more)
 
 ### Community 104 - "StudyAreaMetrics"
-Cohesion: 0.20
-Nodes (7): ProjectMetricsCalculator, Dictionary, List, UrbanModel, SelectionMetricsMessageTests, SetUp, Test
+Cohesion: 0.06
+Nodes (39): Buildings, Parcels, BuildingMetrics, Dictionary, Guid, IReadOnlyList, Use, IMetrics (+31 more)
 
 ### Community 105 - "Building"
-Cohesion: 0.08
-Nodes (18): Footprint, Plates, BrepElement, Brep, Guid, Building, Brep, Curve (+10 more)
+Cohesion: 0.05
+Nodes (32): Footprint, Plates, Polygon2DExtensions, IEnumerable, Line, List, Point3d, BrepElement (+24 more)
 
 ### Community 106 - "AIQ.Urban.RhinoPlugin — Context"
 Cohesion: 0.06
@@ -776,55 +769,51 @@ Cohesion: 0.25
 Nodes (4): ConditionalRemoveShapeAction, IShape, IShapeRemoveAction, IShape
 
 ### Community 109 - "iS"
-Cohesion: 0.13
-Nodes (8): Use, Color, Guid, MessageHandlersTests, RhinoDoc, SetUp, Test, TestCase
+Cohesion: 0.16
+Nodes (7): IGeometryPreviewConverter, Color, RhinoDoc, BuildingConverter, Curve2DConverter, CurveElementConverter, FloorPlateConverter
 
 ### Community 110 - "ExcelCell"
 Cohesion: 0.20
 Nodes (8): MetricsWorkbookBuilder, WorksheetComposer, IEnumerable, int, IReadOnlyList, List, MetricsWorksheetData, WorksheetComposer
 
-### Community 111 - "ProjectMetrics"
-Cohesion: 0.11
-Nodes (21): BuildingMetrics, Dictionary, Guid, IReadOnlyList, Use, IMetrics, Guid, ParcelMetrics (+13 more)
-
 ### Community 112 - "Polygon2D"
-Cohesion: 0.13
-Nodes (13): Polygon2DExtensions, IEnumerable, Line, List, Point3d, Polygon2D, Guid, PolylineCurve (+5 more)
+Cohesion: 0.40
+Nodes (3): BuildingConstructorTests, Brep, Test
 
 ### Community 113 - "IGoogleSlidesAction"
 Cohesion: 0.08
 Nodes (26): SlidesService, IGoogleSlidesAction, DriveService, IEnumerable, Presentation, Request, Task, GoogleSlidesDocument (+18 more)
 
 ### Community 114 - ".getParsed"
-Cohesion: 0.09
-Nodes (5): bh, Co, gb(), normalize(), rE()
+Cohesion: 0.04
+Nodes (41): a0(), a1(), addBox(), ah(), am(), b1(), bh, bp() (+33 more)
 
 ### Community 115 - "yR"
-Cohesion: 0.03
-Nodes (15): cE(), dn, eo, Fn(), go(), Ho(), jI(), jm (+7 more)
+Cohesion: 0.04
+Nodes (10): dn, go(), Ho(), jI(), Pl(), uc(), w2, wo() (+2 more)
 
 ### Community 116 - "tv"
-Cohesion: 0.07
+Cohesion: 0.08
 Nodes (3): tE(), tv, zT
 
 ### Community 117 - ".ResetDoc"
-Cohesion: 0.09
-Nodes (16): PreviewHub, Color, PrimitivePolygonContainsLineTestData, Polygon2DExtensionTests, Test, TestCase, PolylineExtensionTests, List (+8 more)
+Cohesion: 0.14
+Nodes (10): PreviewHub, Color, PolylineExtensionTests, List, Test, TestCase, Test, TestCase (+2 more)
 
 ### Community 118 - "UrbanModel"
-Cohesion: 0.12
-Nodes (13): ResetUrbanElementsStep, ILogger, List, UrbanModel, UrbanModel, Lazy, List, Plane (+5 more)
+Cohesion: 0.18
+Nodes (8): UrbanModel, Lazy, Plane, Profile, Type, UrbanModelVisualizers, Visualizer, RhinoDoc
 
 ### Community 119 - "Command"
-Cohesion: 0.18
-Nodes (9): AddBuilding_AIQUrban, GetObject, Result, RhinoDoc, RunMode, SelectBuildingFootprintStep, ILogger, List (+1 more)
+Cohesion: 0.06
+Nodes (26): Command, AddTransit_AIQUrban, Result, RhinoDoc, RunMode, AddZone_AIQUrban, Result, RhinoDoc (+18 more)
 
 ### Community 120 - ".Run"
-Cohesion: 0.15
-Nodes (15): Centroid, OriginalCentroid, RecalculateParcelsStep, Curve, ILogger, List, Point3d, Polygon (+7 more)
+Cohesion: 0.12
+Nodes (19): Centroid, OriginalCentroid, UseModificationData, StepResult, ModifyModelUsesStep, Guid, ILogger, List (+11 more)
 
 ### Community 121 - "ph"
-Cohesion: 0.13
+Cohesion: 0.11
 Nodes (5): afterDraw(), Fa(), ph, Sn(), tm()
 
 ### Community 122 - ".Create"
@@ -832,8 +821,8 @@ Cohesion: 0.16
 Nodes (11): BisectingTestData, Mesh2DTestData, Curve, List, Point2d, X, Y, Mesh2DTests (+3 more)
 
 ### Community 123 - ".CreateNamedViewsOfEachZone"
-Cohesion: 0.12
-Nodes (12): ArchSitePlan.RhinoInterface.Exports, ArchSitePlan.RhinoAddin, ShapeCrawler (0.75.2), PlugIn, RhinoView, ArchSitePlanRhinoPlugin, LoadReturnCode, SampleCommand (+4 more)
+Cohesion: 0.22
+Nodes (6): ArchSitePlan.RhinoInterface.Exports, ArchSitePlan.RhinoAddin, PlugIn, ArchSitePlanRhinoPlugin, LoadReturnCode, SampleCommand
 
 ### Community 125 - "ReplaceTextActionComponent"
 Cohesion: 0.05
@@ -848,16 +837,16 @@ Cohesion: 0.08
 Nodes (24): API Contracts, Error Handling, File structure for new test project, Further Notes, Implementation Decisions, Module 1 — Service Models (`AIQ.MCP/Models/`), Module 2 — Geometry Factory (`AIQ.MCP/Services/GeometryFactory.cs`), Module 3 — UrbanModelService (`AIQ.MCP/Services/UrbanModelService.cs`) (+16 more)
 
 ### Community 128 - "GraphCreationStepTests"
-Cohesion: 0.10
-Nodes (17): BuildingGraphTestData, NodeDescriptor, ParcelGraphTestData, BuildingFootprintData, GraphCreationStep, List, UrbanModel, List (+9 more)
+Cohesion: 0.07
+Nodes (25): BuildingGraphTestData, NodeDescriptor, ParcelGraphTestData, BuildingFootprintData, List, UrbanModel, List, UrbanModel (+17 more)
 
 ### Community 129 - "PlanarSurfaceExtensionsTests"
 Cohesion: 0.11
 Nodes (12): ArchSitePlan.Test.BHoM.Geometry.Extensions, CurvesTestData, Arc, Line, List, PolyCurve, Polygon, Polyline (+4 more)
 
 ### Community 130 - "IExcelBlock"
-Cohesion: 0.23
-Nodes (6): IExcelBlock, IExcelBlockWriter, IXLWorksheet, TableBlockWriter, IXLCell, IXLWorksheet
+Cohesion: 0.17
+Nodes (10): Blank, ExcelCellContent, Formula, Value, IExcelBlock, IExcelBlockWriter, IXLWorksheet, TableBlockWriter (+2 more)
 
 ### Community 131 - ".ToBHoM"
 Cohesion: 0.10
@@ -889,19 +878,15 @@ Nodes (25): AddParcelBoundaryTestData, RecalculateParcelsTestData, SplittingTest
 
 ### Community 140 - ".GetObjectCountByLayer"
 Cohesion: 0.07
-Nodes (20): ConverterTestData, Count, Index, TriangleToQuadConverterTests, List, Mesh, Test, TestCase (+12 more)
+Nodes (21): Count, Index, TransitData, RhinoDocAssertions, RhinoDoc, RhinoDocHelpers, List, Name (+13 more)
 
 ### Community 141 - "AIQ.Primitives.Extensions"
-Cohesion: 0.17
+Cohesion: 0.18
 Nodes (7): point, CoreModelEditStepLibrary, Guid, ICurve, List, Point, use
 
 ### Community 142 - "ArchSitePlan.OSM"
-Cohesion: 0.10
-Nodes (14): ArchSitePlan.OSM, ArchSitePlan.Test.OSMTests, Colors, Color, Keys, Color, List, string (+6 more)
-
-### Community 143 - "BuildingLayout"
-Cohesion: 0.20
-Nodes (6): TableBlockBuilder, IEnumerable, List, ExcelCell, ExcelCellStyle, ExcelFormulaNotation
+Cohesion: 0.19
+Nodes (6): TransitType, StringExtensions, LayerConstants, StringExtensionTests, Test, TestCase
 
 ### Community 145 - "During the session"
 Cohesion: 0.09
@@ -928,12 +913,12 @@ Cohesion: 0.09
 Nodes (21): Algorithm, Assertions, Converter API, Edge Cases Handled, Extension API, File Layout, Input Validation, Merging Two Triangles Into a Quad (+13 more)
 
 ### Community 151 - "McpBridgeBehavior"
-Cohesion: 0.19
-Nodes (9): JsonNode, ParameterInfo, McpBridgeBehavior, JsonElement, JsonSerializerOptions, Lazy, MessageEventArgs, Type (+1 more)
+Cohesion: 0.16
+Nodes (11): JsonNode, ParameterInfo, McpBridgeBehavior, Dictionary, JsonElement, JsonSerializerOptions, Lazy, MessageEventArgs (+3 more)
 
 ### Community 152 - "ProjectReport"
-Cohesion: 0.07
-Nodes (23): LandUseSummaryDataRow, IXLStyleData, XMLExtensions, IXLCell, IXLWorksheet, List, CalculateParcelMetricsAction, ParcelMetrics (+15 more)
+Cohesion: 0.08
+Nodes (20): LandUseSummaryDataRow, IXLStyleData, XMLExtensions, IXLCell, IXLWorksheet, List, CalculateZoneMetricsAction, ProjectReport (+12 more)
 
 ### Community 153 - "UrbanModelTools"
 Cohesion: 0.20
@@ -948,51 +933,51 @@ Cohesion: 0.18
 Nodes (5): bg(), getProps(), Gr, tooltipPosition(), zx()
 
 ### Community 156 - "AIQ.Urban.Core.csproj"
-Cohesion: 0.09
-Nodes (17): net8.0, RhinoCommon (8.32.26131.18001-rc), Microsoft.NET.Sdk, net8.0, Microsoft.Extensions.Logging (10.0.10), RhinoCommon (8.32.26131.18001-rc), Microsoft.NET.Sdk, net8.0-windows (+9 more)
+Cohesion: 0.13
+Nodes (10): net8.0, RhinoCommon (8.32.26131.18001-rc), Microsoft.NET.Sdk, net8.0, Microsoft.Extensions.Logging (10.0.10), RhinoCommon (8.32.26131.18001-rc), Microsoft.NET.Sdk, net8.0-windows (+2 more)
 
 ### Community 157 - "DivisionResult"
-Cohesion: 0.14
+Cohesion: 0.13
 Nodes (14): DivisionResult, List, IShapeSubdivider, LongEdgeToCenter, Curve, IEnumerable, List, Point3d (+6 more)
 
 ### Community 158 - "Building"
-Cohesion: 0.23
-Nodes (8): LanduseActions, EditType, Guid, List, LanduseData, Color, Guid, string
+Cohesion: 0.20
+Nodes (7): MergePdfsComponent, Bitmap, GH_InputParamManager, GH_OutputParamManager, Guid, IGH_DataAccess, string
 
 ### Community 159 - "AIQ.Exports.Excel.Models"
 Cohesion: 0.16
 Nodes (8): AIQ.Exports.Excel.Writing, AIQ.Exports.Excel.Builders, AIQ.Exports.Tests.Excel, AIQ.Exports.Excel.Reports, AIQ.Exports.Excel.Placement, AIQ.Exports.Excel.Models, ExcelHorizontalAlignment, ExcelVerticalAlignment
 
 ### Community 160 - "HttpUiServer"
-Cohesion: 0.13
-Nodes (12): ParcelId, BuildingLayout, Guid, ICurve, List, Parcel, Guid, List (+4 more)
+Cohesion: 0.22
+Nodes (6): ApplyLayerStateComponent, Bitmap, GH_InputParamManager, GH_OutputParamManager, Guid, IGH_DataAccess
 
 ### Community 161 - "PowerpointExporter"
-Cohesion: 0.07
-Nodes (11): Af(), bf(), eR(), gS, hd(), kM, Lf(), lu (+3 more)
+Cohesion: 0.05
+Nodes (21): _b(), bf(), gS, hd(), _I(), i0(), kM, L0() (+13 more)
 
 ### Community 162 - "Use"
-Cohesion: 0.15
-Nodes (9): InvalidInstallationIdTestCase, InstallationIdProvider, string, InstallationIdProviderTests, SetUp, string, TearDown, Test (+1 more)
+Cohesion: 0.09
+Nodes (14): InvalidInstallationIdTestCase, InstallationIdProvider, string, GetInstallationIdMessageTests, SetUp, string, TearDown, Test (+6 more)
 
 ### Community 163 - "IGeometryElement"
-Cohesion: 0.08
-Nodes (18): CurveElement, Curve, Guid, IGeometryElement, Guid, Mesh2D, Guid, Mesh (+10 more)
+Cohesion: 0.12
+Nodes (12): CurveElement, Curve, Guid, IGeometryElement, Guid, Mesh2D, Guid, Mesh (+4 more)
 
 ### Community 164 - ".Reset"
-Cohesion: 0.16
-Nodes (10): BuildingFactoryBaseTests, Fact, IEnumerable, MemberData, Point, Polygon, Theory, BuildingsAlongRoadFactoryTests (+2 more)
+Cohesion: 0.12
+Nodes (13): BuildingFactoryBaseTests, Fact, IEnumerable, MemberData, Point, Polygon, Theory, BuildingsAlongRoadFactoryTests (+5 more)
 
 ### Community 165 - "Implementation Steps"
 Cohesion: 0.11
 Nodes (18): Building Loading (New Constructor), Design Decisions, Error Handling, Goal, Implementation Steps, Loading Order, Open Questions, Parcel Use Preservation (+10 more)
 
 ### Community 166 - ".Run"
-Cohesion: 0.38
-Nodes (3): ResetUrbanElementsStepTests, SetUp, Test
+Cohesion: 0.16
+Nodes (7): AIQ.Primitives.Tests, StringExtensions, List, StringComparison, DoubleExtensionTests, InlineData, Theory
 
 ### Community 167 - "vS"
-Cohesion: 0.14
+Cohesion: 0.15
 Nodes (3): tS, vS, wS
 
 ### Community 168 - "PolygonExtensions"
@@ -1008,8 +993,8 @@ Cohesion: 0.22
 Nodes (9): HttpListenerContext, HttpListenerRequest, HttpUiServer, bool, HttpListener, HttpListenerResponse, JsonSerializerOptions, object (+1 more)
 
 ### Community 171 - "ArchSitePlan.Core.Constants"
-Cohesion: 0.10
-Nodes (14): ArchSitePlan.Core.Utils, ArchSitePlan.Core.Constants, CoreGeneralConstants, int, string, BuildingTargetMode, EditType, Enums (+6 more)
+Cohesion: 0.07
+Nodes (20): ArchSitePlan.Core.Utils, ArchSitePlan.Core.Constants, AppColours, Color, List, CoreGeneralConstants, int, string (+12 more)
 
 ### Community 172 - "Pipeline Logging Implementation Plan"
 Cohesion: 0.11
@@ -1024,24 +1009,24 @@ Cohesion: 0.11
 Nodes (16): net8.0, RhinoCommon (8.32.26131.18001-rc), WebSocketSharp (1.0.3-rc11), Microsoft.NET.Sdk, net8.0, Microsoft.Extensions.Logging (10.0.10), RhinoCommon (8.32.26131.18001-rc), System.Drawing.Common (8.0.0) (+8 more)
 
 ### Community 175 - ".create"
-Cohesion: 0.19
+Cohesion: 0.15
 Nodes (3): [Symbol.iterator](), toString(), tR()
 
 ### Community 176 - "qg"
-Cohesion: 0.16
-Nodes (4): afterUpdate(), beforeDatasetDraw(), qg(), r1()
+Cohesion: 0.15
+Nodes (5): afterUpdate(), beforeDatasetDraw(), qg(), r1(), wb()
 
 ### Community 177 - "EventQueue"
-Cohesion: 0.18
-Nodes (7): RhinoDeselectAllObjectsEventArgs, RhinoObjectSelectionEventArgs, SelectedObjectMetricsMessage, Data, List, string, Title
+Cohesion: 0.04
+Nodes (50): ArchSitePlan.OSM.Models, ArchSitePlan.Test.OSMTests, ArchSitePlan.OSM.Extensions, IOsmObject, Color, OsmModel, List, BoundaryBarrierOsm (+42 more)
 
 ### Community 178 - "SelectedObjectMetricsMessage"
-Cohesion: 0.15
-Nodes (13): ModifyModelUsesTestData, UseModificationData, StepResult, ModifyModelUsesStep, Guid, ILogger, List, UrbanModel (+5 more)
+Cohesion: 0.24
+Nodes (6): ModifyModelUsesTestData, ModifyModelUsesStepTests, List, SetUp, Test, TestCase
 
 ### Community 179 - "ChangeBuildingUseStepTests"
-Cohesion: 0.33
-Nodes (5): ChangeBuildingUseTestData, ChangeBuildingUseStepTests, List, Point3d, SetUp
+Cohesion: 0.15
+Nodes (11): ChangeBuildingUseTestData, ChangeBuildingUseStep, ILogger, List, UrbanModel, ChangeBuildingUseStepTests, List, Point3d (+3 more)
 
 ### Community 180 - "AIQ.Exports Excel Architecture"
 Cohesion: 0.12
@@ -1064,16 +1049,16 @@ Cohesion: 0.17
 Nodes (13): ActionTestPipeline, Func, IConfigurableHttpClientInitializer, string, ModifyShapeActionIntegrationTests, Fact, Task, ReplaceImageActionTests (+5 more)
 
 ### Community 187 - "IOsmPolygon"
-Cohesion: 0.03
-Nodes (72): ArchSitePlan.OSM.Models.OsmPolygon, ArchSitePlan.OSM.Models, ArchSitePlan.OSM.Extensions, IOsmObject, IOsmObject, Color, OsmModel, List (+64 more)
+Cohesion: 0.04
+Nodes (43): ArchSitePlan.OSM.Models.OsmPolygon, ArchSitePlan.RhinoInterface.RhinoOSM.Areas, IOsmObject, RhinoOsm, BuildingOsm, Color, List, Node (+35 more)
 
 ### Community 188 - "AIQ.Exports.csproj"
-Cohesion: 0.13
-Nodes (13): Google.Apis.Drive.v3 (1.69.0.3790), Google.Apis.Slides.v1 (1.69.0.3701), Moq (4.20.70), net8.0, ClosedXML (0.105.0), System.Drawing.Common (8.0.0), Microsoft.NET.Sdk, net8.0 (+5 more)
+Cohesion: 0.12
+Nodes (14): Google.Apis.Drive.v3 (1.69.0.3790), Google.Apis.Slides.v1 (1.69.0.3701), Moq (4.20.70), ShapeCrawler (0.75.2), net8.0, ClosedXML (0.105.0), System.Drawing.Common (8.0.0), Microsoft.NET.Sdk (+6 more)
 
 ### Community 189 - "mv"
-Cohesion: 0.19
-Nodes (8): ex(), ix(), nx(), qr(), rr(), sx(), tx(), vb()
+Cohesion: 0.24
+Nodes (6): ex(), nx(), qr(), rr(), tx(), vb()
 
 ### Community 190 - "PlanarSurfaceExtensions"
 Cohesion: 0.29
@@ -1088,8 +1073,8 @@ Cohesion: 0.20
 Nodes (6): AIQ.Urban.Tests.Logging, ILoggerProvider, RhinoLogProvider, ILogger, RhinoLoggerTests, Fact
 
 ### Community 193 - "AIQ.Urban.RhinoInterface.Extensions"
-Cohesion: 0.15
-Nodes (8): AIQ.Urban.RhinoInterface.Extensions, LayerTable, LayerExtensions, Layer, List, LayerTableExtensions, Layer, RhinoDoc
+Cohesion: 0.09
+Nodes (11): AIQ.Urban.RhinoInterface.Extensions, AIQ.Urban.RhinoInterface.Utils, AIQ.Urban.RhinoInterface.Pipeline.Outputters, AIQ.Urban.Core.Utils, AIQ.Urban.Core.Models.Metrics, AIQ.Urban.RhinoInterface.Exports, AIQ.Urban.RhinoInterface.EventHandler, AIQ.Urban.Core.Tests.Models.Metrics (+3 more)
 
 ### Community 194 - "Implementation Phases"
 Cohesion: 0.13
@@ -1100,8 +1085,8 @@ Cohesion: 0.34
 Nodes (5): PlanarSurface, CoreModelEditStepLibraryTests, Fact, ICurve, List
 
 ### Community 196 - "IOsmPolyline"
-Cohesion: 0.33
-Nodes (5): SelectZoneBoundaryStep, Curve, ILogger, List, RhinoDoc
+Cohesion: 0.25
+Nodes (7): ADR 3: Load the Rhino plugin as a DLL in its test project, Consequences, Considered alternatives, Context, Decision, Status, Verification
 
 ### Community 197 - "AIQ.Urban.Core.Tests — Testing Conventions"
 Cohesion: 0.13
@@ -1120,12 +1105,12 @@ Cohesion: 0.15
 Nodes (6): IPreviewSink, Color, PreviewSink, Color, HashSet, RhinoDoc
 
 ### Community 201 - ".ResolveUse"
-Cohesion: 0.19
-Nodes (9): DebugExtensions, Element, List, ToHyparExtensions, Mesh, ColoredMesh, Color, List (+1 more)
+Cohesion: 0.21
+Nodes (7): BuildingDefinition, PolyCurve, Polyline, TransformMatrix, BuildingInstance, Polygon, TransformMatrix
 
 ### Community 202 - "OsmModel"
-Cohesion: 0.11
-Nodes (19): BUA, Center, ParcelAction, EditType, Guid, ICurve, List, PlanarSurface (+11 more)
+Cohesion: 0.08
+Nodes (22): Center, LanduseActions, EditType, Guid, List, ParcelAction, EditType, Guid (+14 more)
 
 ### Community 203 - "PointComparer"
 Cohesion: 0.19
@@ -1152,16 +1137,16 @@ Cohesion: 0.18
 Nodes (9): FaceId, PolylineExtensions, ICurve, int, Line, List, Mesh, PolyCurve (+1 more)
 
 ### Community 211 - ".FromExtrudedSurface"
-Cohesion: 0.24
-Nodes (8): MeshBuilder, List, Mesh, PlanarSurface, Point, Polyline, Vector, Fact
+Cohesion: 0.20
+Nodes (8): ArchSitePlan.BHoM.Geometry.Comparers, MeshBuilder, List, Mesh, PlanarSurface, Point, Polyline, Vector
 
 ### Community 212 - "BuildingDefinition"
 Cohesion: 0.15
 Nodes (9): ReplaceImageAction, DriveService, IEnumerable, Presentation, Request, string, Task, ReplaceImageActionGoo (+1 more)
 
 ### Community 213 - "BuildingConstructorTests"
-Cohesion: 0.09
-Nodes (14): Point3d, hh(), iS, Point2dExtensionTests, List, Test, TestCase, BuildingConstructorTests (+6 more)
+Cohesion: 0.07
+Nodes (16): Point3d, hh(), iS, Point2dExtensionTests, List, Test, TestCase, ParcelBoundaryTests (+8 more)
 
 ### Community 214 - "Test-Driven Development"
 Cohesion: 0.15
@@ -1180,24 +1165,28 @@ Cohesion: 0.15
 Nodes (12): File Map, Global Constraints, Parcel Boundaries Implementation Plan, Task 1: Create `ParcelBoundary` class, Task 2: Create `ParcelBoundaryData` creation data record, Task 3: Add `ParcelBoundaries` to `UrbanModel`, Task 4: Create `AddParcelBoundaryStep`, Task 5: Add `SplitHoleWithSeparators` stub to `RecalculateParcelsStep` (+4 more)
 
 ### Community 218 - ".Run"
-Cohesion: 0.16
-Nodes (3): Oa, Wh(), XN()
+Cohesion: 0.22
+Nodes (6): DocLayerStateFromDocumentComponent, Bitmap, GH_InputParamManager, GH_OutputParamManager, Guid, IGH_DataAccess
 
 ### Community 219 - "ParcelBoundary"
-Cohesion: 0.18
-Nodes (8): AddParcelBoundaryStep, ILogger, List, UrbanModel, ParcelBoundaryData, ParcelBoundary, Guid, List
+Cohesion: 0.22
+Nodes (8): BhomDebugExtensions, Element, ICurve, IEnumerable, List, Material, Mesh, Point
+
+### Community 221 - "H0"
+Cohesion: 0.28
+Nodes (6): Mesh2DConverter, Color, HashSet, Mesh, ObjectAttributes, RhinoDoc
 
 ### Community 222 - "ex"
-Cohesion: 0.22
-Nodes (4): AIQ.Urban.Core.Tests.ShapeSubdividers, AIQ.Urban.Core.Models.ShapeSubdividers, BisectingTestData, LongEdgeTestData
+Cohesion: 0.25
+Nodes (4): JsonSerializerSettings, HistoryAction, int, List
 
 ### Community 223 - "ColoredMesh"
 Cohesion: 0.21
 Nodes (6): TrapezoidalTriangulatorTests, List, Point3d, Test, TestCase, TriangulationTestData
 
 ### Community 224 - "LanduseData"
-Cohesion: 0.24
-Nodes (6): Domain1d, DEBUGMODEL, bool, double, Model, string
+Cohesion: 0.29
+Nodes (3): Result, RhinoDoc, RunMode
 
 ### Community 225 - "Diagnose"
 Cohesion: 0.17
@@ -1208,8 +1197,8 @@ Cohesion: 0.17
 Nodes (10): net8.0, Microsoft.NET.Sdk, ModelContextProtocol.AspNetCore (1.3.0), net8.0-windows, Microsoft.NET.Test.Sdk (17.13.0), NUnit (3.14.0), NUnit3TestAdapter (5.0.0), Rhino.Testing (8.0.28-beta) (+2 more)
 
 ### Community 227 - "ArchSitePlan.BHoM.Geometry.csproj"
-Cohesion: 0.24
-Nodes (7): PrimitiveIntersectTestCase, GraphNodeExtensionPrimitiveTests, Line, Point3d, Test, TestCase, VisualiseIntersectionTest()
+Cohesion: 0.29
+Nodes (5): RhinoView, RhinoImageExporter, Layer, List, RhinoDoc
 
 ### Community 228 - "Profile2D Triangulation — Design Spec"
 Cohesion: 0.17
@@ -1240,8 +1229,8 @@ Cohesion: 0.13
 Nodes (12): ExcelCellAddress, int, TableBlock, IExcelBlockPlacementStrategy, IReadOnlyList, VerticalBlockPlacementStrategy, int, IReadOnlyList (+4 more)
 
 ### Community 235 - "SetDetailTargetComponent"
-Cohesion: 0.20
-Nodes (8): AddTransit_AIQUrban, Result, RhinoDoc, RunMode, SelectTransitCenterlinesStep, ILogger, List, RhinoDoc
+Cohesion: 0.32
+Nodes (4): IGoogleSlidesDocument, CancellationToken, List, Task
 
 ### Community 236 - "CurveExtensions"
 Cohesion: 0.20
@@ -1255,13 +1244,9 @@ Nodes (6): DefaultUses, IReadOnlyList, List, string, DefaultUsesTests, Test
 Cohesion: 0.24
 Nodes (7): List, X, Y, Curve2DTests, List, Test, TestCase
 
-### Community 240 - "zD"
-Cohesion: 0.07
-Nodes (14): ac(), bn(), bS, cp(), fc, Ia(), id(), iy (+6 more)
-
 ### Community 241 - "wx"
-Cohesion: 0.22
-Nodes (6): ReplaceTextActionComponent, Bitmap, GH_InputParamManager, GH_OutputParamManager, Guid, IGH_DataAccess
+Cohesion: 0.33
+Nodes (3): beforeDraw(), ix(), sx()
 
 ### Community 242 - "BoundingBoxExtensions"
 Cohesion: 0.29
@@ -1296,8 +1281,8 @@ Cohesion: 0.22
 Nodes (7): EventId, ILogger, LogLevel, RhinoLogger, Exception, Func, IDisposable
 
 ### Community 250 - "ModifyModelUsesStepTests"
-Cohesion: 0.05
-Nodes (24): a0(), ah(), cd, cm(), dm, Fr(), $h(), hm() (+16 more)
+Cohesion: 0.25
+Nodes (7): net8.0-windows, Microsoft.NET.Test.Sdk (17.13.0), NUnit (3.14.0), NUnit3TestAdapter (5.0.0), Rhino.Testing (8.0.28-beta), RhinoCommon (8.32.26131.18001-rc), Microsoft.NET.Sdk
 
 ### Community 251 - "IEnumerableExtensions"
 Cohesion: 0.25
@@ -1312,32 +1297,36 @@ Cohesion: 0.29
 Nodes (6): BisectingCrossSection, Curve, List, Point3d, PolyCurve, Polyline
 
 ### Community 255 - "Parcel"
-Cohesion: 0.24
-Nodes (7): Parcel, Guid, List, Point3d, Use, IGraphableAsNode, Point3d
+Cohesion: 0.29
+Nodes (5): CurveExtensionTests, OffsetTestData, List, Test, TestCase
 
 ### Community 256 - "Design Steps"
 Cohesion: 0.18
 Nodes (10): Design Steps, Step 1: Program Mix, Step 2: Site Details, Step 3: Design Principles, Step 4: Concept Planning, Step 5: Spatial Strategy, Step 6: Geometry Generation, Step 7: Verification (+2 more)
 
 ### Community 257 - "WebSocketUiServer"
-Cohesion: 0.15
-Nodes (9): UpdateZoneStep, ILogger, List, UrbanModel, UpdateZoneStepTests, List, SetUp, Test (+1 more)
+Cohesion: 0.25
+Nodes (5): UpdateZoneStepTests, List, SetUp, Test, TestCase
+
+### Community 258 - "Gl"
+Cohesion: 0.17
+Nodes (9): AddBuilding_AIQUrban, GetObject, Result, RhinoDoc, RunMode, SelectBuildingFootprintStep, ILogger, List (+1 more)
 
 ### Community 259 - "lk"
 Cohesion: 0.18
 Nodes (7): SetDetailTargetComponent, Bitmap, GH_InputParamManager, GH_OutputParamManager, Guid, IGH_DataAccess, AnchorPosition
 
 ### Community 260 - "RhinoStudyData"
-Cohesion: 0.22
-Nodes (8): StudyData, RhinoStudyData, Curve, Guid, IEnumerable, List, RhinoObject, string
+Cohesion: 0.27
+Nodes (7): RhinoStudyData, Curve, Guid, IEnumerable, List, RhinoObject, string
 
 ### Community 261 - "RemoveZoneStepTests"
 Cohesion: 0.18
 Nodes (7): RemoveZoneStepTests, RemoveZoneTestData, Guid, List, SetUp, Test, TestCase
 
 ### Community 262 - "UpdateBuildingStepTests"
-Cohesion: 0.22
-Nodes (7): UpdateBuildingStepTests, Brep, List, SetUp, Test, TestCase, UpdateBuildingTestData
+Cohesion: 0.07
+Nodes (22): List, UrbanModel, UpdateBuildingStep, ILogger, IReadOnlyList, List, UrbanModel, ResetUrbanElementsStepTests (+14 more)
 
 ### Community 263 - "ProjectMetricsCalculatorTests"
 Cohesion: 0.35
@@ -1352,8 +1341,8 @@ Cohesion: 0.20
 Nodes (9): AI Can't Site Plan Because Your CAD Model Doesn't Know What a Building Is, Conclusion, First Milestone, Orphaned Geometry vs Living Site Model, The Living Site Model, The Metrics Already Exist, The Problem With Orphaned Geometry, Title Alternatives (+1 more)
 
 ### Community 266 - "GraphCreateTests"
-Cohesion: 0.14
-Nodes (10): GraphCreateTestData, Profile2DExtensions, Line, Profile2D, Brep, Guid, List, Point2d (+2 more)
+Cohesion: 0.13
+Nodes (11): GraphCreateTestData, Profile2DExtensions, Line, Profile2D, Guid, List, Point2d, Test (+3 more)
 
 ### Community 267 - "XUnit Best Practices"
 Cohesion: 0.20
@@ -1376,12 +1365,12 @@ Cohesion: 0.29
 Nodes (4): Point3dExtensions, Point2d, Point3d, Vector3d
 
 ### Community 272 - "Transit"
-Cohesion: 0.05
-Nodes (29): Color, RhinoDoc, Color, RhinoDoc, Brep, Color, RhinoDoc, Color (+21 more)
+Cohesion: 0.21
+Nodes (8): Color, RhinoDoc, Color, RhinoDoc, RhinoHelper, Color, ObjectAttributes, RhinoDoc
 
-### Community 273 - ".RunCommand"
-Cohesion: 0.20
-Nodes (8): TransitData, TransitPipelineConfigurationTests, Data, Guid, Id, List, SetUp, TransitPipelineTestData
+### Community 275 - "pd"
+Cohesion: 0.33
+Nodes (4): ICurveExtensionsTests, Fact, InlineData, Theory
 
 ### Community 276 - "ElementSummarySerializer"
 Cohesion: 0.29
@@ -1392,8 +1381,8 @@ Cohesion: 0.33
 Nodes (6): DividerAction, EditType, List, DividerData, Guid, ICurve
 
 ### Community 278 - ".FromOsmSource"
-Cohesion: 0.50
-Nodes (3): ICurve, MemberData, Theory
+Cohesion: 0.40
+Nodes (4): PrimitivePolygonContainsLineTestData, Polygon2DExtensionTests, Test, TestCase
 
 ### Community 279 - "BuildingOsm"
 Cohesion: 0.22
@@ -1415,17 +1404,17 @@ Nodes (7): RemoveBuildingStepTests, RemoveBuildingTestData, Guid, List, SetUp, T
 Cohesion: 0.20
 Nodes (9): AIQ.Urban.DebugViz — Debug Preview System, Converter hierarchy, Example dialogue, Flagged ambiguities, Known bugs, Language, Layer naming, Purpose (+1 more)
 
+### Community 284 - ".AddToPreviewDoc"
+Cohesion: 0.18
+Nodes (9): ArchSitePlan.OSM, Colors, Color, Keys, Color, List, string, Tag (+1 more)
+
 ### Community 285 - ".Test"
-Cohesion: 0.12
-Nodes (10): AIQ.Urban.Core.Tests, BootstrapForceInitialize, ModuleInitializer, Urban_Core_Test, IEnumerable, Point3d, Test, TestCaseSource (+2 more)
+Cohesion: 0.09
+Nodes (14): AIQ.Urban.Core.Tests, LayerTable, LayerTableExtensions, Layer, RhinoDoc, BootstrapForceInitialize, ModuleInitializer, Urban_Core_Test (+6 more)
 
 ### Community 286 - "opencode.json"
 Cohesion: 0.22
 Nodes (8): autoupdate, disabled_providers, enabled_providers, permission, external_directory, plugin, $schema, share
-
-### Community 287 - "CONTEXT.md Format"
-Cohesion: 0.22
-Nodes (6): CONTEXT.md Format, Rules, Single vs multi-context repos, Structure, Domain awareness, File structure
 
 ### Community 288 - "SKILL.md"
 Cohesion: 0.22
@@ -1444,8 +1433,8 @@ Cohesion: 0.22
 Nodes (6): SetChartDataComponent, Bitmap, GH_InputParamManager, GH_OutputParamManager, Guid, IGH_DataAccess
 
 ### Community 292 - "ApplyLayerStateComponent"
-Cohesion: 0.22
-Nodes (6): DocLayerStateFromRhinoLayerState, Bitmap, GH_InputParamManager, GH_OutputParamManager, Guid, IGH_DataAccess
+Cohesion: 0.33
+Nodes (4): CopySlideAction, IEnumerable, Presentation, Request
 
 ### Community 293 - "CopyLayoutViewComponent"
 Cohesion: 0.22
@@ -1460,8 +1449,12 @@ Cohesion: 0.25
 Nodes (6): PolylineExtensions, BoundingBox, List, Point3d, Polyline, Transform
 
 ### Community 296 - "iw"
-Cohesion: 0.21
-Nodes (8): ZoneData, Zone, Curve, Guid, List, Plane, Point3d, UrbanModel
+Cohesion: 0.09
+Nodes (17): ZoneData, ResetUrbanElementsStep, ILogger, List, UrbanModel, IUrbanElement, Guid, List (+9 more)
+
+### Community 298 - "Parcel"
+Cohesion: 0.60
+Nodes (3): PlanarSurfaceExtensionsTests, InlineData, Theory
 
 ### Community 300 - ".ToggleLayerStateBasedOnAppMode"
 Cohesion: 0.20
@@ -1483,17 +1476,17 @@ Nodes (8): Commits, Concerns, Files Created, Implementation Summary, Status: DON
 Cohesion: 0.22
 Nodes (8): Build, Change, Commits, Concerns, File Modified, Status: DONE, Task 6 — Update StartUI_AIQUrban to call WithDocModelLoad, Test Summary
 
-### Community 305 - ".AssertLayerObjectCount"
-Cohesion: 0.25
-Nodes (5): GetInstallationIdMessageTests, SetUp, string, TearDown, Test
+### Community 305 - ".Run"
+Cohesion: 0.33
+Nodes (4): DefaultCurveConverter, Color, Curve, RhinoDoc
 
 ### Community 306 - "PeripheralBuildingFactoryTests"
 Cohesion: 0.25
 Nodes (6): PeripheralBuildingFactoryTests, Fact, IEnumerable, MemberData, Polygon, Theory
 
 ### Community 308 - "AIQ.Exports.Helpers"
-Cohesion: 0.20
-Nodes (5): StartUI_AIQUrban, int, Result, RhinoDoc, RunMode
+Cohesion: 0.14
+Nodes (7): Result, RhinoDoc, RunMode, UrbanHtmlUi, Action, Form, int
 
 ### Community 309 - ".AveragePoint"
 Cohesion: 0.25
@@ -1520,8 +1513,8 @@ Cohesion: 0.25
 Nodes (6): DeleteSlideAction, IEnumerable, int, Presentation, Request, string
 
 ### Community 315 - "IGoogleSlidesDocument"
-Cohesion: 0.32
-Nodes (4): IGoogleSlidesDocument, CancellationToken, List, Task
+Cohesion: 0.40
+Nodes (3): LayerExtensions, Layer, List
 
 ### Community 316 - ".CopyObjects"
 Cohesion: 0.39
@@ -1536,12 +1529,12 @@ Cohesion: 0.29
 Nodes (5): Point2dExtensions, IEnumerable, List, Point2d, Point3d
 
 ### Community 319 - ".Save"
-Cohesion: 0.39
+Cohesion: 0.33
 Nodes (4): ProjectMetricsJsonSerializer, JsonSerializerOptions, ProjectMetricsJsonSerializerTests, Test
 
-### Community 321 - "HttpServerComms"
-Cohesion: 0.31
-Nodes (5): HttpServerComms, bool, HttpListener, HttpListenerResponse, Task
+### Community 321 - ".Intersects_ReturnsExpectedResult"
+Cohesion: 0.40
+Nodes (3): BrepElementConverter, Color, RhinoDoc
 
 ### Community 322 - "NaturalOpenOsm"
 Cohesion: 0.39
@@ -1572,8 +1565,8 @@ Cohesion: 0.29
 Nodes (5): PointExtensionTests, IEnumerable, MemberData, Point, Theory
 
 ### Community 330 - "ChangeParcelUseStepTests"
-Cohesion: 0.31
-Nodes (6): Transit, Color, Curve, Guid, List, Point3d
+Cohesion: 0.24
+Nodes (7): Transit, Color, Curve, Guid, List, Point3d, IEnumerable
 
 ### Community 331 - "SetShapeImageAction"
 Cohesion: 0.33
@@ -1592,32 +1585,32 @@ Cohesion: 0.29
 Nodes (7): Challenge against the glossary, Cross-reference with code, Discuss concrete scenarios, During the session, Offer ADRs sparingly, Sharpen fuzzy language, Update CONTEXT.md inline
 
 ### Community 335 - ".CreateArcedProfile"
-Cohesion: 0.29
-Nodes (5): Profile2DTestData, Profile2DTests, List, Test, TestCase
+Cohesion: 0.24
+Nodes (6): Profile2DTestData, Brep, Profile2DTests, List, Test, TestCase
 
 ### Community 336 - "ExcelCellContent"
-Cohesion: 0.05
-Nodes (25): IGeometryPreviewConverter, Color, RhinoDoc, AIQ.Urban.Core.Tests.Models.GeometryElements, AIQ.PreviewHelper.Core, AIQ.Urban.DebugViz.Converters, Mesh2DTestData, Profile2DTestData (+17 more)
+Cohesion: 0.40
+Nodes (3): GraphConverter, Color, RhinoDoc
 
 ### Community 337 - "ExcelDocument"
 Cohesion: 0.17
 Nodes (8): ExcelDocument, ExcelWorksheetDefinition, ExcelWorksheetOptions, ExcelDocumentWriter, IReadOnlyList, IXLWorksheet, ExcelExampleWorkbookTests, Fact
 
+### Community 338 - ".AddToPreviewDoc"
+Cohesion: 0.40
+Nodes (3): Polygon2DConverter, Color, RhinoDoc
+
 ### Community 340 - "AIQ.Urban.Tests.csproj"
 Cohesion: 0.29
 Nodes (6): net8.0-windows, Microsoft.NET.Test.Sdk (17.13.0), RhinoCommon (8.32.26131.18001-rc), xunit (2.9.3), xunit.runner.visualstudio (3.0.0), Microsoft.NET.Sdk
 
-### Community 341 - "Command"
-Cohesion: 0.29
-Nodes (6): Command, AddZone_AIQUrban, Result, RhinoDoc, RunMode, ResetUrban_AIQUrban
+### Community 341 - "BisectingCrossSectionTests.cs"
+Cohesion: 0.50
+Nodes (4): CONTEXT.md Format, Rules, Single vs multi-context repos, Structure
 
 ### Community 342 - "AIQ.Mapbox.Tests.csproj"
 Cohesion: 0.29
 Nodes (6): net8.0, coverlet.collector (3.2.0), Microsoft.NET.Test.Sdk (17.7.1), xunit (2.4.2), xunit.runner.visualstudio (2.4.5), Microsoft.NET.Sdk
-
-### Community 343 - "BootstrapForceInitialize.cs"
-Cohesion: 0.33
-Nodes (4): CopySlideAction, IEnumerable, Presentation, Request
 
 ### Community 344 - "AQI.Urban.Core.Tests.csproj"
 Cohesion: 0.29
@@ -1630,10 +1623,6 @@ Nodes (3): RectangularBuildingFactoryTests, Fact, Polygon
 ### Community 347 - "AIQ_GH_ExportsInfo"
 Cohesion: 0.33
 Nodes (5): AIQ.GH.Exports, GH_AssemblyInfo, AIQ_GH_ExportsInfo, Bitmap, Guid
-
-### Community 348 - ".RunCommand"
-Cohesion: 0.33
-Nodes (5): ChangeBuildingUse_AIQUrban, GetObject, Result, RhinoDoc, RunMode
 
 ### Community 350 - "ADR 1: FileGltf for test debug visualization"
 Cohesion: 0.33
@@ -1667,10 +1656,6 @@ Nodes (6): ADR Format, Numbering, Optional sections, Template, What qualifies, W
 Cohesion: 0.33
 Nodes (6): 1. Explore, 2. Present candidates, 3. Grilling loop, Glossary, Improve Codebase Architecture, Process
 
-### Community 358 - "._get"
-Cohesion: 0.29
-Nodes (5): AddZoneStepTests, List, SetUp, Test, TestCase
-
 ### Community 361 - "VectorExtensions.cs"
 Cohesion: 0.40
 Nodes (3): VectorExtensions, TransformMatrix, Vector
@@ -1678,10 +1663,6 @@ Nodes (3): VectorExtensions, TransformMatrix, Vector
 ### Community 362 - "RHGeneralConstants"
 Cohesion: 0.33
 Nodes (5): RHGeneralConstants, Color, int, List, string
-
-### Community 363 - ".GrahamConvexHull_ReturnsConvexHull"
-Cohesion: 0.29
-Nodes (5): BuildingPipelineConfigurationTests, List, SetUp, Test, TestCase
 
 ### Community 364 - "Domain Docs"
 Cohesion: 0.40
@@ -1715,29 +1696,9 @@ Nodes (5): 1. Frame the problem space, 2. Spawn sub-agents, 3. Present and compa
 Cohesion: 0.40
 Nodes (5): Language, Principles, Rejected framings, Relationships, Terms
 
-### Community 372 - ".OpenWindow"
-Cohesion: 0.60
-Nodes (3): PlanarSurfaceExtensionsTests, InlineData, Theory
-
 ### Community 373 - "ColouredMeshTests.cs"
 Cohesion: 0.33
 Nodes (4): ArchSitePlan.Test.ArchSitePlan.BHoM.Geometry.Models, ColouredMeshTests, Fact, Mesh
-
-### Community 374 - ".UnsubscribeModelEvents"
-Cohesion: 0.33
-Nodes (3): VueUI, EventArgs, Form
-
-### Community 375 - "IEnumerableExtensions"
-Cohesion: 0.33
-Nodes (5): BuildingRhOsm, double, Extrusion, Guid, int
-
-### Community 376 - "TransformMatrixExtensions"
-Cohesion: 0.25
-Nodes (7): Element, ICurve, IEnumerable, List, Material, Mesh, Point
-
-### Community 377 - "PathConstants"
-Cohesion: 0.40
-Nodes (3): PathConstants, RhinoDoc, string
 
 ### Community 378 - "LayerConstants"
 Cohesion: 0.40
@@ -1795,37 +1756,17 @@ Nodes (4): Exit condition, Green, Red, Slice 9 — Multiple blocks and worksheet
 Cohesion: 0.50
 Nodes (4): Exit condition, Green, Red, Slice 10 — Inspectable example workbook
 
-### Community 393 - "UsageLogEmitter"
-Cohesion: 0.50
-Nodes (3): UsageLogEmitter, bool, string
-
-### Community 399 - ".FromOsmWay"
-Cohesion: 0.50
-Nodes (3): List, Node, Way
-
-### Community 400 - "ArchSitePlan.Core.ModelEditActions"
-Cohesion: 0.25
-Nodes (6): ChangeBuildingUseStep, ILogger, List, UrbanModel, Test, TestCase
-
 ### Community 407 - "AppColours"
 Cohesion: 0.25
 Nodes (4): IShapeEditAction, IShape, SetShapeTextAction, IShape
 
 ### Community 408 - "UIMessages.cs"
-Cohesion: 0.08
-Nodes (11): beforeDraw(), C1(), i1(), k1(), L1(), O1(), p1(), pd() (+3 more)
+Cohesion: 0.10
+Nodes (9): C1(), i1(), k1(), L1(), O1(), p1(), pd(), x1() (+1 more)
 
 ### Community 409 - "PathHelpers.cs"
 Cohesion: 0.50
 Nodes (3): ViewHelpers, BoundingBox, RhinoDoc
-
-### Community 421 - ".CanDivideByCount_SimpleCurves"
-Cohesion: 0.50
-Nodes (3): List, Tag, Value
-
-### Community 424 - "._createAnimations"
-Cohesion: 0.25
-Nodes (7): AutoBuildingData, AutoLShapedBuildingData, AutoOShapedBuildingData, AutoPeripheralBuildingData, AutoUShapedBuildingData, PrimaryAxisBuildingData, UnionedBoxesBuildingData
 
 ### Community 425 - "Enums.cs"
 Cohesion: 0.50
@@ -1844,35 +1785,31 @@ Cohesion: 0.33
 Nodes (5): CoordinateSharp (3.1.1.1), OsmSharp (6.2.0), ProjNET4GeoAPI (1.4.1), net8.0, Microsoft.NET.Sdk
 
 ### Community 431 - ".PolygonContains_Line"
-Cohesion: 0.38
-Nodes (4): ChangeParcelUseTestData, ChangeParcelUseStepTests, List, SetUp
+Cohesion: 0.15
+Nodes (10): ChangeParcelUseTestData, ChangeParcelUseStep, ILogger, List, UrbanModel, ChangeParcelUseStepTests, List, SetUp (+2 more)
 
-### Community 434 - ".OpenWindow"
-Cohesion: 0.50
-Nodes (3): UrbanHtmlUi, Action, Form
+### Community 438 - "PathConstants"
+Cohesion: 0.40
+Nodes (3): PathConstants, RhinoDoc, string
 
 ### Community 449 - "kn"
-Cohesion: 0.07
-Nodes (12): aI(), b0, Cl(), g2(), ib(), kn(), Li(), n2 (+4 more)
-
-### Community 452 - "ExcelCellContent"
-Cohesion: 0.70
-Nodes (4): Blank, ExcelCellContent, Formula, Value
+Cohesion: 0.05
+Nodes (17): aI(), b0, c2(), Cl(), clear(), g2(), Ia(), ib() (+9 more)
 
 ## Knowledge Gaps
-- **841 isolated node(s):** `$schema`, `share`, `autoupdate`, `external_directory`, `enabled_providers` (+836 more)
+- **848 isolated node(s):** `$schema`, `share`, `autoupdate`, `external_directory`, `enabled_providers` (+843 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **94 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **91 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `AIQ.Primitives.Extensions` connect `AIQ.Urban.Core.Models.GeometryElements` to `ColorExtensions`, `DomainExtensions`, `ArchSitePlan.Core.Constants`, `Fn`, `AIQ.Urban.Core.ModelActions.CreationData`, `ModelStateMessage`, `ICurveExtensions`, `.ResolveUse`, `OsmModel`, `zi`, `BuildingData`, `PointExtensions`, `AIQ.Urban.Core`, `ArchSitePlan.DebugModel`, `Rectangle`, `VectorExtensions.cs`, `LineExtensions`, `IEnumerableExtensions`, `DoubleExtensions`?**
-  _High betweenness centrality (0.201) - this node is a cross-community bridge._
-- **Why does `iS` connect `BuildingConstructorTests` to `GraphCreationStepTests`, `Rhino Plugin & Pipeline`, `Command Surface`, `WebSocketUiServer`, `UpdateBuildingStepTests`, `ProjectMetricsCalculatorTests`, `Curve2D`, `.GetObjectCountByLayer`, `ArchSitePlan.Core.ModelEditActions`, `ArchSitePlan.OSM.Models.OsmPolygon`, `UIMessages.cs`, `DivisionResult`, `.Test`, `PowerpointExporter`, `Use`, `.AssertLayerObjectCount`, `SelectedObjectMetricsMessage`, `.Run`, `.Split_SplitterScenario_ReturnsExpectedRegions`, `StepResult`, `IUrbanElement`, `NaturalOpenOsm`, `.Test`, `Delaunator`, `.Run`, `LayerNameParserTests`, `ColoredMesh`, `UrbanSceneBuilder`, `ArchSitePlan.BHoM.Geometry.csproj`, `._get`, `Profile2DExtensionTests`, `StudyAreaMetrics`, `iS`, `.Create`, `.ResetDoc`, `AddBuildingStepTests`, `.Run`?**
-  _High betweenness centrality (0.200) - this node is a cross-community bridge._
+- **Why does `AIQ.Primitives.Extensions` connect `AIQ.Urban.Core.Models.GeometryElements` to `ColorExtensions`, `.Run`, `DomainExtensions`, `ArchSitePlan.Core.Constants`, `Fn`, `AIQ.Urban.Core.ModelActions.CreationData`, `ArchSitePlan.RhinoInterface.Constants`, `ModelStateMessage`, `AIQ.Urban.RhinoInterface.Extensions`, `ICurveExtensions`, `OsmModel`, `BuildingData`, `PointExtensions`, `.FromExtrudedSurface`, `ArchSitePlan.DebugModel`, `Rectangle`, `VectorExtensions.cs`, `LineExtensions`, `IEnumerableExtensions`, `DoubleExtensions`?**
+  _High betweenness centrality (0.206) - this node is a cross-community bridge._
+- **Why does `iS` connect `BuildingConstructorTests` to `GraphCreationStepTests`, `Rhino Plugin & Pipeline`, `Command Surface`, `WebSocketUiServer`, `UpdateBuildingStepTests`, `ProjectMetricsCalculatorTests`, `GraphCreateTests`, `Curve2D`, `.GetObjectCountByLayer`, `ArchSitePlan.OSM`, `ArchSitePlan.OSM.Models.OsmPolygon`, `.FromOsmSource`, `DivisionResult`, `.Test`, `PowerpointExporter`, `Use`, `.PolygonContains_Line`, `SelectedObjectMetricsMessage`, `ChangeBuildingUseStepTests`, `.Run`, `.Split_SplitterScenario_ReturnsExpectedRegions`, `.MakeAttributes`, `GraphNode`, `IUrbanElement`, `NaturalOpenOsm`, `.Test`, `Delaunator`, `.Run`, `LayerNameParserTests`, `ColoredMesh`, `Profile2DExtensionTests`, `StudyAreaMetrics`, `.Create`, `Polygon2D`, `wx`, `.ResetDoc`, `AddBuildingStepTests`?**
+  _High betweenness centrality (0.192) - this node is a cross-community bridge._
 - **Why does `wS` connect `vS` to `RhinoEventHandler`, `Rhino Plugin & Pipeline`, `url`, `n`?**
-  _High betweenness centrality (0.152) - this node is a cross-community bridge._
+  _High betweenness centrality (0.156) - this node is a cross-community bridge._
 - **Are the 136 inferred relationships involving `n()` (e.g. with `._remove()` and `$a()`) actually correct?**
   _`n()` has 136 INFERRED edges - model-reasoned connections that need verification._
 - **Are the 157 inferred relationships involving `s()` (e.g. with `._get()` and `._set()`) actually correct?**
@@ -1880,4 +1817,4 @@ _Questions this graph is uniquely positioned to answer:_
 - **Are the 77 inferred relationships involving `l()` (e.g. with `$_` and `a2()`) actually correct?**
   _`l()` has 77 INFERRED edges - model-reasoned connections that need verification._
 - **What connects `$schema`, `share`, `autoupdate` to the rest of the system?**
-  _842 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _849 weakly-connected nodes found - possible documentation gaps or missing edges._

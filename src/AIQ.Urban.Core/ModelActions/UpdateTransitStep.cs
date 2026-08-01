@@ -30,8 +30,7 @@ public class UpdateTransitStep(ILoggerFactory? _loggerFactory = null) : IUrbanMo
         var newTransit = new Transit(
             newCurve2D,
             oldTransit.Width,
-            oldTransit.TransitType,
-            oldTransit.IsOnGround);
+            oldTransit.TransitType);
 
         model.Transits.Add(newTransit);
 

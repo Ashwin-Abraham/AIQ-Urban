@@ -94,6 +94,72 @@ public class UpdateBuildingStepTests
         }
     }
 
+    [Test]
+    public void Run_NoBuildingUpdateData_ReturnsNoChanges()
+    {
+        // Arrange
+        var updateStep = new UpdateBuildingStep();
+
+        // Act
+        var result = updateStep.Run(UrbanModel.Instance, []);
+
+        // Assert
+        Assert.That(result.AddedIds, Is.Empty);
+        Assert.That(result.DeletedIds, Is.Empty);
+        Assert.That(UrbanModel.Instance.Buildings, Is.Empty);
+    }
+
+    [Test]
+    public void Run_MultipleBuildingUpdates_UpdatesAllBuildingsAndPreservesUses()
+    {
+        // Arrange
+        var residential = DefaultUses.Create("Residential");
+        var commercial = DefaultUses.Create("Commercial");
+        List<ICreationData> initialData =
+        [
+            new BuildingMassData(
+                new BrepElement(MakeBoxBrep(10, 10, 9), Guid.NewGuid()),
+                3,
+                residential),
+            new BuildingMassData(
+                new BrepElement(MakeBoxBrep(8, 8, 9), Guid.NewGuid()),
+                3,
+                commercial),
+        ];
+        new AddBuildingStep().Run(UrbanModel.Instance, initialData);
+
+        var oldBuildings = UrbanModel.Instance.Buildings.ToList();
+        var oldGeometryIds = oldBuildings.SelectMany(building => building.GetGeometryIds()).ToList();
+        var updateData = oldBuildings
+            .Select(building => new BuildingUpdateData(
+                building.Envelope.Id,
+                building.Envelope.Geometry,
+                3,
+                building.FloorPlates.OrderBy(plate => plate.Z()).Select(plate => plate.Use).ToList()))
+            .Cast<ICreationData>()
+            .ToList();
+        var updateStep = new UpdateBuildingStep();
+
+        // Act
+        var result = updateStep.Run(UrbanModel.Instance, updateData);
+
+        // Preview
+#if DEBUG
+        UrbanModel.Instance.VisualizeBuildings(viewLocal: true);
+#endif
+
+        // Assert
+        Assert.That(UrbanModel.Instance.Buildings, Has.Count.EqualTo(2));
+        Assert.That(result.DeletedIds, Is.EquivalentTo(oldGeometryIds));
+        Assert.That(
+            UrbanModel.Instance.Buildings.SelectMany(building => building.GetGeometryIds()),
+            Has.None.Matches<Guid>(id => oldGeometryIds.Contains(id)));
+        Assert.That(
+            UrbanModel.Instance.Buildings
+                .Select(building => building.FloorPlates.Select(plate => plate.Use.Name).Distinct().Single()),
+            Is.EquivalentTo(new[] { residential.Name, commercial.Name }));
+    }
+
     private record UpdateBuildingTestData(
         string CaseName,
         List<ICreationData> InitialBuildings,

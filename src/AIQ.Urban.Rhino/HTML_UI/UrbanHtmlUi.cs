@@ -6,6 +6,9 @@ namespace AIQ.Urban.RhinoPlugin.HTML_UI;
 
 public static class UrbanHtmlUi
 {
+    private const int DefaultWindowWidth = 520;
+    private const int DefaultWindowHeight = 1000;
+
     private static Form? _window;
 
     public static Form OpenWindow(int httpPort, Action onClosed)
@@ -15,8 +18,8 @@ public static class UrbanHtmlUi
 
         var webView = new WebView
         {
-            Height = 1000,
-            Width = 420,
+            Height = DefaultWindowHeight,
+            Width = DefaultWindowWidth,
             Url = new Uri($"http://localhost:{httpPort}/index.html"),
         };
 
@@ -27,8 +30,8 @@ public static class UrbanHtmlUi
         _window = new Form
         {
             Title = "AIQ Urban UI",
-            Width = 420,
-            Height = 800,
+            Width = DefaultWindowWidth,
+            Height = DefaultWindowHeight,
             Topmost = true,
             Content = layout,
         };

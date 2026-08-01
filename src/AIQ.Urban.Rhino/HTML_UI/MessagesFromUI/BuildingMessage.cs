@@ -65,8 +65,10 @@ public class BuildingMessage : IMessageFromUI<ModelStateMessage>
         using var loggerFactory = new LoggerFactory().AddRhinoLog();
 
         var gatherStep = new SelectBuildingEnvelopeStep(selected, FloorHeight, use, loggerFactory);
-        var creationData = gatherStep.Run(doc);
-        var idsToDelete = creationData.OfType<BuildingMassData>().Select(b => b.Envelope.Id).ToList();
+        var selectedEnvelopeData = gatherStep.Run(doc).OfType<BuildingMassData>().ToList();
+        var resolver = new BuildingEnvelopeCreationDataResolver(UrbanModel.Instance);
+        var creationData = resolver.Resolve(selectedEnvelopeData);
+        var idsToDelete = selectedEnvelopeData.Select(data => data.Envelope.Id).ToList();
 
         return RunPipeline(doc, creationData, idsToDelete, loggerFactory);
     }
@@ -75,7 +77,7 @@ public class BuildingMessage : IMessageFromUI<ModelStateMessage>
     {
         var pipeline = new RhinoUrbanModelPipeline(doc, UrbanModel.Instance, loggerFactory)
             .WithCreationData(creationData)
-            .WithBuildingAdditionSteps([], idsToDelete)
+            .WithBuildingAddOrUpdateSteps([], idsToDelete)
             .WithFullModelOutput()
             .WithMetricsCalculation(tolerance: doc.ModelAbsoluteTolerance);
 

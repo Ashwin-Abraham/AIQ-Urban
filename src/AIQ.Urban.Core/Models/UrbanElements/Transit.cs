@@ -25,30 +25,24 @@ public class Transit : IUrbanElement, IGraphableAsEdge
     /// <summary>Type of transit corridor.</summary>
     public TransitType TransitType { get; }
 
-    /// <summary>Whether the corridor sits on ground level.</summary>
-    public bool IsOnGround { get; }
-
     /// <summary>Computed colour derived from transit type and comparative width. Set by TransitOutputter.</summary>
     public Color? Color { get; set; }
 
     public Guid Id => Centerline.Id;
 
-    /// <param name="centerline">Planar path at consistent Z.</param>
+    /// <param name="centerline">Planar path on the World XY plane.</param>
     /// <param name="width">Right-of-way width.</param>
     /// <param name="transitType">Type of corridor.</param>
-    /// <param name="isOnGround">True if ground-level.</param>
     /// <param name="tolerance">Fitting tolerance for geometry operations.</param>
     public Transit(
         Curve2D centerline,
         double width,
         TransitType transitType,
-        bool isOnGround = true,
         double tolerance = 0.001)
     {
         Centerline = centerline;
         Width = width;
         TransitType = transitType;
-        IsOnGround = isOnGround;
         Outline = CalculateOutline(centerline.Geometry, width, tolerance);
     }
 

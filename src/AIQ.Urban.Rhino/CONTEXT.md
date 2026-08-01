@@ -65,6 +65,8 @@ The event handler dispatches `DeleteRhinoObject` and `ReplaceRhinoObject` events
 
 The handler checks the modified object's layer to decide if it's authoritative geometry (Centerline for Transit, Boundary curve for Zone). Objects on derived layers (Outline, Surface, Envelope, FloorPlates) are re-baked on pipeline runs and user modifications are overwritten — that is correct behaviour.
 
+When a Transit centerline replacement violates the ground-plane invariant, the replacement is rejected individually: the invalid Rhino curve is deleted, the Transit's last valid centerline and outline are re-baked from `UrbanModel`, its width and type are preserved, and a warning is logged.
+
 ### Pipeline Cascade Matrix
 
 Each event triggers a pipeline configuration with primary steps plus cascading recomputation:
@@ -146,7 +148,7 @@ These pipeline configurations are wrapped as reusable methods (not necessarily u
 
 ### `StartUI_AIQUrban`
 - Starts the AIQ Urban HTML UI from Rhino.
-- **Model loading**: Before starting UI servers, scans the Rhino doc and hydrates `UrbanModel` from existing baked geometry. Uses `WithDocModelLoad()` pipeline configuration. UrbanModel is nuked (`Reset()`) and rebuilt from scratch. Loading order: uses → transits (from centerlines) → transit surface union → parcels (with use preservation from doc centroids) → buildings (from envelopes + floor plates) → zones → metrics. Orphaned geometry is silently skipped.
+- **Model loading**: Before starting UI servers, scans the Rhino doc and hydrates `UrbanModel` from existing baked geometry. Uses `WithDocModelLoad()` pipeline configuration. UrbanModel is nuked (`Reset()`) and rebuilt from scratch. Loading order: uses → transits (from centerlines) → transit surface union → parcels (with use preservation from doc centroids) → buildings (from envelopes + floor plates) → zones → metrics. A managed Transit centerline that violates the ground-plane invariant is excluded from `UrbanModel`, logged with its Rhino object ID, and left untouched in the document for correction. Other orphaned geometry is silently skipped.
 - Command owns UI startup only: starts local HTTP/static-file serving, starts websocket communication, then opens an Eto WebView pointed at the served `index.html`.
 - Local UI ports follow the old working pattern: HTTP on `localhost:6300`, websocket on `localhost:6400`.
 - Static UI assets are copied from the Vue UI dist into the plugin output under `HTML_UI/wwwroot` at build time; the HTTP server serves from the copied output directory, not the source tree.
@@ -250,7 +252,7 @@ _Avoid_: event deltas, legacy `SelectedObjectMetricsMessage` compatibility emiss
 ### TransitMessage Handling
 1. Get `RhinoDoc.ActiveDoc`
 2. Get selected curve objects, filter to `ObjectType.Curve`
-3. For each: create `Curve2D(curve, obj.Id)` → `TransitData(curve2D, RoadWidth, TransitType.Road)`
+3. During pipeline data gathering, validate each selected curve independently against the ground-plane invariant. For each valid curve, produce `TransitData` plus Rhino-object deletion data; for each invalid curve, log a warning and produce no creation or deletion data, leaving that Rhino curve untouched.
 4. Pipeline: `WithTransitAdditionSteps()` + `WithMetricsCalculation()` via `RhinoUrbanModelPipeline`
 5. Return `ModelStateMessage`
 
@@ -259,8 +261,12 @@ Two modes controlled by `manual_generationType`:
 
 - **Footprint**: Get selected curves → `SelectBuildingFootprintStep` produces `BuildingFootprintData(polygon, FloorHeight, FloorCount, DefaultUses.Undefined)`
 - **Mass**: Get selected Breps/Extrusions → `SelectBuildingEnvelopeStep` produces `BuildingMassData(envelopeBrep, FloorHeight, DefaultUses.Undefined)`. The step contours the envelope horizontally at intervals of `FloorHeight` to derive floor plate outlines. Contours with curve length < tolerance are discarded. `FloorCount` = `Floor(envelopeHeight / FloorHeight)`.
-- Pipeline: `WithBuildingAdditionSteps()` + `WithMetricsCalculation()` via `RhinoUrbanModelPipeline`
-- `AddBuildingStep` discriminates by creation data type and calls the appropriate `Building` constructor
+- In Mass mode, a resolver classifies every selected envelope before model mutation. An unmanaged envelope produces `BuildingMassData` for `AddBuildingStep`. A managed Building envelope produces `BuildingUpdateData` for `UpdateBuildingStep`, replacing the old Building and its floor plates while mapping the existing floor-plate Uses onto the replacement plates.
+- For a managed envelope, `BuildingUpdateData.TypicalFloorHeight` comes from the new `BuildingMessage.FloorHeight`; the old Building contributes its ordered floor-plate Uses, not its previous floor height.
+- Both add and update steps run in the same pipeline, ignore absent creation-data types, and support multiple selected envelopes in one operation.
+- Only a managed Building envelope is authoritative for an update. Selecting a floor plate never produces `BuildingUpdateData` and does not remove or update its owning Building.
+- Pipeline: resolver → `WithBuildingAddOrUpdateSteps()` (`AddBuildingStep` + `UpdateBuildingStep`) → full model output → metrics via `RhinoUrbanModelPipeline`
+- `AddBuildingStep` discriminates between its supported creation-data types and calls the appropriate `Building` constructor; `UpdateBuildingStep` consumes only `BuildingUpdateData`.
 - Building Use always defaults to `DefaultUses.Undefined` (UI does not send useName)
 
 ### Thread Safety

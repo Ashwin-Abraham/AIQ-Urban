@@ -13,29 +13,37 @@ public class UpdateBuildingStep(ILoggerFactory? _loggerFactory = null) : IUrbanM
 
     public StepResult Run(UrbanModel model, List<ICreationData> creationData)
     {
-        var data = creationData.OfType<BuildingUpdateData>().First();
+        var addedIds = new List<Guid>();
+        var deletedIds = new List<Guid>();
+        var updatedCount = 0;
 
-        var oldBuilding = model.Buildings
-            .FirstOrDefault(b => b.Envelope.Id == data.OldEnvelopeId);
+        foreach (var data in creationData.OfType<BuildingUpdateData>())
+        {
+            var oldBuilding = model.Buildings
+                .FirstOrDefault(b => b.Envelope.Id == data.OldEnvelopeId);
 
-        if (oldBuilding is null)
-            return new([], []);
+            if (oldBuilding is null)
+                continue;
 
-        var oldIds = oldBuilding.GetGeometryIds();
-        model.Buildings.Remove(oldBuilding);
+            var oldIds = oldBuilding.GetGeometryIds();
+            model.Buildings.Remove(oldBuilding);
 
-        var defaultUse = data.OldPlateUses.Count > 0
-            ? data.OldPlateUses[0]
-            : DefaultUses.Create("Public");
-        var newBuilding = new Building(data.NewEnvelope, data.TypicalFloorHeight, defaultUse);
+            var defaultUse = data.OldPlateUses.Count > 0
+                ? data.OldPlateUses[0]
+                : DefaultUses.Create("Public");
+            var newBuilding = new Building(data.NewEnvelope, data.TypicalFloorHeight, defaultUse);
 
-        MapUsesByZ(newBuilding.FloorPlates, data.OldPlateUses);
+            MapUsesByZ(newBuilding.FloorPlates, data.OldPlateUses);
 
-        model.AddBuilding(newBuilding);
+            model.AddBuilding(newBuilding);
+            addedIds.AddRange(newBuilding.GetGeometryIds());
+            deletedIds.AddRange(oldIds);
+            updatedCount++;
+        }
 
-        _logger.LogInformation("Updated building {Id}", data.OldEnvelopeId);
+        _logger.LogInformation("Updated {Count} buildings", updatedCount);
 
-        return new(newBuilding.GetGeometryIds(), oldIds);
+        return new(addedIds, deletedIds);
     }
 
     private static void MapUsesByZ(IReadOnlyList<FloorPlate> newPlates, List<Use> oldUses)

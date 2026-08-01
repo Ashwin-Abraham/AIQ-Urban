@@ -15,14 +15,15 @@ namespace AIQ.Urban.RhinoInterface;
 
 public static class PipelineConfigurations
 {
-    public static RhinoUrbanModelPipeline WithBuildingAdditionSteps(
+    public static RhinoUrbanModelPipeline WithBuildingAddOrUpdateSteps(
         this RhinoUrbanModelPipeline pipeline,
         List<ICreationData> buildingData,
         List<Guid> idsToDelete)
     {
         pipeline.WithRhinoObjectDeletion(idsToDelete)
             .WithCreationData(buildingData)
-            .WithUrbanElementStep(new AddBuildingStep(_loggerFactory: pipeline.LoggerFactory));
+            .WithUrbanElementStep(new AddBuildingStep(_loggerFactory: pipeline.LoggerFactory))
+            .WithUrbanElementStep(new UpdateBuildingStep(pipeline.LoggerFactory));
 
         return pipeline;
     }

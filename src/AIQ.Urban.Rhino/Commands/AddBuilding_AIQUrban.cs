@@ -66,7 +66,7 @@ public class AddBuilding_AIQUrban : Command
 
         var pipeline = new RhinoUrbanModelPipeline(doc, UrbanModel.Instance, loggerFactory)
             .WithDataGatherStep(gatherStep)
-            .WithBuildingAdditionSteps([], idsToDelete)
+            .WithBuildingAddOrUpdateSteps([], idsToDelete)
             .WithFullModelOutput()
             .WithMetricsCalculation(saveToFile: true, tolerance: doc.ModelAbsoluteTolerance, docName: doc.Name)
             .WithEventHandler(Urban_RhinoPlugin.Instance.EventHandler);

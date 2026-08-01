@@ -895,13 +895,13 @@
     "semantic_hash": ""
   },
   "src/AIQ.Urban.Core/ModelActions/UpdateBuildingStep.cs": {
-    "mtime": 1784536923.8950427,
-    "ast_hash": "aecd5f785570fff7d4791f829a2fa4fb",
+    "mtime": 1785458520.6985357,
+    "ast_hash": "5cc1e4e0172569172845f633be0e6dd1",
     "semantic_hash": ""
   },
   "src/AIQ.Urban.Core/ModelActions/UpdateTransitStep.cs": {
-    "mtime": 1784536923.8950427,
-    "ast_hash": "51ab4fd9c300ff0c1e22661b8e3456fb",
+    "mtime": 1785581908.6693194,
+    "ast_hash": "052d4ce7fec8e393e4943463eebe79ad",
     "semantic_hash": ""
   },
   "src/AIQ.Urban.Core/ModelActions/UpdateZoneStep.cs": {
@@ -1045,8 +1045,8 @@
     "semantic_hash": ""
   },
   "src/AIQ.Urban.Core/Models/UrbanElements/Transit.cs": {
-    "mtime": 1784751036.6078277,
-    "ast_hash": "9a2b36b1f5b5b8a6ff89204737e42268",
+    "mtime": 1785581907.6956086,
+    "ast_hash": "e9741aad0e75f80db88ac8a96d3b1e53",
     "semantic_hash": ""
   },
   "src/AIQ.Urban.Core/Models/UrbanElements/Zone.cs": {
@@ -1175,8 +1175,8 @@
     "semantic_hash": ""
   },
   "src/AIQ.Urban.RhinoInterface/Pipeline/PipelineConfigurations.cs": {
-    "mtime": 1784929038.6060765,
-    "ast_hash": "39244fa30cd47bc59e521fc509d4b1f7",
+    "mtime": 1785458523.7291937,
+    "ast_hash": "49d20e196926dbd23d7fc56f9e40e1ce",
     "semantic_hash": ""
   },
   "src/AIQ.Urban.RhinoInterface/Pipeline/RhinoDataGatherSteps/DocLoadGatherStep.cs": {
@@ -1195,8 +1195,8 @@
     "semantic_hash": ""
   },
   "src/AIQ.Urban.RhinoInterface/Pipeline/RhinoDataGatherSteps/SelectBuildingFootprintsStep.cs": {
-    "mtime": 1784929038.6060765,
-    "ast_hash": "ad36c04d07a881d5b31abd8e274518bd",
+    "mtime": 1785455050.607473,
+    "ast_hash": "111224e36d9287ee701a228f9710c5a7",
     "semantic_hash": ""
   },
   "src/AIQ.Urban.RhinoInterface/Pipeline/RhinoDataGatherSteps/SelectTransitCenterlinesStep.cs": {
@@ -1210,8 +1210,8 @@
     "semantic_hash": ""
   },
   "src/AIQ.Urban.RhinoInterface/Pipeline/RhinoUrbanModelPipeline.cs": {
-    "mtime": 1784980484.2921665,
-    "ast_hash": "450ad1571be1e87edfdb4ae19996acd4",
+    "mtime": 1785448986.216508,
+    "ast_hash": "f160341872f2e1b79879147b0f7c62be",
     "semantic_hash": ""
   },
   "src/AIQ.Urban.RhinoInterface/Utils/LayerConstants.cs": {
@@ -1250,8 +1250,8 @@
     "semantic_hash": ""
   },
   "src/AIQ.Urban.Rhino/Commands/AddBuilding_AIQUrban.cs": {
-    "mtime": 1784536923.945814,
-    "ast_hash": "7c862bb8edf56d32eeb9fd11e2980255",
+    "mtime": 1785458554.0036004,
+    "ast_hash": "1b439070f066ae814b255788a4244fb9",
     "semantic_hash": ""
   },
   "src/AIQ.Urban.Rhino/Commands/AddTransit_AIQUrban.cs": {
@@ -1335,8 +1335,8 @@
     "semantic_hash": ""
   },
   "src/AIQ.Urban.Rhino/HTML_UI/MessagesFromUI/BuildingMessage.cs": {
-    "mtime": 1784929038.6060765,
-    "ast_hash": "a9f31c02bd78bf64c1f0aa69679475cf",
+    "mtime": 1785458544.38458,
+    "ast_hash": "bec909a005a733e9b0fb42490ab79f5e",
     "semantic_hash": ""
   },
   "src/AIQ.Urban.Rhino/HTML_UI/MessagesFromUI/ChangeUseMessage.cs": {
@@ -1360,13 +1360,13 @@
     "semantic_hash": ""
   },
   "src/AIQ.Urban.Rhino/HTML_UI/MessagesFromUI/TransitMessage.cs": {
-    "mtime": 1784536923.9697764,
-    "ast_hash": "044d39a0cf007fc2fc0d99e77045094d",
+    "mtime": 1785446972.480042,
+    "ast_hash": "8b17e492d3fca3622987ae1740ca98da",
     "semantic_hash": ""
   },
   "src/AIQ.Urban.Rhino/HTML_UI/UrbanHtmlUi.cs": {
-    "mtime": 1784536923.971303,
-    "ast_hash": "b539398b28b596be020cb3c56d98c337",
+    "mtime": 1785581808.4985993,
+    "ast_hash": "086e321871567ebff4831765c92e8616",
     "semantic_hash": ""
   },
   "src/AIQ.Urban.Rhino/HTML_UI/UrbanUiWebSocketBehavior.cs": {
@@ -1420,8 +1420,8 @@
     "semantic_hash": ""
   },
   "src/AIQ.Urban.Rhino/MCP_Bridge/UrbanModelTools.cs": {
-    "mtime": 1784745259.4441583,
-    "ast_hash": "931f4a7658fc967e43ef2df9a64f2d95",
+    "mtime": 1785458568.2176564,
+    "ast_hash": "0107d8fe5c12f3e00742dd3dc251ffbb",
     "semantic_hash": ""
   },
   "src/AIQ.Urban.Rhino/Properties/AssemblyInfo.cs": {
@@ -2655,8 +2655,8 @@
     "semantic_hash": ""
   },
   "tests/AIQ.Urban.Core.Tests/ModelActions/UpdateBuildingStepTests.cs": {
-    "mtime": 1784536924.3584092,
-    "ast_hash": "a33c8e6f6e1833abf60d931311b81c9f",
+    "mtime": 1785458950.4838886,
+    "ast_hash": "c22e4ea366b6fa17429bd773d9c38e2d",
     "semantic_hash": ""
   },
   "tests/AIQ.Urban.Core.Tests/ModelActions/UpdateTransitStepTests.cs": {
@@ -2735,8 +2735,8 @@
     "semantic_hash": ""
   },
   "tests/AIQ.Urban.RhinoPlugin.Tests/AIQ.Urban.RhinoInterface.Tests.csproj": {
-    "mtime": 1785002088.1982641,
-    "ast_hash": "38c6b1344dd633c5553228309adcd690",
+    "mtime": 1785461064.580282,
+    "ast_hash": "04f40722d2326d8bf2e456643166a361",
     "semantic_hash": ""
   },
   "tests/AIQ.Urban.RhinoPlugin.Tests/HTML_UI/MessageConverterTests.cs": {
@@ -2770,13 +2770,13 @@
     "semantic_hash": ""
   },
   "tests/AIQ.Urban.RhinoPlugin.Tests/PipelineConfigurations/BuildingPipelineConfigurationTests.cs": {
-    "mtime": 1784745260.1018305,
-    "ast_hash": "4fdc38ac04ba5adeb692a7dae67416b2",
+    "mtime": 1785458575.603656,
+    "ast_hash": "6d5568486001489b1b10c379ddee1feb",
     "semantic_hash": ""
   },
   "tests/AIQ.Urban.RhinoPlugin.Tests/PipelineConfigurations/TransitPipelineConfigurationTests.cs": {
-    "mtime": 1784536924.379159,
-    "ast_hash": "fab1694919dbe4ea4a1f7916c40ba544",
+    "mtime": 1785580763.3353002,
+    "ast_hash": "e623fdd3cb084207831c576da83675f8",
     "semantic_hash": ""
   },
   "tests/AIQ.Urban.RhinoPlugin.Tests/PipelineConfigurations/ZonePipelineConfigurationTests.cs": {
@@ -2785,8 +2785,8 @@
     "semantic_hash": ""
   },
   "tests/AIQ.Urban.RhinoPlugin.Tests/ResetUrban_AIQUrbanTests.cs": {
-    "mtime": 1784745260.160401,
-    "ast_hash": "d8500994b1ef48dc474e5326dc4750e7",
+    "mtime": 1785458572.5881522,
+    "ast_hash": "5516d7624606fa7446ff34f2dabf07ab",
     "semantic_hash": ""
   },
   "tests/AIQ.Urban.RhinoPlugin.Tests/RhinoOutputHelperTests.cs": {
@@ -3405,8 +3405,8 @@
     "semantic_hash": ""
   },
   "src/AIQ.Urban.Core/CONTEXT.md": {
-    "mtime": 1785001764.6500373,
-    "ast_hash": "224debeab0cb8b3e61cc712750128826",
+    "mtime": 1785583885.7170029,
+    "ast_hash": "898404de8a9ac4bf84d5f06e05ee0b7f",
     "semantic_hash": ""
   },
   "src/AIQ.Urban.Rhino/AmbitionAndPlan.md": {
@@ -3415,8 +3415,8 @@
     "semantic_hash": ""
   },
   "src/AIQ.Urban.Rhino/CONTEXT.md": {
-    "mtime": 1785195639.0711863,
-    "ast_hash": "ea75c2031fdcadb70360f9cf98128b65",
+    "mtime": 1785583848.228063,
+    "ast_hash": "b5d78c29c835935aa85f9ac54ae10f73",
     "semantic_hash": ""
   },
   "src/AIQ.Urban.Rhino/HTML_UI/wwwroot/404.html": {
@@ -3622,6 +3622,16 @@
   "docs/recommendations/secure-local-ui-http-origin.md": {
     "mtime": 1785195206.9861882,
     "ast_hash": "ba9ffc2135c11a18905c49d3ff448b6f",
+    "semantic_hash": ""
+  },
+  "src/AIQ.Urban.RhinoInterface/Pipeline/RhinoDataGatherSteps/BuildingEnvelopeCreationDataResolver.cs": {
+    "mtime": 1785458517.027377,
+    "ast_hash": "26e68e7ad2c31642d751429135eb8ba4",
+    "semantic_hash": ""
+  },
+  "docs/adr/0003-load-rhino-plugin-as-dll-in-tests.md": {
+    "mtime": 1785486281.0906372,
+    "ast_hash": "eb32febaad151d9821ebb02ad040e9e0",
     "semantic_hash": ""
   }
 }
