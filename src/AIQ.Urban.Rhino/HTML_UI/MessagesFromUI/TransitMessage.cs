@@ -2,7 +2,6 @@ using System;
 using System.Linq;
 using AIQ.Urban.Core;
 using AIQ.Urban.Core.Enums;
-using AIQ.Urban.Core.ModelActions.CreationData;
 using AIQ.Urban.RhinoInterface;
 using AIQ.Urban.RhinoInterface.Logging;
 using AIQ.Urban.RhinoInterface.Pipeline.RhinoDataGatherSteps;
@@ -32,12 +31,10 @@ public class TransitMessage : IMessageFromUI<ModelStateMessage>
         using var loggerFactory = new LoggerFactory().AddRhinoLog();
 
         var gatherStep = new SelectTransitCenterlinesStep(selected, RoadWidth, TransitType.Road, loggerFactory);
-        var creationData = gatherStep.Run(doc);
-        var centerlineIds = creationData.OfType<TransitData>().Select(t => t.Centerline.Id).ToList();
 
         var pipeline = new RhinoUrbanModelPipeline(doc, UrbanModel.Instance, loggerFactory)
             .WithDataGatherStep(gatherStep)
-            .WithTransitAdditionSteps([], centerlineIds)
+            .WithTransitAdditionSteps()
             .WithFullModelOutput()
             .WithMetricsCalculation(tolerance: doc.ModelAbsoluteTolerance);
 

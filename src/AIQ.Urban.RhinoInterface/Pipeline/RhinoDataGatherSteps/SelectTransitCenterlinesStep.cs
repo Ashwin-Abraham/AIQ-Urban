@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using AIQ.Urban.Core.Enums;
+using AIQ.Urban.Core.Extensions;
 using AIQ.Urban.Core.ModelActions.CreationData;
 using AIQ.Urban.Core.Models.GeometryElements;
 using Microsoft.Extensions.Logging;
@@ -29,22 +30,38 @@ public class SelectTransitCenterlinesStep(
         if (selected.Count == 0)
             throw new Exception("Select one or more transit centerline curves first.");
 
-        var transitData = new List<TransitData>();
+        var result = new List<ICreationData>();
+        var rejectedCount = 0;
 
         foreach (var obj in selected)
         {
             if (obj.Geometry is not Curve curve)
                 continue;
 
-            var curve2D = new Curve2D(curve, obj.Id);
-            transitData.Add(new TransitData(curve2D, width, transitType));
+            if (!curve.TryNormalizeTransitCenterline(out var normalizedCurve))
+            {
+                var bounds = curve.GetBoundingBox(true);
+                _logger.LogWarning(
+                    "Skipped transit centerline {ObjectId}: Z range [{MinZ}, {MaxZ}] must lie at 0 within tolerance {Tolerance}",
+                    obj.Id,
+                    bounds.Min.Z,
+                    bounds.Max.Z,
+                    AIQ.Primitives.NumericTolerance.Default);
+                rejectedCount++;
+                continue;
+            }
+
+            var curve2D = new Curve2D(normalizedCurve, obj.Id);
+            result.Add(new TransitData(curve2D, width, transitType));
+            result.Add(new RhinoObjectDeletionData(obj.Id));
         }
 
-        if (transitData.Count == 0)
-            throw new Exception("Selected objects must be curves.");
+        var transitCount = result.OfType<TransitData>().Count();
+        _logger.LogInformation(
+            "SelectTransitCenterlinesStep gathered {ValidCount} transit centerlines and rejected {RejectedCount}",
+            transitCount,
+            rejectedCount);
 
-        _logger.LogInformation("SelectTransitCenterlinesStep gathered {Count} transit centerlines", transitData.Count);
-
-        return transitData.Cast<ICreationData>().ToList();
+        return result;
     }
 }

@@ -1,8 +1,8 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using AIQ.Urban.Core;
 using AIQ.Urban.Core.Enums;
-using AIQ.Urban.Core.ModelActions.CreationData;
 using AIQ.Urban.RhinoInterface;
 using AIQ.Urban.RhinoInterface.Logging;
 using AIQ.Urban.RhinoInterface.Pipeline.RhinoDataGatherSteps;
@@ -65,13 +65,11 @@ public class AddTransit_AIQUrban : Command
         using var loggerFactory = new LoggerFactory().AddRhinoLog();
 
         var gatherStep = new SelectTransitCenterlinesStep(rhinoObjs, width, transitType, loggerFactory);
-        var creationData = gatherStep.Run(doc);
-        var transitData = creationData.OfType<TransitData>().ToList();
-        var centerlineIds = transitData.Select(t => t.Centerline.Id).ToList();
+        var transitCountBefore = UrbanModel.Instance.Transits.Count;
 
         var pipeline = new RhinoUrbanModelPipeline(doc, UrbanModel.Instance, loggerFactory)
             .WithDataGatherStep(gatherStep)
-            .WithTransitAdditionSteps([], centerlineIds)
+            .WithTransitAdditionSteps()
             .WithFullModelOutput()
             .WithMetricsCalculation(saveToFile: true, tolerance: doc.ModelAbsoluteTolerance, docName: doc.Name)
             .WithEventHandler(Urban_RhinoPlugin.Instance.EventHandler);
@@ -79,7 +77,8 @@ public class AddTransit_AIQUrban : Command
         pipeline.Run();
 
         doc.Views.Redraw();
-        RhinoApp.WriteLine("Added {0} transit corridor(s), width={1}, type={2}.", transitData.Count, width, transitType);
+        var addedCount = Math.Max(0, UrbanModel.Instance.Transits.Count - transitCountBefore);
+        RhinoApp.WriteLine("Added {0} transit corridor(s), width={1}, type={2}.", addedCount, width, transitType);
         return Result.Success;
     }
 }

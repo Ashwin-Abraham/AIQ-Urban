@@ -1,4 +1,5 @@
 using AIQ.Urban.Core;
+using AIQ.Urban.Core.Extensions;
 using AIQ.Urban.Core.Models.UrbanElements;
 using AIQ.Urban.RhinoInterface.Logging;
 using AIQ.Urban.RhinoInterface.Pipeline.Outputters;
@@ -211,7 +212,7 @@ public class RhinoUrbanEventHandler : IDisposable
         RunPipeline(pipeline);
     }
 
-    private void HandleTransitReplace(Transit transit, Guid newCenterlineId)
+    internal void HandleTransitReplace(Transit transit, Guid newCenterlineId)
     {
         var newRhinoObject = _doc.Objects.FindId(newCenterlineId);
         if (newRhinoObject == null) return;
@@ -224,8 +225,27 @@ public class RhinoUrbanEventHandler : IDisposable
 
         using var loggerFactory = new LoggerFactory().AddRhinoLog();
 
+        if (!newCurve.TryNormalizeTransitCenterline(out var normalizedCurve))
+        {
+            var bounds = newCurve.GetBoundingBox(true);
+            loggerFactory.CreateLogger<RhinoUrbanEventHandler>().LogWarning(
+                "Rejected replacement for transit centerline {CenterlineId}: Rhino object {ObjectId} has Z range [{MinZ}, {MaxZ}], outside tolerance {Tolerance}",
+                oldCenterlineId,
+                newCenterlineId,
+                bounds.Min.Z,
+                bounds.Max.Z,
+                AIQ.Primitives.NumericTolerance.Default);
+
+            var restorePipeline = new RhinoUrbanModelPipeline(_doc, UrbanModel.Instance, loggerFactory)
+                .WithTransitRestoreSteps(oldCenterlineId, newCenterlineId)
+                .WithRhinoOutputter(new TransitOutputter(loggerFactory));
+
+            RunPipeline(restorePipeline);
+            return;
+        }
+
         var pipeline = new RhinoUrbanModelPipeline(_doc, UrbanModel.Instance, loggerFactory)
-            .WithTransitUpdateSteps(oldCenterlineId, newCurve)
+            .WithTransitUpdateSteps(oldCenterlineId, newCenterlineId, normalizedCurve)
             .WithFullModelOutput()
             .WithMetricsCalculation();
 

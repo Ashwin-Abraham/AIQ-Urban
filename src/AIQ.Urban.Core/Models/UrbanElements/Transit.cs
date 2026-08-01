@@ -10,8 +10,8 @@ namespace AIQ.Urban.Core.Models.UrbanElements;
 /// <summary>A linear transportation corridor of a given <see cref="Enums.TransitType"/>.</summary>
 public class Transit : IUrbanElement, IGraphableAsEdge
 {
-    /// <summary>Path along the corridor (planar at consistent Z).</summary>
-    public Curve2D Centerline { get; set; }
+    /// <summary>Path along the corridor on the World XY plane.</summary>
+    public Curve2D Centerline { get; }
 
     /// <inheritdoc/>
     public Curve GraphableGeometry => Centerline.Geometry;
@@ -40,10 +40,10 @@ public class Transit : IUrbanElement, IGraphableAsEdge
         TransitType transitType,
         double tolerance = 0.001)
     {
-        Centerline = centerline;
+        Centerline = centerline.NormalizeTransitCenterline();
         Width = width;
         TransitType = transitType;
-        Outline = CalculateOutline(centerline.Geometry, width, tolerance);
+        Outline = CalculateOutline(Centerline.Geometry, width, tolerance);
     }
 
     private static Profile2D CalculateOutline(Curve centerline, double width, double tolerance)

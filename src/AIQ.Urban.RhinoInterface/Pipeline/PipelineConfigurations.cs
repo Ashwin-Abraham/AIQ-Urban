@@ -30,9 +30,12 @@ public static class PipelineConfigurations
 
     public static RhinoUrbanModelPipeline WithTransitAdditionSteps(
         this RhinoUrbanModelPipeline pipeline,
-        List<TransitData> transitData,
-        List<Guid> centerlinesToRemove)
+        List<TransitData>? transitData = null,
+        List<Guid>? centerlinesToRemove = null)
     {
+        transitData ??= [];
+        centerlinesToRemove ??= [];
+
         pipeline.WithRhinoObjectDeletion(centerlinesToRemove)
             .WithCreationData(transitData.Cast<ICreationData>().ToList())
             .WithCreationData([new TransitDeletionData(centerlinesToRemove)])
@@ -84,13 +87,26 @@ public static class PipelineConfigurations
 
     public static RhinoUrbanModelPipeline WithTransitUpdateSteps(
         this RhinoUrbanModelPipeline pipeline,
-        Guid oldCenterlineId, 
+        Guid oldCenterlineId,
+        Guid newCenterlineId,
         Curve newCenterline)
     {
-        pipeline.WithCreationData([new TransitUpdateData(oldCenterlineId, newCenterline)])
+        pipeline.WithRhinoObjectDeletion([newCenterlineId])
+            .WithCreationData([new TransitUpdateData(oldCenterlineId, newCenterline)])
             .WithUrbanElementStep(new UpdateTransitStep(pipeline.LoggerFactory))
             .WithUrbanElementStep(new TransitSurfaceUnioner(_loggerFactory: pipeline.LoggerFactory))
             .WithUrbanElementStep(new RecalculateParcelsStep(pipeline.LoggerFactory));
+
+        return pipeline;
+    }
+
+    public static RhinoUrbanModelPipeline WithTransitRestoreSteps(
+        this RhinoUrbanModelPipeline pipeline,
+        Guid centerlineId,
+        Guid rejectedRhinoObjectId)
+    {
+        pipeline.WithCreationData([new TransitRestoreData(centerlineId, rejectedRhinoObjectId)])
+            .WithUrbanElementStep(new RestoreTransitStep(pipeline.LoggerFactory));
 
         return pipeline;
     }

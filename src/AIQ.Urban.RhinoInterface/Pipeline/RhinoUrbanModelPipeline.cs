@@ -79,6 +79,12 @@ public class RhinoUrbanModelPipeline(
         return this;
     }
 
+    public RhinoUrbanModelPipeline WithRhinoOutputter(IUrbanModelRhinoOutputter outputter)
+    {
+        _outputters.Add(outputter);
+        return this;
+    }
+
     /// <summary>Register an action to execute after all steps, deletions, and baking complete.</summary>
     public RhinoUrbanModelPipeline WithUrbanModelPostAction(Action<UrbanModel> action)
     {
@@ -105,6 +111,11 @@ public class RhinoUrbanModelPipeline(
             if (_objectSelectionStep is not null)
                 creationData.AddRange(_objectSelectionStep.Run(_rhinoDoc));
 
+            var preservedRhinoObjectIds = creationData
+                .OfType<RhinoObjectPreservationData>()
+                .Select(x => x.Id)
+                .ToHashSet();
+
             foreach (var step in _steps)
             {
                 try
@@ -121,7 +132,13 @@ public class RhinoUrbanModelPipeline(
                 }
             }
 
-            deletedIds.AddRange(_directDeleteIds);
+            deletedIds.AddRange(creationData
+                .OfType<RhinoObjectDeletionData>()
+                .Select(x => x.Id));
+            deletedIds.AddRange(_directDeleteIds.Where(x => !preservedRhinoObjectIds.Contains(x)));
+
+            deletedIds = deletedIds.Distinct().ToList();
+            addedIds = addedIds.Distinct().ToList();
 
             if (_outputters.Count > 0)
             {

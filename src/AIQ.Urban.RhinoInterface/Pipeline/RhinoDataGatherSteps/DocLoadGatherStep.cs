@@ -1,4 +1,5 @@
 using AIQ.Urban.Core;
+using AIQ.Urban.Core.Extensions;
 using AIQ.Urban.Core.ModelActions.CreationData;
 using AIQ.Urban.Core.Models;
 using AIQ.Urban.Core.Models.GeometryElements;
@@ -41,7 +42,20 @@ public class DocLoadGatherStep(UrbanModel model, double _tolerance, ILoggerFacto
             var parsed = LayerNameParser.ParseTransitLayer(layerPath);
             if (parsed is null) continue;
 
-            var curve2d = new Curve2D(curve, objectId);
+            if (!curve.TryNormalizeTransitCenterline(out var normalizedCurve))
+            {
+                var bounds = curve.GetBoundingBox(true);
+                _logger.LogWarning(
+                    "Skipped managed transit centerline {ObjectId} during document load: Z range [{MinZ}, {MaxZ}] must lie at 0 within tolerance {Tolerance}",
+                    objectId,
+                    bounds.Min.Z,
+                    bounds.Max.Z,
+                    AIQ.Primitives.NumericTolerance.Default);
+                result.Add(new RhinoObjectPreservationData(objectId));
+                continue;
+            }
+
+            var curve2d = new Curve2D(normalizedCurve, objectId);
             result.Add(new TransitData(curve2d, parsed.Value.Width, parsed.Value.Type));
         }
     }
