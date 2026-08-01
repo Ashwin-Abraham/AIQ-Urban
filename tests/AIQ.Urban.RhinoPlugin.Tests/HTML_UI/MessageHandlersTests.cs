@@ -1,6 +1,9 @@
+using System;
 using System.Drawing;
 using System.Linq;
 using AIQ.Urban.Core;
+using AIQ.Urban.Core.Enums;
+using AIQ.Urban.Core.Extensions;
 using AIQ.Urban.Core.Models;
 using AIQ.Urban.Core.Models.GeometryElements;
 using AIQ.Urban.Core.Models.UrbanElements;
@@ -11,7 +14,6 @@ using NUnit.Framework;
 using Rhino;
 using Rhino.Geometry;
 using Rhino.Testing.Fixtures;
-using AIQ.Urban.Core.Extensions;
 
 namespace AIQ.Urban.RhinoInterface.Tests;
 
@@ -47,10 +49,12 @@ public class MessageHandlersTests
     }
 
     [Test]
-    public void ChangeParcelUseMessage_HandleMessage_ChangesParcelUseAndReturnsModelStateMessage()
+    public void ChangeUseMessage_WithParcelSelected_ChangesParcelUseWithoutRebakingTransitSurface()
     {
-        using var doc = RhinoDoc.CreateHeadless(null);
+        var doc = RhinoDoc.ActiveDoc ?? throw new InvalidOperationException("No active Rhino document.");
         var parcel = AddParcelToDocAndModel(doc, DefaultUses.Create("Public"));
+        var transitSurface = AddTransitSurfaceToDocAndModel(doc);
+        var originalTransitSurfaceId = transitSurface.Id;
 
         doc.Objects.Find(parcel.Outline.Id)?.Select(true);
 
@@ -61,6 +65,7 @@ public class MessageHandlersTests
         Assert.That(result, Is.TypeOf<ModelStateMessage>());
         Assert.That(UrbanModel.Instance.Parcels, Has.Count.EqualTo(1));
         Assert.That(UrbanModel.Instance.Parcels[0].Use.Name, Is.EqualTo("Residential"));
+        Assert.That(transitSurface.Id, Is.EqualTo(originalTransitSurfaceId));
     }
 
     [Test]
@@ -122,6 +127,23 @@ public class MessageHandlersTests
         UrbanModel.Instance.Buildings.Add(building);
 
         return building;
+    }
+
+    private static Profile2D AddTransitSurfaceToDocAndModel(RhinoDoc doc)
+    {
+        var polygon = new Polygon2D(new PolylineCurve([
+            new Point3d(0, 20, 0),
+            new Point3d(20, 20, 0),
+            new Point3d(20, 25, 0),
+            new Point3d(0, 25, 0),
+            new Point3d(0, 20, 0),
+        ]));
+
+        var profile = new Profile2D(polygon.ToPolyCurve2d(), []);
+        profile.Id = doc.Objects.AddBrep(profile.Geometry);
+        UrbanModel.Instance.TransitSurfaces.Add((profile, TransitType.Road));
+
+        return profile;
     }
 
     [TestCase("#6d2222", 109, 34, 34)]

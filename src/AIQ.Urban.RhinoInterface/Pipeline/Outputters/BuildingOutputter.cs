@@ -10,6 +10,10 @@ namespace AIQ.Urban.RhinoInterface.Pipeline.Outputters;
 
 public class BuildingOutputter(ILoggerFactory? _loggerFactory = null) : IUrbanModelRhinoOutputter
 {
+    public BuildingOutputter() : this(null)
+    {
+    }
+
     private readonly ILogger _logger = (_loggerFactory ?? NullLoggerFactory.Instance).CreateLogger<BuildingOutputter>();
 
     public void Run(UrbanModel model, RhinoDoc doc, List<IUrbanElement> elements)

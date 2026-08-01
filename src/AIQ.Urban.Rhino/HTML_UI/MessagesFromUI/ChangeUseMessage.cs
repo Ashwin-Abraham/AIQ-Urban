@@ -7,6 +7,7 @@ using AIQ.Urban.Core.ModelActions.CreationData;
 using AIQ.Urban.Core.Models;
 using AIQ.Urban.RhinoInterface;
 using AIQ.Urban.RhinoInterface.Logging;
+using AIQ.Urban.RhinoInterface.Pipeline.Outputters;
 using AIQ.Urban.RhinoPlugin.HTML_UI.MessageToUI;
 using Microsoft.Extensions.Logging;
 using Rhino;
@@ -39,10 +40,11 @@ public class ChangeUseMessage : IMessageFromUI<ModelStateMessage>
             .WithCreationData([new ParcelUseChangeData(geometryIds, use), new BuildingUseChangeData(geometryIds, use)])
             .WithUrbanElementStep(new ChangeParcelUseStep())
             .WithUrbanElementStep(new ChangeBuildingUseStep())
-            .WithFullModelOutput()
+            .WithRhinoOutputter<ParcelOutputter>()
+            .WithRhinoOutputter<BuildingOutputter>()
             .WithMetricsCalculation(tolerance: doc.ModelAbsoluteTolerance);
 
-        if (Urban_RhinoPlugin.Instance.EventHandler is { } handler)
+        if (Urban_RhinoPlugin.Instance?.EventHandler is { } handler)
             pipeline.WithEventHandler(handler);
 
         pipeline.Run();
