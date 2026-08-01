@@ -30,7 +30,12 @@
     <ProjectReference Include="..\..\src\AIQ.Exports\AIQ.Exports.csproj" />
     <ProjectReference Include="..\..\src\AIQ.Urban.RhinoInterface\AIQ.Urban.RhinoInterface.csproj" />
     <ProjectReference Include="..\..\src\AIQ.Urban.Rhino\AIQ.Urban.RhinoPlugin.csproj">
-      <Private Condition="'$(ExcludeRhinoPluginFromTestOutput)' == 'true'">false</Private>
+      <!--
+        Loading the .rhp as a test runtime asset aborts testhost while CoreCLR starts.
+        Keep it out of the dependency graph; CopyRhinoPluginAsTestAssembly supplies
+        the same managed assembly with the .dll extension expected by testhost.
+      -->
+      <Private>false</Private>
     </ProjectReference>
     <ProjectReference Include="..\..\tools\AIQ.Urban.DebugViz\AIQ.Urban.DebugViz.csproj" />
   </ItemGroup>
@@ -38,5 +43,18 @@
   <ItemGroup>
     <None Update="Rhino.Testing.Configs.xml" CopyToOutputDirectory="always" />
   </ItemGroup>
+
+  <Target Name="CopyRhinoPluginAsTestAssembly"
+          AfterTargets="Build"
+          Condition="'$(TargetFramework)' != ''">
+    <ItemGroup>
+      <_RhinoPluginReference Include="@(_ResolvedProjectReferencePaths)"
+                             Condition="'%(Filename)' == 'AIQ.Urban.RhinoPlugin'" />
+    </ItemGroup>
+
+    <Delete Files="$(TargetDir)AIQ.Urban.RhinoPlugin.rhp" />
+    <Copy SourceFiles="@(_RhinoPluginReference)"
+          DestinationFiles="@(_RhinoPluginReference->'$(TargetDir)%(Filename).dll')" />
+  </Target>
 
 </Project>

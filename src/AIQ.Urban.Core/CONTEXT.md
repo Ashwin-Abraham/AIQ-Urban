@@ -93,11 +93,10 @@ A single storey of a Building. Defined by a `Profile2D Outline` and a `Use`. Eac
 Enum: `Road`, `Railway`, `CyclePath`, `Pedestrian`, `Waterway`.
 
 ### Transit
-A linear transportation corridor of a given `TransitType`. `Outline` is calculated eagerly in the constructor via a private method. Properties:
-- `Curve Centerline` — path along the corridor (must be planar at a consistent Z)
+A ground-level linear transportation corridor of a given `TransitType`. All Transits are ground-level in the initial domain model; elevated and underground corridors are not represented. `Outline` is calculated eagerly in the constructor via a private method. Properties:
+- `Curve Centerline` — path along the corridor (its full Z extent must equal 0 within the shared default geometry tolerance of `1e-5`; accepted input is normalized to exact World XY before entering the model)
 - `Curve Outline` — closed boundary curve formed by offsetting centerline ±width/2 with straight-line end caps representing the full right-of-way
 - `double Width`
-- `bool IsOnGround`
 - `List<TransitNode> OrderedNodes`
 
 ### TransitSurface
