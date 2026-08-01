@@ -9,6 +9,10 @@ namespace AIQ.Urban.RhinoInterface.Pipeline.Outputters;
 
 public class ParcelOutputter(ILoggerFactory? _loggerFactory = null) : IUrbanModelRhinoOutputter
 {
+    public ParcelOutputter() : this(null)
+    {
+    }
+
     private readonly ILogger _logger = (_loggerFactory ?? NullLoggerFactory.Instance).CreateLogger<ParcelOutputter>();
 
     public void Run(UrbanModel model, RhinoDoc doc, List<IUrbanElement> elements)
