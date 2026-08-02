@@ -114,5 +114,5 @@ public class CurveExtensionTests
                     new Point3d(12,2,0),
                 }, 3),
                 Expected: [],
-                ExpectedLength: 62.3541),
+                ExpectedLength: 62.3541)];
 }
