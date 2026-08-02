@@ -6,6 +6,7 @@ using AIQ.Urban.Core.Models.UrbanElements;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Rhino.Geometry;
+using Rhino.Geometry.Intersect;
 
 namespace AIQ.Urban.Core.ModelActions;
 
@@ -43,12 +44,17 @@ public class RecalculateParcelsStep(ILoggerFactory? _loggerFactory = null) : IUr
 
         model.Parcels.Clear();
         var splitters = model.ParcelBoundaries.Select(x => x.Curve).ToList();
+        var openSplitters = splitters.Where(x => !x.Geometry.IsClosed).ToList();
+        var closedSplitters = splitters.Where(x => x.Geometry.IsClosed).ToList();
 
         foreach (var (profile, _) in model.TransitSurfaces)
         {
             foreach (var hole in profile.Holes)
             {
-                var splitOutlines = hole.Split(splitters);
+                var splitOutlines = hole.Split(openSplitters);
+                splitOutlines.AddRange(closedSplitters
+                    .Where(x => IsEnclosedBy(x.Geometry, hole.Geometry))
+                    .Select(x => new PolyCurve2D(x.Geometry)));
                 var originalCentroid = hole.Centroid();
 
                 foreach (var parcelOutline in splitOutlines)
@@ -111,35 +117,23 @@ public class RecalculateParcelsStep(ILoggerFactory? _loggerFactory = null) : IUr
         return props?.Centroid;
     }
 
-    /// <summary>
-    /// Splits a single transit-defined hole into multiple parcels using parcel boundary curves.
-    /// Returns each resulting sub-polygon paired with the original hole's centroid (for Use resolution).
-    ///
-    /// The default implementation returns the hole unchanged — the implementer should replace
-    /// this with actual curve-based splitting logic.
-    /// </summary>
-    private static List<(Polygon2D Polygon, Point3d? OriginalCentroid)> SplitHoleWithSeparators(
-        Polygon2D hole,
-        List<Curve2D> splitters)
+    private static bool IsEnclosedBy(Curve boundary, Curve container, double tolerance = 1e-6)
     {
-        // Expand polygon
+        if (Intersection.CurveCurve(boundary, container, tolerance, tolerance)?.Count > 0)
+            return false;
 
-        
-        // boolean difference out the split
+        var centroid = ComputeCentroid(boundary);
+        if (centroid is null)
+            return false;
 
-
-        // Shrink the polygon.
-
-
-        //////
-        // OPTION 2
-        // Find intersection positions
-
-        // Walk along the polygon legs to group them up into new fragment polygons
-
-
-        /////
-        var centroid = ComputeCentroid(hole.Geometry);
-        return [(hole, centroid)];
+        return IsInsideOrCoincident(container, boundary.PointAtStart, tolerance)
+            && IsInsideOrCoincident(container, centroid.Value, tolerance);
     }
+
+    private static bool IsInsideOrCoincident(Curve container, Point3d point, double tolerance)
+    {
+        var containment = container.Contains(point, Plane.WorldXY, tolerance);
+        return containment is PointContainment.Inside or PointContainment.Coincident;
+    }
+
 }

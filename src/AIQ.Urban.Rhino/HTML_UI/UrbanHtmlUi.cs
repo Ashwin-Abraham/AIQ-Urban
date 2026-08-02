@@ -7,7 +7,7 @@ namespace AIQ.Urban.RhinoPlugin.HTML_UI;
 public static class UrbanHtmlUi
 {
     private const int DefaultWindowWidth = 520;
-    private const int DefaultWindowHeight = 1000;
+    private const int DefaultWindowHeight = 900;
 
     private static Form? _window;
 

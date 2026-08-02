@@ -10,6 +10,7 @@ internal static class LayerConstants
     public static string BuildingEnvelope => "AIQ Urban::Building::Envelope";
     public static string BuildingFloorPlates => "AIQ Urban::Building::FloorPlates";
     public static string Parcel => "AIQ Urban::Parcel";
+    public static string ParcelBoundary => "AIQ Urban::ParcelBoundary";
     public static string Vegetation => "AIQ Urban::Vegetation";
     public static string Topography => "AIQ Urban::Topography";
     public static string Transit => "AIQ Urban::Transit";

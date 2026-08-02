@@ -68,6 +68,7 @@ public class RhinoUrbanModelPipeline(
         _outputters.Add(new TransitOutputter());
         _outputters.Add(new BuildingOutputter());
         _outputters.Add(new ParcelOutputter());
+        _outputters.Add(new ParcelBoundaryOutputter());
         _outputters.Add(new ZoneOutputter());
         _outputters.Add(new TransitSurfaceOutputter());
         return this;

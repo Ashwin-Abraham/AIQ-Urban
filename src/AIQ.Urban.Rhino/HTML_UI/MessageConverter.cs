@@ -23,6 +23,7 @@ public static class MessageConverter
             "transit" => Deserialize<TransitMessage>(json),
             "building" => Deserialize<BuildingMessage>(json),
             "zone" => Deserialize<AddZoneMessage>(json),
+            "divider" => Deserialize<AddParcelBoundaryMessage>(json),
             "landuse" => Deserialize<ChangeUseMessage>(json),
             "landuselistedit" => Deserialize<LanduseListEditMessage>(json),
             "toolselection" => new ToolSelectionMessage(),
