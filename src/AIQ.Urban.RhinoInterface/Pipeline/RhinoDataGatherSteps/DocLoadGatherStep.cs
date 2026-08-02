@@ -21,6 +21,7 @@ public class DocLoadGatherStep(UrbanModel model, double _tolerance, ILoggerFacto
         var result = new List<ICreationData>();
 
         GatherTransits(doc, result);
+        GatherParcelBoundaries(doc, result);
         GatherParcelCentroids(doc, result);
         GatherBuildings(doc, result);
         GatherZones(doc, result);
@@ -28,6 +29,25 @@ public class DocLoadGatherStep(UrbanModel model, double _tolerance, ILoggerFacto
         _logger.LogInformation("DocLoadGatherStep gathered {Count} items", result.Count);
 
         return result;
+    }
+
+    private void GatherParcelBoundaries(RhinoDoc doc, List<ICreationData> result)
+    {
+        var boundaries = RhinoDocScanner.FindCurvesOnLayerPrefix(doc, LayerConstants.ParcelBoundary);
+
+        foreach (var (curve, objectId, _) in boundaries)
+        {
+            if (!curve.TryNormalizeParcelBoundary(out var normalized, _tolerance))
+            {
+                _logger.LogWarning(
+                    "Skipped managed parcel boundary {ObjectId} during document load because it is not planar at Z = 0",
+                    objectId);
+                result.Add(new RhinoObjectPreservationData(objectId));
+                continue;
+            }
+
+            result.Add(new ParcelBoundaryData(new Curve2D(normalized, objectId)));
+        }
     }
 
     private void GatherTransits(RhinoDoc doc, List<ICreationData> result)

@@ -30,28 +30,36 @@ public static class CurveExtensions
     public static List<Curve> OffsetBothWays(this Curve centerline, double width, Plane plane, double tolerance)
     {
         var halfWidth = width / 2.0;
-        var offsetCurves1 = centerline.Offset(plane, halfWidth, tolerance, CurveOffsetCornerStyle.Sharp);
+        //return centerline.Offset(plane.Origin, plane.Normal, halfWidth, tolerance, 1e-5, false, CurveOffsetCornerStyle.None, CurveOffsetEndStyle.Flat)
+        //    .ToList();
+
+        var offsetCurves1 = centerline.Offset(plane.Origin, plane.Normal, halfWidth, tolerance, tolerance, false, CurveOffsetCornerStyle.Sharp, CurveOffsetEndStyle.None);
+
         if (offsetCurves1 is not { Length: > 0 })
             throw new InvalidOperationException("Failed to offset centerline positively.");
 
-        var offsetCurves2 = centerline.Offset(plane, -halfWidth, tolerance, CurveOffsetCornerStyle.Sharp);
+        var offsetCurves2 = centerline.Offset(plane.Origin, plane.Normal, -halfWidth, tolerance, tolerance, false, CurveOffsetCornerStyle.Sharp, CurveOffsetEndStyle.None);
         if (offsetCurves2 is not { Length: > 0 })
             throw new InvalidOperationException("Failed to offset centerline negatively.");
 
-        var offset1 = offsetCurves1[0];
-        var offset2 = offsetCurves2[0];
+        var offset1Start = offsetCurves1[0];
+        var offset1End = offsetCurves1[^1];
+
+        var offset2Start = offsetCurves2[0];
+        var offset2End = offsetCurves2[^1];
 
         if(centerline.IsClosed)
-            return [offset1, offset2];
+            return offsetCurves1.Concat(offsetCurves2).ToList();
 
-        var startCap = new Line(offset1.PointAtStart, offset2.PointAtStart).ToNurbsCurve();
-        var endCap = new Line(offset2.PointAtEnd, offset1.PointAtEnd).ToNurbsCurve();
+        var startCap = new Line(offset1Start.PointAtStart, offset2Start.PointAtStart).ToNurbsCurve();
+        var endCap = new Line(offset1End.PointAtEnd, offset2End.PointAtEnd).ToNurbsCurve();
 
-        var offset2Reversed = offset2.DuplicateCurve();
-        offset2Reversed.Reverse();
+        var offset2Reversed = offsetCurves2.Select(x =>x.DuplicateCurve()).ToList();
+        offset2Reversed.ForEach(x => x.Reverse());
 
-        var segments = new Curve[] { offset1, endCap, offset2Reversed, startCap };
-        var joined = Curve.JoinCurves(segments, tolerance);
+        var segments = offsetCurves1.Append(startCap).Concat(offset2Reversed).Append(endCap).ToArray();
+        //new Curve[] { offset1, endCap, offset2Reversed, startCap };
+        var joined = Curve.JoinCurves(segments, tolerance, false, simpleJoin: true, out _);
 
         if (joined is not { Length: > 0 })
             throw new InvalidOperationException("Failed to join transit outline curves.");

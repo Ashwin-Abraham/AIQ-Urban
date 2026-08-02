@@ -146,6 +146,9 @@ public class RhinoUrbanEventHandler : IDisposable
                 case Zone zone:
                     HandleZoneDelete(zone);
                     break;
+                case ParcelBoundary boundary:
+                    HandleParcelBoundaryDelete(boundary);
+                    break;
             }
         }
 
@@ -185,6 +188,10 @@ public class RhinoUrbanEventHandler : IDisposable
                 
                 case FloorPlate floorPlate:
                     HandleFloorPlateReplace(floorPlate, newId2);
+                    break;
+
+                case ParcelBoundary boundary:
+                    HandleParcelBoundaryReplace(boundary, newId2);
                     break;
             }
         }
@@ -317,6 +324,50 @@ public class RhinoUrbanEventHandler : IDisposable
 
         var pipeline = new RhinoUrbanModelPipeline(_doc, UrbanModel.Instance, loggerFactory)
             .WithZoneDeletionSteps(geometryIds)
+            .WithFullModelOutput()
+            .WithMetricsCalculation();
+
+        RunPipeline(pipeline);
+    }
+
+    internal void HandleParcelBoundaryDelete(ParcelBoundary boundary)
+    {
+        using var loggerFactory = new LoggerFactory().AddRhinoLog();
+
+        var pipeline = new RhinoUrbanModelPipeline(_doc, UrbanModel.Instance, loggerFactory)
+            .WithParcelBoundaryDeletionSteps([boundary.Id])
+            .WithFullModelOutput()
+            .WithMetricsCalculation();
+
+        RunPipeline(pipeline);
+    }
+
+    internal void HandleParcelBoundaryReplace(ParcelBoundary boundary, Guid newBoundaryId)
+    {
+        var newRhinoObject = _doc.Objects.FindId(newBoundaryId);
+        if (newRhinoObject?.Geometry is not Curve newCurve)
+            return;
+
+        if (!newCurve.TryNormalizeParcelBoundary(out var normalized))
+        {
+            _eventLock = true;
+            try
+            {
+                _doc.Objects.Delete(newBoundaryId, true);
+                new ParcelBoundaryOutputter().Run(UrbanModel.Instance, _doc, [boundary]);
+                RebuildLookup();
+            }
+            finally
+            {
+                _eventLock = false;
+            }
+            return;
+        }
+
+        using var loggerFactory = new LoggerFactory().AddRhinoLog();
+
+        var pipeline = new RhinoUrbanModelPipeline(_doc, UrbanModel.Instance, loggerFactory)
+            .WithParcelBoundaryUpdateSteps(boundary.Id, newBoundaryId, normalized)
             .WithFullModelOutput()
             .WithMetricsCalculation();
 

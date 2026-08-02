@@ -27,6 +27,32 @@ public class MessageHandlersTests
     }
 
     [Test]
+    public void AddParcelBoundaryMessage_WithSelectedCurve_AddsManagedBoundaryAndReturnsModelStateMessage()
+    {
+        // Arrange
+        var doc = RhinoDoc.ActiveDoc ?? throw new InvalidOperationException("No active Rhino document.");
+        var sourceId = doc.Objects.AddCurve(new LineCurve(
+            new Point3d(0, 5, 0),
+            new Point3d(10, 5, 0)));
+        doc.Objects.Find(sourceId)?.Select(true);
+
+        var message = new AddParcelBoundaryMessage();
+
+        // Act
+        var result = message.HandleMessage();
+
+        // Preview
+        TestContext.WriteLine($"Managed boundary count: {UrbanModel.Instance.ParcelBoundaries.Count}");
+
+        // Assert
+        Assert.That(result, Is.TypeOf<ModelStateMessage>());
+        Assert.That(UrbanModel.Instance.ParcelBoundaries, Has.Count.EqualTo(1));
+        Assert.That(UrbanModel.Instance.ParcelBoundaries[0].Id, Is.Not.EqualTo(sourceId));
+        Assert.That(doc.Objects.FindId(sourceId), Is.Null);
+        Assert.That(doc.Objects.FindId(UrbanModel.Instance.ParcelBoundaries[0].Id), Is.Not.Null);
+    }
+
+    [Test]
     public void AddZoneMessage_HandleMessage_AddsZoneAndReturnsModelStateMessage()
     {
         using var doc = RhinoDoc.CreateHeadless(null);

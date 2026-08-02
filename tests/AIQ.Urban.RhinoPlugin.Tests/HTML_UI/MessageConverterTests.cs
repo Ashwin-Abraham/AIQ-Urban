@@ -7,6 +7,22 @@ namespace AIQ.Urban.RhinoInterface.Tests;
 public class MessageConverterTests
 {
     [Test]
+    public void Convert_DividerMessage_ReturnsAddParcelBoundaryMessage()
+    {
+        // Arrange
+        const string json = "{\"messageType\":\"Divider\"}";
+
+        // Act
+        var message = MessageConverter.Convert(json);
+
+        // Preview
+        TestContext.WriteLine($"Converted message type: {message.GetType().Name}");
+
+        // Assert
+        Assert.That(message, Is.TypeOf<AddParcelBoundaryMessage>());
+    }
+
+    [Test]
     public void Convert_ZoneMessage_ReturnsAddZoneMessage()
     {
         // Arrange

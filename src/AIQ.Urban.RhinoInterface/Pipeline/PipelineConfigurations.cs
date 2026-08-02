@@ -15,6 +15,48 @@ namespace AIQ.Urban.RhinoInterface;
 
 public static class PipelineConfigurations
 {
+    public static RhinoUrbanModelPipeline WithParcelBoundaryAdditionSteps(
+        this RhinoUrbanModelPipeline pipeline,
+        List<ParcelBoundaryData>? boundaryData = null)
+    {
+        boundaryData ??= [];
+
+        pipeline.WithCreationData(boundaryData.Cast<ICreationData>().ToList())
+            .WithUrbanElementStep(new AddParcelBoundaryStep(pipeline.LoggerFactory))
+            .WithUrbanElementStep(new RecalculateParcelsStep(pipeline.LoggerFactory));
+
+        return pipeline;
+    }
+
+    public static RhinoUrbanModelPipeline WithParcelBoundaryUpdateSteps(
+        this RhinoUrbanModelPipeline pipeline,
+        Guid oldBoundaryId,
+        Guid replacementRhinoObjectId,
+        Curve newBoundary)
+    {
+        pipeline.WithRhinoObjectDeletion([replacementRhinoObjectId])
+            .WithCreationData([
+                new ParcelBoundaryUpdateData(
+                    oldBoundaryId,
+                    new Curve2D(newBoundary, replacementRhinoObjectId)),
+            ])
+            .WithUrbanElementStep(new UpdateParcelBoundaryStep(pipeline.LoggerFactory))
+            .WithUrbanElementStep(new RecalculateParcelsStep(pipeline.LoggerFactory));
+
+        return pipeline;
+    }
+
+    public static RhinoUrbanModelPipeline WithParcelBoundaryDeletionSteps(
+        this RhinoUrbanModelPipeline pipeline,
+        List<Guid> boundaryIds)
+    {
+        pipeline.WithCreationData([new ParcelBoundaryDeletionData(boundaryIds)])
+            .WithUrbanElementStep(new RemoveParcelBoundaryStep(pipeline.LoggerFactory))
+            .WithUrbanElementStep(new RecalculateParcelsStep(pipeline.LoggerFactory));
+
+        return pipeline;
+    }
+
     public static RhinoUrbanModelPipeline WithBuildingAddOrUpdateSteps(
         this RhinoUrbanModelPipeline pipeline,
         List<ICreationData> buildingData,
@@ -223,6 +265,7 @@ public static class PipelineConfigurations
             .WithUrbanElementStep(new AddTransitStep(pipeline.LoggerFactory))
             .WithUrbanElementStep(new AddBuildingStep(_loggerFactory: pipeline.LoggerFactory))
             .WithUrbanElementStep(new AddZoneStep(pipeline.LoggerFactory))
+            .WithUrbanElementStep(new AddParcelBoundaryStep(pipeline.LoggerFactory))
             .WithUrbanElementStep(new TransitSurfaceUnioner(_loggerFactory: pipeline.LoggerFactory))
             .WithUrbanElementStep(new RecalculateParcelsStep(pipeline.LoggerFactory))
             .WithFullModelOutput()

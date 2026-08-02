@@ -5,6 +5,7 @@ public enum TypeOfMessage
     Transit,
     Building,
     Zone,
+    Divider,
     Landuse,
     LanduseListEdit,
     ToolSelection,

@@ -17,7 +17,7 @@ public class TransitOutputter(ILoggerFactory? _loggerFactory = null) : IUrbanMod
 
     private static readonly Dictionary<TransitType, (int Hue, double SatMin, double SatMax, double LightMin, double LightMax)> ColorConfig = new()
     {
-        [TransitType.Road] = (0, 0, 0, 45, 85),
+        [TransitType.Road] = (0, 0, 0, 80, 95),
         [TransitType.Railway] = (25, 55, 95, 20, 45),
         [TransitType.CyclePath] = (120, 40, 85, 20, 50),
         [TransitType.Pedestrian] = (43, 55, 95, 30, 60),
