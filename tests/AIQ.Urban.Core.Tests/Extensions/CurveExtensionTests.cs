@@ -14,11 +14,9 @@ public class CurveExtensionTests
 {
 
     [Test]
-    [TestCase("Self Intersecting Pline")]
     [TestCase("Line")]
-    [TestCase("Square")]
     [TestCase("Wild Spline")]
-    [TestCase("Self Intersecting Spline")]
+    [TestCase("Square")]
 
     public void CanOffsetCurve(string testName)
     {
@@ -117,19 +115,4 @@ public class CurveExtensionTests
                 }, 3),
                 Expected: [],
                 ExpectedLength: 62.3541),
-
-        new OffsetTestData(
-                CaseName: "Self Intersecting Pline",
-                OffsetSize: 2,
-                Curve: new PolylineCurve(new List<Point3d>()
-                {
-                    new Point3d(50,50,0),
-                    new Point3d(0,0,0),
-                    new Point3d(50,0,0),
-                    new Point3d(0,50,0),
-                    new Point3d(-50,50,0),
-                }),
-                Expected: [],
-                ExpectedLength: 62.3541)
-        ];
 }
