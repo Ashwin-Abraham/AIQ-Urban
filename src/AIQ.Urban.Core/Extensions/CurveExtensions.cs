@@ -57,9 +57,9 @@ public static class CurveExtensions
         var offset2Reversed = offsetCurves2.Select(x =>x.DuplicateCurve()).ToList();
         offset2Reversed.ForEach(x => x.Reverse());
 
-        var segments = offsetCurves1.Append(endCap).Concat(offset2Reversed).Append(startCap).ToArray();
+        var segments = offsetCurves1.Append(startCap).Concat(offset2Reversed).Append(endCap).ToArray();
         //new Curve[] { offset1, endCap, offset2Reversed, startCap };
-        var joined = Curve.JoinCurves(segments, tolerance, true, simpleJoin: true, out _);
+        var joined = Curve.JoinCurves(segments, tolerance, false, simpleJoin: true, out _);
 
         if (joined is not { Length: > 0 })
             throw new InvalidOperationException("Failed to join transit outline curves.");

@@ -32,6 +32,7 @@ public class CurveExtensionTests
             .Select(ptList => ptList.Select(pt => (pt.X, pt.Y)))
             .ToList();
 
+        PreviewHub.ResetDoc();
         testData.Curve.AddToPreviewDoc(Color.Red);
         offsetCurves.PreviewViaHub();
 
