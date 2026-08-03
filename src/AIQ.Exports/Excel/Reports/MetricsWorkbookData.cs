@@ -3,31 +3,42 @@ using System.Drawing;
 namespace AIQ.Exports.Excel.Reports;
 
 public sealed record MetricsWorkbookData(
-    IReadOnlyList<MetricsWorksheetData> Worksheets);
+    string ProjectName,
+    DateTime ExportedAt,
+    MetricsScopeData Project,
+    IReadOnlyList<MetricsScopeData> Zones);
 
-public sealed record MetricsWorksheetData(
-    string Name,
-    double TotalLandArea,
-    double TotalFootprintArea,
-    double TotalBuiltArea,
-    double TotalTransitLength,
-    double TotalTransitArea,
+public sealed record MetricsScopeData(
+    string DisplayName,
+    double? ZoneBoundaryArea,
+    double ParcelArea,
+    double BuildingFootprint,
+    double BuiltArea,
+    double TransitLength,
+    double TransitArea,
     int BuildingCount,
     int ParcelCount,
     int TransitCount,
-    double CoverageRatio,
-    double FAR,
-    IReadOnlyList<UseAreaData> LandAreaByUse,
-    IReadOnlyList<UseAreaData> BuiltAreaByUse,
+    IReadOnlyList<ParcelUseData> ParcelUses,
+    IReadOnlyList<BuiltPlateUseData> BuiltPlateUses,
     IReadOnlyList<TransitMetricData> TransitMetrics);
 
-public sealed record UseAreaData(
+public sealed record ParcelUseData(
     string UseName,
     Color Color,
-    double Area);
+    int ParcelCount,
+    double Area,
+    double SumOfParcelPerimeters,
+    double BuildingFootprint);
+
+public sealed record BuiltPlateUseData(
+    string UseName,
+    Color Color,
+    double BuiltArea);
 
 public sealed record TransitMetricData(
     string Type,
     double Width,
     double RunningLength,
-    double Area);
+    double Area,
+    Color Color);
