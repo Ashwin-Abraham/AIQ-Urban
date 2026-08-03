@@ -17,7 +17,7 @@ public class SelectBuildingFootprintStep(
     double floorHeight,
     int floorCount,
     Use use,
-    ILoggerFactory? _loggerFactory = null) : IRhinoDataGatherStep
+    ILoggerFactory? _loggerFactory = null)
 {
     private readonly ILogger _logger = (_loggerFactory ?? NullLoggerFactory.Instance).CreateLogger<SelectBuildingFootprintStep>();
 

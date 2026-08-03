@@ -7,7 +7,8 @@ using AIQ.Urban.Core.ModelActions.CreationData;
 using AIQ.Urban.Core.Models;
 using AIQ.Urban.Core.Models.GeometryElements;
 using AIQ.Urban.DebugViz;
-using AIQ.Urban.RhinoInterface.Pipeline.RhinoDataGatherSteps;
+using AIQ.Urban.RhinoInterface.Pipeline.InputPreparation;
+using AIQ.Urban.RhinoInterface.Tests.Helpers;
 using NUnit.Framework;
 using Rhino;
 using Rhino.Geometry;
@@ -34,11 +35,14 @@ public class BuildingPipelineConfigurationTests
         var testData = _testData.Single(x => x.CaseName == testName);
 
         using var doc = RhinoDoc.CreateHeadless(null);
-        var pipeline = new RhinoUrbanModelPipeline(doc, UrbanModel.Instance);
+        var pipeline = new RhinoUrbanModelPipeline(
+            doc,
+            UrbanModel.Instance,
+            new PreparedInputPreparationStep(testData.Input));
 
         // Act
         pipeline
-            .WithBuildingAddOrUpdateSteps(testData.Input.Cast<ICreationData>().ToList(), [])
+            .WithBuildingAddOrUpdateSteps()
             .WithFullModelOutput()
             .WithMetricsCalculation(false)
             .Run();
@@ -68,22 +72,16 @@ public class BuildingPipelineConfigurationTests
             new Point3d(0, 0, 0),
         ]);
         var inputId = doc.Objects.AddCurve(footprint);
-        var inputObject = doc.Objects.Find(inputId)!;
-        var gatherStep = new SelectBuildingFootprintStep(
-            [inputObject],
+        var preparationStep = new AddOrUpdateBuildingInputPreparationStep(
+            [inputId],
             3,
             2,
-            DefaultUses.Create("Residential"));
-        var creationData = gatherStep.Run(doc);
-        var idsToDelete = creationData
-            .OfType<BuildingFootprintData>()
-            .Select(data => data.Footprint.Id)
-            .ToList();
+            "Residential",
+            BuildingInputMode.Footprint);
 
         // Act
-        new RhinoUrbanModelPipeline(doc, UrbanModel.Instance)
-            .WithDataGatherStep(gatherStep)
-            .WithBuildingAddOrUpdateSteps([], idsToDelete)
+        new RhinoUrbanModelPipeline(doc, UrbanModel.Instance, preparationStep)
+            .WithBuildingAddOrUpdateSteps()
             .WithFullModelOutput()
             .Run();
 
@@ -106,21 +104,16 @@ public class BuildingPipelineConfigurationTests
             new Point3d(0, 0, 0),
             new Point3d(10, 10, 6)));
         var inputId = doc.Objects.AddBrep(envelope);
-        var inputObject = doc.Objects.Find(inputId)!;
-        var gatherStep = new SelectBuildingEnvelopeStep(
-            [inputObject],
+        var preparationStep = new AddOrUpdateBuildingInputPreparationStep(
+            [inputId],
             3,
-            DefaultUses.Create("Commercial"));
-        var creationData = gatherStep.Run(doc);
-        var idsToDelete = creationData
-            .OfType<BuildingMassData>()
-            .Select(data => data.Envelope.Id)
-            .ToList();
+            0,
+            "Commercial",
+            BuildingInputMode.Mass);
 
         // Act
-        new RhinoUrbanModelPipeline(doc, UrbanModel.Instance)
-            .WithCreationData(creationData)
-            .WithBuildingAddOrUpdateSteps([], idsToDelete)
+        new RhinoUrbanModelPipeline(doc, UrbanModel.Instance, preparationStep)
+            .WithBuildingAddOrUpdateSteps()
             .WithFullModelOutput()
             .Run();
 
@@ -152,8 +145,14 @@ public class BuildingPipelineConfigurationTests
             3,
             residential);
 
-        new RhinoUrbanModelPipeline(doc, UrbanModel.Instance)
-            .WithBuildingAddOrUpdateSteps([initialData], [initialInputId])
+        new RhinoUrbanModelPipeline(
+                doc,
+                UrbanModel.Instance,
+                new PreparedInputPreparationStep([
+                    initialData,
+                    new RhinoObjectDeletionData(initialInputId),
+                ]))
+            .WithBuildingAddOrUpdateSteps()
             .WithFullModelOutput()
             .Run();
 
@@ -166,26 +165,16 @@ public class BuildingPipelineConfigurationTests
             new Point3d(30, 10, 9)));
         var unmanagedInputId = doc.Objects.AddBrep(unmanagedEnvelope);
 
-        List<BuildingMassData> selectedEnvelopeData =
-        [
-            new BuildingMassData(
-                new BrepElement(existingBuilding.Envelope.Geometry, existingBuilding.Envelope.Id),
-                3,
-                undefined),
-            new BuildingMassData(
-                new BrepElement(unmanagedEnvelope, unmanagedInputId),
-                3,
-                undefined),
-        ];
-        var resolver = new BuildingEnvelopeCreationDataResolver(UrbanModel.Instance);
-        var creationData = resolver.Resolve(selectedEnvelopeData);
-        var selectedEnvelopeIds = selectedEnvelopeData
-            .Select(data => data.Envelope.Id)
-            .ToList();
+        var preparationStep = new AddOrUpdateBuildingInputPreparationStep(
+            [existingBuilding.Envelope.Id, unmanagedInputId],
+            3,
+            0,
+            undefined.Name,
+            BuildingInputMode.Mass);
 
         // Act
-        new RhinoUrbanModelPipeline(doc, UrbanModel.Instance)
-            .WithBuildingAddOrUpdateSteps(creationData, selectedEnvelopeIds)
+        new RhinoUrbanModelPipeline(doc, UrbanModel.Instance, preparationStep)
+            .WithBuildingAddOrUpdateSteps()
             .WithFullModelOutput()
             .Run();
 

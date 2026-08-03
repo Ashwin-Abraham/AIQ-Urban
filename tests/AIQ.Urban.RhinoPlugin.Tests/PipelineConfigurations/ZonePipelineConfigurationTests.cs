@@ -6,6 +6,8 @@ using AIQ.Urban.Core.ModelActions.CreationData;
 using AIQ.Urban.Core.Models.GeometryElements;
 using AIQ.Urban.DebugViz;
 using AIQ.Urban.RhinoInterface;
+using AIQ.Urban.RhinoInterface.Pipeline.InputPreparation;
+using AIQ.Urban.RhinoInterface.Tests.Helpers;
 using NUnit.Framework;
 using Rhino;
 using Rhino.Geometry;
@@ -34,8 +36,11 @@ public class ZonePipelineConfigurationTests
         using var doc = RhinoDoc.CreateHeadless(null);
 
         // Act
-        var pipeline = new RhinoUrbanModelPipeline(doc, UrbanModel.Instance)
-            .WithZoneAdditionSteps(testData.Input, [])
+        var pipeline = new RhinoUrbanModelPipeline(
+                doc,
+                UrbanModel.Instance,
+                new PreparedInputPreparationStep(testData.Input))
+            .WithZoneAdditionSteps()
             .WithFullModelOutput()
             .WithMetricsCalculation(false);
         pipeline.Run();
@@ -50,6 +55,23 @@ public class ZonePipelineConfigurationTests
 
         if (testData.ExpectedCount > 0)
             Assert.That(UrbanModel.Instance.Zones.SelectMany(z => z.GetGeometryIds()), Is.Not.Empty);
+    }
+
+    [Test]
+    public void AddZoneInputPreparationStep_DuplicateName_PreservesSourceCurve()
+    {
+        using var doc = RhinoDoc.CreateHeadless(null);
+        new AddZoneStep().Run(UrbanModel.Instance, [new ZoneData(BigBoundary, "Downtown")]);
+        var sourceId = doc.Objects.AddCurve(SmallBoundary.Geometry);
+        var preparationStep = new AddZoneInputPreparationStep([sourceId], "downtown");
+
+        new RhinoUrbanModelPipeline(doc, UrbanModel.Instance, preparationStep)
+            .WithZoneAdditionSteps()
+            .WithFullModelOutput()
+            .Run();
+
+        Assert.That(UrbanModel.Instance.Zones, Has.Count.EqualTo(1));
+        Assert.That(doc.Objects.FindId(sourceId), Is.Not.Null);
     }
 
     private record ZonePipelineTestData(

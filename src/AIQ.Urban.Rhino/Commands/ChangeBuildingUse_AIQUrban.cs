@@ -5,6 +5,7 @@ using AIQ.Urban.Core;
 using AIQ.Urban.Core.Models;
 using AIQ.Urban.RhinoInterface;
 using AIQ.Urban.RhinoInterface.Logging;
+using AIQ.Urban.RhinoInterface.Pipeline.InputPreparation;
 using Microsoft.Extensions.Logging;
 using Rhino;
 using Rhino.Commands;
@@ -54,8 +55,9 @@ public class ChangeBuildingUse_AIQUrban : Command
 
         using var loggerFactory = new LoggerFactory().AddRhinoLog();
 
-        var pipeline = new RhinoUrbanModelPipeline(doc, UrbanModel.Instance, loggerFactory)
-            .WithBuildingUseChangeSteps(geometryIds, selectedUse)
+        var preparationStep = new ChangeBuildingUseInputPreparationStep(geometryIds, selectedUse.Name);
+        var pipeline = new RhinoUrbanModelPipeline(doc, UrbanModel.Instance, preparationStep, loggerFactory)
+            .WithBuildingUseChangeSteps()
             .WithFullModelOutput()
             .WithMetricsCalculation(saveToFile: true, tolerance: doc.ModelAbsoluteTolerance, docName: doc.Name)
             .WithEventHandler(Urban_RhinoPlugin.Instance.EventHandler);

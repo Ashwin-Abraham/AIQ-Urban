@@ -4,6 +4,7 @@ using AIQ.Urban.Core.ModelActions.CreationData;
 using AIQ.Urban.Core.Models;
 using AIQ.Urban.RhinoInterface;
 using AIQ.Urban.RhinoInterface.Logging;
+using AIQ.Urban.RhinoInterface.Pipeline.InputPreparation;
 using AIQ.Urban.RhinoInterface.Pipeline.RhinoDataGatherSteps;
 using Microsoft.Extensions.Logging;
 using Rhino;
@@ -47,26 +48,18 @@ public class AddBuilding_AIQUrban : Command
         var floorHeight = floorHeightOption.CurrentValue;
         var floorCount = floorCountOption.CurrentValue;
         var curveRef = go.Object(0);
-        var rhinoObj = curveRef.Object();
-
-        if (rhinoObj is null)
-        {
-            RhinoApp.WriteLine("Selected object is no longer valid.");
-            return Result.Failure;
-        }
-
-        var rhinoObjs = new[] { rhinoObj };
 
         using var loggerFactory = new LoggerFactory().AddRhinoLog();
 
-        var gatherStep = new SelectBuildingFootprintStep(rhinoObjs, floorHeight, floorCount, selectedUse, loggerFactory);
-        var creationData = gatherStep.Run(doc);
-        var buildingData = creationData.OfType<BuildingFootprintData>().ToList();
-        var idsToDelete = buildingData.Select(b => b.Footprint.Id).ToList();
+        var preparationStep = new AddOrUpdateBuildingInputPreparationStep(
+            [curveRef.ObjectId],
+            floorHeight,
+            floorCount,
+            selectedUse.Name,
+            BuildingInputMode.Footprint);
 
-        var pipeline = new RhinoUrbanModelPipeline(doc, UrbanModel.Instance, loggerFactory)
-            .WithDataGatherStep(gatherStep)
-            .WithBuildingAddOrUpdateSteps([], idsToDelete)
+        var pipeline = new RhinoUrbanModelPipeline(doc, UrbanModel.Instance, preparationStep, loggerFactory)
+            .WithBuildingAddOrUpdateSteps()
             .WithFullModelOutput()
             .WithMetricsCalculation(saveToFile: true, tolerance: doc.ModelAbsoluteTolerance, docName: doc.Name)
             .WithEventHandler(Urban_RhinoPlugin.Instance.EventHandler);

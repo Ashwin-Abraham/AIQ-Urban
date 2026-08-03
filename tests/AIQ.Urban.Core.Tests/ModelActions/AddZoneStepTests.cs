@@ -55,6 +55,18 @@ public class AddZoneStepTests
         }
     }
 
+    [Test]
+    public void Run_DuplicateZoneName_ThrowsBeforeMutatingModel()
+    {
+        IUrbanModelStep step = new AddZoneStep();
+        step.Run(UrbanModel.Instance, [new ZoneData(BigBoundary, "Downtown")]);
+
+        Assert.That(
+            () => step.Run(UrbanModel.Instance, [new ZoneData(SmallBoundary, "downtown")]),
+            Throws.ArgumentException.With.Message.Contains("already exists"));
+        Assert.That(UrbanModel.Instance.Zones, Has.Count.EqualTo(1));
+    }
+
     private record AddZoneTestData(
         string CaseName,
         List<ZoneData> Input,

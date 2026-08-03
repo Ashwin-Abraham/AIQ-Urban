@@ -9,6 +9,7 @@ using AIQ.Urban.Core.ModelActions.CreationData;
 using AIQ.Urban.Core.Models.GeometryElements;
 using AIQ.Urban.DebugViz;
 using AIQ.Urban.RhinoInterface.EventHandler;
+using AIQ.Urban.RhinoInterface.Pipeline.InputPreparation;
 using AIQ.Urban.RhinoInterface.Pipeline.Outputters;
 using AIQ.Urban.RhinoInterface.Pipeline.RhinoDataGatherSteps;
 using AIQ.Urban.RhinoInterface.Tests.Helpers;
@@ -41,11 +42,14 @@ public class TransitPipelineConfigurationTests
         var testData = _testData.Single(x => x.CaseName == testName);
 
         using var doc = RhinoDoc.CreateHeadless(null);
-        var pipeline = new RhinoUrbanModelPipeline(doc, UrbanModel.Instance);
+        var pipeline = new RhinoUrbanModelPipeline(
+            doc,
+            UrbanModel.Instance,
+            new PreparedInputPreparationStep(testData.Input));
 
         // Act
         pipeline
-            .WithTransitAdditionSteps(testData.Input, testData.CenterlineIds)
+            .WithTransitAdditionSteps()
             .WithFullModelOutput()
             .WithMetricsCalculation(false)
             .Run();
@@ -74,22 +78,20 @@ public class TransitPipelineConfigurationTests
         using var doc = RhinoDoc.CreateHeadless(null);
         var centerline = new LineCurve(new Point3d(0, 0, 0), new Point3d(50, 0, 0));
         var centerlineId = doc.Objects.AddCurve(centerline);
-        var rhinoObject = doc.Objects.Find(centerlineId)!;
         var existingTransit = new TransitData(
             new Curve2D(centerline, centerlineId),
             6,
             TransitType.Road);
         UrbanModel.Instance.AddTransit([existingTransit.ToTransit()]);
 
-        var gatherStep = new SelectTransitCenterlinesStep(
-            [rhinoObject],
+        var preparationStep = new AddTransitInputPreparationStep(
+            [centerlineId],
             6,
             TransitType.Road);
 
         // Act
-        new RhinoUrbanModelPipeline(doc, UrbanModel.Instance)
-            .WithDataGatherStep(gatherStep)
-            .WithTransitAdditionSteps([], [centerlineId])
+        new RhinoUrbanModelPipeline(doc, UrbanModel.Instance, preparationStep)
+            .WithTransitAdditionSteps()
             .WithFullModelOutput()
             .Run();
 
@@ -142,11 +144,12 @@ public class TransitPipelineConfigurationTests
         using var doc = RhinoDoc.CreateHeadless(null);
         var validId = doc.Objects.AddLine(new Line(new Point3d(0, 0, 0.000009), new Point3d(10, 0, 0.000009)));
         var invalidId = doc.Objects.AddLine(new Line(new Point3d(0, 10, 1), new Point3d(10, 10, 1)));
-        var selected = new[] { validId, invalidId }.Select(id => doc.Objects.FindId(id)!).ToList();
-        var gatherStep = new SelectTransitCenterlinesStep(selected, 6, TransitType.Road);
+        var preparationStep = new AddTransitInputPreparationStep(
+            [validId, invalidId],
+            6,
+            TransitType.Road);
 
-        var mutationCount = new RhinoUrbanModelPipeline(doc, UrbanModel.Instance)
-            .WithDataGatherStep(gatherStep)
+        var mutationCount = new RhinoUrbanModelPipeline(doc, UrbanModel.Instance, preparationStep)
             .WithTransitAdditionSteps()
             .WithFullModelOutput()
             .Run();
@@ -165,10 +168,12 @@ public class TransitPipelineConfigurationTests
     {
         using var doc = RhinoDoc.CreateHeadless(null);
         var invalidId = doc.Objects.AddLine(new Line(new Point3d(0, 0, 1), new Point3d(10, 0, 1)));
-        var gatherStep = new SelectTransitCenterlinesStep([doc.Objects.FindId(invalidId)!], 6, TransitType.Road);
+        var preparationStep = new AddTransitInputPreparationStep(
+            [invalidId],
+            6,
+            TransitType.Road);
 
-        var mutationCount = new RhinoUrbanModelPipeline(doc, UrbanModel.Instance)
-            .WithDataGatherStep(gatherStep)
+        var mutationCount = new RhinoUrbanModelPipeline(doc, UrbanModel.Instance, preparationStep)
             .WithTransitAdditionSteps()
             .WithFullModelOutput()
             .Run();
@@ -179,7 +184,7 @@ public class TransitPipelineConfigurationTests
     }
 
     [Test]
-    public void WithTransitRestoreSteps_InvalidReplacement_RebakesLastValidTransit()
+    public void ReplaceTransitInputPreparationStep_InvalidReplacement_RebakesLastValidTransit()
     {
         using var doc = RhinoDoc.CreateHeadless(null);
         var oldCenterlineId = Guid.NewGuid();
@@ -192,8 +197,10 @@ public class TransitPipelineConfigurationTests
         UrbanModel.Instance.AddTransit([oldTransit]);
         var rejectedId = doc.Objects.AddLine(new Line(new Point3d(0, 0, 1), new Point3d(10, 0, 1)));
 
-        new RhinoUrbanModelPipeline(doc, UrbanModel.Instance)
-            .WithTransitRestoreSteps(oldCenterlineId, rejectedId)
+        new RhinoUrbanModelPipeline(
+                doc,
+                UrbanModel.Instance,
+                new ReplaceTransitInputPreparationStep(oldCenterlineId, rejectedId))
             .WithRhinoOutputter(new TransitOutputter())
             .Run();
 
@@ -221,7 +228,7 @@ public class TransitPipelineConfigurationTests
         var rejectedId = doc.Objects.AddLine(new Line(new Point3d(0, 0, 1), new Point3d(10, 0, 1)));
         using var handler = new RhinoUrbanEventHandler(doc);
 
-        handler.HandleTransitReplace(oldTransit, rejectedId);
+        handler.HandleTransitReplace(oldCenterlineId, rejectedId);
 
         Assert.That(doc.Objects.FindId(rejectedId), Is.Null);
         Assert.That(UrbanModel.Instance.Transits, Has.Count.EqualTo(1));
@@ -249,8 +256,12 @@ public class TransitPipelineConfigurationTests
         var loggerProvider = new CapturingLoggerProvider();
         using var loggerFactory = new LoggerFactory([loggerProvider]);
 
-        new RhinoUrbanModelPipeline(doc, UrbanModel.Instance, loggerFactory)
-            .WithDocModelLoad(doc)
+        new RhinoUrbanModelPipeline(
+                doc,
+                UrbanModel.Instance,
+                new LoadDocumentInputPreparationStep(),
+                loggerFactory)
+            .WithDocumentLoadSteps()
             .Run();
 
         Assert.That(UrbanModel.Instance.Transits, Has.Count.EqualTo(1));

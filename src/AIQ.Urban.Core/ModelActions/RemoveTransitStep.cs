@@ -12,7 +12,6 @@ public class RemoveTransitStep(ILoggerFactory? _loggerFactory = null) : IUrbanMo
     {
         var centerlineIds = creationData.OfType<TransitDeletionData>()
             .SelectMany(d => d.CenterlineIds)
-            .Concat(creationData.OfType<RhinoObjectDeletionData>().Select(x => x.Id))
             .Distinct()
             .ToList();
 

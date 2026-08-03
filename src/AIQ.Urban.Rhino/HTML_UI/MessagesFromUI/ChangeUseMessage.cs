@@ -7,6 +7,7 @@ using AIQ.Urban.Core.ModelActions.CreationData;
 using AIQ.Urban.Core.Models;
 using AIQ.Urban.RhinoInterface;
 using AIQ.Urban.RhinoInterface.Logging;
+using AIQ.Urban.RhinoInterface.Pipeline.InputPreparation;
 using AIQ.Urban.RhinoInterface.Pipeline.Outputters;
 using AIQ.Urban.RhinoPlugin.HTML_UI.MessageToUI;
 using Microsoft.Extensions.Logging;
@@ -24,22 +25,13 @@ public class ChangeUseMessage : IMessageFromUI<ModelStateMessage>
     public ModelStateMessage HandleMessage()
     {
         var doc = RhinoDoc.ActiveDoc ?? throw new Exception("No active Rhino document.");
-        var selected = doc.Objects.GetSelectedObjects(false, false)
-            .Where(obj => obj.ObjectType is ObjectType.Brep or ObjectType.Curve)
-            .ToList();
-
-        if (selected.Count == 0)
-            throw new Exception("Select one or more parcels, building envelopes, or floor plate curves first.");
-
-        var use = UrbanModel.Instance.GetUse(Use);
-        var geometryIds = selected.Select(obj => obj.Id).ToList();
+        var geometryIds = doc.Objects.GetSelectedObjects(false, false).Select(x => x.Id).ToList();
 
         using var loggerFactory = new LoggerFactory().AddRhinoLog();
 
-        var pipeline = new RhinoUrbanModelPipeline(doc, UrbanModel.Instance, loggerFactory)
-            .WithCreationData([new ParcelUseChangeData(geometryIds, use), new BuildingUseChangeData(geometryIds, use)])
-            .WithUrbanElementStep(new ChangeParcelUseStep())
-            .WithUrbanElementStep(new ChangeBuildingUseStep())
+        var preparationStep = new ChangeUseInputPreparationStep(geometryIds, Use);
+        var pipeline = new RhinoUrbanModelPipeline(doc, UrbanModel.Instance, preparationStep, loggerFactory)
+            .WithUseChangeSteps()
             .WithRhinoOutputter<ParcelOutputter>()
             .WithRhinoOutputter<BuildingOutputter>()
             .WithMetricsCalculation(tolerance: doc.ModelAbsoluteTolerance);

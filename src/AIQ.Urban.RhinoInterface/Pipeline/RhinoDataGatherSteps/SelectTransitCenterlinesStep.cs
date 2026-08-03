@@ -5,6 +5,7 @@ using AIQ.Urban.Core.Enums;
 using AIQ.Urban.Core.Extensions;
 using AIQ.Urban.Core.ModelActions.CreationData;
 using AIQ.Urban.Core.Models.GeometryElements;
+using AIQ.Urban.RhinoInterface.Pipeline.InputPreparation;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Rhino;
@@ -17,7 +18,7 @@ public class SelectTransitCenterlinesStep(
     IEnumerable<RhinoObject> objectsToParse,
     double width,
     TransitType transitType,
-    ILoggerFactory? _loggerFactory = null) : IRhinoDataGatherStep
+    ILoggerFactory? _loggerFactory = null)
 {
     private readonly ILogger _logger = (_loggerFactory ?? NullLoggerFactory.Instance).CreateLogger<SelectTransitCenterlinesStep>();
 

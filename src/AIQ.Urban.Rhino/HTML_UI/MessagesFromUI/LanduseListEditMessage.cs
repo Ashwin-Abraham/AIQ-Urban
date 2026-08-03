@@ -4,6 +4,7 @@ using AIQ.Urban.Core;
 using AIQ.Urban.Core.Enums;
 using AIQ.Urban.RhinoInterface;
 using AIQ.Urban.RhinoInterface.Logging;
+using AIQ.Urban.RhinoInterface.Pipeline.InputPreparation;
 using AIQ.Urban.RhinoPlugin.HTML_UI.MessageToUI;
 using Microsoft.Extensions.Logging;
 using Rhino;
@@ -22,20 +23,11 @@ public class LanduseListEditMessage : IMessageFromUI<ModelStateMessage>
     public ModelStateMessage HandleMessage()
     {
         var doc = RhinoDoc.ActiveDoc ?? throw new Exception("No active Rhino document.");
-        var editType = useEditType switch
-        {
-            "add" => UseEditType.Add,
-            "edit" => UseEditType.Edit,
-            "remove" => UseEditType.Remove,
-            _ => throw new ArgumentException($"Unknown useEditType: {useEditType}")
-        };
-        var parsedColor = ParseColor(color);
-        var guid = string.IsNullOrEmpty(id) ? Guid.NewGuid() : Guid.Parse(id);
-
         using var loggerFactory = new LoggerFactory().AddRhinoLog();
 
-        var pipeline = new RhinoUrbanModelPipeline(doc, UrbanModel.Instance, loggerFactory)
-            .WithLanduseListEditSteps(editType, name, parsedColor, guid)
+        var preparationStep = new ModifyUseListInputPreparationStep(useEditType, name, color, id);
+        var pipeline = new RhinoUrbanModelPipeline(doc, UrbanModel.Instance, preparationStep, loggerFactory)
+            .WithLanduseListEditSteps()
             .WithFullModelOutput()
             .WithMetricsCalculation(tolerance: doc.ModelAbsoluteTolerance);
 
@@ -50,29 +42,6 @@ public class LanduseListEditMessage : IMessageFromUI<ModelStateMessage>
 
     internal static System.Drawing.Color ParseColor(string colorString)
     {
-        if (string.IsNullOrEmpty(colorString))
-            return System.Drawing.Color.Gray;
-
-        var trimmed = colorString.TrimStart('#');
-        if (trimmed.Length is 6 or 8
-            && int.TryParse(trimmed[..2], System.Globalization.NumberStyles.HexNumber, null, out var r)
-            && int.TryParse(trimmed[2..4], System.Globalization.NumberStyles.HexNumber, null, out var g)
-            && int.TryParse(trimmed[4..6], System.Globalization.NumberStyles.HexNumber, null, out var b))
-        {
-            return trimmed.Length == 8
-                ? System.Drawing.Color.FromArgb(int.Parse(trimmed[6..8], System.Globalization.NumberStyles.HexNumber), r, g, b)
-                : System.Drawing.Color.FromArgb(r, g, b);
-        }
-
-        var parts = colorString.Split(',', StringSplitOptions.RemoveEmptyEntries);
-        if (parts.Length == 3
-            && int.TryParse(parts[0], out r)
-            && int.TryParse(parts[1], out g)
-            && int.TryParse(parts[2], out b))
-        {
-            return System.Drawing.Color.FromArgb(r, g, b);
-        }
-
-        return System.Drawing.Color.FromName(colorString);
+        return ModifyUseListInputPreparationStep.ParseColor(colorString);
     }
 }

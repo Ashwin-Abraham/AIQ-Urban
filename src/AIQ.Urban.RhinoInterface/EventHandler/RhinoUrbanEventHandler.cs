@@ -2,6 +2,7 @@ using AIQ.Urban.Core;
 using AIQ.Urban.Core.Extensions;
 using AIQ.Urban.Core.Models.UrbanElements;
 using AIQ.Urban.RhinoInterface.Logging;
+using AIQ.Urban.RhinoInterface.Pipeline.InputPreparation;
 using AIQ.Urban.RhinoInterface.Pipeline.Outputters;
 using Microsoft.Extensions.Logging;
 using Rhino;
@@ -137,17 +138,17 @@ public class RhinoUrbanEventHandler : IDisposable
 
             switch (element)
             {
-                case Transit transit:
-                    HandleTransitDelete(transit);
+                case Transit:
+                    HandleTransitDelete(id);
                     break;
-                case Building building:
-                    HandleBuildingDelete(building);
+                case Building:
+                    HandleBuildingDelete(id);
                     break;
-                case Zone zone:
-                    HandleZoneDelete(zone);
+                case Zone:
+                    HandleZoneDelete(id);
                     break;
-                case ParcelBoundary boundary:
-                    HandleParcelBoundaryDelete(boundary);
+                case ParcelBoundary:
+                    HandleParcelBoundaryDelete(id);
                     break;
             }
         }
@@ -170,28 +171,28 @@ public class RhinoUrbanEventHandler : IDisposable
 
             switch (element)
             {
-                case Transit transit:
-                    HandleTransitReplace(transit, newId2);
+                case Transit:
+                    HandleTransitReplace(oldId, newId2);
                     break;
                 
-                case Parcel parcel:
-                    HandleParcelReplace(parcel, newId2);
+                case Parcel:
+                    HandleParcelReplace(oldId, newId2);
                     break;
                 
-                case Zone zone:
-                    HandleZoneReplace(zone, newId2);
+                case Zone:
+                    HandleZoneReplace(oldId, newId2);
                     break;
                 
-                case Building building:
-                    HandleBuildingReplace(building, newId2);
+                case Building:
+                    HandleBuildingReplace(oldId, newId2);
                     break;
                 
-                case FloorPlate floorPlate:
-                    HandleFloorPlateReplace(floorPlate, newId2);
+                case FloorPlate:
+                    HandleFloorPlateReplace(oldId, newId2);
                     break;
 
-                case ParcelBoundary boundary:
-                    HandleParcelBoundaryReplace(boundary, newId2);
+                case ParcelBoundary:
+                    HandleParcelBoundaryReplace(oldId, newId2);
                     break;
             }
         }
@@ -205,210 +206,112 @@ public class RhinoUrbanEventHandler : IDisposable
         }
     }
 
-    private void HandleTransitDelete(Transit transit)
+    private void HandleTransitDelete(Guid geometryId)
     {
-        var centerlineIds = transit.GetGeometryIds().ToList();
-
         using var loggerFactory = new LoggerFactory().AddRhinoLog();
-
-        var pipeline = new RhinoUrbanModelPipeline(_doc, UrbanModel.Instance, loggerFactory)
-            .WithTransitDeletionSteps(centerlineIds)
+        var preparationStep = new DeleteTransitInputPreparationStep([geometryId]);
+        var pipeline = new RhinoUrbanModelPipeline(_doc, UrbanModel.Instance, preparationStep, loggerFactory)
+            .WithTransitDeletionSteps()
             .WithFullModelOutput()
             .WithMetricsCalculation();
-
         RunPipeline(pipeline);
     }
 
-    internal void HandleTransitReplace(Transit transit, Guid newCenterlineId)
+    internal void HandleTransitReplace(Guid oldGeometryId, Guid newCenterlineId)
     {
-        var newRhinoObject = _doc.Objects.FindId(newCenterlineId);
-        if (newRhinoObject == null) return;
-
-        var newCurve = newRhinoObject.Geometry as Curve;
-        if (newCurve == null) return;
-
-        var oldCenterlineId = transit.GetGeometryIds().FirstOrDefault();
-        if (oldCenterlineId == Guid.Empty) return;
-
         using var loggerFactory = new LoggerFactory().AddRhinoLog();
-
-        if (!newCurve.TryNormalizeTransitCenterline(out var normalizedCurve))
-        {
-            var bounds = newCurve.GetBoundingBox(true);
-            loggerFactory.CreateLogger<RhinoUrbanEventHandler>().LogWarning(
-                "Rejected replacement for transit centerline {CenterlineId}: Rhino object {ObjectId} has Z range [{MinZ}, {MaxZ}], outside tolerance {Tolerance}",
-                oldCenterlineId,
-                newCenterlineId,
-                bounds.Min.Z,
-                bounds.Max.Z,
-                AIQ.Primitives.NumericTolerance.Default);
-
-            var restorePipeline = new RhinoUrbanModelPipeline(_doc, UrbanModel.Instance, loggerFactory)
-                .WithTransitRestoreSteps(oldCenterlineId, newCenterlineId)
-                .WithRhinoOutputter(new TransitOutputter(loggerFactory));
-
-            RunPipeline(restorePipeline);
-            return;
-        }
-
-        var pipeline = new RhinoUrbanModelPipeline(_doc, UrbanModel.Instance, loggerFactory)
-            .WithTransitUpdateSteps(oldCenterlineId, newCenterlineId, normalizedCurve)
+        var preparationStep = new ReplaceTransitInputPreparationStep(oldGeometryId, newCenterlineId);
+        var pipeline = new RhinoUrbanModelPipeline(_doc, UrbanModel.Instance, preparationStep, loggerFactory)
+            .WithTransitUpdateSteps()
             .WithFullModelOutput()
             .WithMetricsCalculation();
-
         RunPipeline(pipeline);
     }
 
-    private void HandleBuildingDelete(Building building)
+    private void HandleBuildingDelete(Guid geometryId)
     {
-        var geometryIds = building.GetGeometryIds();
-
         using var loggerFactory = new LoggerFactory().AddRhinoLog();
-
-        var pipeline = new RhinoUrbanModelPipeline(_doc, UrbanModel.Instance, loggerFactory)
-            .WithBuildingDeletionSteps(geometryIds)
+        var preparationStep = new DeleteBuildingInputPreparationStep([geometryId]);
+        var pipeline = new RhinoUrbanModelPipeline(_doc, UrbanModel.Instance, preparationStep, loggerFactory)
+            .WithBuildingDeletionSteps()
             .WithFullModelOutput()
             .WithMetricsCalculation();
-
         RunPipeline(pipeline);
     }
 
-
-    private void HandleBuildingReplace(Building building, Guid newEnvelopeId)
+    private void HandleBuildingReplace(Guid oldGeometryId, Guid newEnvelopeId)
     {
-        var newRhinoObject = _doc.Objects.FindId(newEnvelopeId);
-        if (newRhinoObject == null) return;
-
-        var newBrep = newRhinoObject.Geometry as Brep;
-        if (newBrep == null) return;
-
-        var oldPlateUses = building.FloorPlates
-            .OrderBy(p => p.Z())
-            .Select(p => p.Use)
-            .ToList();
-
         using var loggerFactory = new LoggerFactory().AddRhinoLog();
-
-        var pipeline = new RhinoUrbanModelPipeline(_doc, UrbanModel.Instance, loggerFactory)
-            .WithRhinoObjectDeletion([newEnvelopeId])
-            .WithBuildingUpdateSteps(building.Envelope.Id, newBrep, building.TypicalFloorHeight, oldPlateUses)
+        var preparationStep = new ReplaceBuildingInputPreparationStep(oldGeometryId, newEnvelopeId);
+        var pipeline = new RhinoUrbanModelPipeline(_doc, UrbanModel.Instance, preparationStep, loggerFactory)
+            .WithBuildingUpdateSteps()
             .WithFullModelOutput()
             .WithMetricsCalculation();
-
         RunPipeline(pipeline);
     }
 
-    private void HandleFloorPlateReplace(FloorPlate floorPlate, Guid newCurveId)
+    private void HandleFloorPlateReplace(Guid oldGeometryId, Guid newCurveId)
     {
-        var newRhinoObject = _doc.Objects.FindId(newCurveId);
-        if (newRhinoObject?.Geometry is not Curve newCurve) return;
-
-        var newZ = newCurve.PointAtStart.Z;
-
         using var loggerFactory = new LoggerFactory().AddRhinoLog();
-
-        var pipeline = new RhinoUrbanModelPipeline(_doc, UrbanModel.Instance, loggerFactory)
-            .WithRhinoObjectDeletion([newCurveId])
-            .WithFloorPlateReplaceSteps(floorPlate, newZ)
+        var preparationStep = new ReplaceFloorPlateInputPreparationStep(oldGeometryId, newCurveId);
+        var pipeline = new RhinoUrbanModelPipeline(_doc, UrbanModel.Instance, preparationStep, loggerFactory)
+            .WithFloorPlateReplaceSteps()
             .WithFullModelOutput()
             .WithMetricsCalculation();
-
         RunPipeline(pipeline);
     }
 
-    private void HandleZoneDelete(Zone zone)
+    private void HandleZoneDelete(Guid geometryId)
     {
-        var geometryIds = zone.GetGeometryIds();
-
         using var loggerFactory = new LoggerFactory().AddRhinoLog();
-
-        var pipeline = new RhinoUrbanModelPipeline(_doc, UrbanModel.Instance, loggerFactory)
-            .WithZoneDeletionSteps(geometryIds)
+        var preparationStep = new DeleteZoneInputPreparationStep([geometryId]);
+        var pipeline = new RhinoUrbanModelPipeline(_doc, UrbanModel.Instance, preparationStep, loggerFactory)
+            .WithZoneDeletionSteps()
             .WithFullModelOutput()
             .WithMetricsCalculation();
-
         RunPipeline(pipeline);
     }
 
-    internal void HandleParcelBoundaryDelete(ParcelBoundary boundary)
+    internal void HandleParcelBoundaryDelete(Guid geometryId)
     {
         using var loggerFactory = new LoggerFactory().AddRhinoLog();
-
-        var pipeline = new RhinoUrbanModelPipeline(_doc, UrbanModel.Instance, loggerFactory)
-            .WithParcelBoundaryDeletionSteps([boundary.Id])
+        var preparationStep = new DeleteParcelBoundaryInputPreparationStep([geometryId]);
+        var pipeline = new RhinoUrbanModelPipeline(_doc, UrbanModel.Instance, preparationStep, loggerFactory)
+            .WithParcelBoundaryDeletionSteps()
             .WithFullModelOutput()
             .WithMetricsCalculation();
-
         RunPipeline(pipeline);
     }
 
-    internal void HandleParcelBoundaryReplace(ParcelBoundary boundary, Guid newBoundaryId)
+    internal void HandleParcelBoundaryReplace(Guid oldGeometryId, Guid newBoundaryId)
     {
-        var newRhinoObject = _doc.Objects.FindId(newBoundaryId);
-        if (newRhinoObject?.Geometry is not Curve newCurve)
-            return;
-
-        if (!newCurve.TryNormalizeParcelBoundary(out var normalized))
-        {
-            _eventLock = true;
-            try
-            {
-                _doc.Objects.Delete(newBoundaryId, true);
-                new ParcelBoundaryOutputter().Run(UrbanModel.Instance, _doc, [boundary]);
-                RebuildLookup();
-            }
-            finally
-            {
-                _eventLock = false;
-            }
-            return;
-        }
-
         using var loggerFactory = new LoggerFactory().AddRhinoLog();
-
-        var pipeline = new RhinoUrbanModelPipeline(_doc, UrbanModel.Instance, loggerFactory)
-            .WithParcelBoundaryUpdateSteps(boundary.Id, newBoundaryId, normalized)
+        var preparationStep = new ReplaceParcelBoundaryInputPreparationStep(oldGeometryId, newBoundaryId);
+        var pipeline = new RhinoUrbanModelPipeline(_doc, UrbanModel.Instance, preparationStep, loggerFactory)
+            .WithParcelBoundaryUpdateSteps()
             .WithFullModelOutput()
             .WithMetricsCalculation();
-
         RunPipeline(pipeline);
     }
 
-    private void HandleZoneReplace(Zone zone, Guid newBoundaryId)
+    private void HandleZoneReplace(Guid oldGeometryId, Guid newBoundaryId)
     {
-        var newRhinoObject = _doc.Objects.Find(newBoundaryId);
-        if (newRhinoObject == null) return;
-
-        var newCurve = newRhinoObject.Geometry as Curve;
-        if (newCurve == null) return;
-
-        var oldBoundaryId = zone.GetGeometryIds().FirstOrDefault();
-        if (oldBoundaryId == Guid.Empty) return;
-
         using var loggerFactory = new LoggerFactory().AddRhinoLog();
-
-        var pipeline = new RhinoUrbanModelPipeline(_doc, UrbanModel.Instance, loggerFactory)
-            .WithZoneUpdateSteps(oldBoundaryId, newCurve)
+        var preparationStep = new ReplaceZoneInputPreparationStep(oldGeometryId, newBoundaryId);
+        var pipeline = new RhinoUrbanModelPipeline(_doc, UrbanModel.Instance, preparationStep, loggerFactory)
+            .WithZoneUpdateSteps()
             .WithFullModelOutput()
             .WithMetricsCalculation();
-
         RunPipeline(pipeline);
     }
 
-    private void HandleParcelReplace(Parcel parcel, Guid newId)
+    private void HandleParcelReplace(Guid oldGeometryId, Guid newId)
     {
-        try
-        {
-            _eventLock = true;
-            ParcelOutputter outputter = new ParcelOutputter();
-            outputter.Run(UrbanModel.Instance, _doc, [parcel]);
-            _doc.Objects.Delete(newId, true);
-            ObjectIdToElement[parcel.Outline.Id] = parcel;
-        }
-        finally
-        {
-            _eventLock = false;
-        }
+        using var loggerFactory = new LoggerFactory().AddRhinoLog();
+        var preparationStep = new RejectParcelReplacementInputPreparationStep(oldGeometryId, newId);
+        var pipeline = new RhinoUrbanModelPipeline(_doc, UrbanModel.Instance, preparationStep, loggerFactory)
+            .WithRhinoOutputter<ParcelOutputter>();
+        RunPipeline(pipeline);
     }
 
     private void RunPipeline(RhinoUrbanModelPipeline pipeline)

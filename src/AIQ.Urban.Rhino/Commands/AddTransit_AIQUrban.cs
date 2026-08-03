@@ -5,6 +5,7 @@ using AIQ.Urban.Core;
 using AIQ.Urban.Core.Enums;
 using AIQ.Urban.RhinoInterface;
 using AIQ.Urban.RhinoInterface.Logging;
+using AIQ.Urban.RhinoInterface.Pipeline.InputPreparation;
 using AIQ.Urban.RhinoInterface.Pipeline.RhinoDataGatherSteps;
 using Microsoft.Extensions.Logging;
 using Rhino;
@@ -58,17 +59,14 @@ public class AddTransit_AIQUrban : Command
 
         var width = widthOption.CurrentValue;
         var centerlineRefs = go.Objects();
-        var rhinoObjs = centerlineRefs
-            .Select(x => x.Object())
-            .ToList();
+        var centerlineIds = centerlineRefs.Select(x => x.ObjectId).ToList();
 
         using var loggerFactory = new LoggerFactory().AddRhinoLog();
 
-        var gatherStep = new SelectTransitCenterlinesStep(rhinoObjs, width, transitType, loggerFactory);
+        var preparationStep = new AddTransitInputPreparationStep(centerlineIds, width, transitType);
         var transitCountBefore = UrbanModel.Instance.Transits.Count;
 
-        var pipeline = new RhinoUrbanModelPipeline(doc, UrbanModel.Instance, loggerFactory)
-            .WithDataGatherStep(gatherStep)
+        var pipeline = new RhinoUrbanModelPipeline(doc, UrbanModel.Instance, preparationStep, loggerFactory)
             .WithTransitAdditionSteps()
             .WithFullModelOutput()
             .WithMetricsCalculation(saveToFile: true, tolerance: doc.ModelAbsoluteTolerance, docName: doc.Name)

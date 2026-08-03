@@ -13,7 +13,7 @@ public class SelectBuildingEnvelopeStep(
     IEnumerable<RhinoObject> selectedObjects,
     double floorHeight,
     Use use,
-    ILoggerFactory? _loggerFactory = null) : IRhinoDataGatherStep
+    ILoggerFactory? _loggerFactory = null)
 {
     private readonly ILogger _logger = (_loggerFactory ?? NullLoggerFactory.Instance).CreateLogger<SelectBuildingEnvelopeStep>();
 

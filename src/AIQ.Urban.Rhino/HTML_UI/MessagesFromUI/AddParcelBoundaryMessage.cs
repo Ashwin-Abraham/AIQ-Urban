@@ -3,6 +3,7 @@ using System.Linq;
 using AIQ.Urban.Core;
 using AIQ.Urban.RhinoInterface;
 using AIQ.Urban.RhinoInterface.Logging;
+using AIQ.Urban.RhinoInterface.Pipeline.InputPreparation;
 using AIQ.Urban.RhinoInterface.Pipeline.RhinoDataGatherSteps;
 using AIQ.Urban.RhinoPlugin.HTML_UI.MessageToUI;
 using Microsoft.Extensions.Logging;
@@ -18,17 +19,12 @@ public class AddParcelBoundaryMessage : IMessageFromUI<ModelStateMessage>
     public ModelStateMessage HandleMessage()
     {
         var doc = RhinoDoc.ActiveDoc ?? throw new Exception("No active Rhino document.");
-        var selected = doc.Objects.GetSelectedObjects(false, false)
-            .Where(obj => obj.ObjectType == ObjectType.Curve)
-            .ToList();
-
-        if (selected.Count == 0)
-            throw new Exception("Select one or more parcel boundary curves first.");
+        var selectedIds = doc.Objects.GetSelectedObjects(false, false).Select(x => x.Id).ToList();
 
         using var loggerFactory = new LoggerFactory().AddRhinoLog();
 
-        var pipeline = new RhinoUrbanModelPipeline(doc, UrbanModel.Instance, loggerFactory)
-            .WithDataGatherStep(new SelectParcelBoundariesStep(selected, loggerFactory))
+        var preparationStep = new AddParcelBoundariesInputPreparationStep(selectedIds);
+        var pipeline = new RhinoUrbanModelPipeline(doc, UrbanModel.Instance, preparationStep, loggerFactory)
             .WithParcelBoundaryAdditionSteps()
             .WithFullModelOutput()
             .WithMetricsCalculation(tolerance: doc.ModelAbsoluteTolerance);

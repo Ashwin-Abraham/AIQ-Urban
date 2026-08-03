@@ -4,6 +4,7 @@ using AIQ.Urban.Core.ModelActions.CreationData;
 using AIQ.Urban.Core.Models;
 using AIQ.Urban.Core.Models.GeometryElements;
 using AIQ.Urban.Core.Models.UrbanElements;
+using AIQ.Urban.RhinoInterface.Pipeline.InputPreparation;
 using AIQ.Urban.RhinoInterface.Utils;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -12,7 +13,7 @@ using Rhino.Geometry;
 
 namespace AIQ.Urban.RhinoInterface.Pipeline.RhinoDataGatherSteps;
 
-public class DocLoadGatherStep(UrbanModel model, double _tolerance, ILoggerFactory? _loggerFactory = null) : IRhinoDataGatherStep
+public class DocLoadGatherStep(UrbanModel model, double _tolerance, ILoggerFactory? _loggerFactory = null)
 {
     private readonly ILogger _logger = (_loggerFactory ?? NullLoggerFactory.Instance).CreateLogger<DocLoadGatherStep>();
 

@@ -6,7 +6,9 @@ using AIQ.Urban.Core.ModelActions.CreationData;
 using AIQ.Urban.Core.Models.GeometryElements;
 using AIQ.Urban.Core.Models.UrbanElements;
 using AIQ.Urban.RhinoInterface.EventHandler;
+using AIQ.Urban.RhinoInterface.Pipeline.InputPreparation;
 using AIQ.Urban.RhinoInterface.Pipeline.Outputters;
+using AIQ.Urban.RhinoInterface.Tests.Helpers;
 using AIQ.Urban.RhinoInterface.Utils;
 using NUnit.Framework;
 using Rhino;
@@ -36,19 +38,25 @@ public class ParcelBoundaryPipelineConfigurationTests
         var oldId = doc.Objects.AddLine(
             new Line(new Point3d(0, 5, 0), new Point3d(10, 5, 0)),
             attributes);
-        new RhinoUrbanModelPipeline(doc, UrbanModel.Instance)
-            .WithParcelBoundaryAdditionSteps([
-                new ParcelBoundaryData(new Curve2D(
+        new RhinoUrbanModelPipeline(
+                doc,
+                UrbanModel.Instance,
+                new PreparedInputPreparationStep([
+                    new ParcelBoundaryData(new Curve2D(
                     new LineCurve(new Point3d(0, 5, 0), new Point3d(10, 5, 0)),
                     oldId)),
-            ])
+                ]))
+            .WithParcelBoundaryAdditionSteps()
             .Run();
         var replacementCurve = new LineCurve(new Point3d(0, 7, 0), new Point3d(10, 7, 0));
         var replacementId = doc.Objects.AddCurve(replacementCurve);
 
         // Act
-        new RhinoUrbanModelPipeline(doc, UrbanModel.Instance)
-            .WithParcelBoundaryUpdateSteps(oldId, replacementId, replacementCurve)
+        new RhinoUrbanModelPipeline(
+                doc,
+                UrbanModel.Instance,
+                new ReplaceParcelBoundaryInputPreparationStep(oldId, replacementId))
+            .WithParcelBoundaryUpdateSteps()
             .WithFullModelOutput()
             .Run();
 
@@ -79,8 +87,11 @@ public class ParcelBoundaryPipelineConfigurationTests
         ]);
 
         // Act
-        new RhinoUrbanModelPipeline(doc, UrbanModel.Instance)
-            .WithParcelBoundaryDeletionSteps([boundaryId])
+        new RhinoUrbanModelPipeline(
+                doc,
+                UrbanModel.Instance,
+                new DeleteParcelBoundaryInputPreparationStep([boundaryId]))
+            .WithParcelBoundaryDeletionSteps()
             .WithFullModelOutput()
             .Run();
 
@@ -108,7 +119,7 @@ public class ParcelBoundaryPipelineConfigurationTests
         using var handler = new RhinoUrbanEventHandler(doc);
 
         // Act
-        handler.HandleParcelBoundaryReplace(oldBoundary, replacementId);
+        handler.HandleParcelBoundaryReplace(oldId, replacementId);
 
         // Preview
         var updated = UrbanModel.Instance.ParcelBoundaries.Single();
@@ -133,8 +144,11 @@ public class ParcelBoundaryPipelineConfigurationTests
             attributes);
 
         // Act
-        new RhinoUrbanModelPipeline(doc, UrbanModel.Instance)
-            .WithDocModelLoad(doc)
+        new RhinoUrbanModelPipeline(
+                doc,
+                UrbanModel.Instance,
+                new LoadDocumentInputPreparationStep())
+            .WithDocumentLoadSteps()
             .Run();
 
         // Preview

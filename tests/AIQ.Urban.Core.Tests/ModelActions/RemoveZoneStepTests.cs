@@ -39,11 +39,10 @@ public class RemoveZoneStepTests
 
         // Act
         IUrbanModelStep removeStep = new RemoveZoneStep();
-        var deleteData = testData
-            .GetRemoveIds(addResult.AddedIds)
-            .Select(id => new RhinoObjectDeletionData(id))
-            .Cast<ICreationData>()
-            .ToList();
+        List<ICreationData> deleteData =
+        [
+            new ZoneDeletionData(testData.GetRemoveIds(addResult.AddedIds)),
+        ];
 
         var removeResult = removeStep.Run(UrbanModel.Instance, deleteData);
 

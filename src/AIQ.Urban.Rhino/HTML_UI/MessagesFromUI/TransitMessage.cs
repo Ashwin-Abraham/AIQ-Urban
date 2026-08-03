@@ -4,6 +4,7 @@ using AIQ.Urban.Core;
 using AIQ.Urban.Core.Enums;
 using AIQ.Urban.RhinoInterface;
 using AIQ.Urban.RhinoInterface.Logging;
+using AIQ.Urban.RhinoInterface.Pipeline.InputPreparation;
 using AIQ.Urban.RhinoInterface.Pipeline.RhinoDataGatherSteps;
 using AIQ.Urban.RhinoPlugin.HTML_UI.MessageToUI;
 using Microsoft.Extensions.Logging;
@@ -21,19 +22,13 @@ public class TransitMessage : IMessageFromUI<ModelStateMessage>
     public ModelStateMessage HandleMessage()
     {
         var doc = RhinoDoc.ActiveDoc;
-        var selected = doc.Objects.GetSelectedObjects(false, false)
-            .Where(obj => obj.ObjectType == ObjectType.Curve)
-            .ToList();
-
-        if (selected.Count == 0)
-            throw new Exception("Select one or more transit centerline curves first.");
+        var selectedIds = doc.Objects.GetSelectedObjects(false, false).Select(x => x.Id).ToList();
 
         using var loggerFactory = new LoggerFactory().AddRhinoLog();
 
-        var gatherStep = new SelectTransitCenterlinesStep(selected, RoadWidth, TransitType.Road, loggerFactory);
+        var preparationStep = new AddTransitInputPreparationStep(selectedIds, RoadWidth, TransitType.Road);
 
-        var pipeline = new RhinoUrbanModelPipeline(doc, UrbanModel.Instance, loggerFactory)
-            .WithDataGatherStep(gatherStep)
+        var pipeline = new RhinoUrbanModelPipeline(doc, UrbanModel.Instance, preparationStep, loggerFactory)
             .WithTransitAdditionSteps()
             .WithFullModelOutput()
             .WithMetricsCalculation(tolerance: doc.ModelAbsoluteTolerance);

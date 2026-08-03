@@ -6,6 +6,7 @@ using AIQ.Urban.Core.ModelActions.CreationData;
 using AIQ.Urban.Core.Models;
 using AIQ.Urban.RhinoInterface;
 using AIQ.Urban.RhinoInterface.Logging;
+using AIQ.Urban.RhinoInterface.Pipeline.InputPreparation;
 using AIQ.Urban.RhinoInterface.Pipeline.RhinoDataGatherSteps;
 using AIQ.Urban.RhinoPlugin.HTML_UI.MessageToUI;
 using Microsoft.Extensions.Logging;
@@ -26,58 +27,22 @@ public class BuildingMessage : IMessageFromUI<ModelStateMessage>
 
     public ModelStateMessage HandleMessage()
     {
-        var doc = RhinoDoc.ActiveDoc;
-        var use = UrbanModel.Instance.GetUse(DefaultUses.UndefinedName);
-
-        if (manual_generationType == "Mass")
-            return HandleMassMode(doc, use);
-
-        return HandleFootprintMode(doc, use);
-    }
-
-    private ModelStateMessage HandleFootprintMode(RhinoDoc doc, Use use)
-    {
-        var selected = doc.Objects.GetSelectedObjects(false, false)
-            .Where(obj => obj.ObjectType == ObjectType.Curve)
-            .ToList();
-
-        if (selected.Count == 0)
-            throw new Exception("Select one or more building footprint curves first.");
+        var doc = RhinoDoc.ActiveDoc ?? throw new Exception("No active Rhino document.");
+        var selectedIds = doc.Objects.GetSelectedObjects(false, false).Select(x => x.Id).ToList();
+        var mode = manual_generationType == "Mass"
+            ? BuildingInputMode.Mass
+            : BuildingInputMode.Footprint;
 
         using var loggerFactory = new LoggerFactory().AddRhinoLog();
 
-        var gatherStep = new SelectBuildingFootprintStep(selected, FloorHeight, FloorCount, use, loggerFactory);
-        var creationData = gatherStep.Run(doc);
-        var idsToDelete = creationData.OfType<BuildingFootprintData>().Select(b => b.Footprint.Id).ToList();
-
-        return RunPipeline(doc, creationData, idsToDelete, loggerFactory);
-    }
-
-    private ModelStateMessage HandleMassMode(RhinoDoc doc, Use use)
-    {
-        var selected = doc.Objects.GetSelectedObjects(false, false)
-            .Where(obj => obj.ObjectType is ObjectType.Brep or ObjectType.Extrusion)
-            .ToList();
-
-        if (selected.Count == 0)
-            throw new Exception("Select one or more building envelope Breps or Extrusions first.");
-
-        using var loggerFactory = new LoggerFactory().AddRhinoLog();
-
-        var gatherStep = new SelectBuildingEnvelopeStep(selected, FloorHeight, use, loggerFactory);
-        var selectedEnvelopeData = gatherStep.Run(doc).OfType<BuildingMassData>().ToList();
-        var resolver = new BuildingEnvelopeCreationDataResolver(UrbanModel.Instance);
-        var creationData = resolver.Resolve(selectedEnvelopeData);
-        var idsToDelete = selectedEnvelopeData.Select(data => data.Envelope.Id).ToList();
-
-        return RunPipeline(doc, creationData, idsToDelete, loggerFactory);
-    }
-
-    private ModelStateMessage RunPipeline(RhinoDoc doc, List<ICreationData> creationData, List<Guid> idsToDelete, ILoggerFactory loggerFactory)
-    {
-        var pipeline = new RhinoUrbanModelPipeline(doc, UrbanModel.Instance, loggerFactory)
-            .WithCreationData(creationData)
-            .WithBuildingAddOrUpdateSteps([], idsToDelete)
+        var preparationStep = new AddOrUpdateBuildingInputPreparationStep(
+            selectedIds,
+            FloorHeight,
+            FloorCount,
+            DefaultUses.UndefinedName,
+            mode);
+        var pipeline = new RhinoUrbanModelPipeline(doc, UrbanModel.Instance, preparationStep, loggerFactory)
+            .WithBuildingAddOrUpdateSteps()
             .WithFullModelOutput()
             .WithMetricsCalculation(tolerance: doc.ModelAbsoluteTolerance);
 

@@ -10,6 +10,7 @@ using AIQ.Urban.Core.Models;
 using AIQ.Urban.Core.Models.GeometryElements;
 using AIQ.Urban.Core.Models.Metrics;
 using AIQ.Urban.RhinoInterface;
+using AIQ.Urban.RhinoInterface.Pipeline.InputPreparation;
 using Rhino;
 
 namespace AIQ.Urban.RhinoPlugin.MCP_Bridge;
@@ -26,14 +27,12 @@ public class UrbanModelTools(RhinoDoc doc, UrbanModel urbanModel)
     {
         try
         {
-            var curves = centerlineCurves.Select(x => Curve2D.Create(x.ToCoreTupleList())).ToList();
-            var transitData = curves.Select(c => new TransitData(c, width, type)).ToList();
-
             Action<RhinoUrbanModelPipeline> pipelineAction = (pipeline) => PipelineConfigurations
-            .WithTransitAdditionSteps(pipeline, transitData, [])
+            .WithTransitAdditionSteps(pipeline)
             .WithFullModelOutput();
 
-            new RhinoPipelineExecutorForMcp(doc, urbanModel).Run(pipelineAction);
+            var preparationStep = new AddTransitFromCoordinatesInputPreparationStep(centerlineCurves, width, type);
+            new RhinoPipelineExecutorForMcp(doc, urbanModel).Run(preparationStep, pipelineAction);
             return _success;
         }
         catch (Exception ex)
@@ -51,16 +50,17 @@ public class UrbanModelTools(RhinoDoc doc, UrbanModel urbanModel)
     {
         try
         {
-            var use = urbanModel.GetUse(useName);
-            var footprints = footprintCurves.Select(c => Polygon2D.Create(c.ToCoreTupleList())).ToList();
-            var buildingData = footprints.Select(c => new BuildingFootprintData(c, floorHeight, floorCount, use)).ToList();
-
             Action<RhinoUrbanModelPipeline> pipelineAction = (pipeline)
                 => PipelineConfigurations
-                .WithBuildingAddOrUpdateSteps(pipeline, buildingData.Cast<ICreationData>().ToList(), [])
+                .WithBuildingAddOrUpdateSteps(pipeline)
                 .WithFullModelOutput();
 
-            new RhinoPipelineExecutorForMcp(doc, urbanModel).Run(pipelineAction);
+            var preparationStep = new AddBuildingFromCoordinatesInputPreparationStep(
+                footprintCurves,
+                floorHeight,
+                floorCount,
+                useName);
+            new RhinoPipelineExecutorForMcp(doc, urbanModel).Run(preparationStep, pipelineAction);
 
             return _success;
         }
@@ -77,17 +77,12 @@ public class UrbanModelTools(RhinoDoc doc, UrbanModel urbanModel)
     {
         try
         {
-            if (boundaryCoordinates.Count == 0)
-                return "Failed. No boundary coordinates provided.";
-
-            var boundary = Polygon2D.Create(boundaryCoordinates[0].ToCoreTupleList());
-            var zoneData = new List<ZoneData> { new(boundary, name) };
-
             Action<RhinoUrbanModelPipeline> pipelineAction = (pipeline) => PipelineConfigurations
-                .WithZoneAdditionSteps(pipeline, zoneData, [])
+                .WithZoneAdditionSteps(pipeline)
                 .WithFullModelOutput();
 
-            new RhinoPipelineExecutorForMcp(doc, urbanModel).Run(pipelineAction);
+            var preparationStep = new AddZoneFromCoordinatesInputPreparationStep(boundaryCoordinates, name);
+            new RhinoPipelineExecutorForMcp(doc, urbanModel).Run(preparationStep, pipelineAction);
             return _success;
         }
         catch (Exception ex)
@@ -102,10 +97,11 @@ public class UrbanModelTools(RhinoDoc doc, UrbanModel urbanModel)
         try
         {
             Action<RhinoUrbanModelPipeline> pipelineAction = (pipeline) => PipelineConfigurations
-                .WithTransitDeletionSteps(pipeline, centerlineIds)
+                .WithTransitDeletionSteps(pipeline)
                 .WithFullModelOutput();
 
-            new RhinoPipelineExecutorForMcp(doc, urbanModel).Run(pipelineAction);
+            var preparationStep = new DeleteTransitInputPreparationStep(centerlineIds);
+            new RhinoPipelineExecutorForMcp(doc, urbanModel).Run(preparationStep, pipelineAction);
             return _success;
         }
         catch (Exception ex)
@@ -120,10 +116,11 @@ public class UrbanModelTools(RhinoDoc doc, UrbanModel urbanModel)
         try
         {
             Action<RhinoUrbanModelPipeline> pipelineAction = (pipeline) => PipelineConfigurations
-                .WithBuildingDeletionSteps(pipeline, geometryIds)
+                .WithBuildingDeletionSteps(pipeline)
                 .WithFullModelOutput();
 
-            new RhinoPipelineExecutorForMcp(doc, urbanModel).Run(pipelineAction);
+            var preparationStep = new DeleteBuildingInputPreparationStep(geometryIds);
+            new RhinoPipelineExecutorForMcp(doc, urbanModel).Run(preparationStep, pipelineAction);
             return _success;
         }
         catch (Exception ex)
@@ -138,10 +135,11 @@ public class UrbanModelTools(RhinoDoc doc, UrbanModel urbanModel)
         try
         {
             Action<RhinoUrbanModelPipeline> pipelineAction = (pipeline) => PipelineConfigurations
-                .WithZoneDeletionSteps(pipeline, geometryIds)
+                .WithZoneDeletionSteps(pipeline)
                 .WithFullModelOutput();
 
-            new RhinoPipelineExecutorForMcp(doc, urbanModel).Run(pipelineAction);
+            var preparationStep = new DeleteZoneInputPreparationStep(geometryIds);
+            new RhinoPipelineExecutorForMcp(doc, urbanModel).Run(preparationStep, pipelineAction);
             return _success;
         }
         catch (Exception ex)
@@ -172,13 +170,12 @@ public class UrbanModelTools(RhinoDoc doc, UrbanModel urbanModel)
     {
         try
         {
-            var use = urbanModel.GetUse(useName);
-
             Action<RhinoUrbanModelPipeline> pipelineAction = (pipeline) => PipelineConfigurations
-                .WithBuildingUseChangeSteps(pipeline, geometryIds, use)
+                .WithBuildingUseChangeSteps(pipeline)
                 .WithFullModelOutput();
 
-            new RhinoPipelineExecutorForMcp(doc, urbanModel).Run(pipelineAction);
+            var preparationStep = new ChangeBuildingUseInputPreparationStep(geometryIds, useName);
+            new RhinoPipelineExecutorForMcp(doc, urbanModel).Run(preparationStep, pipelineAction);
             return _success;
         }
         catch (Exception ex)

@@ -2,6 +2,7 @@ using System;
 using AIQ.Urban.Core;
 using AIQ.Urban.RhinoInterface;
 using AIQ.Urban.RhinoInterface.Logging;
+using AIQ.Urban.RhinoInterface.Pipeline.InputPreparation;
 using AIQ.Urban.RhinoPlugin.HTML_UI;
 using AIQ.Urban.RhinoPlugin.HTML_UI.MessageToUI;
 using Microsoft.Extensions.Logging;
@@ -31,8 +32,9 @@ public class StartUI_AIQUrban : Command
 
         try
         {
-            var pipeline = new RhinoUrbanModelPipeline(doc, UrbanModel.Instance, loggerFactory)
-                .WithDocModelLoad(doc);
+            var preparationStep = new LoadDocumentInputPreparationStep();
+            var pipeline = new RhinoUrbanModelPipeline(doc, UrbanModel.Instance, preparationStep, loggerFactory)
+                .WithDocumentLoadSteps();
             pipeline.Run();
 
             WebSocketUiServer.CacheModelState(new ModelStateMessage(UrbanModel.Instance));

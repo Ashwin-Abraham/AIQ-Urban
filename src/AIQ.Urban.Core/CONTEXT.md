@@ -80,6 +80,8 @@ Constructed in three modes:
 - **Mass mode**: `Building(Brep envelope, double typicalFloorHeight, Use use, double tolerance = 1e-5)` — preserves the supplied Brep as the envelope, derives floor plates by contouring the Brep at horizontal planes starting at `lowestZ + tolerance` and every `typicalFloorHeight` upward. All intersecting curves at each level become separate floor plates (ordered by Z). Contours with curve length < tolerance are discarded. `FloorCount` = `Floor(envelopeHeight / typicalFloorHeight)`.
 - **Doc-load mode**: `Building(Brep envelope, IReadOnlyList<FloorPlate> existingPlates)` — preserves existing floor plate curves as-is from the Rhino doc. `TypicalFloorHeight` is the mode of non-zero Z-differences between consecutive plates (tolerance 1e-6, fallback 3.0). `Footprint` = lowest plate outline. `FloorCount` = `existingPlates.Count`.
 
+Building footprint and floor-plate curve inputs must not self-intersect. Building-envelope Breps are governed by Brep validity rather than curve self-intersection validation.
+
 ### BuildingFootprintData
 Creation data record for footprint-mode buildings. Fields: `Polygon2D Footprint`, `double TypicalFloorHeight`, `int FloorCount`, `Use Use`. Produced by `SelectBuildingFootprintStep`.
 
@@ -115,6 +117,9 @@ A `Node` with `List<Node> Neighbours`. Junction/intersection in a transit networ
 A 2D land parcel with a `Polygon2D Outline` and a `Use`. Stored in `UrbanModel.Parcels` — cleared and regenerated on each transit change by `RecalculateParcelsStep`. Parcels are derived from the holes in each `TransitType`'s unioned surface (`TransitSurfaces`). Default `Use` is `DefaultUses.Public`. Use is mutable via `SetUse()`. No deduplication is performed if multiple transit types produce overlapping holes.
 
 Use preservation across recalculation uses nearest-centroid matching (`ResolveUse` in `RecalculateParcelsStep`). When loading from doc, external centroid/use pairs can be passed via the optional `externalCentroids` parameter to override the default (empty) old-parcel lookup. Explicitly set uses may be lost if transit changes reshape parcels significantly — this is accepted behaviour for now.
+
+### ParcelBoundary
+A user-drawn open or closed curve that splits or encloses parcels; the UI labels this input a **Divider**, and both names are retained at their existing boundaries.
 
 ### Parcel3D
 A 3D parcel extruded from a `Parcel2D FlatParcel` plus a `Mesh ProjectedParcel` (e.g. terrain-projected).
