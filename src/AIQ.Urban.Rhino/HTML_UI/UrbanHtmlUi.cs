@@ -8,6 +8,8 @@ public static class UrbanHtmlUi
 {
     private const int DefaultWindowWidth = 520;
     private const int DefaultWindowHeight = 900;
+    private const int MinimumWindowWidth = 312;
+    private const int MinimumWindowHeight = 630;
 
     private static Form? _window;
 
@@ -32,6 +34,7 @@ public static class UrbanHtmlUi
             Title = "AIQ Urban UI",
             Width = DefaultWindowWidth,
             Height = DefaultWindowHeight,
+            MinimumSize = new Size(MinimumWindowWidth, MinimumWindowHeight),
             Topmost = true,
             Content = layout,
         };
