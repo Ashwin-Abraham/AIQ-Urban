@@ -52,6 +52,16 @@ public class SelectTransitCenterlinesStep(
                 continue;
             }
 
+            if (normalizedCurve.IsSelfIntersecting())
+            {
+                _logger.LogWarning(
+                    "Skipped transit centerline {ObjectId}: curve self-intersects within tolerance {Tolerance}",
+                    obj.Id,
+                    AIQ.Primitives.NumericTolerance.Default);
+                rejectedCount++;
+                continue;
+            }
+
             var curve2D = new Curve2D(normalizedCurve, obj.Id);
             result.Add(new TransitData(curve2D, width, transitType));
             result.Add(new RhinoObjectDeletionData(obj.Id));

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using AIQ.Urban.Core.Extensions;
 using AIQ.Urban.Core.ModelActions.EditData;
 using AIQ.Urban.Core.Models;
 using AIQ.Urban.Core.Models.GeometryElements;
@@ -32,10 +33,21 @@ public class SelectBuildingFootprintStep(
             throw new Exception("Select one or more building footprint curves first.");
 
         var result = new List<IModelEditData>();
+        var rejectedCount = 0;
         foreach (var obj in selected)
         {
             if (obj.Geometry is not Curve curve)
                 continue;
+
+            if (curve.IsSelfIntersecting())
+            {
+                _logger.LogWarning(
+                    "Skipped building footprint {ObjectId}: curve self-intersects within tolerance {Tolerance}",
+                    obj.Id,
+                    AIQ.Primitives.NumericTolerance.Default);
+                rejectedCount++;
+                continue;
+            }
 
             var polygon = new Polygon2D(curve)
             {
@@ -46,10 +58,10 @@ public class SelectBuildingFootprintStep(
         }
 
         var buildingCount = result.OfType<BuildingFootprintData>().Count();
-        if (buildingCount == 0)
-            throw new Exception("Selected objects must be curves.");
-
-        _logger.LogInformation("SelectBuildingFootprintStep gathered {Count} building footprints", buildingCount);
+        _logger.LogInformation(
+            "SelectBuildingFootprintStep gathered {ValidCount} building footprints and rejected {RejectedCount}",
+            buildingCount,
+            rejectedCount);
 
         return result;
     }

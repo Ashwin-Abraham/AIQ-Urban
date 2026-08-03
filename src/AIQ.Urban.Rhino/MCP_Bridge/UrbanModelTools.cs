@@ -27,8 +27,22 @@ public class UrbanModelTools(RhinoDoc doc, UrbanModel urbanModel)
     {
         try
         {
-            var curves = centerlineCurves.Select(x => Curve2D.Create(x.ToCoreTupleList())).ToList();
-            var transitData = curves.Select(c => new TransitData(c, width, type)).ToList();
+            var transitData = new List<TransitData>(centerlineCurves.Count);
+            for (int i = 0; i < centerlineCurves.Count; i++)
+            {
+                try
+                {
+                    var curve = Curve2D.Create(centerlineCurves[i].ToCoreTupleList());
+                    transitData.Add(new TransitData(curve, width, type));
+                }
+                catch (Exception ex)
+                {
+                    throw new ArgumentException(
+                        $"centerlineCurves[{i}] is invalid: {ex.Message}",
+                        nameof(centerlineCurves),
+                        ex);
+                }
+            }
 
             Action<RhinoUrbanModelPipeline> pipelineAction = pipeline => pipeline
                 .WithDataGatherStep(new TransitAdditionGatherStep(transitData, []))
@@ -54,8 +68,23 @@ public class UrbanModelTools(RhinoDoc doc, UrbanModel urbanModel)
         try
         {
             var use = urbanModel.GetUse(useName);
-            var footprints = footprintCurves.Select(c => Polygon2D.Create(c.ToCoreTupleList())).ToList();
-            var buildingData = footprints.Select(c => new BuildingFootprintData(c, floorHeight, floorCount, use)).ToList();
+            var buildingData = new List<BuildingFootprintData>(footprintCurves.Count);
+            for (int i = 0; i < footprintCurves.Count; i++)
+            {
+                try
+                {
+                    var footprint = Polygon2D.Create(footprintCurves[i].ToCoreTupleList())
+                        ?? throw new ArgumentException("Building footprint must be a closed polyline.");
+                    buildingData.Add(new BuildingFootprintData(footprint, floorHeight, floorCount, use));
+                }
+                catch (Exception ex)
+                {
+                    throw new ArgumentException(
+                        $"footprintCurves[{i}] is invalid: {ex.Message}",
+                        nameof(footprintCurves),
+                        ex);
+                }
+            }
 
             Action<RhinoUrbanModelPipeline> pipelineAction = pipeline => pipeline
                 .WithDataGatherStep(new BuildingFootprintDataGatherStep(buildingData))

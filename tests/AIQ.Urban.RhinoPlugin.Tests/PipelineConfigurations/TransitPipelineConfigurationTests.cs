@@ -182,6 +182,53 @@ public class TransitPipelineConfigurationTests
     }
 
     [Test]
+    public void WithTransitAdditionSteps_MixedSelfIntersectionInputs_LeavesRejectedCurveUntouched()
+    {
+        // Arrange
+        using var doc = RhinoDoc.CreateHeadless(null);
+        var validId = doc.Objects.AddLine(new Line(new Point3d(0, 0, 0), new Point3d(10, 0, 0)));
+        var invalidId = doc.Objects.AddCurve(SelfIntersectingCenterline());
+        var selected = new[] { validId, invalidId }.Select(id => doc.Objects.FindId(id)!).ToList();
+        var gatherStep = new SelectTransitCenterlinesStep(selected, 6, TransitType.Road);
+
+        // Act
+        new RhinoUrbanModelPipeline(doc, UrbanModel.Instance)
+            .WithDataGatherStep(gatherStep)
+            .WithTransitAdditionSteps()
+            .WithFullModelOutput()
+            .Run();
+
+        // Assert
+        Assert.That(UrbanModel.Instance.Transits, Has.Count.EqualTo(1));
+        Assert.That(doc.Objects.FindId(validId), Is.Null);
+        Assert.That(doc.Objects.FindId(invalidId), Is.Not.Null);
+    }
+
+    [Test]
+    public void WithTransitAdditionSteps_AllInputsSelfIntersecting_CompletesWithNoMutations()
+    {
+        // Arrange
+        using var doc = RhinoDoc.CreateHeadless(null);
+        var invalidId = doc.Objects.AddCurve(SelfIntersectingCenterline());
+        var gatherStep = new SelectTransitCenterlinesStep(
+            [doc.Objects.FindId(invalidId)!],
+            6,
+            TransitType.Road);
+
+        // Act
+        var mutationCount = new RhinoUrbanModelPipeline(doc, UrbanModel.Instance)
+            .WithDataGatherStep(gatherStep)
+            .WithTransitAdditionSteps()
+            .WithFullModelOutput()
+            .Run();
+
+        // Assert
+        Assert.That(mutationCount, Is.EqualTo(0));
+        Assert.That(UrbanModel.Instance.Transits, Is.Empty);
+        Assert.That(doc.Objects.FindId(invalidId), Is.Not.Null);
+    }
+
+    [Test]
     public void WithTransitRestoreSteps_InvalidReplacement_RebakesLastValidTransit()
     {
         using var doc = RhinoDoc.CreateHeadless(null);
@@ -233,6 +280,35 @@ public class TransitPipelineConfigurationTests
         Assert.That(restored.Width, Is.EqualTo(6));
         Assert.That(restored.TransitType, Is.EqualTo(TransitType.Road));
         Assert.That(restored.Centerline.Geometry.GetBoundingBox(true).Min.Z, Is.EqualTo(0));
+        Assert.That(doc.Objects.FindId(restored.Centerline.Id), Is.Not.Null);
+    }
+
+    [Test]
+    public void HandleTransitReplace_SelfIntersectingCenterline_RestoresLastValidTransit()
+    {
+        // Arrange
+        using var doc = RhinoDoc.CreateHeadless(null);
+        var oldCenterlineId = Guid.NewGuid();
+        var oldTransit = new TransitData(
+            new Curve2D(
+                new LineCurve(new Point3d(0, 0, 0), new Point3d(10, 0, 0)),
+                oldCenterlineId),
+            6,
+            TransitType.Road).ToTransit();
+        UrbanModel.Instance.AddTransit([oldTransit]);
+        var rejectedId = doc.Objects.AddCurve(SelfIntersectingCenterline());
+        using var handler = new RhinoUrbanEventHandler(doc);
+
+        // Act
+        handler.HandleTransitReplace(oldTransit, rejectedId);
+
+        // Assert
+        Assert.That(doc.Objects.FindId(rejectedId), Is.Null);
+        Assert.That(UrbanModel.Instance.Transits, Has.Count.EqualTo(1));
+        var restored = UrbanModel.Instance.Transits.Single();
+        Assert.That(restored.Width, Is.EqualTo(6));
+        Assert.That(restored.TransitType, Is.EqualTo(TransitType.Road));
+        Assert.That(restored.Centerline.Id, Is.Not.EqualTo(oldCenterlineId));
         Assert.That(doc.Objects.FindId(restored.Centerline.Id), Is.Not.Null);
     }
 
@@ -349,5 +425,15 @@ public class TransitPipelineConfigurationTests
             _ => throw new ArgumentException("Need at least 2 points", nameof(points))
         };
         return (new TransitData(curve, width, type), id);
+    }
+
+    private static PolylineCurve SelfIntersectingCenterline()
+    {
+        return new PolylineCurve([
+            new Point3d(0, 0, 0),
+            new Point3d(10, 10, 0),
+            new Point3d(0, 10, 0),
+            new Point3d(10, 0, 0),
+        ]);
     }
 }

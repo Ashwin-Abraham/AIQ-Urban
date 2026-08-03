@@ -48,6 +48,8 @@ new RhinoUrbanModelPipeline(doc, UrbanModel.Instance)
 - `RhinoObjectPreservationData` overrides staged `RhinoObjectDeletionData` for the same ID across the complete gathered operation.
 - Pipeline configuration extensions are execution recipes only and never accept edit data or Rhino deletion IDs.
 - **Run()**: Gathers the complete edit-data list, executes each model step in configuration order, then batch-deletes and bakes Rhino geometry using the existing outputters.
+- Interactive Rhino selections accept valid geometry per object and retain rejected source objects for correction. MCP `add_transit` and `add_building` batches are atomic because they have no retained source geometry: one invalid item rejects the complete request and identifies that item in the failure response.
+- If every object in an interactive selection is rejected, the operation is a warning-only no-op: it throws no exception, retains every rejected source object, and creates no urban elements. Each rejection is logged against its Rhino object ID and the gatherer logs accepted/rejected totals.
 
 Element type output is automatic — `OutputTransits()`, `OutputBuildings()`, `OutputParcels(addedIds)`, and `OutputZones(addedIds)` are called by the pipeline for any added elements of those types.
 
@@ -66,7 +68,7 @@ The event handler dispatches `DeleteRhinoObject` and `ReplaceRhinoObject` events
 
 The handler checks the modified object's layer to decide if it's authoritative geometry (Centerline for Transit, Boundary curve for Zone). Objects on derived layers (Outline, Surface, Envelope, FloorPlates) are re-baked on pipeline runs and user modifications are overwritten — that is correct behaviour.
 
-When a Transit centerline replacement violates the ground-plane invariant, the replacement is rejected individually: the invalid Rhino curve is deleted, the Transit's last valid centerline and outline are re-baked from `UrbanModel`, its width and type are preserved, and a warning is logged.
+When a Transit centerline replacement violates either the ground-plane or non-self-intersection invariant, the replacement is rejected individually: the invalid Rhino curve is deleted, the Transit's last valid centerline and outline are re-baked from `UrbanModel`, its width and type are preserved, and a warning is logged.
 
 ### Pipeline Cascade Matrix
 

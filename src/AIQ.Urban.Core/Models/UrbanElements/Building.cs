@@ -1,6 +1,7 @@
-using Rhino.Geometry;
+using AIQ.Urban.Core.Extensions;
 using AIQ.Urban.Core.Models.GeometryElements;
 using AIQ.Urban.Core.Models.UrbanGraph;
+using Rhino.Geometry;
 
 namespace AIQ.Urban.Core.Models.UrbanElements;
 
@@ -17,6 +18,8 @@ public class Building : IUrbanElement, IGraphableAsNode
     public Building(Polygon2D footprint, double typicalFloorHeight, int floorCount, Use use)
     {
         ArgumentNullException.ThrowIfNull(footprint);
+        if (footprint.Geometry.IsSelfIntersecting())
+            throw new ArgumentException("Building footprint must not self-intersect.", nameof(footprint));
 
         FloorCount = floorCount;
 
