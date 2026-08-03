@@ -1,4 +1,4 @@
-using AIQ.Urban.Core.ModelActions.CreationData;
+using AIQ.Urban.Core.ModelActions.EditData;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -9,7 +9,7 @@ public class RemoveParcelBoundaryStep(ILoggerFactory? _loggerFactory = null) : I
     private readonly ILogger _logger = (_loggerFactory ?? NullLoggerFactory.Instance)
         .CreateLogger<RemoveParcelBoundaryStep>();
 
-    public StepResult Run(UrbanModel model, List<ICreationData> creationData)
+    public StepResult Run(UrbanModel model, List<IModelEditData> creationData)
     {
         var boundaryIds = creationData.OfType<ParcelBoundaryDeletionData>()
             .SelectMany(x => x.BoundaryIds)

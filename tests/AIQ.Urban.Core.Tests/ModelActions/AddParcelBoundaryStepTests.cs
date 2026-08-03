@@ -1,5 +1,5 @@
 using AIQ.Urban.Core.ModelActions;
-using AIQ.Urban.Core.ModelActions.CreationData;
+using AIQ.Urban.Core.ModelActions.EditData;
 using AIQ.Urban.Core.Models.GeometryElements;
 using NUnit.Framework;
 using Rhino.Geometry;
@@ -31,7 +31,7 @@ public class AddParcelBoundaryStepTests
         IUrbanModelStep step = new AddParcelBoundaryStep();
 
         // Act
-        var result = step.Run(UrbanModel.Instance, testData.Input.Cast<ICreationData>().ToList());
+        var result = step.Run(UrbanModel.Instance, testData.Input.Cast<IModelEditData>().ToList());
 
         // Assert
         Assert.That(UrbanModel.Instance.ParcelBoundaries, Has.Count.EqualTo(testData.ExpectedCount));

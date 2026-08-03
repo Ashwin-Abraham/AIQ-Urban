@@ -2,10 +2,11 @@ using System.Collections.Generic;
 using System.Linq;
 using AIQ.Urban.Core;
 using AIQ.Urban.Core.ModelActions;
-using AIQ.Urban.Core.ModelActions.CreationData;
+using AIQ.Urban.Core.ModelActions.EditData;
 using AIQ.Urban.Core.Models.GeometryElements;
 using AIQ.Urban.DebugViz;
 using AIQ.Urban.RhinoInterface;
+using AIQ.Urban.RhinoInterface.Pipeline.RhinoDataGatherSteps;
 using NUnit.Framework;
 using Rhino;
 using Rhino.Geometry;
@@ -35,7 +36,8 @@ public class ZonePipelineConfigurationTests
 
         // Act
         var pipeline = new RhinoUrbanModelPipeline(doc, UrbanModel.Instance)
-            .WithZoneAdditionSteps(testData.Input, [])
+            .WithDataGatherStep(new ZoneAdditionGatherStep(testData.Input))
+            .WithZoneAdditionSteps()
             .WithFullModelOutput()
             .WithMetricsCalculation(false);
         pipeline.Run();

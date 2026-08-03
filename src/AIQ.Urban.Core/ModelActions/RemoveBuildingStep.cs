@@ -1,4 +1,4 @@
-using AIQ.Urban.Core.ModelActions.CreationData;
+using AIQ.Urban.Core.ModelActions.EditData;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -8,7 +8,7 @@ public class RemoveBuildingStep(ILoggerFactory? _loggerFactory = null) : IUrbanM
 {
     private readonly ILogger _logger = (_loggerFactory ?? NullLoggerFactory.Instance).CreateLogger<RemoveBuildingStep>();
 
-    public StepResult Run(UrbanModel model, List<ICreationData> creationData)
+    public StepResult Run(UrbanModel model, List<IModelEditData> creationData)
     {
         var geometryIds = creationData.OfType<BuildingDeletionData>()
             .SelectMany(d => d.GeometryIds)

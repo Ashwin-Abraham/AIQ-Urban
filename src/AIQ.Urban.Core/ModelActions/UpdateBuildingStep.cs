@@ -1,4 +1,4 @@
-using AIQ.Urban.Core.ModelActions.CreationData;
+using AIQ.Urban.Core.ModelActions.EditData;
 using AIQ.Urban.Core.Models;
 using AIQ.Urban.Core.Models.UrbanElements;
 using Microsoft.Extensions.Logging;
@@ -11,7 +11,7 @@ public class UpdateBuildingStep(ILoggerFactory? _loggerFactory = null) : IUrbanM
 {
     private readonly ILogger _logger = (_loggerFactory ?? NullLoggerFactory.Instance).CreateLogger<UpdateBuildingStep>();
 
-    public StepResult Run(UrbanModel model, List<ICreationData> creationData)
+    public StepResult Run(UrbanModel model, List<IModelEditData> creationData)
     {
         var addedIds = new List<Guid>();
         var deletedIds = new List<Guid>();

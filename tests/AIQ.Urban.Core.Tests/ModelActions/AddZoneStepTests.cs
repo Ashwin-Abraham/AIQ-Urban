@@ -1,5 +1,5 @@
 using AIQ.Urban.Core.ModelActions;
-using AIQ.Urban.Core.ModelActions.CreationData;
+using AIQ.Urban.Core.ModelActions.EditData;
 using AIQ.Urban.Core.Models;
 using AIQ.Urban.Core.Models.GeometryElements;
 using AIQ.Urban.DebugViz;
@@ -33,7 +33,7 @@ public class AddZoneStepTests
         IUrbanModelStep step = new AddZoneStep();
 
         // Act
-        var result = step.Run(UrbanModel.Instance, testData.Input.Cast<ICreationData>().ToList());
+        var result = step.Run(UrbanModel.Instance, testData.Input.Cast<IModelEditData>().ToList());
 
         // Visualise
 #if DEBUG
@@ -53,6 +53,18 @@ public class AddZoneStepTests
             var returnedIds = result.AddedIds.OrderBy(x => x).ToList();
             Assert.That(returnedIds, Is.EqualTo(allGeometryIds));
         }
+    }
+
+    [Test]
+    public void Run_DuplicateZoneName_ThrowsBeforeMutatingModel()
+    {
+        IUrbanModelStep step = new AddZoneStep();
+        step.Run(UrbanModel.Instance, [new ZoneData(BigBoundary, "Downtown")]);
+
+        Assert.That(
+            () => step.Run(UrbanModel.Instance, [new ZoneData(SmallBoundary, "downtown")]),
+            Throws.ArgumentException.With.Message.Contains("already exists"));
+        Assert.That(UrbanModel.Instance.Zones, Has.Count.EqualTo(1));
     }
 
     private record AddZoneTestData(

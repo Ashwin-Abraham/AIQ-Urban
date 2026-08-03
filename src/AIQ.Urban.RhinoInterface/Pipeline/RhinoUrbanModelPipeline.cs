@@ -1,10 +1,11 @@
 using AIQ.Urban.Core;
 using AIQ.Urban.Core.ModelActions;
-using AIQ.Urban.Core.ModelActions.CreationData;
+using AIQ.Urban.Core.ModelActions.EditData;
 using AIQ.Urban.Core.Models.UrbanElements;
 using AIQ.Urban.RhinoInterface.EventHandler;
 using AIQ.Urban.RhinoInterface.Extensions;
 using AIQ.Urban.RhinoInterface.Pipeline.Outputters;
+using AIQ.Urban.RhinoInterface.Pipeline.EditData;
 using AIQ.Urban.RhinoInterface.Pipeline.RhinoDataGatherSteps;
 using AIQ.Urban.RhinoInterface.Utils;
 using Microsoft.Extensions.Logging;
@@ -21,10 +22,8 @@ public class RhinoUrbanModelPipeline(
     private readonly ILogger _logger = (_loggerFactory ?? NullLoggerFactory.Instance)
         .CreateLogger<RhinoUrbanModelPipeline>();
 
-    private IRhinoDataGatherStep? _objectSelectionStep;
-    private List<ICreationData> _creationData = [];
+    private readonly List<IRhinoDataGatherStep> _dataGatherSteps = [];
     private readonly List<IUrbanModelStep> _steps = [];
-    private readonly List<Guid> _directDeleteIds = [];
     private readonly List<Action<UrbanModel>> _postActions = [];
     private readonly List<IUrbanModelRhinoOutputter> _outputters = [];
 
@@ -41,19 +40,7 @@ public class RhinoUrbanModelPipeline(
 
     public RhinoUrbanModelPipeline WithDataGatherStep(IRhinoDataGatherStep step)
     {
-        _objectSelectionStep = step;
-        return this;
-    }
-
-    public RhinoUrbanModelPipeline WithCreationData(List<ICreationData> data)
-    {
-        _creationData.AddRange(data);
-        return this;
-    }
-
-    public RhinoUrbanModelPipeline WithRhinoObjectDeletion(List<Guid> ids)
-    {
-        _directDeleteIds.AddRange(ids);
+        _dataGatherSteps.Add(step);
         return this;
     }
 
@@ -107,10 +94,10 @@ public class RhinoUrbanModelPipeline(
 
         try
         {
-            var creationData = new List<ICreationData>(_creationData);
+            var creationData = new List<IModelEditData>();
 
-            if (_objectSelectionStep is not null)
-                creationData.AddRange(_objectSelectionStep.Run(_rhinoDoc));
+            foreach (var gatherStep in _dataGatherSteps)
+                creationData.AddRange(gatherStep.Run(_rhinoDoc));
 
             var preservedRhinoObjectIds = creationData
                 .OfType<RhinoObjectPreservationData>()
@@ -133,10 +120,11 @@ public class RhinoUrbanModelPipeline(
                 }
             }
 
-            deletedIds.AddRange(creationData
+            var stagedRhinoDeletionIds = creationData
                 .OfType<RhinoObjectDeletionData>()
-                .Select(x => x.Id));
-            deletedIds.AddRange(_directDeleteIds.Where(x => !preservedRhinoObjectIds.Contains(x)));
+                .Select(x => x.Id)
+                .Where(x => !preservedRhinoObjectIds.Contains(x));
+            deletedIds.AddRange(stagedRhinoDeletionIds);
 
             deletedIds = deletedIds.Distinct().ToList();
             addedIds = addedIds.Distinct().ToList();

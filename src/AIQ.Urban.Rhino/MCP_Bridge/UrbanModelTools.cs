@@ -5,11 +5,12 @@ using System.Text.Json;
 using AIQ.Urban.Core;
 using AIQ.Urban.Core.Enums;
 using AIQ.Urban.Core.ModelActions;
-using AIQ.Urban.Core.ModelActions.CreationData;
+using AIQ.Urban.Core.ModelActions.EditData;
 using AIQ.Urban.Core.Models;
 using AIQ.Urban.Core.Models.GeometryElements;
 using AIQ.Urban.Core.Models.Metrics;
 using AIQ.Urban.RhinoInterface;
+using AIQ.Urban.RhinoInterface.Pipeline.RhinoDataGatherSteps;
 using Rhino;
 
 namespace AIQ.Urban.RhinoPlugin.MCP_Bridge;
@@ -29,9 +30,10 @@ public class UrbanModelTools(RhinoDoc doc, UrbanModel urbanModel)
             var curves = centerlineCurves.Select(x => Curve2D.Create(x.ToCoreTupleList())).ToList();
             var transitData = curves.Select(c => new TransitData(c, width, type)).ToList();
 
-            Action<RhinoUrbanModelPipeline> pipelineAction = (pipeline) => PipelineConfigurations
-            .WithTransitAdditionSteps(pipeline, transitData, [])
-            .WithFullModelOutput();
+            Action<RhinoUrbanModelPipeline> pipelineAction = pipeline => pipeline
+                .WithDataGatherStep(new TransitAdditionGatherStep(transitData, []))
+                .WithTransitAdditionSteps()
+                .WithFullModelOutput();
 
             new RhinoPipelineExecutorForMcp(doc, urbanModel).Run(pipelineAction);
             return _success;
@@ -55,9 +57,9 @@ public class UrbanModelTools(RhinoDoc doc, UrbanModel urbanModel)
             var footprints = footprintCurves.Select(c => Polygon2D.Create(c.ToCoreTupleList())).ToList();
             var buildingData = footprints.Select(c => new BuildingFootprintData(c, floorHeight, floorCount, use)).ToList();
 
-            Action<RhinoUrbanModelPipeline> pipelineAction = (pipeline)
-                => PipelineConfigurations
-                .WithBuildingAddOrUpdateSteps(pipeline, buildingData.Cast<ICreationData>().ToList(), [])
+            Action<RhinoUrbanModelPipeline> pipelineAction = pipeline => pipeline
+                .WithDataGatherStep(new BuildingFootprintDataGatherStep(buildingData))
+                .WithBuildingAddOrUpdateSteps()
                 .WithFullModelOutput();
 
             new RhinoPipelineExecutorForMcp(doc, urbanModel).Run(pipelineAction);
@@ -83,8 +85,9 @@ public class UrbanModelTools(RhinoDoc doc, UrbanModel urbanModel)
             var boundary = Polygon2D.Create(boundaryCoordinates[0].ToCoreTupleList());
             var zoneData = new List<ZoneData> { new(boundary, name) };
 
-            Action<RhinoUrbanModelPipeline> pipelineAction = (pipeline) => PipelineConfigurations
-                .WithZoneAdditionSteps(pipeline, zoneData, [])
+            Action<RhinoUrbanModelPipeline> pipelineAction = pipeline => pipeline
+                .WithDataGatherStep(new ZoneAdditionGatherStep(zoneData))
+                .WithZoneAdditionSteps()
                 .WithFullModelOutput();
 
             new RhinoPipelineExecutorForMcp(doc, urbanModel).Run(pipelineAction);
@@ -101,8 +104,9 @@ public class UrbanModelTools(RhinoDoc doc, UrbanModel urbanModel)
     {
         try
         {
-            Action<RhinoUrbanModelPipeline> pipelineAction = (pipeline) => PipelineConfigurations
-                .WithTransitDeletionSteps(pipeline, centerlineIds)
+            Action<RhinoUrbanModelPipeline> pipelineAction = pipeline => pipeline
+                .WithDataGatherStep(new TransitDeletionGatherStep(centerlineIds))
+                .WithTransitDeletionSteps()
                 .WithFullModelOutput();
 
             new RhinoPipelineExecutorForMcp(doc, urbanModel).Run(pipelineAction);
@@ -119,8 +123,9 @@ public class UrbanModelTools(RhinoDoc doc, UrbanModel urbanModel)
     {
         try
         {
-            Action<RhinoUrbanModelPipeline> pipelineAction = (pipeline) => PipelineConfigurations
-                .WithBuildingDeletionSteps(pipeline, geometryIds)
+            Action<RhinoUrbanModelPipeline> pipelineAction = pipeline => pipeline
+                .WithDataGatherStep(new BuildingDeletionGatherStep(geometryIds))
+                .WithBuildingDeletionSteps()
                 .WithFullModelOutput();
 
             new RhinoPipelineExecutorForMcp(doc, urbanModel).Run(pipelineAction);
@@ -137,8 +142,9 @@ public class UrbanModelTools(RhinoDoc doc, UrbanModel urbanModel)
     {
         try
         {
-            Action<RhinoUrbanModelPipeline> pipelineAction = (pipeline) => PipelineConfigurations
-                .WithZoneDeletionSteps(pipeline, geometryIds)
+            Action<RhinoUrbanModelPipeline> pipelineAction = pipeline => pipeline
+                .WithDataGatherStep(new ZoneDeletionGatherStep(geometryIds))
+                .WithZoneDeletionSteps()
                 .WithFullModelOutput();
 
             new RhinoPipelineExecutorForMcp(doc, urbanModel).Run(pipelineAction);
@@ -174,8 +180,9 @@ public class UrbanModelTools(RhinoDoc doc, UrbanModel urbanModel)
         {
             var use = urbanModel.GetUse(useName);
 
-            Action<RhinoUrbanModelPipeline> pipelineAction = (pipeline) => PipelineConfigurations
-                .WithBuildingUseChangeSteps(pipeline, geometryIds, use)
+            Action<RhinoUrbanModelPipeline> pipelineAction = pipeline => pipeline
+                .WithDataGatherStep(new BuildingUseChangeGatherStep(geometryIds, use))
+                .WithBuildingUseChangeSteps()
                 .WithFullModelOutput();
 
             new RhinoPipelineExecutorForMcp(doc, urbanModel).Run(pipelineAction);

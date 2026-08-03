@@ -1,11 +1,5 @@
-using System.Drawing;
-using AIQ.Urban.Core.Enums;
 using AIQ.Urban.Core.ModelActions;
-using AIQ.Urban.Core.ModelActions.CreationData;
-using AIQ.Urban.Core.Models;
-using AIQ.Urban.Core.Models.GeometryElements;
 using AIQ.Urban.Core.Models.Metrics;
-using AIQ.Urban.Core.Models.UrbanElements;
 using AIQ.Urban.RhinoInterface.Pipeline.RhinoDataGatherSteps;
 using AIQ.Urban.RhinoInterface.Utils;
 using Rhino;
@@ -16,72 +10,45 @@ namespace AIQ.Urban.RhinoInterface;
 public static class PipelineConfigurations
 {
     public static RhinoUrbanModelPipeline WithParcelBoundaryAdditionSteps(
-        this RhinoUrbanModelPipeline pipeline,
-        List<ParcelBoundaryData>? boundaryData = null)
+        this RhinoUrbanModelPipeline pipeline)
     {
-        boundaryData ??= [];
-
-        pipeline.WithCreationData(boundaryData.Cast<ICreationData>().ToList())
-            .WithUrbanElementStep(new AddParcelBoundaryStep(pipeline.LoggerFactory))
+        pipeline.WithUrbanElementStep(new AddParcelBoundaryStep(pipeline.LoggerFactory))
             .WithUrbanElementStep(new RecalculateParcelsStep(pipeline.LoggerFactory));
 
         return pipeline;
     }
 
     public static RhinoUrbanModelPipeline WithParcelBoundaryUpdateSteps(
-        this RhinoUrbanModelPipeline pipeline,
-        Guid oldBoundaryId,
-        Guid replacementRhinoObjectId,
-        Curve newBoundary)
+        this RhinoUrbanModelPipeline pipeline)
     {
-        pipeline.WithRhinoObjectDeletion([replacementRhinoObjectId])
-            .WithCreationData([
-                new ParcelBoundaryUpdateData(
-                    oldBoundaryId,
-                    new Curve2D(newBoundary, replacementRhinoObjectId)),
-            ])
-            .WithUrbanElementStep(new UpdateParcelBoundaryStep(pipeline.LoggerFactory))
+        pipeline.WithUrbanElementStep(new UpdateParcelBoundaryStep(pipeline.LoggerFactory))
             .WithUrbanElementStep(new RecalculateParcelsStep(pipeline.LoggerFactory));
 
         return pipeline;
     }
 
     public static RhinoUrbanModelPipeline WithParcelBoundaryDeletionSteps(
-        this RhinoUrbanModelPipeline pipeline,
-        List<Guid> boundaryIds)
+        this RhinoUrbanModelPipeline pipeline)
     {
-        pipeline.WithCreationData([new ParcelBoundaryDeletionData(boundaryIds)])
-            .WithUrbanElementStep(new RemoveParcelBoundaryStep(pipeline.LoggerFactory))
+        pipeline.WithUrbanElementStep(new RemoveParcelBoundaryStep(pipeline.LoggerFactory))
             .WithUrbanElementStep(new RecalculateParcelsStep(pipeline.LoggerFactory));
 
         return pipeline;
     }
 
     public static RhinoUrbanModelPipeline WithBuildingAddOrUpdateSteps(
-        this RhinoUrbanModelPipeline pipeline,
-        List<ICreationData> buildingData,
-        List<Guid> idsToDelete)
+        this RhinoUrbanModelPipeline pipeline)
     {
-        pipeline.WithRhinoObjectDeletion(idsToDelete)
-            .WithCreationData(buildingData)
-            .WithUrbanElementStep(new AddBuildingStep(_loggerFactory: pipeline.LoggerFactory))
+        pipeline.WithUrbanElementStep(new AddBuildingStep(_loggerFactory: pipeline.LoggerFactory))
             .WithUrbanElementStep(new UpdateBuildingStep(pipeline.LoggerFactory));
 
         return pipeline;
     }
 
     public static RhinoUrbanModelPipeline WithTransitAdditionSteps(
-        this RhinoUrbanModelPipeline pipeline,
-        List<TransitData>? transitData = null,
-        List<Guid>? centerlinesToRemove = null)
+        this RhinoUrbanModelPipeline pipeline)
     {
-        transitData ??= [];
-        centerlinesToRemove ??= [];
-
-        pipeline.WithRhinoObjectDeletion(centerlinesToRemove)
-            .WithCreationData(transitData.Cast<ICreationData>().ToList())
-            .WithCreationData([new TransitDeletionData(centerlinesToRemove)])
-            .WithUrbanElementStep(new RemoveTransitStep(pipeline.LoggerFactory))
+        pipeline.WithUrbanElementStep(new RemoveTransitStep(pipeline.LoggerFactory))
             .WithUrbanElementStep(new AddTransitStep(pipeline.LoggerFactory))
             .WithUrbanElementStep(new TransitSurfaceUnioner(_loggerFactory: pipeline.LoggerFactory))
             .WithUrbanElementStep(new RecalculateParcelsStep(pipeline.LoggerFactory));
@@ -90,37 +57,25 @@ public static class PipelineConfigurations
     }
 
     public static RhinoUrbanModelPipeline WithBuildingUseChangeSteps(
-        this RhinoUrbanModelPipeline pipeline,
-        List<Guid> geometryIds,
-        Use newUse)
+        this RhinoUrbanModelPipeline pipeline)
     {
-        pipeline.WithCreationData([new BuildingUseChangeData(geometryIds, newUse)])
-            .WithUrbanElementStep(new ChangeBuildingUseStep(pipeline.LoggerFactory));
+        pipeline.WithUrbanElementStep(new ChangeBuildingUseStep(pipeline.LoggerFactory));
 
         return pipeline;
     }
 
     public static RhinoUrbanModelPipeline WithZoneAdditionSteps(
-        this RhinoUrbanModelPipeline pipeline,
-        List<ZoneData> zoneData,
-        List<Guid> idsToDelete)
+        this RhinoUrbanModelPipeline pipeline)
     {
-        var deleteData = idsToDelete.Select(id => new RhinoObjectDeletionData(id)).Cast<ICreationData>().ToList();
-
-        pipeline.WithRhinoObjectDeletion(idsToDelete)
-            .WithCreationData(zoneData.Cast<ICreationData>().ToList())
-            .WithCreationData(deleteData)
-            .WithUrbanElementStep(new AddZoneStep(pipeline.LoggerFactory));
+        pipeline.WithUrbanElementStep(new AddZoneStep(pipeline.LoggerFactory));
 
         return pipeline;
     }
 
     public static RhinoUrbanModelPipeline WithTransitDeletionSteps(
-        this RhinoUrbanModelPipeline pipeline,
-        List<Guid> centerlineIds)
+        this RhinoUrbanModelPipeline pipeline)
     {
-        pipeline.WithCreationData([new TransitDeletionData(centerlineIds)])
-            .WithUrbanElementStep(new RemoveTransitStep(pipeline.LoggerFactory))
+        pipeline.WithUrbanElementStep(new RemoveTransitStep(pipeline.LoggerFactory))
             .WithUrbanElementStep(new TransitSurfaceUnioner(_loggerFactory: pipeline.LoggerFactory))
             .WithUrbanElementStep(new RecalculateParcelsStep(pipeline.LoggerFactory));
 
@@ -128,14 +83,9 @@ public static class PipelineConfigurations
     }
 
     public static RhinoUrbanModelPipeline WithTransitUpdateSteps(
-        this RhinoUrbanModelPipeline pipeline,
-        Guid oldCenterlineId,
-        Guid newCenterlineId,
-        Curve newCenterline)
+        this RhinoUrbanModelPipeline pipeline)
     {
-        pipeline.WithRhinoObjectDeletion([newCenterlineId])
-            .WithCreationData([new TransitUpdateData(oldCenterlineId, newCenterline)])
-            .WithUrbanElementStep(new UpdateTransitStep(pipeline.LoggerFactory))
+        pipeline.WithUrbanElementStep(new UpdateTransitStep(pipeline.LoggerFactory))
             .WithUrbanElementStep(new TransitSurfaceUnioner(_loggerFactory: pipeline.LoggerFactory))
             .WithUrbanElementStep(new RecalculateParcelsStep(pipeline.LoggerFactory));
 
@@ -143,69 +93,49 @@ public static class PipelineConfigurations
     }
 
     public static RhinoUrbanModelPipeline WithTransitRestoreSteps(
-        this RhinoUrbanModelPipeline pipeline,
-        Guid centerlineId,
-        Guid rejectedRhinoObjectId)
+        this RhinoUrbanModelPipeline pipeline)
     {
-        pipeline.WithCreationData([new TransitRestoreData(centerlineId, rejectedRhinoObjectId)])
-            .WithUrbanElementStep(new RestoreTransitStep(pipeline.LoggerFactory));
+        pipeline.WithUrbanElementStep(new RestoreTransitStep(pipeline.LoggerFactory));
 
         return pipeline;
     }
 
     public static RhinoUrbanModelPipeline WithBuildingDeletionSteps(
-        this RhinoUrbanModelPipeline pipeline,
-        List<Guid> geometryIds)
+        this RhinoUrbanModelPipeline pipeline)
     {
-        pipeline.WithCreationData([new BuildingDeletionData(geometryIds)])
-            .WithUrbanElementStep(new RemoveBuildingStep(pipeline.LoggerFactory));
+        pipeline.WithUrbanElementStep(new RemoveBuildingStep(pipeline.LoggerFactory));
 
         return pipeline;
     }
 
     public static RhinoUrbanModelPipeline WithZoneDeletionSteps(
-        this RhinoUrbanModelPipeline pipeline,
-        List<Guid> geometryIds)
+        this RhinoUrbanModelPipeline pipeline)
     {
-        var deleteData = geometryIds.Select(id => new RhinoObjectDeletionData(id)).Cast<ICreationData>().ToList();
-
-        pipeline.WithCreationData(deleteData)
-            .WithUrbanElementStep(new RemoveZoneStep(pipeline.LoggerFactory));
+        pipeline.WithUrbanElementStep(new RemoveZoneStep(pipeline.LoggerFactory));
 
         return pipeline;
     }
 
     public static RhinoUrbanModelPipeline WithZoneUpdateSteps(
-        this RhinoUrbanModelPipeline pipeline,
-        Guid oldBoundaryId, 
-        Curve newBoundary)
+        this RhinoUrbanModelPipeline pipeline)
     {
-        pipeline.WithCreationData([new ZoneUpdateData(oldBoundaryId, newBoundary)])
-            .WithUrbanElementStep(new UpdateZoneStep(pipeline.LoggerFactory));
+        pipeline.WithUrbanElementStep(new UpdateZoneStep(pipeline.LoggerFactory));
 
         return pipeline;
     }
 
     public static RhinoUrbanModelPipeline WithBuildingUpdateSteps(
-        this RhinoUrbanModelPipeline pipeline,
-        Guid oldEnvelopeId,
-        Brep newEnvelope,
-        double typicalFloorHeight,
-        List<Use> oldPlateUses)
+        this RhinoUrbanModelPipeline pipeline)
     {
-        pipeline.WithCreationData([new BuildingUpdateData(oldEnvelopeId, newEnvelope, typicalFloorHeight, oldPlateUses)])
-            .WithUrbanElementStep(new UpdateBuildingStep(pipeline.LoggerFactory));
+        pipeline.WithUrbanElementStep(new UpdateBuildingStep(pipeline.LoggerFactory));
 
         return pipeline;
     }
 
     public static RhinoUrbanModelPipeline WithFloorPlateReplaceSteps(
-        this RhinoUrbanModelPipeline pipeline,
-        FloorPlate oldPlate,
-        double newZ)
+        this RhinoUrbanModelPipeline pipeline)
     {
-        pipeline.WithCreationData([new FloorPlateReplaceData(oldPlate, newZ)])
-            .WithUrbanElementStep(new ReplaceFloorPlateStep(pipeline.LoggerFactory));
+        pipeline.WithUrbanElementStep(new ReplaceFloorPlateStep(pipeline.LoggerFactory));
 
         return pipeline;
     }
@@ -228,14 +158,9 @@ public static class PipelineConfigurations
     }
 
     public static RhinoUrbanModelPipeline WithLanduseListEditSteps(
-        this RhinoUrbanModelPipeline pipeline,
-        UseEditType editType,
-        string name,
-        Color color,
-        Guid id)
+        this RhinoUrbanModelPipeline pipeline)
     {
-        pipeline.WithCreationData([new UseModificationData(editType, name, color, id)])
-            .WithUrbanElementStep(new ModifyModelUsesStep(pipeline.LoggerFactory));
+        pipeline.WithUrbanElementStep(new ModifyModelUsesStep(pipeline.LoggerFactory));
 
         return pipeline;
     }
@@ -252,15 +177,11 @@ public static class PipelineConfigurations
 
         var aiqRootLayer = doc.Layers[rootIndex];
         var allLayerIndices = aiqRootLayer.GetChildren(true).Append(aiqRootLayer).Select(x => x.Index).ToList();
-        var aiqLayerObjectIds = doc.Objects
-            .Where(x => allLayerIndices.Contains(x.Attributes.LayerIndex))
-            .Select(x => x.Id)
-            .ToList();
-
         var gatherStep = new DocLoadGatherStep(model, doc.ModelAbsoluteTolerance, pipeline.LoggerFactory);
+        var deletionGatherStep = new ManagedRhinoObjectsDeletionGatherStep(allLayerIndices);
 
         pipeline.WithDataGatherStep(gatherStep)
-            .WithRhinoObjectDeletion(aiqLayerObjectIds)
+            .WithDataGatherStep(deletionGatherStep)
             .WithUrbanElementStep(new ResetUrbanElementsStep())
             .WithUrbanElementStep(new AddTransitStep(pipeline.LoggerFactory))
             .WithUrbanElementStep(new AddBuildingStep(_loggerFactory: pipeline.LoggerFactory))

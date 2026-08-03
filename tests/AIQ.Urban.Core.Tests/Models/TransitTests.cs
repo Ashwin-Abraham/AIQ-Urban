@@ -1,6 +1,6 @@
 using System;
 using AIQ.Urban.Core.Enums;
-using AIQ.Urban.Core.ModelActions.CreationData;
+using AIQ.Urban.Core.ModelActions.EditData;
 using AIQ.Urban.Core.Models.GeometryElements;
 using AIQ.Urban.Core.Models.UrbanElements;
 using NUnit.Framework;

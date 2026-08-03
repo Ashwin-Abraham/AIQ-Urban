@@ -1,4 +1,4 @@
-using AIQ.Urban.Core.ModelActions.CreationData;
+using AIQ.Urban.Core.ModelActions.EditData;
 using AIQ.Urban.Core.Models.UrbanElements;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -10,7 +10,7 @@ public class UpdateParcelBoundaryStep(ILoggerFactory? _loggerFactory = null) : I
     private readonly ILogger _logger = (_loggerFactory ?? NullLoggerFactory.Instance)
         .CreateLogger<UpdateParcelBoundaryStep>();
 
-    public StepResult Run(UrbanModel model, List<ICreationData> creationData)
+    public StepResult Run(UrbanModel model, List<IModelEditData> creationData)
     {
         var data = creationData.OfType<ParcelBoundaryUpdateData>().FirstOrDefault();
         if (data is null)

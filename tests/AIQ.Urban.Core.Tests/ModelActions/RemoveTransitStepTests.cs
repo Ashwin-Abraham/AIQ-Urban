@@ -1,6 +1,6 @@
 using AIQ.Urban.Core.Enums;
 using AIQ.Urban.Core.ModelActions;
-using AIQ.Urban.Core.ModelActions.CreationData;
+using AIQ.Urban.Core.ModelActions.EditData;
 using AIQ.Urban.Core.Models.GeometryElements;
 using AIQ.Urban.DebugViz;
 using NUnit.Framework;
@@ -33,7 +33,7 @@ public class RemoveTransitStepTests
 
         // Arrange
         IUrbanModelStep addStep = new AddTransitStep();
-        addStep.Run(UrbanModel.Instance, testData.InitialTransits.Cast<ICreationData>().ToList());
+        addStep.Run(UrbanModel.Instance, testData.InitialTransits.Cast<IModelEditData>().ToList());
 
         var initialCount = UrbanModel.Instance.Transits.Count;
 

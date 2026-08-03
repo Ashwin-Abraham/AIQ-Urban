@@ -1,5 +1,5 @@
-﻿using AIQ.Urban.Core.Extensions;
-using AIQ.Urban.Core.ModelActions.CreationData;
+using AIQ.Urban.Core.Extensions;
+using AIQ.Urban.Core.ModelActions.EditData;
 using AIQ.Urban.Core.Models;
 using AIQ.Urban.Core.Models.GeometryElements;
 using AIQ.Urban.Core.Models.UrbanElements;
@@ -18,7 +18,7 @@ namespace AIQ.Urban.Core.ModelActions;
 /// polygon centroids. Falls back to "Public" use when no
 /// old parcels exist (e.g. first run).
 ///
-/// When <see cref="ICreationData"/> contains <see cref="CentroidUseData"/> items,
+/// When <see cref="IModelEditData"/> contains <see cref="CentroidUseData"/> items,
 /// those centroid/use pairs are used instead of computing centroids from
 /// <c>model.Parcels</c>. This supports doc loading scenarios where parcel
 /// uses must be preserved from external data rather than the current model state.
@@ -30,7 +30,7 @@ public class RecalculateParcelsStep(ILoggerFactory? _loggerFactory = null) : IUr
 {
     private readonly ILogger _logger = (_loggerFactory ?? NullLoggerFactory.Instance).CreateLogger<RecalculateParcelsStep>();
 
-    public StepResult Run(UrbanModel model, List<ICreationData> creationData)
+    public StepResult Run(UrbanModel model, List<IModelEditData> creationData)
     {
         var oldParcelIds = model.Parcels.SelectMany(p => p.GetGeometryIds()).ToList();
 

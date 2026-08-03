@@ -1,5 +1,5 @@
 using AIQ.Urban.Core.Enums;
-using AIQ.Urban.Core.ModelActions.CreationData;
+using AIQ.Urban.Core.ModelActions.EditData;
 using AIQ.Urban.Core.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -10,7 +10,7 @@ public class ModifyModelUsesStep(ILoggerFactory? _loggerFactory = null) : IUrban
 {
     private readonly ILogger _logger = (_loggerFactory ?? NullLoggerFactory.Instance).CreateLogger<ModifyModelUsesStep>();
 
-    public StepResult Run(UrbanModel model, List<ICreationData> creationData)
+    public StepResult Run(UrbanModel model, List<IModelEditData> creationData)
     {
         var data = creationData.OfType<UseModificationData>().First();
 

@@ -1,4 +1,4 @@
-﻿using AIQ.Urban.Core.ModelActions.CreationData;
+using AIQ.Urban.Core.ModelActions.EditData;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -8,11 +8,10 @@ public class RemoveTransitStep(ILoggerFactory? _loggerFactory = null) : IUrbanMo
 {
     private readonly ILogger _logger = (_loggerFactory ?? NullLoggerFactory.Instance).CreateLogger<RemoveTransitStep>();
 
-    public StepResult Run(UrbanModel model, List<ICreationData> creationData)
+    public StepResult Run(UrbanModel model, List<IModelEditData> creationData)
     {
         var centerlineIds = creationData.OfType<TransitDeletionData>()
             .SelectMany(d => d.CenterlineIds)
-            .Concat(creationData.OfType<RhinoObjectDeletionData>().Select(x => x.Id))
             .Distinct()
             .ToList();
 

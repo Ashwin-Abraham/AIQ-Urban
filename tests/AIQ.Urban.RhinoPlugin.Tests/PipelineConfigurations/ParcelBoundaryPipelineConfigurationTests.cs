@@ -2,11 +2,12 @@ using System.Drawing;
 using System.Linq;
 using AIQ.Urban.Core;
 using AIQ.Urban.Core.ModelActions;
-using AIQ.Urban.Core.ModelActions.CreationData;
+using AIQ.Urban.Core.ModelActions.EditData;
 using AIQ.Urban.Core.Models.GeometryElements;
 using AIQ.Urban.Core.Models.UrbanElements;
 using AIQ.Urban.RhinoInterface.EventHandler;
 using AIQ.Urban.RhinoInterface.Pipeline.Outputters;
+using AIQ.Urban.RhinoInterface.Pipeline.RhinoDataGatherSteps;
 using AIQ.Urban.RhinoInterface.Utils;
 using NUnit.Framework;
 using Rhino;
@@ -37,18 +38,20 @@ public class ParcelBoundaryPipelineConfigurationTests
             new Line(new Point3d(0, 5, 0), new Point3d(10, 5, 0)),
             attributes);
         new RhinoUrbanModelPipeline(doc, UrbanModel.Instance)
-            .WithParcelBoundaryAdditionSteps([
+            .WithDataGatherStep(new ParcelBoundaryAdditionGatherStep([
                 new ParcelBoundaryData(new Curve2D(
                     new LineCurve(new Point3d(0, 5, 0), new Point3d(10, 5, 0)),
                     oldId)),
-            ])
+            ]))
+            .WithParcelBoundaryAdditionSteps()
             .Run();
         var replacementCurve = new LineCurve(new Point3d(0, 7, 0), new Point3d(10, 7, 0));
         var replacementId = doc.Objects.AddCurve(replacementCurve);
 
         // Act
         new RhinoUrbanModelPipeline(doc, UrbanModel.Instance)
-            .WithParcelBoundaryUpdateSteps(oldId, replacementId, replacementCurve)
+            .WithDataGatherStep(new ParcelBoundaryUpdateGatherStep(oldId, replacementId, replacementCurve))
+            .WithParcelBoundaryUpdateSteps()
             .WithFullModelOutput()
             .Run();
 
@@ -80,7 +83,8 @@ public class ParcelBoundaryPipelineConfigurationTests
 
         // Act
         new RhinoUrbanModelPipeline(doc, UrbanModel.Instance)
-            .WithParcelBoundaryDeletionSteps([boundaryId])
+            .WithDataGatherStep(new ParcelBoundaryDeletionGatherStep([boundaryId]))
+            .WithParcelBoundaryDeletionSteps()
             .WithFullModelOutput()
             .Run();
 

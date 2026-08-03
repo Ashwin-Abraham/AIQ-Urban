@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using AIQ.Urban.Core.Enums;
 using AIQ.Urban.Core.Extensions;
-using AIQ.Urban.Core.ModelActions.CreationData;
+using AIQ.Urban.Core.ModelActions.EditData;
 using AIQ.Urban.Core.Models.GeometryElements;
+using AIQ.Urban.RhinoInterface.Pipeline.EditData;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Rhino;
@@ -21,7 +22,7 @@ public class SelectTransitCenterlinesStep(
 {
     private readonly ILogger _logger = (_loggerFactory ?? NullLoggerFactory.Instance).CreateLogger<SelectTransitCenterlinesStep>();
 
-    public List<ICreationData> Run(RhinoDoc doc)
+    public List<IModelEditData> Run(RhinoDoc doc)
     {
         var selected = objectsToParse
             .Where(obj => obj.ObjectType == ObjectType.Curve)
@@ -30,7 +31,7 @@ public class SelectTransitCenterlinesStep(
         if (selected.Count == 0)
             throw new Exception("Select one or more transit centerline curves first.");
 
-        var result = new List<ICreationData>();
+        var result = new List<IModelEditData>();
         var rejectedCount = 0;
 
         foreach (var obj in selected)

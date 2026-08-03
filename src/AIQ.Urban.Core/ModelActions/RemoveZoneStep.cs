@@ -1,4 +1,4 @@
-using AIQ.Urban.Core.ModelActions.CreationData;
+using AIQ.Urban.Core.ModelActions.EditData;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -8,10 +8,11 @@ public class RemoveZoneStep(ILoggerFactory? _loggerFactory = null) : IUrbanModel
 {
     private readonly ILogger _logger = (_loggerFactory ?? NullLoggerFactory.Instance).CreateLogger<RemoveZoneStep>();
 
-    public StepResult Run(UrbanModel model, List<ICreationData> creationData)
+    public StepResult Run(UrbanModel model, List<IModelEditData> creationData)
     {
-        var geometryIds = creationData.OfType<RhinoObjectDeletionData>()
-            .Select(d => d.Id)
+        var geometryIds = creationData.OfType<ZoneDeletionData>()
+            .SelectMany(d => d.GeometryIds)
+            .Distinct()
             .ToList();
 
         var zonesToRemove = model.Zones

@@ -1,8 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using AIQ.Urban.Core.ModelActions.CreationData;
+using AIQ.Urban.Core.ModelActions.EditData;
 using AIQ.Urban.Core.Models.GeometryElements;
+using AIQ.Urban.RhinoInterface.Pipeline.EditData;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Rhino;
@@ -18,7 +19,7 @@ public class SelectZoneBoundaryStep(
 {
     private readonly ILogger _logger = (_loggerFactory ?? NullLoggerFactory.Instance).CreateLogger<SelectZoneBoundaryStep>();
 
-    public List<ICreationData> Run(RhinoDoc doc)
+    public List<IModelEditData> Run(RhinoDoc doc)
     {
         var selected = selectedObjects
             .Where(obj => obj.ObjectType == ObjectType.Curve)

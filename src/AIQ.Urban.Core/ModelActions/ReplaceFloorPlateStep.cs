@@ -1,5 +1,5 @@
 using AIQ.Primitives.Extensions;
-using AIQ.Urban.Core.ModelActions.CreationData;
+using AIQ.Urban.Core.ModelActions.EditData;
 using AIQ.Urban.Core.Models;
 using AIQ.Urban.Core.Models.GeometryElements;
 using AIQ.Urban.Core.Models.UrbanElements;
@@ -15,7 +15,7 @@ public class ReplaceFloorPlateStep(ILoggerFactory? _loggerFactory = null) : IUrb
     private readonly ILogger _logger = (_loggerFactory ?? NullLoggerFactory.Instance).CreateLogger<ReplaceFloorPlateStep>();
     private const double Tolerance = 1e-5;
 
-    public StepResult Run(UrbanModel model, List<ICreationData> creationData)
+    public StepResult Run(UrbanModel model, List<IModelEditData> creationData)
     {
         var data = creationData.OfType<FloorPlateReplaceData>().First();
         var oldPlate = data.OldPlate;

@@ -11,7 +11,7 @@ Graphify is forbidden in this context. Do not run `graphify query`, `graphify pa
 - **Nullable reference types enabled** — `?` marks values that can legitimately be null; unadorned types are assumed non-null and need not be checked.
 - References `AIQ.Urban.RhinoInterface` for pipeline orchestration
 - References `RhinoCommon` directly for Rhino UI (doc, views, selection)
-- Pipeline supports post-actions via `.WithUrbanModelAction(Action<UrbanModel>)` — registered actions execute after all steps, deletions and baking complete.
+- Pipeline supports post-actions via `.WithUrbanModelPostAction(Action<UrbanModel>)` — registered actions execute after all steps, deletions and baking complete.
 - **Commands for creation, events for mutation/deletion**: explicit Rhino commands (`AddTransit_AIQUrban`, `AddBuilding_AIQUrban`, etc.) are used to create urban elements. Document events (`ReplaceRhinoObject`, `DeleteRhinoObject`) handle modification and deletion after the fact. A user drawing geometry on a managed layer does NOT automatically create an urban element — that requires an explicit command.
 - **RhinoUrbanEventHandler**: instance class implementing `IDisposable`, owned by `Urban_RhinoPlugin`. Subscribes to RhinoDoc events in its constructor, unsubscribes in `Dispose()`. Lives in `AIQ.Urban.RhinoPlugin` (not `RhinoInterface`) because it manages RhinoDoc interaction lifecycle.
 - **Deferred event processing**: events are queued into lists (add/remove/replace), then processed on `RhinoApp.Idle` to coalesce multiple Rhino events from a single user action. An `EventLock` guard suppresses event capture while the pipeline writes geometry back to Rhino, preventing re-entrant feedback loops.
@@ -33,20 +33,21 @@ Graphify is forbidden in this context. Do not run `graphify query`, `graphify pa
 - `ModelChanged` event fires at the end of each non-empty `ProcessQueue` batch after `_doc.Views.Redraw()`. `Urban_RhinoPlugin` subscribes and publishes `ModelStateMessage` over WebSocket so the UI stays in sync with Rhino-side model changes.
 
 ## RhinoUrbanModelPipeline
-Fluent pipeline in `Pipeline/RhinoUrbanModelPipeline.cs` under the `AIQ.Urban.RhinoInterface` namespace. Step-based, with a single ordered step list:
+Fluent pipeline in `AIQ.Urban.RhinoInterface/Pipeline/RhinoUrbanModelPipeline.cs`. Data gathering and model execution are separate ordered phases:
 
 ```
 new RhinoUrbanModelPipeline(doc, UrbanModel.Instance)
-    .WithRhinoObjectDeletion(inputCurveIds)      // deletes Rhino doc objects directly
-    .WithUrbanElementDeletion(deleteStep)         // removes from UrbanModel, returns IDs for Rhino cleanup
-    .WithUrbanElementAddition(addStep)            // adds to UrbanModel, returns geometry IDs for baking
+    .WithDataGatherStep(inputGatherStep)           // validates and stages model/Rhino edit data
+    .WithDataGatherStep(additionalGatherStep)      // appends another independent data source
+    .WithUrbanElementStep(modelStep)               // consumes the aggregated edit-data list
     .Run();
 ```
 
-- **WithRhinoObjectDeletion**: Registers Rhino ObjectIds to delete from the doc. Independent of UrbanModel state — used for input curves consumed during command execution.
-- **WithUrbanElementDeletion**: Appends `IDeleteUrbanElementsStep` to the single step list.
-- **WithUrbanElementAddition**: Appends `IAddUrbanElementsStep` to the single step list.
-- **Run()**: Iterates the step list in configuration order, calling each `Run(UrbanModel)`. Each step's returned GUIDs are routed to the delete, edit, or add bucket based on which marker interfaces the step implements (a step may implement multiple interfaces, e.g. `RecalculateParcelsStep` implements both `IAdd` and `IDelete` to return old parcel GUIDs for cleanup and new parcel GUIDs for baking). Then batch-deletes Rhino objects and bakes new geometry.
+- **WithDataGatherStep**: Appends an `IRhinoDataGatherStep`. Gatherers run in registration order and their `IModelEditData` results are concatenated without deduplication.
+- **WithUrbanElementStep**: Appends an `IUrbanModelStep` to the ordered execution list.
+- `RhinoObjectPreservationData` overrides staged `RhinoObjectDeletionData` for the same ID across the complete gathered operation.
+- Pipeline configuration extensions are execution recipes only and never accept edit data or Rhino deletion IDs.
+- **Run()**: Gathers the complete edit-data list, executes each model step in configuration order, then batch-deletes and bakes Rhino geometry using the existing outputters.
 
 Element type output is automatic — `OutputTransits()`, `OutputBuildings()`, `OutputParcels(addedIds)`, and `OutputZones(addedIds)` are called by the pipeline for any added elements of those types.
 
@@ -97,26 +98,26 @@ These pipeline configurations are wrapped as reusable methods (not necessarily u
 ### `AddTransit_AIQUrban`
 - User picks curves as centerlines (planar, Z variation validated and rejected)
 - Prompts: `GetDouble` for width (default 7.0), `GetInteger` for TransitType (0=Road…)
-- Pipeline: `.WithRhinoObjectDeletion(centerlineIds).WithUrbanElementDeletion(removeExisting).WithUrbanElementAddition(addTransitStep).WithUrbanElementAddition(transitUnioner).WithUrbanElementAddition(recalculateParcelsStep).Run()`
-- `TransitSurfaceUnioner` is registered as an `IAddUrbanElementsStep` — unions all transit outlines per type into `UrbanModel.TransitSurfaces`
+- Pipeline: selection gatherer → `WithTransitAdditionSteps()` → full model output.
+- `TransitSurfaceUnioner` is registered as an `IUrbanModelStep` — unions all transit outlines per type into `UrbanModel.TransitSurfaces`
 - `RecalculateParcelsStep` runs after `TransitSurfaceUnioner` — reads `UrbanModel.TransitSurfaces` holes to create parcels
-- Only the `Outline` and `Surface` are baked; input curves are deleted by `WithRhinoObjectDeletion`
+- Valid input curves stage their own Rhino deletion; rejected curves stage no edit or deletion and remain untouched.
 - Duplicate detection via `RemoveTransitStep`: if same centerline ObjectId was previously used, old Transit is removed from UrbanModel and baked outline deleted from Rhino doc
 - **Known gap**: When transit is deleted/modified, previously baked unioned `Surface` geometry remains as orphans in the Rhino doc — no cleanup yet. Parcel geometry for old parcels is correctly cleaned up since `RecalculateParcelsStep` returns old parcel GUIDs as `IDeleteUrbanElementsStep` output.
 
 ### `AddBuilding_AIQUrban`
 - Two modes selected by `manual_generationType` ("Footprint" or "Mass")
-- **Footprint mode**: collects footprint curve, floor height, floor count, Use dropdown. Validates footprint is planar. Uses `SelectBuildingFootprintStep` → produces `BuildingFootprintData`. Pipeline: `.WithRhinoObjectDeletion([footprintId]).WithUrbanElementAddition(addBuildingStep).Run()`
-- **Mass mode**: collects Brep or Extrusion envelope, floor height, Use dropdown. Uses `SelectBuildingEnvelopeStep` → produces `BuildingMassData`. Contours the envelope horizontally to derive floor plates. Pipeline: `.WithRhinoObjectDeletion([envelopeId]).WithUrbanElementAddition(addBuildingStep).Run()`
-- `AddBuildingStep` discriminates by creation data type (`BuildingFootprintData` vs `BuildingMassData`) and calls the appropriate `Building` constructor
-- Input geometry (curve or Brep) is deleted by `WithRhinoObjectDeletion` and re-baked on the proper layer
+- **Footprint mode**: collects footprint curves, floor height, floor count, and Use. `SelectBuildingFootprintStep` validates each input and stages `BuildingFootprintData` with its Rhino deletion.
+- **Mass mode**: collects Breps or Extrusions, floor height, and Use. `SelectBuildingEnvelopeStep` validates each input, resolves add-versus-update against `UrbanModel`, and stages the edit with its Rhino deletion.
+- `AddBuildingStep` discriminates by edit-data type (`BuildingFootprintData` vs `BuildingMassData`) and calls the appropriate `Building` constructor.
+- Accepted input geometry is deleted and re-baked on the proper layer; rejected input remains untouched.
 - No duplicate detection for now (input geometry is destroyed, same ObjectId can never match again)
 
 ### `AddZone_AIQUrban`
 - User picks a closed planar curve as the zone boundary, then enters a zone name via text prompt
 - Validates: curve is closed and planar, name does not contain `::`, name is not already taken by an existing zone
-- Pipeline: `.WithRhinoObjectDeletion([boundaryId]).WithUrbanElementAddition(addZoneStep).Run()`
-- Input curve is deleted by `WithRhinoObjectDeletion`
+- Pipeline: `SelectZoneBoundaryStep` → `WithZoneAdditionSteps()` → full model output.
+- The gather step stages the accepted input curve's deletion with `ZoneData`.
 - Duplicate detection: if a zone with the same name exists, warns user and aborts
 
 ### `ChangeBuildingUse_AIQUrban`
@@ -252,7 +253,7 @@ _Avoid_: event deltas, legacy `SelectedObjectMetricsMessage` compatibility emiss
 ### TransitMessage Handling
 1. Get `RhinoDoc.ActiveDoc`
 2. Get selected curve objects, filter to `ObjectType.Curve`
-3. During pipeline data gathering, validate each selected curve independently against the ground-plane invariant. For each valid curve, produce `TransitData` plus Rhino-object deletion data; for each invalid curve, log a warning and produce no creation or deletion data, leaving that Rhino curve untouched.
+3. During pipeline data gathering, validate each selected curve independently against the ground-plane invariant. For each valid curve, produce `TransitData` plus Rhino-object deletion data; for each invalid curve, log a warning and produce no edit or deletion data, leaving that Rhino curve untouched.
 4. Pipeline: `WithTransitAdditionSteps()` + `WithMetricsCalculation()` via `RhinoUrbanModelPipeline`
 5. Return `ModelStateMessage`
 
@@ -263,10 +264,10 @@ Two modes controlled by `manual_generationType`:
 - **Mass**: Get selected Breps/Extrusions → `SelectBuildingEnvelopeStep` produces `BuildingMassData(envelopeBrep, FloorHeight, DefaultUses.Undefined)`. The step contours the envelope horizontally at intervals of `FloorHeight` to derive floor plate outlines. Contours with curve length < tolerance are discarded. `FloorCount` = `Floor(envelopeHeight / FloorHeight)`.
 - In Mass mode, a resolver classifies every selected envelope before model mutation. An unmanaged envelope produces `BuildingMassData` for `AddBuildingStep`. A managed Building envelope produces `BuildingUpdateData` for `UpdateBuildingStep`, replacing the old Building and its floor plates while mapping the existing floor-plate Uses onto the replacement plates.
 - For a managed envelope, `BuildingUpdateData.TypicalFloorHeight` comes from the new `BuildingMessage.FloorHeight`; the old Building contributes its ordered floor-plate Uses, not its previous floor height.
-- Both add and update steps run in the same pipeline, ignore absent creation-data types, and support multiple selected envelopes in one operation.
+- Both add and update steps run in the same pipeline, ignore absent edit-data types, and support multiple selected envelopes in one operation.
 - Only a managed Building envelope is authoritative for an update. Selecting a floor plate never produces `BuildingUpdateData` and does not remove or update its owning Building.
 - Pipeline: resolver → `WithBuildingAddOrUpdateSteps()` (`AddBuildingStep` + `UpdateBuildingStep`) → full model output → metrics via `RhinoUrbanModelPipeline`
-- `AddBuildingStep` discriminates between its supported creation-data types and calls the appropriate `Building` constructor; `UpdateBuildingStep` consumes only `BuildingUpdateData`.
+- `AddBuildingStep` discriminates between its supported edit-data types and calls the appropriate `Building` constructor; `UpdateBuildingStep` consumes only `BuildingUpdateData`.
 - Building Use always defaults to `DefaultUses.Undefined` (UI does not send useName)
 
 ### Thread Safety

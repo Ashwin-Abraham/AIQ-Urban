@@ -1,4 +1,4 @@
-﻿using AIQ.Urban.Core.ModelActions.CreationData;
+using AIQ.Urban.Core.ModelActions.EditData;
 
 namespace AIQ.Urban.Core.ModelActions;
 
@@ -6,5 +6,5 @@ public record StepResult(List<Guid> AddedIds, List<Guid> DeletedIds);
 
 public interface IUrbanModelStep
 {
-    public StepResult Run(UrbanModel model, List<ICreationData> creationData);
+    public StepResult Run(UrbanModel model, List<IModelEditData> creationData);
 }

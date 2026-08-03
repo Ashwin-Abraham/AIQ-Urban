@@ -1,5 +1,5 @@
 using AIQ.Urban.Core.ModelActions;
-using AIQ.Urban.Core.ModelActions.CreationData;
+using AIQ.Urban.Core.ModelActions.EditData;
 using AIQ.Urban.Core.Models;
 using AIQ.Urban.Core.Models.GeometryElements;
 using AIQ.Urban.DebugViz;
@@ -112,7 +112,7 @@ public class AddBuildingStepTests
         return new Box(Plane.WorldXY, new Interval(0, width), new Interval(0, depth), new Interval(0, height)).ToBrep();
     }
 
-    private static List<ICreationData> BuildInput(string caseName) => caseName switch
+    private static List<IModelEditData> BuildInput(string caseName) => caseName switch
     {
         "SingleBuilding" =>
         [

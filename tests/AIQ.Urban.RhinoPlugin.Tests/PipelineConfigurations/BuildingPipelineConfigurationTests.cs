@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using AIQ.Urban.Core;
 using AIQ.Urban.Core.ModelActions;
-using AIQ.Urban.Core.ModelActions.CreationData;
+using AIQ.Urban.Core.ModelActions.EditData;
 using AIQ.Urban.Core.Models;
 using AIQ.Urban.Core.Models.GeometryElements;
 using AIQ.Urban.DebugViz;
@@ -38,7 +38,8 @@ public class BuildingPipelineConfigurationTests
 
         // Act
         pipeline
-            .WithBuildingAddOrUpdateSteps(testData.Input.Cast<ICreationData>().ToList(), [])
+            .WithDataGatherStep(new BuildingFootprintDataGatherStep(testData.Input))
+            .WithBuildingAddOrUpdateSteps()
             .WithFullModelOutput()
             .WithMetricsCalculation(false)
             .Run();
@@ -74,16 +75,10 @@ public class BuildingPipelineConfigurationTests
             3,
             2,
             DefaultUses.Create("Residential"));
-        var creationData = gatherStep.Run(doc);
-        var idsToDelete = creationData
-            .OfType<BuildingFootprintData>()
-            .Select(data => data.Footprint.Id)
-            .ToList();
-
         // Act
         new RhinoUrbanModelPipeline(doc, UrbanModel.Instance)
             .WithDataGatherStep(gatherStep)
-            .WithBuildingAddOrUpdateSteps([], idsToDelete)
+            .WithBuildingAddOrUpdateSteps()
             .WithFullModelOutput()
             .Run();
 
@@ -110,17 +105,13 @@ public class BuildingPipelineConfigurationTests
         var gatherStep = new SelectBuildingEnvelopeStep(
             [inputObject],
             3,
-            DefaultUses.Create("Commercial"));
-        var creationData = gatherStep.Run(doc);
-        var idsToDelete = creationData
-            .OfType<BuildingMassData>()
-            .Select(data => data.Envelope.Id)
-            .ToList();
+            DefaultUses.Create("Commercial"),
+            UrbanModel.Instance);
 
         // Act
         new RhinoUrbanModelPipeline(doc, UrbanModel.Instance)
-            .WithCreationData(creationData)
-            .WithBuildingAddOrUpdateSteps([], idsToDelete)
+            .WithDataGatherStep(gatherStep)
+            .WithBuildingAddOrUpdateSteps()
             .WithFullModelOutput()
             .Run();
 
@@ -153,7 +144,8 @@ public class BuildingPipelineConfigurationTests
             residential);
 
         new RhinoUrbanModelPipeline(doc, UrbanModel.Instance)
-            .WithBuildingAddOrUpdateSteps([initialData], [initialInputId])
+            .WithDataGatherStep(new BuildingEnvelopeDataGatherStep([initialData], UrbanModel.Instance, [initialInputId]))
+            .WithBuildingAddOrUpdateSteps()
             .WithFullModelOutput()
             .Run();
 
@@ -177,15 +169,17 @@ public class BuildingPipelineConfigurationTests
                 3,
                 undefined),
         ];
-        var resolver = new BuildingEnvelopeCreationDataResolver(UrbanModel.Instance);
-        var creationData = resolver.Resolve(selectedEnvelopeData);
         var selectedEnvelopeIds = selectedEnvelopeData
             .Select(data => data.Envelope.Id)
             .ToList();
 
         // Act
         new RhinoUrbanModelPipeline(doc, UrbanModel.Instance)
-            .WithBuildingAddOrUpdateSteps(creationData, selectedEnvelopeIds)
+            .WithDataGatherStep(new BuildingEnvelopeDataGatherStep(
+                selectedEnvelopeData,
+                UrbanModel.Instance,
+                selectedEnvelopeIds))
+            .WithBuildingAddOrUpdateSteps()
             .WithFullModelOutput()
             .Run();
 

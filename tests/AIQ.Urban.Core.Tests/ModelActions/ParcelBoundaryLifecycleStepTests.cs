@@ -1,7 +1,7 @@
 using System;
 using System.Linq;
 using AIQ.Urban.Core.ModelActions;
-using AIQ.Urban.Core.ModelActions.CreationData;
+using AIQ.Urban.Core.ModelActions.EditData;
 using AIQ.Urban.Core.Models.GeometryElements;
 using NUnit.Framework;
 using Rhino.Geometry;
