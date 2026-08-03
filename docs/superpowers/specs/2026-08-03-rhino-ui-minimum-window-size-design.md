@@ -10,15 +10,10 @@ Prevent the AIQ Urban Rhino UI from being resized to dimensions that make the in
 
 The Eto `Form` created by `UrbanHtmlUi.OpenWindow` will receive these dimensions through its `MinimumSize` property. The constraint belongs on the top-level window only; the embedded `WebView` will continue to follow the existing layout and will not duplicate the minimum-size constraint. No maximum size will be set.
 
-## Testing
+## Verification
 
-A focused NUnit test in the existing Rhino plugin test project will open the window under the Rhino test fixture and verify both behaviors:
-
-- the initial window size remains 520 by 900 pixels;
-- the minimum window size is 312 by 630 pixels.
-
-The test will close the window during cleanup so the static window reference and UI resources do not leak into other tests.
+No automated test will be added for this small Eto property assignment. The Rhino plugin project will be built to verify that the `MinimumSize` API and the new constants compile, and the final diff will be inspected to confirm that the default size remains 520 by 900 pixels, the minimum is 312 by 630 pixels, and no maximum is introduced.
 
 ## Scope
 
-This change affects only the Rhino plugin's Eto window construction and its test coverage. It does not change the Vue application, server lifecycle, default window dimensions, or resizing behavior above the minimum dimensions.
+This change affects only the Rhino plugin's Eto window construction and its design documentation. It does not change the Vue application, server lifecycle, default window dimensions, or resizing behavior above the minimum dimensions.
