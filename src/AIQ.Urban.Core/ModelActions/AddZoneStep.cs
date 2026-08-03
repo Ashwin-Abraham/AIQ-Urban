@@ -1,4 +1,4 @@
-using AIQ.Urban.Core.ModelActions.CreationData;
+using AIQ.Urban.Core.ModelActions.EditData;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -8,9 +8,19 @@ public class AddZoneStep(ILoggerFactory? _loggerFactory = null) : IUrbanModelSte
 {
     private readonly ILogger _logger = (_loggerFactory ?? NullLoggerFactory.Instance).CreateLogger<AddZoneStep>();
 
-    public StepResult Run(UrbanModel model, List<ICreationData> creationData)
+    public StepResult Run(UrbanModel model, List<IModelEditData> creationData)
     {
         var zones = creationData.OfType<ZoneData>().Select(x => x.ToZone()).ToList();
+        var zoneNames = model.Zones
+            .Select(x => x.Name)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var zone in zones)
+        {
+            if (!zoneNames.Add(zone.Name))
+                throw new ArgumentException($"A zone named '{zone.Name}' already exists.");
+        }
+
         foreach (var zone in zones)
             model.AddZone(zone);
 

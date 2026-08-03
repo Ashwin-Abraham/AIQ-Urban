@@ -1,9 +1,10 @@
 using AIQ.Urban.Core;
 using AIQ.Urban.Core.Extensions;
-using AIQ.Urban.Core.ModelActions.CreationData;
+using AIQ.Urban.Core.ModelActions.EditData;
 using AIQ.Urban.Core.Models;
 using AIQ.Urban.Core.Models.GeometryElements;
 using AIQ.Urban.Core.Models.UrbanElements;
+using AIQ.Urban.RhinoInterface.Pipeline.EditData;
 using AIQ.Urban.RhinoInterface.Utils;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -16,9 +17,9 @@ public class DocLoadGatherStep(UrbanModel model, double _tolerance, ILoggerFacto
 {
     private readonly ILogger _logger = (_loggerFactory ?? NullLoggerFactory.Instance).CreateLogger<DocLoadGatherStep>();
 
-    public List<ICreationData> Run(RhinoDoc doc)
+    public List<IModelEditData> Run(RhinoDoc doc)
     {
-        var result = new List<ICreationData>();
+        var result = new List<IModelEditData>();
 
         GatherTransits(doc, result);
         GatherParcelBoundaries(doc, result);
@@ -31,7 +32,7 @@ public class DocLoadGatherStep(UrbanModel model, double _tolerance, ILoggerFacto
         return result;
     }
 
-    private void GatherParcelBoundaries(RhinoDoc doc, List<ICreationData> result)
+    private void GatherParcelBoundaries(RhinoDoc doc, List<IModelEditData> result)
     {
         var boundaries = RhinoDocScanner.FindCurvesOnLayerPrefix(doc, LayerConstants.ParcelBoundary);
 
@@ -50,7 +51,7 @@ public class DocLoadGatherStep(UrbanModel model, double _tolerance, ILoggerFacto
         }
     }
 
-    private void GatherTransits(RhinoDoc doc, List<ICreationData> result)
+    private void GatherTransits(RhinoDoc doc, List<IModelEditData> result)
     {
         var transitPrefix = LayerConstants.Transit + "::";
         var centerlines = RhinoDocScanner.FindCurvesOnLayerPrefix(doc, transitPrefix)
@@ -80,7 +81,7 @@ public class DocLoadGatherStep(UrbanModel model, double _tolerance, ILoggerFacto
         }
     }
 
-    private void GatherParcelCentroids(RhinoDoc doc, List<ICreationData> result)
+    private void GatherParcelCentroids(RhinoDoc doc, List<IModelEditData> result)
     {
         var parcelPrefix = LayerConstants.Parcel + "::";
         var parcelBreps = RhinoDocScanner.FindBrepsOnLayerPrefix(doc, parcelPrefix);
@@ -97,7 +98,7 @@ public class DocLoadGatherStep(UrbanModel model, double _tolerance, ILoggerFacto
         }
     }
 
-    private void GatherBuildings(RhinoDoc doc, List<ICreationData> result)
+    private void GatherBuildings(RhinoDoc doc, List<IModelEditData> result)
     {
         var envelopeBreps = RhinoDocScanner.FindBrepsOnLayerPrefix(doc, LayerConstants.BuildingEnvelope);
         var floorPlateCurves = RhinoDocScanner.FindCurvesOnLayerPrefix(doc, LayerConstants.BuildingFloorPlates + "::");
@@ -129,7 +130,7 @@ public class DocLoadGatherStep(UrbanModel model, double _tolerance, ILoggerFacto
         }
     }
 
-    private void GatherZones(RhinoDoc doc, List<ICreationData> result)
+    private void GatherZones(RhinoDoc doc, List<IModelEditData> result)
     {
         var zonePrefix = LayerConstants.ZoneRoot + "::";
         var zoneCurves = RhinoDocScanner.FindCurvesOnLayerPrefix(doc, zonePrefix);

@@ -1,4 +1,4 @@
-using AIQ.Urban.Core.ModelActions.CreationData;
+using AIQ.Urban.Core.ModelActions.EditData;
 using AIQ.Urban.Core.Models;
 using AIQ.Urban.Core.Models.UrbanElements;
 using Microsoft.Extensions.Logging;
@@ -10,7 +10,7 @@ public class ChangeBuildingUseStep(ILoggerFactory? _loggerFactory = null) : IUrb
 {
     private readonly ILogger _logger = (_loggerFactory ?? NullLoggerFactory.Instance).CreateLogger<ChangeBuildingUseStep>();
 
-    public StepResult Run(UrbanModel model, List<ICreationData> creationData)
+    public StepResult Run(UrbanModel model, List<IModelEditData> creationData)
     {
         var data = creationData.OfType<BuildingUseChangeData>().First();
         var geometryIds = data.GeometryIds;

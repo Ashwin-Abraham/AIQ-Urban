@@ -1,6 +1,6 @@
 using AIQ.Urban.Core.Enums;
 using AIQ.Urban.Core.ModelActions;
-using AIQ.Urban.Core.ModelActions.CreationData;
+using AIQ.Urban.Core.ModelActions.EditData;
 using AIQ.Urban.Core.Models.GeometryElements;
 using AIQ.Urban.DebugViz;
 using NUnit.Framework;
@@ -34,7 +34,7 @@ public class AddTransitStepTests
         IUrbanModelStep step = new AddTransitStep();
 
         // Act
-        var result = step.Run(UrbanModel.Instance, testData.Input.Cast<ICreationData>().ToList());
+        var result = step.Run(UrbanModel.Instance, testData.Input.Cast<IModelEditData>().ToList());
 
         // Visualise
 #if DEBUG

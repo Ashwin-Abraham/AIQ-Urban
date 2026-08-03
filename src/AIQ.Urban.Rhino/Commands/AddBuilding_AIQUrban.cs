@@ -1,6 +1,6 @@
 using System.Linq;
 using AIQ.Urban.Core;
-using AIQ.Urban.Core.ModelActions.CreationData;
+using AIQ.Urban.Core.ModelActions.EditData;
 using AIQ.Urban.Core.Models;
 using AIQ.Urban.RhinoInterface;
 using AIQ.Urban.RhinoInterface.Logging;
@@ -60,13 +60,9 @@ public class AddBuilding_AIQUrban : Command
         using var loggerFactory = new LoggerFactory().AddRhinoLog();
 
         var gatherStep = new SelectBuildingFootprintStep(rhinoObjs, floorHeight, floorCount, selectedUse, loggerFactory);
-        var creationData = gatherStep.Run(doc);
-        var buildingData = creationData.OfType<BuildingFootprintData>().ToList();
-        var idsToDelete = buildingData.Select(b => b.Footprint.Id).ToList();
-
         var pipeline = new RhinoUrbanModelPipeline(doc, UrbanModel.Instance, loggerFactory)
             .WithDataGatherStep(gatherStep)
-            .WithBuildingAddOrUpdateSteps([], idsToDelete)
+            .WithBuildingAddOrUpdateSteps()
             .WithFullModelOutput()
             .WithMetricsCalculation(saveToFile: true, tolerance: doc.ModelAbsoluteTolerance, docName: doc.Name)
             .WithEventHandler(Urban_RhinoPlugin.Instance.EventHandler);

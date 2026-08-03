@@ -1,4 +1,4 @@
-﻿using AIQ.Urban.Core.ModelActions.CreationData;
+using AIQ.Urban.Core.ModelActions.EditData;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -8,7 +8,7 @@ public class AddTransitStep(ILoggerFactory? _loggerFactory = null) : IUrbanModel
 {
     private readonly ILogger _logger = (_loggerFactory ?? NullLoggerFactory.Instance).CreateLogger<AddTransitStep>();
 
-    public StepResult Run(UrbanModel model, List<ICreationData> creationData)
+    public StepResult Run(UrbanModel model, List<IModelEditData> creationData)
     {
         var transits = creationData.OfType<TransitData>().Select(x => x.ToTransit()).ToList();
         model.AddTransit(transits);

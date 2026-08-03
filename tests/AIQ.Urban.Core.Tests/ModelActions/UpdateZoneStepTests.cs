@@ -1,5 +1,5 @@
 using AIQ.Urban.Core.ModelActions;
-using AIQ.Urban.Core.ModelActions.CreationData;
+using AIQ.Urban.Core.ModelActions.EditData;
 using AIQ.Urban.Core.Models;
 using AIQ.Urban.Core.Models.GeometryElements;
 using AIQ.Urban.DebugViz;
@@ -30,7 +30,7 @@ public class UpdateZoneStepTests
 
         // Arrange: add initial zones and capture their actual geometry IDs
         IUrbanModelStep addStep = new AddZoneStep();
-        var addedIds = addStep.Run(UrbanModel.Instance, testData.InitialZones.Cast<ICreationData>().ToList());
+        var addedIds = addStep.Run(UrbanModel.Instance, testData.InitialZones.Cast<IModelEditData>().ToList());
 
         var oldBoundaryId = addedIds.AddedIds[0];
         var oldCount = UrbanModel.Instance.Zones.Count;

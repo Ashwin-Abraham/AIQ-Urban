@@ -5,10 +5,11 @@ using System.Linq;
 using AIQ.Urban.Core;
 using AIQ.Urban.Core.Enums;
 using AIQ.Urban.Core.Extensions;
-using AIQ.Urban.Core.ModelActions.CreationData;
+using AIQ.Urban.Core.ModelActions.EditData;
 using AIQ.Urban.Core.Models.GeometryElements;
 using AIQ.Urban.DebugViz;
 using AIQ.Urban.RhinoInterface.EventHandler;
+using AIQ.Urban.RhinoInterface.Pipeline.EditData;
 using AIQ.Urban.RhinoInterface.Pipeline.Outputters;
 using AIQ.Urban.RhinoInterface.Pipeline.RhinoDataGatherSteps;
 using AIQ.Urban.RhinoInterface.Tests.Helpers;
@@ -45,7 +46,8 @@ public class TransitPipelineConfigurationTests
 
         // Act
         pipeline
-            .WithTransitAdditionSteps(testData.Input, testData.CenterlineIds)
+            .WithDataGatherStep(new TransitAdditionGatherStep(testData.Input, testData.CenterlineIds))
+            .WithTransitAdditionSteps()
             .WithFullModelOutput()
             .WithMetricsCalculation(false)
             .Run();
@@ -89,7 +91,8 @@ public class TransitPipelineConfigurationTests
         // Act
         new RhinoUrbanModelPipeline(doc, UrbanModel.Instance)
             .WithDataGatherStep(gatherStep)
-            .WithTransitAdditionSteps([], [centerlineId])
+            .WithDataGatherStep(new TransitDeletionGatherStep([centerlineId]))
+            .WithTransitAdditionSteps()
             .WithFullModelOutput()
             .Run();
 
@@ -193,7 +196,8 @@ public class TransitPipelineConfigurationTests
         var rejectedId = doc.Objects.AddLine(new Line(new Point3d(0, 0, 1), new Point3d(10, 0, 1)));
 
         new RhinoUrbanModelPipeline(doc, UrbanModel.Instance)
-            .WithTransitRestoreSteps(oldCenterlineId, rejectedId)
+            .WithDataGatherStep(new TransitRestoreGatherStep(oldCenterlineId, rejectedId))
+            .WithTransitRestoreSteps()
             .WithRhinoOutputter(new TransitOutputter())
             .Run();
 

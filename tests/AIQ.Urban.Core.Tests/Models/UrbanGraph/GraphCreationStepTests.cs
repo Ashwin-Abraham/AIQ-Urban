@@ -13,7 +13,7 @@ using Rhino.Geometry;
 using Rhino.Testing.Fixtures;
 using AIQ.Primitives.Extensions;
 using AIQ.PreviewHelper.Core;
-using AIQ.Urban.Core.ModelActions.CreationData;
+using AIQ.Urban.Core.ModelActions.EditData;
 
 namespace AIQ.Urban.Core.Tests.Models.UrbanGraph;
 
@@ -286,13 +286,13 @@ public class GraphCreationStepTests
             .ToList();
         IUrbanModelStep addStep = new AddTransitStep();
 
-        addStep.Run(UrbanModel.Instance, transitData.Cast<ICreationData>().ToList());
+        addStep.Run(UrbanModel.Instance, transitData.Cast<IModelEditData>().ToList());
     }
 
     private static void AddBuildings(List<BuildingFootprintData> buildingData)
     {
         IUrbanModelStep addStep = new AddBuildingStep();
-        addStep.Run(UrbanModel.Instance, buildingData.Cast<ICreationData>().ToList());
+        addStep.Run(UrbanModel.Instance, buildingData.Cast<IModelEditData>().ToList());
     }
 
     private static void RunParcelCreationSteps()

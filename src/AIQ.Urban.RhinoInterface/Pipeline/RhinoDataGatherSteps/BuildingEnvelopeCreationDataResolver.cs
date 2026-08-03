@@ -1,18 +1,18 @@
 using AIQ.Urban.Core;
-using AIQ.Urban.Core.ModelActions.CreationData;
+using AIQ.Urban.Core.ModelActions.EditData;
 
 namespace AIQ.Urban.RhinoInterface.Pipeline.RhinoDataGatherSteps;
 
 public class BuildingEnvelopeCreationDataResolver(UrbanModel _urbanModel)
 {
-    public List<ICreationData> Resolve(IEnumerable<BuildingMassData> selectedEnvelopes)
+    public List<IModelEditData> Resolve(IEnumerable<BuildingMassData> selectedEnvelopes)
     {
         return selectedEnvelopes
             .Select(Resolve)
             .ToList();
     }
 
-    private ICreationData Resolve(BuildingMassData selectedEnvelope)
+    private IModelEditData Resolve(BuildingMassData selectedEnvelope)
     {
         var existingBuilding = _urbanModel.Buildings
             .FirstOrDefault(building => building.Envelope.Id == selectedEnvelope.Envelope.Id);

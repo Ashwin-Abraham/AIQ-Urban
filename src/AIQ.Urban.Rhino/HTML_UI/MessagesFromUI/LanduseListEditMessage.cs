@@ -3,6 +3,7 @@ using System.Drawing;
 using AIQ.Urban.Core;
 using AIQ.Urban.Core.Enums;
 using AIQ.Urban.RhinoInterface;
+using AIQ.Urban.RhinoInterface.Pipeline.RhinoDataGatherSteps;
 using AIQ.Urban.RhinoInterface.Logging;
 using AIQ.Urban.RhinoPlugin.HTML_UI.MessageToUI;
 using Microsoft.Extensions.Logging;
@@ -35,7 +36,8 @@ public class LanduseListEditMessage : IMessageFromUI<ModelStateMessage>
         using var loggerFactory = new LoggerFactory().AddRhinoLog();
 
         var pipeline = new RhinoUrbanModelPipeline(doc, UrbanModel.Instance, loggerFactory)
-            .WithLanduseListEditSteps(editType, name, parsedColor, guid)
+            .WithDataGatherStep(new UseModificationGatherStep(editType, name, parsedColor, guid))
+            .WithLanduseListEditSteps()
             .WithFullModelOutput()
             .WithMetricsCalculation(tolerance: doc.ModelAbsoluteTolerance);
 

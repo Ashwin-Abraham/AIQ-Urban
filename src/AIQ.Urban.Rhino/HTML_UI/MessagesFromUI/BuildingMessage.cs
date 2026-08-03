@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using AIQ.Urban.Core;
-using AIQ.Urban.Core.ModelActions.CreationData;
+using AIQ.Urban.Core.ModelActions.EditData;
 using AIQ.Urban.Core.Models;
 using AIQ.Urban.RhinoInterface;
 using AIQ.Urban.RhinoInterface.Logging;
@@ -47,10 +47,7 @@ public class BuildingMessage : IMessageFromUI<ModelStateMessage>
         using var loggerFactory = new LoggerFactory().AddRhinoLog();
 
         var gatherStep = new SelectBuildingFootprintStep(selected, FloorHeight, FloorCount, use, loggerFactory);
-        var creationData = gatherStep.Run(doc);
-        var idsToDelete = creationData.OfType<BuildingFootprintData>().Select(b => b.Footprint.Id).ToList();
-
-        return RunPipeline(doc, creationData, idsToDelete, loggerFactory);
+        return RunPipeline(doc, gatherStep, loggerFactory);
     }
 
     private ModelStateMessage HandleMassMode(RhinoDoc doc, Use use)
@@ -64,20 +61,15 @@ public class BuildingMessage : IMessageFromUI<ModelStateMessage>
 
         using var loggerFactory = new LoggerFactory().AddRhinoLog();
 
-        var gatherStep = new SelectBuildingEnvelopeStep(selected, FloorHeight, use, loggerFactory);
-        var selectedEnvelopeData = gatherStep.Run(doc).OfType<BuildingMassData>().ToList();
-        var resolver = new BuildingEnvelopeCreationDataResolver(UrbanModel.Instance);
-        var creationData = resolver.Resolve(selectedEnvelopeData);
-        var idsToDelete = selectedEnvelopeData.Select(data => data.Envelope.Id).ToList();
-
-        return RunPipeline(doc, creationData, idsToDelete, loggerFactory);
+        var gatherStep = new SelectBuildingEnvelopeStep(selected, FloorHeight, use, UrbanModel.Instance, loggerFactory);
+        return RunPipeline(doc, gatherStep, loggerFactory);
     }
 
-    private ModelStateMessage RunPipeline(RhinoDoc doc, List<ICreationData> creationData, List<Guid> idsToDelete, ILoggerFactory loggerFactory)
+    private ModelStateMessage RunPipeline(RhinoDoc doc, IRhinoDataGatherStep gatherStep, ILoggerFactory loggerFactory)
     {
         var pipeline = new RhinoUrbanModelPipeline(doc, UrbanModel.Instance, loggerFactory)
-            .WithCreationData(creationData)
-            .WithBuildingAddOrUpdateSteps([], idsToDelete)
+            .WithDataGatherStep(gatherStep)
+            .WithBuildingAddOrUpdateSteps()
             .WithFullModelOutput()
             .WithMetricsCalculation(tolerance: doc.ModelAbsoluteTolerance);
 

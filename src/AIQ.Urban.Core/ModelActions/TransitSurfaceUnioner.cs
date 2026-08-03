@@ -1,4 +1,4 @@
-﻿using AIQ.Urban.Core.ModelActions.CreationData;
+using AIQ.Urban.Core.ModelActions.EditData;
 using AIQ.Urban.Core.Models.GeometryElements;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -9,7 +9,7 @@ public class TransitSurfaceUnioner(double _tolerance = 0.001, ILoggerFactory? _l
 {
     private readonly ILogger _logger = (_loggerFactory ?? NullLoggerFactory.Instance).CreateLogger<TransitSurfaceUnioner>();
 
-    public StepResult Run(UrbanModel model, List<ICreationData> creationData)
+    public StepResult Run(UrbanModel model, List<IModelEditData> creationData)
     {
         var oldIds = model.TransitSurfaces.Select(x => x.Profile.Id).ToList();
         model.TransitSurfaces.Clear();

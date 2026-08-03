@@ -1,5 +1,5 @@
 using AIQ.Urban.Core.ModelActions;
-using AIQ.Urban.Core.ModelActions.CreationData;
+using AIQ.Urban.Core.ModelActions.EditData;
 using AIQ.Urban.Core.Models;
 using AIQ.Urban.Core.Models.GeometryElements;
 using AIQ.Urban.DebugViz;
@@ -33,17 +33,16 @@ public class RemoveZoneStepTests
 
         // Arrange: add zones and capture their actual geometry IDs
         IUrbanModelStep addStep = new AddZoneStep();
-        var addResult = addStep.Run(UrbanModel.Instance, testData.InitialZones.Cast<ICreationData>().ToList());
+        var addResult = addStep.Run(UrbanModel.Instance, testData.InitialZones.Cast<IModelEditData>().ToList());
 
         var initialCount = UrbanModel.Instance.Zones.Count;
 
         // Act
         IUrbanModelStep removeStep = new RemoveZoneStep();
-        var deleteData = testData
-            .GetRemoveIds(addResult.AddedIds)
-            .Select(id => new RhinoObjectDeletionData(id))
-            .Cast<ICreationData>()
-            .ToList();
+        List<IModelEditData> deleteData =
+        [
+            new ZoneDeletionData(testData.GetRemoveIds(addResult.AddedIds)),
+        ];
 
         var removeResult = removeStep.Run(UrbanModel.Instance, deleteData);
 

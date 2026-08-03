@@ -1,6 +1,7 @@
 using AIQ.Urban.Core.Extensions;
-using AIQ.Urban.Core.ModelActions.CreationData;
+using AIQ.Urban.Core.ModelActions.EditData;
 using AIQ.Urban.Core.Models.GeometryElements;
+using AIQ.Urban.RhinoInterface.Pipeline.EditData;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Rhino;
@@ -16,7 +17,7 @@ public class SelectParcelBoundariesStep(
     private readonly ILogger _logger = (_loggerFactory ?? NullLoggerFactory.Instance)
         .CreateLogger<SelectParcelBoundariesStep>();
 
-    public List<ICreationData> Run(RhinoDoc doc)
+    public List<IModelEditData> Run(RhinoDoc doc)
     {
         var selected = selectedObjects
             .Where(obj => obj.ObjectType == ObjectType.Curve)
@@ -25,7 +26,7 @@ public class SelectParcelBoundariesStep(
         if (selected.Count == 0)
             throw new Exception("Select one or more parcel boundary curves first.");
 
-        var result = new List<ICreationData>();
+        var result = new List<IModelEditData>();
         var rejectedCount = 0;
 
         foreach (var obj in selected)

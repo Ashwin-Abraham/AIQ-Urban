@@ -1,6 +1,6 @@
 using AIQ.Urban.Core.Enums;
 using AIQ.Urban.Core.ModelActions;
-using AIQ.Urban.Core.ModelActions.CreationData;
+using AIQ.Urban.Core.ModelActions.EditData;
 using AIQ.Urban.Core.Models;
 using AIQ.Urban.Core.Models.GeometryElements;
 using AIQ.Urban.Core.Models.UrbanElements;
@@ -34,13 +34,13 @@ public class ParcelBoundarySplittingTests
 
         // Arrange — add transits to form enclosure
         IUrbanModelStep addTransitStep = new AddTransitStep();
-        addTransitStep.Run(UrbanModel.Instance, testData.TransitInputs.Cast<ICreationData>().ToList());
+        addTransitStep.Run(UrbanModel.Instance, testData.TransitInputs.Cast<IModelEditData>().ToList());
 
         // Arrange — add parcel boundaries
         if (testData.BoundaryInputs.Count > 0)
         {
             IUrbanModelStep addBoundaryStep = new AddParcelBoundaryStep();
-            addBoundaryStep.Run(UrbanModel.Instance, testData.BoundaryInputs.Cast<ICreationData>().ToList());
+            addBoundaryStep.Run(UrbanModel.Instance, testData.BoundaryInputs.Cast<IModelEditData>().ToList());
         }
 
         // Act — union transit surfaces, then recalculate parcels

@@ -1,5 +1,5 @@
 using AIQ.Urban.Core.ModelActions;
-using AIQ.Urban.Core.ModelActions.CreationData;
+using AIQ.Urban.Core.ModelActions.EditData;
 using AIQ.Urban.Core.Models;
 using AIQ.Urban.Core.Models.GeometryElements;
 using AIQ.Urban.DebugViz;
@@ -30,7 +30,7 @@ public class UpdateBuildingStepTests
 
         // Arrange: add initial building via mass-mode constructor
         IUrbanModelStep addStep = new AddBuildingStep();
-        var addedIds = addStep.Run(UrbanModel.Instance, testData.InitialBuildings.Cast<ICreationData>().ToList());
+        var addedIds = addStep.Run(UrbanModel.Instance, testData.InitialBuildings.Cast<IModelEditData>().ToList());
 
         var oldEnvelopeId = UrbanModel.Instance.Buildings[0].Envelope.Id;
         var oldFloorPlateCount = UrbanModel.Instance.Buildings[0].FloorPlates.Count;
@@ -115,7 +115,7 @@ public class UpdateBuildingStepTests
         // Arrange
         var residential = DefaultUses.Create("Residential");
         var commercial = DefaultUses.Create("Commercial");
-        List<ICreationData> initialData =
+        List<IModelEditData> initialData =
         [
             new BuildingMassData(
                 new BrepElement(MakeBoxBrep(10, 10, 9), Guid.NewGuid()),
@@ -136,7 +136,7 @@ public class UpdateBuildingStepTests
                 building.Envelope.Geometry,
                 3,
                 building.FloorPlates.OrderBy(plate => plate.Z()).Select(plate => plate.Use).ToList()))
-            .Cast<ICreationData>()
+            .Cast<IModelEditData>()
             .ToList();
         var updateStep = new UpdateBuildingStep();
 
@@ -162,7 +162,7 @@ public class UpdateBuildingStepTests
 
     private record UpdateBuildingTestData(
         string CaseName,
-        List<ICreationData> InitialBuildings,
+        List<IModelEditData> InitialBuildings,
         bool UseExistingId,
         Brep NewEnvelope,
         double TypicalFloorHeight,

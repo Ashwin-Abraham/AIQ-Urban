@@ -1,10 +1,11 @@
 using System.Collections.Generic;
 using AIQ.Urban.Core;
 using AIQ.Urban.Core.ModelActions;
-using AIQ.Urban.Core.ModelActions.CreationData;
+using AIQ.Urban.Core.ModelActions.EditData;
 using AIQ.Urban.Core.Models;
 using AIQ.Urban.Core.Models.GeometryElements;
 using AIQ.Urban.RhinoInterface.Tests.Helpers;
+using AIQ.Urban.RhinoInterface.Pipeline.RhinoDataGatherSteps;
 using AIQ.Urban.RhinoInterface.Utils;
 using NUnit.Framework;
 using Rhino;
@@ -35,7 +36,8 @@ public class ResetUrban_AIQUrbanTests
         ]));
         var buildingData = new BuildingFootprintData(footprint, 3.5, 3, DefaultUses.Create("Residential"));
         var pipeline = new RhinoUrbanModelPipeline(doc, UrbanModel.Instance)
-            .WithBuildingAddOrUpdateSteps(new System.Collections.Generic.List<ICreationData> { buildingData }, [])
+            .WithDataGatherStep(new BuildingFootprintDataGatherStep([buildingData]))
+            .WithBuildingAddOrUpdateSteps()
             .WithFullModelOutput()
             .WithMetricsCalculation(false);
 
