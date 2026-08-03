@@ -194,6 +194,52 @@ public class TransitPipelineConfigurationTests
     }
 
     [Test]
+    [TestCase("OutsideGroundTolerance")]
+    [TestCase("SelfIntersecting")]
+    public void WithTransitAdditionSteps_RejectedManagedCenterline_PreservesExistingTransit(string testName)
+    {
+        // Arrange
+        var testData = GetRejectedManagedTransitTestData(testName);
+        using var doc = RhinoDoc.CreateHeadless(null);
+        var rejectedCurve = new PolylineCurve(testData.RejectedCoordinates
+            .Select(point => new Point3d(point[0], point[1], point[2])));
+        var managedId = doc.Objects.AddCurve(rejectedCurve);
+        var existingTransit = new TransitData(
+            new Curve2D(
+                new LineCurve(new Point3d(0, 0, 0), new Point3d(10, 0, 0)),
+                managedId),
+            6,
+            TransitType.Road).ToTransit();
+        UrbanModel.Instance.AddTransit([existingTransit]);
+        var loggerProvider = new CapturingLoggerProvider();
+        using var loggerFactory = new LoggerFactory([loggerProvider]);
+
+        // Act
+        new RhinoUrbanModelPipeline(doc, UrbanModel.Instance, loggerFactory)
+            .WithDataGatherStep(new SelectTransitCenterlinesStep(
+                [doc.Objects.FindId(managedId)!],
+                4,
+                TransitType.CyclePath,
+                loggerFactory))
+            .WithTransitAdditionSteps()
+            .WithFullModelOutput()
+            .Run();
+
+        // Preview
+        TestContext.WriteLine($"Preserved Transit ID: {existingTransit.Centerline.Id}");
+
+        // Assert
+        Assert.That(UrbanModel.Instance.Transits, Has.Count.EqualTo(1));
+        Assert.That(UrbanModel.Instance.Transits.Single(), Is.SameAs(existingTransit));
+        Assert.That(existingTransit.Width, Is.EqualTo(6));
+        Assert.That(existingTransit.TransitType, Is.EqualTo(TransitType.Road));
+        Assert.That(existingTransit.Centerline.Geometry.GetBoundingBox(true).Min.Z, Is.EqualTo(0));
+        Assert.That(doc.Objects.FindId(managedId), Is.Not.Null);
+        var warning = loggerProvider.Entries.Single(entry => entry.Level == LogLevel.Warning);
+        Assert.That(warning.Message, Does.Contain(testData.ExpectedWarningText));
+    }
+
+    [Test]
     public void WithTransitAdditionSteps_AllInputsInvalid_CompletesWithNoMutations()
     {
         using var doc = RhinoDoc.CreateHeadless(null);
@@ -395,6 +441,29 @@ public class TransitPipelineConfigurationTests
         int[] ExpectedAcceptedCurveIndices,
         int ExpectedWarningCount,
         string ExpectedWarningText);
+
+    private record RejectedManagedTransitTestData(
+        string CaseName,
+        double[][] RejectedCoordinates,
+        string ExpectedWarningText);
+
+    private static RejectedManagedTransitTestData GetRejectedManagedTransitTestData(string caseName)
+    {
+        return caseName switch
+        {
+            "OutsideGroundTolerance" => new RejectedManagedTransitTestData(
+                CaseName: "OutsideGroundTolerance",
+                RejectedCoordinates: [[0, 0, 1], [10, 0, 1]],
+                ExpectedWarningText: "Z range"),
+
+            "SelfIntersecting" => new RejectedManagedTransitTestData(
+                CaseName: "SelfIntersecting",
+                RejectedCoordinates: [[0, 0, 0], [10, 10, 0], [0, 10, 0], [10, 0, 0]],
+                ExpectedWarningText: "self-intersects"),
+
+            _ => throw new ArgumentException($"Unknown test case: {caseName}")
+        };
+    }
 
     private static TransitGatherTestData GetTransitGatherTestData(string caseName)
     {
