@@ -26,6 +26,7 @@ public class SelectTransitCenterlinesStep(
     {
         var selected = objectsToParse
             .Where(obj => obj.ObjectType == ObjectType.Curve)
+            .DistinctBy(obj => obj.Id)
             .ToList();
 
         if (selected.Count == 0)

@@ -122,32 +122,51 @@ public class TransitPipelineConfigurationTests
     }
 
     [Test]
-    public void SelectTransitCenterlinesStep_MixedGroundPlaneInputs_ReturnsDataAndWarningsPerCurve()
+    [TestCase("DistinctValidObjects")]
+    [TestCase("MixedValidAndInvalidObjects")]
+    [TestCase("RepeatedObject")]
+    public void SelectTransitCenterlinesStep_Selection_ReturnsExpectedEditData(string testName)
     {
+        // Arrange
+        var testData = GetTransitGatherTestData(testName);
         using var doc = RhinoDoc.CreateHeadless(null);
-        var validId = doc.Objects.AddLine(new Line(new Point3d(0, 0, 0), new Point3d(10, 0, 0)));
-        var nearGroundId = doc.Objects.AddLine(new Line(new Point3d(0, 5, 0.000009), new Point3d(10, 5, -0.000009)));
-        var invalidId = doc.Objects.AddLine(new Line(new Point3d(0, 10, 1), new Point3d(10, 10, 1)));
-        var selected = new[] { validId, nearGroundId, invalidId }
-            .Select(id => doc.Objects.FindId(id)!)
+        var objectIds = testData.CurveCoordinates
+            .Select(coordinates => doc.Objects.AddCurve(new PolylineCurve(
+                coordinates.Select(point => new Point3d(point[0], point[1], point[2])))))
+            .ToList();
+        var selected = testData.SelectedCurveIndices
+            .Select(index => doc.Objects.FindId(objectIds[index])!)
+            .ToList();
+        var expectedAcceptedIds = testData.ExpectedAcceptedCurveIndices
+            .Select(index => objectIds[index])
             .ToList();
         var loggerProvider = new CapturingLoggerProvider();
         using var loggerFactory = new LoggerFactory([loggerProvider]);
         var step = new SelectTransitCenterlinesStep(selected, 6, TransitType.Road, loggerFactory);
 
+        // Act
         var result = step.Run(doc);
 
-        var transitData = result.OfType<TransitData>().ToList();
-        var deletionIds = result.OfType<RhinoObjectDeletionData>().Select(x => x.Id).ToList();
-        Assert.That(transitData, Has.Count.EqualTo(2));
-        Assert.That(deletionIds, Is.EquivalentTo(new[] { validId, nearGroundId }));
-        Assert.That(deletionIds, Does.Not.Contain(invalidId));
-        Assert.That(transitData.SelectMany(x => x.Centerline.Geometry.Points()).Select(x => x.Z), Is.All.EqualTo(0));
+        // Preview
+        TestContext.WriteLine($"Accepted identities: {string.Join(", ", expectedAcceptedIds)}");
 
-        var warnings = loggerProvider.Entries.Where(x => x.Level == LogLevel.Warning).ToList();
-        Assert.That(warnings, Has.Count.EqualTo(1));
-        Assert.That(warnings[0].Message, Does.Contain(invalidId.ToString()));
-        Assert.That(warnings[0].Message, Does.Contain("Z range"));
+        // Assert
+        var transitData = result.OfType<TransitData>().ToList();
+        var rhinoDeletionIds = result.OfType<RhinoObjectDeletionData>().Select(data => data.Id).ToList();
+        var transitDeletionData = result.OfType<TransitDeletionData>().Single();
+        Assert.That(transitData, Has.Count.EqualTo(expectedAcceptedIds.Count));
+        Assert.That(rhinoDeletionIds, Is.EquivalentTo(expectedAcceptedIds));
+        Assert.That(rhinoDeletionIds, Is.Unique);
+        Assert.That(transitDeletionData.CenterlineIds, Is.EquivalentTo(expectedAcceptedIds));
+        Assert.That(transitDeletionData.CenterlineIds, Is.Unique);
+        Assert.That(
+            transitData.SelectMany(data => data.Centerline.Geometry.Points()).Select(point => point.Z),
+            Is.All.EqualTo(0));
+
+        var warnings = loggerProvider.Entries.Where(entry => entry.Level == LogLevel.Warning).ToList();
+        Assert.That(warnings, Has.Count.EqualTo(testData.ExpectedWarningCount));
+        if (testData.ExpectedWarningText.Length > 0)
+            Assert.That(warnings.Single().Message, Does.Contain(testData.ExpectedWarningText));
     }
 
     [Test]
@@ -368,6 +387,54 @@ public class TransitPipelineConfigurationTests
         double ReplacementWidth,
         int ReplacementTransitType,
         string ExpectedCenterlineLayer);
+
+    private record TransitGatherTestData(
+        string CaseName,
+        double[][][] CurveCoordinates,
+        int[] SelectedCurveIndices,
+        int[] ExpectedAcceptedCurveIndices,
+        int ExpectedWarningCount,
+        string ExpectedWarningText);
+
+    private static TransitGatherTestData GetTransitGatherTestData(string caseName)
+    {
+        return caseName switch
+        {
+            "DistinctValidObjects" => new TransitGatherTestData(
+                CaseName: "DistinctValidObjects",
+                CurveCoordinates: [
+                    [[0, 0, 0], [10, 0, 0]],
+                    [[0, 5, 0.000009], [10, 5, -0.000009]],
+                ],
+                SelectedCurveIndices: [0, 1],
+                ExpectedAcceptedCurveIndices: [0, 1],
+                ExpectedWarningCount: 0,
+                ExpectedWarningText: ""),
+
+            "MixedValidAndInvalidObjects" => new TransitGatherTestData(
+                CaseName: "MixedValidAndInvalidObjects",
+                CurveCoordinates: [
+                    [[0, 0, 0], [10, 0, 0]],
+                    [[0, 10, 1], [10, 10, 1]],
+                ],
+                SelectedCurveIndices: [0, 1],
+                ExpectedAcceptedCurveIndices: [0],
+                ExpectedWarningCount: 1,
+                ExpectedWarningText: "Z range"),
+
+            "RepeatedObject" => new TransitGatherTestData(
+                CaseName: "RepeatedObject",
+                CurveCoordinates: [
+                    [[0, 0, 0], [10, 0, 0]],
+                ],
+                SelectedCurveIndices: [0, 0],
+                ExpectedAcceptedCurveIndices: [0],
+                ExpectedWarningCount: 0,
+                ExpectedWarningText: ""),
+
+            _ => throw new ArgumentException($"Unknown test case: {caseName}")
+        };
+    }
 
     private static ManagedReplacementTestData GetManagedReplacementTestData(string caseName)
     {
