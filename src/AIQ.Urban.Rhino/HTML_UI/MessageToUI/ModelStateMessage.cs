@@ -72,9 +72,10 @@ public class ModelStateMessage : IMessageToUI
         var projectWideZoneMetrics = new ZoneMetrics(
             Guid.Empty,
             "All",
-            projectMetrics.BuildingMetrics,
-            projectMetrics.ParcelMetrics,
-            model.Transits);
+            zoneBoundaryArea: 0,
+            buildings: projectMetrics.BuildingMetrics,
+            parcels: projectMetrics.ParcelMetrics,
+            transits: model.Transits);
         
         zoneMetrics.Add(projectWideZoneMetrics);
         zoneMetrics.AddRange(projectMetrics.ZoneMetrics);

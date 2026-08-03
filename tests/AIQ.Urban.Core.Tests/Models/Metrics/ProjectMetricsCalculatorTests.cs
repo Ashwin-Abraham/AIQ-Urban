@@ -70,12 +70,38 @@ public class ProjectMetricsCalculatorTests
     }
 
     [Test]
+    public void CalculateAndStore_Zone_RetainsBoundaryAreaAndAssignedParcelMetrics()
+    {
+        // Arrange
+        var model = UrbanModel.Instance;
+        var use = model.GetUse("Residential");
+        var parcel = CreateParcel(0, 0, 10, use);
+        var zone = new Zone(CreatePolygon(-1, -1, 12), "Test Zone");
+        model.Parcels.Add(parcel);
+        model.Zones.Add(zone);
+
+        // Act
+        ProjectMetricsCalculator.CalculateAndStore(model, containmentTolerance: 0.001);
+
+        // Preview
+        var zoneMetrics = model.ProjectMetrics!.ZoneMetrics.Single();
+        TestContext.WriteLine(
+            $"Boundary: {zoneMetrics.ZoneBoundaryArea}; parcels: {zoneMetrics.ParcelMetrics.Count}");
+
+        // Assert
+        Assert.That(zoneMetrics.ZoneBoundaryArea, Is.EqualTo(144).Within(1e-6));
+        Assert.That(zoneMetrics.ParcelMetrics, Has.Count.EqualTo(1));
+        Assert.That(zoneMetrics.ParcelMetrics.Single().SourceElementId, Is.EqualTo(parcel.Id));
+    }
+
+    [Test]
     public void Constructor_SyntheticAllZone_UsesEmptySourceElementId()
     {
         // Act
         var metrics = new ZoneMetrics(
             Guid.Empty,
             "All",
+            zoneBoundaryArea: 0,
             buildings: [],
             parcels: [],
             transits: []);
