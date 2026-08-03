@@ -51,4 +51,45 @@ public class TransitTests
 
         Assert.That(exception!.Message, Does.Contain("Z = 0"));
     }
+
+    [Test]
+    public void TransitData_SelfIntersectingCenterline_ThrowsArgumentException()
+    {
+        var curve = new Curve2D(SelfIntersectingCenterline(), Guid.NewGuid());
+
+        var exception = Assert.Throws<ArgumentException>(
+            () => new TransitData(curve, 6, TransitType.Road));
+
+        Assert.That(exception!.Message, Does.Contain("must not self-intersect"));
+    }
+
+    [Test]
+    public void TransitUpdateData_SelfIntersectingCenterline_ThrowsArgumentException()
+    {
+        var exception = Assert.Throws<ArgumentException>(
+            () => new TransitUpdateData(Guid.NewGuid(), SelfIntersectingCenterline()));
+
+        Assert.That(exception!.Message, Does.Contain("must not self-intersect"));
+    }
+
+    [Test]
+    public void Constructor_SelfIntersectingCenterline_ThrowsArgumentException()
+    {
+        var curve = new Curve2D(SelfIntersectingCenterline(), Guid.NewGuid());
+
+        var exception = Assert.Throws<ArgumentException>(
+            () => new Transit(curve, 6, TransitType.Road));
+
+        Assert.That(exception!.Message, Does.Contain("must not self-intersect"));
+    }
+
+    private static PolylineCurve SelfIntersectingCenterline()
+    {
+        return new PolylineCurve([
+            new Point3d(0, 0, 0),
+            new Point3d(10, 10, 0),
+            new Point3d(0, 10, 0),
+            new Point3d(10, 0, 0),
+        ]);
+    }
 }

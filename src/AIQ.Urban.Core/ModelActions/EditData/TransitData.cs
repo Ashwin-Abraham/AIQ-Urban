@@ -14,6 +14,9 @@ public record TransitData : IModelEditData
     public TransitData(Curve2D centerline, double width, TransitType transitType)
     {
         Centerline = centerline.NormalizeTransitCenterline();
+        if (Centerline.Geometry.IsSelfIntersecting())
+            throw new ArgumentException("Transit centerline must not self-intersect.", nameof(centerline));
+
         Width = width;
         TransitType = transitType;
     }

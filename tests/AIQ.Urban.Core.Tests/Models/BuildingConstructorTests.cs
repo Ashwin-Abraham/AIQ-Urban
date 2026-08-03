@@ -1,4 +1,5 @@
 using AIQ.Urban.Core.Models;
+using AIQ.Urban.Core.ModelActions.EditData;
 using AIQ.Urban.Core.Models.GeometryElements;
 using AIQ.Urban.Core.Models.UrbanElements;
 using NUnit.Framework;
@@ -143,5 +144,44 @@ public class BuildingConstructorTests
         var building = new Building(envelope, plates);
 
         Assert.That(building.Envelope.Geometry, Is.Not.SameAs(envelope));
+    }
+
+    [Test]
+    public void BuildingFootprintData_SelfIntersectingFootprint_ThrowsArgumentException()
+    {
+        var footprint = SelfIntersectingFootprint();
+
+        var exception = Assert.Throws<ArgumentException>(() => new BuildingFootprintData(
+            footprint,
+            3,
+            2,
+            DefaultUses.Create("Residential")));
+
+        Assert.That(exception!.Message, Does.Contain("must not self-intersect"));
+    }
+
+    [Test]
+    public void FootprintConstructor_SelfIntersectingFootprint_ThrowsArgumentException()
+    {
+        var footprint = SelfIntersectingFootprint();
+
+        var exception = Assert.Throws<ArgumentException>(() => new Building(
+            footprint,
+            3,
+            2,
+            DefaultUses.Create("Residential")));
+
+        Assert.That(exception!.Message, Does.Contain("must not self-intersect"));
+    }
+
+    private static Polygon2D SelfIntersectingFootprint()
+    {
+        return new Polygon2D(new PolylineCurve([
+            new Point3d(0, 0, 0),
+            new Point3d(10, 10, 0),
+            new Point3d(0, 10, 0),
+            new Point3d(10, 0, 0),
+            new Point3d(0, 0, 0),
+        ]));
     }
 }

@@ -8,6 +8,8 @@ using AIQ.Urban.Core.Models;
 using AIQ.Urban.Core.Models.GeometryElements;
 using AIQ.Urban.DebugViz;
 using AIQ.Urban.RhinoInterface.Pipeline.RhinoDataGatherSteps;
+using AIQ.Urban.RhinoInterface.Tests.Helpers;
+using Microsoft.Extensions.Logging;
 using NUnit.Framework;
 using Rhino;
 using Rhino.Geometry;
@@ -204,6 +206,86 @@ public class BuildingPipelineConfigurationTests
 
         var addedBuilding = UrbanModel.Instance.Buildings.Single(building => building != updatedBuilding);
         Assert.That(addedBuilding.FloorPlates.Select(plate => plate.Use.Name), Has.All.EqualTo(undefined.Name));
+    }
+
+    [Test]
+    public void WithBuildingAddOrUpdateSteps_MixedSelfIntersectionInputs_LeavesRejectedCurveUntouched()
+    {
+        // Arrange
+        using var doc = RhinoDoc.CreateHeadless(null);
+        var validId = doc.Objects.AddCurve(FootprintCurve());
+        var invalidId = doc.Objects.AddCurve(SelfIntersectingFootprintCurve());
+        var selected = new[] { validId, invalidId }.Select(id => doc.Objects.FindId(id)!).ToList();
+        var loggerProvider = new CapturingLoggerProvider();
+        using var loggerFactory = new LoggerFactory([loggerProvider]);
+        var gatherStep = new SelectBuildingFootprintStep(
+            selected,
+            3,
+            2,
+            DefaultUses.Create("Residential"),
+            loggerFactory);
+
+        // Act
+        new RhinoUrbanModelPipeline(doc, UrbanModel.Instance)
+            .WithDataGatherStep(gatherStep)
+            .WithBuildingAddOrUpdateSteps()
+            .WithFullModelOutput()
+            .Run();
+
+        // Assert
+        Assert.That(UrbanModel.Instance.Buildings, Has.Count.EqualTo(1));
+        Assert.That(doc.Objects.FindId(validId), Is.Null);
+        Assert.That(doc.Objects.FindId(invalidId), Is.Not.Null);
+        var warnings = loggerProvider.Entries.Where(entry => entry.Level == LogLevel.Warning).ToList();
+        Assert.That(warnings, Has.Count.EqualTo(1));
+        Assert.That(warnings[0].Message, Does.Contain(invalidId.ToString()));
+    }
+
+    [Test]
+    public void WithBuildingAddOrUpdateSteps_AllInputsSelfIntersecting_CompletesWithNoMutations()
+    {
+        // Arrange
+        using var doc = RhinoDoc.CreateHeadless(null);
+        var invalidId = doc.Objects.AddCurve(SelfIntersectingFootprintCurve());
+        var gatherStep = new SelectBuildingFootprintStep(
+            [doc.Objects.FindId(invalidId)!],
+            3,
+            2,
+            DefaultUses.Create("Residential"));
+
+        // Act
+        var mutationCount = new RhinoUrbanModelPipeline(doc, UrbanModel.Instance)
+            .WithDataGatherStep(gatherStep)
+            .WithBuildingAddOrUpdateSteps()
+            .WithFullModelOutput()
+            .Run();
+
+        // Assert
+        Assert.That(mutationCount, Is.EqualTo(0));
+        Assert.That(UrbanModel.Instance.Buildings, Is.Empty);
+        Assert.That(doc.Objects.FindId(invalidId), Is.Not.Null);
+    }
+
+    private static PolylineCurve FootprintCurve()
+    {
+        return new PolylineCurve([
+            new Point3d(0, 0, 0),
+            new Point3d(10, 0, 0),
+            new Point3d(10, 10, 0),
+            new Point3d(0, 10, 0),
+            new Point3d(0, 0, 0),
+        ]);
+    }
+
+    private static PolylineCurve SelfIntersectingFootprintCurve()
+    {
+        return new PolylineCurve([
+            new Point3d(20, 0, 0),
+            new Point3d(30, 10, 0),
+            new Point3d(20, 10, 0),
+            new Point3d(30, 0, 0),
+            new Point3d(20, 0, 0),
+        ]);
     }
 
     private record BuildingPipelineTestData(

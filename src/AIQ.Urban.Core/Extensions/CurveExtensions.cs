@@ -1,5 +1,7 @@
-﻿using AIQ.Primitives.Extensions;
+﻿using AIQ.Primitives;
+using AIQ.Primitives.Extensions;
 using Rhino.Geometry;
+using Rhino.Geometry.Intersect;
 
 namespace AIQ.Urban.Core.Extensions;
 public static class CurveExtensions
@@ -25,6 +27,16 @@ public static class CurveExtensions
         var bbox = curve.GetBoundingBox(xyPlane);
 
         return bbox.Min.Z.AlmostEquals(bbox.Max.Z);
+    }
+
+    public static bool IsSelfIntersecting(
+        this Curve curve,
+        double tolerance = NumericTolerance.Default)
+    {
+        ArgumentNullException.ThrowIfNull(curve);
+
+        using var intersections = Intersection.CurveSelf(curve, tolerance);
+        return intersections.Count > 0;
     }
 
     public static List<Curve> OffsetBothWays(this Curve centerline, double width, Plane plane, double tolerance)

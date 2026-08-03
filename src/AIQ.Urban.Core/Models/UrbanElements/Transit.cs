@@ -41,6 +41,9 @@ public class Transit : IUrbanElement, IGraphableAsEdge
         double tolerance = 0.001)
     {
         Centerline = centerline.NormalizeTransitCenterline();
+        if (Centerline.Geometry.IsSelfIntersecting())
+            throw new ArgumentException("Transit centerline must not self-intersect.", nameof(centerline));
+
         Width = width;
         TransitType = transitType;
         Outline = CalculateOutline(Centerline.Geometry, width, tolerance);

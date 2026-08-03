@@ -45,6 +45,14 @@ Pure city-modelling domain logic. Models buildings, transit networks, parcels, z
 - Eager execution: when a command adds/modifies an element, the pipeline automatically recalculates all dependent elements. E.g. `AddTransit_AIQUrban` runs: delete old transits → add new transits → union transit surfaces → recalculate parcels from holes.
 - RhinoPlugin commands collect user input, convert Rhino types → Core types, call into the pipeline, then read back from `UrbanModel` to display.
 
+### Edit-data Geometry Invariants
+- `TransitData` and `TransitUpdateData` cannot represent a self-intersecting **Transit** centerline.
+- `BuildingFootprintData` cannot represent a self-intersecting supplied **Building** footprint. This invariant does not apply to contours derived from mass-mode Breps or document-load geometry, which have separate ownership and recovery semantics.
+- A curve is self-intersecting when RhinoCommon reports any curve-self intersection event at `AIQ.Primitives.NumericTolerance.Default`, including a crossing, tangential contact, or overlapping portion. The ordinary seam that closes a footprint is valid.
+- This invariant does not define minimum length, minimum area, duplicate-point, or general curve-validity policy; existing rules for those concerns remain unchanged.
+- These invariants are enforced when edit data is constructed so every input channel is protected. Interactive gatherers may pre-validate individual source curves to report and retain rejected geometry while continuing with valid geometry from the same operation.
+- `Transit` and the footprint-mode `Building` constructor repeat the check as a final domain-object invariant. The mass-mode and document-load `Building` constructors do not apply this supplied-footprint rule.
+
 ### IUrbanElement Hierarchy
 - `IUrbanElement` is the base interface for all urban elements. Methods: `List<Guid> GetGeometryIds()`, `Point3d GetRepresentativeCenter()`. Implementations: Building, Transit, Parcel, Zone, FloorPlate.
 - `GetRepresentativeCenter()` returns a single point used for spatial queries: centroid of lowest floor plate (Building), midpoint of centerline (Transit), centroid of outline (Parcel, FloorPlate, Zone).

@@ -12,5 +12,7 @@ public record TransitUpdateData : IModelEditData
     {
         OldCenterlineId = oldCenterlineId;
         NewCenterline = newCenterline.NormalizeTransitCenterline();
+        if (NewCenterline.IsSelfIntersecting())
+            throw new ArgumentException("Transit centerline must not self-intersect.", nameof(newCenterline));
     }
 }

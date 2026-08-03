@@ -245,12 +245,19 @@ public class RhinoUrbanEventHandler : IDisposable
                 bounds.Max.Z,
                 AIQ.Primitives.NumericTolerance.Default);
 
-            var restorePipeline = new RhinoUrbanModelPipeline(_doc, UrbanModel.Instance, loggerFactory)
-                .WithDataGatherStep(new TransitRestoreGatherStep(oldCenterlineId, newCenterlineId))
-                .WithTransitRestoreSteps()
-                .WithRhinoOutputter(new TransitOutputter(loggerFactory));
+            RestoreTransit(oldCenterlineId, newCenterlineId, loggerFactory);
+            return;
+        }
 
-            RunPipeline(restorePipeline);
+        if (normalizedCurve.IsSelfIntersecting())
+        {
+            loggerFactory.CreateLogger<RhinoUrbanEventHandler>().LogWarning(
+                "Rejected replacement for transit centerline {CenterlineId}: Rhino object {ObjectId} self-intersects within tolerance {Tolerance}",
+                oldCenterlineId,
+                newCenterlineId,
+                AIQ.Primitives.NumericTolerance.Default);
+
+            RestoreTransit(oldCenterlineId, newCenterlineId, loggerFactory);
             return;
         }
 
@@ -261,6 +268,16 @@ public class RhinoUrbanEventHandler : IDisposable
             .WithMetricsCalculation();
 
         RunPipeline(pipeline);
+    }
+
+    private void RestoreTransit(Guid oldCenterlineId, Guid rejectedRhinoObjectId, ILoggerFactory loggerFactory)
+    {
+        var restorePipeline = new RhinoUrbanModelPipeline(_doc, UrbanModel.Instance, loggerFactory)
+            .WithDataGatherStep(new TransitRestoreGatherStep(oldCenterlineId, rejectedRhinoObjectId))
+            .WithTransitRestoreSteps()
+            .WithRhinoOutputter(new TransitOutputter(loggerFactory));
+
+        RunPipeline(restorePipeline);
     }
 
     private void HandleBuildingDelete(Building building)
