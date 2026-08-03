@@ -70,44 +70,55 @@ public class TransitPipelineConfigurationTests
     }
 
     [Test]
-    public void WithTransitAdditionSteps_GatheredExistingCenterline_ReplacesRhinoObjectWithoutDuplicate()
+    [TestCase("SameAttributes")]
+    [TestCase("ChangedAttributes")]
+    public void WithTransitAdditionSteps_ManagedCenterline_ReplacesTransitWithoutDuplicate(string testName)
     {
         // Arrange
+        var testData = GetManagedReplacementTestData(testName);
         using var doc = RhinoDoc.CreateHeadless(null);
-        var centerline = new LineCurve(new Point3d(0, 0, 0), new Point3d(50, 0, 0));
-        var centerlineId = doc.Objects.AddCurve(centerline);
-        var rhinoObject = doc.Objects.Find(centerlineId)!;
-        var existingTransit = new TransitData(
-            new Curve2D(centerline, centerlineId),
-            6,
-            TransitType.Road);
-        UrbanModel.Instance.AddTransit([existingTransit.ToTransit()]);
+        var points = testData.CenterlineCoordinates
+            .Select(point => new Point3d(point[0], point[1], point[2]))
+            .ToArray();
+        var sourceId = doc.Objects.AddCurve(new PolylineCurve(points));
 
-        var gatherStep = new SelectTransitCenterlinesStep(
-            [rhinoObject],
-            6,
-            TransitType.Road);
-
-        // Act
         new RhinoUrbanModelPipeline(doc, UrbanModel.Instance)
-            .WithDataGatherStep(gatherStep)
-            .WithDataGatherStep(new TransitDeletionGatherStep([centerlineId]))
+            .WithDataGatherStep(new SelectTransitCenterlinesStep(
+                [doc.Objects.FindId(sourceId)!],
+                testData.ExistingWidth,
+                (TransitType)testData.ExistingTransitType))
             .WithTransitAdditionSteps()
             .WithFullModelOutput()
             .Run();
 
+        var existingTransit = UrbanModel.Instance.Transits.Single();
+        var oldGeometryIds = existingTransit.GetGeometryIds().ToList();
+        var managedCenterline = doc.Objects.FindId(existingTransit.Centerline.Id)!;
+
+        // Act
+        new RhinoUrbanModelPipeline(doc, UrbanModel.Instance)
+            .WithDataGatherStep(new SelectTransitCenterlinesStep(
+                [managedCenterline],
+                testData.ReplacementWidth,
+                (TransitType)testData.ReplacementTransitType))
+            .WithTransitAdditionSteps()
+            .WithFullModelOutput()
+            .Run();
+
+        // Preview
+#if DEBUG
+        UrbanModel.Instance.VisualizeTransits();
+#endif
+
         // Assert
         Assert.That(UrbanModel.Instance.Transits, Has.Count.EqualTo(1));
-        Assert.That(doc.Objects.Count(), Is.EqualTo(4));
-        Assert.That(doc.Objects.Find(centerlineId), Is.Null);
-
-        var replacementCenterlineId = UrbanModel.Instance.Transits.Single().Centerline.Id;
-        Assert.That(replacementCenterlineId, Is.Not.EqualTo(centerlineId));
-        Assert.That(doc.Objects.Find(replacementCenterlineId), Is.Not.Null);
-        RhinoDocAssertions.AssertLayerObjectCount(
-            doc,
-            "AIQ Urban::Transit::Road::Centerline::6",
-            1);
+        var replacement = UrbanModel.Instance.Transits.Single();
+        Assert.That(replacement.Width, Is.EqualTo(testData.ReplacementWidth));
+        Assert.That(replacement.TransitType, Is.EqualTo((TransitType)testData.ReplacementTransitType));
+        Assert.That(replacement.Centerline.Id, Is.Not.EqualTo(existingTransit.Centerline.Id));
+        Assert.That(oldGeometryIds.All(id => doc.Objects.FindId(id) is null), Is.True);
+        Assert.That(doc.Objects.FindId(replacement.Centerline.Id), Is.Not.Null);
+        RhinoDocAssertions.AssertLayerObjectCount(doc, testData.ExpectedCenterlineLayer, 1);
     }
 
     [Test]
@@ -348,6 +359,41 @@ public class TransitPipelineConfigurationTests
         int ExpectedTransitCount,
         int ExpectedParcelCount,
         Dictionary<string, int> ExpectedRhinoLayerCounts = null);
+
+    private record ManagedReplacementTestData(
+        string CaseName,
+        double[][] CenterlineCoordinates,
+        double ExistingWidth,
+        int ExistingTransitType,
+        double ReplacementWidth,
+        int ReplacementTransitType,
+        string ExpectedCenterlineLayer);
+
+    private static ManagedReplacementTestData GetManagedReplacementTestData(string caseName)
+    {
+        return caseName switch
+        {
+            "SameAttributes" => new ManagedReplacementTestData(
+                CaseName: "SameAttributes",
+                CenterlineCoordinates: [[0, 0, 0], [50, 0, 0]],
+                ExistingWidth: 6,
+                ExistingTransitType: (int)TransitType.Road,
+                ReplacementWidth: 6,
+                ReplacementTransitType: (int)TransitType.Road,
+                ExpectedCenterlineLayer: "AIQ Urban::Transit::Road::Centerline::6"),
+
+            "ChangedAttributes" => new ManagedReplacementTestData(
+                CaseName: "ChangedAttributes",
+                CenterlineCoordinates: [[0, 0, 0], [50, 0, 0]],
+                ExistingWidth: 6,
+                ExistingTransitType: (int)TransitType.Road,
+                ReplacementWidth: 4,
+                ReplacementTransitType: (int)TransitType.CyclePath,
+                ExpectedCenterlineLayer: "AIQ Urban::Transit::CyclePath::Centerline::4"),
+
+            _ => throw new ArgumentException($"Unknown test case: {caseName}")
+        };
+    }
 
     private static readonly List<TransitPipelineTestData> _testData = BuildTestData();
 
