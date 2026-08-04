@@ -10,7 +10,7 @@ namespace AIQ.Urban.RhinoPlugin.HTML_UI.MessagesFromUI;
 
 public sealed class ExportExcelMessage : IMessageFromUI<ExcelExportResultMessage>
 {
-    private const string DefaultProjectName = "Urban Model";
+    private const string UnsavedProjectName = "Urban Metrics";
     private readonly IExcelSaveDialog _saveDialog;
     private readonly IUrbanMetricsExcelExporter _exporter;
     private readonly Func<string?> _documentName;
@@ -55,13 +55,18 @@ public sealed class ExportExcelMessage : IMessageFromUI<ExcelExportResultMessage
                 "Calculate urban metrics before exporting.");
         }
 
-        var projectName = GetProjectName(_documentName());
-        var selectedPath = _saveDialog.Show(GetSuggestedFileName(projectName));
-        if (string.IsNullOrWhiteSpace(selectedPath))
-            return ExcelExportResultMessage.Cancelled();
-
         try
         {
+            var documentName = _documentName();
+            var savedProjectName = GetSavedProjectName(documentName);
+            var projectName = savedProjectName ?? UnsavedProjectName;
+            var suggestedFileName = savedProjectName is not null
+                ? GetSuggestedFileName(savedProjectName)
+                : "Urban Metrics.xlsx";
+            var selectedPath = _saveDialog.Show(suggestedFileName);
+            if (string.IsNullOrWhiteSpace(selectedPath))
+                return ExcelExportResultMessage.Cancelled();
+
             _exporter.Export(
                 _urbanModel,
                 selectedPath,
@@ -77,20 +82,17 @@ public sealed class ExportExcelMessage : IMessageFromUI<ExcelExportResultMessage
         }
     }
 
-    private static string GetProjectName(string? documentName)
+    private static string? GetSavedProjectName(string? documentName)
     {
         if (string.IsNullOrWhiteSpace(documentName))
-            return DefaultProjectName;
+            return null;
 
         var name = Path.GetFileNameWithoutExtension(documentName).Trim();
-        return name.Length == 0 ? DefaultProjectName : name;
+        return name.Length == 0 ? null : name;
     }
 
     private static string GetSuggestedFileName(string projectName)
     {
-        if (projectName == DefaultProjectName)
-            return "Urban Metrics.xlsx";
-
         var invalidCharacters = Path.GetInvalidFileNameChars();
         var safeName = string.Concat(
             projectName.Select(character =>

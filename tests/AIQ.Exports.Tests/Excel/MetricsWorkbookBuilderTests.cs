@@ -174,6 +174,40 @@ public class MetricsWorkbookBuilderTests
         }
     }
 
+    [Fact]
+    public void Build_LongCollidingZoneNames_TruncatesAndKeepsNamesUnique()
+    {
+        var data = CreateWorkbookData();
+        var longName = new string('A', 40);
+        var report = data with
+        {
+            Zones =
+            [
+                data.Zones[0] with { DisplayName = longName },
+                data.Zones[1] with { DisplayName = longName },
+            ],
+        };
+        var outputPath = WriteWorkbook(report);
+
+        try
+        {
+            using var workbook = new XLWorkbook(outputPath);
+            var zoneNames = workbook.Worksheets
+                .Skip(1)
+                .Select(worksheet => worksheet.Name)
+                .ToList();
+
+            Assert.All(zoneNames, name => Assert.True(name.Length <= 31));
+            Assert.Equal(
+                zoneNames.Count,
+                zoneNames.Distinct(StringComparer.OrdinalIgnoreCase).Count());
+        }
+        finally
+        {
+            DeleteIfPresent(outputPath);
+        }
+    }
+
     private static MetricsWorkbookData CreateWorkbookData()
     {
         var project = new MetricsScopeData(

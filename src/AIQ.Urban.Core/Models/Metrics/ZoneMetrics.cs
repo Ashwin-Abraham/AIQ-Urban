@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using AIQ.Urban.Core.Models.UrbanElements;
 
 namespace AIQ.Urban.Core.Models.Metrics;
@@ -7,6 +8,7 @@ public class ZoneMetrics : IMetrics
     public Guid SourceElementId { get; }
     public string ZoneName { get; }
     public double ZoneBoundaryArea { get; }
+    [JsonIgnore]
     public List<ParcelMetrics> ParcelMetrics { get; }
     public double TotalLandArea { get; }
     public double TotalFootprintArea { get; }

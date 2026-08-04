@@ -114,6 +114,48 @@ public class ExportExcelMessageTests
         });
     }
 
+    [Test]
+    public void HandleMessage_WhenSaveDialogThrows_ReturnsConciseFailure()
+    {
+        _urbanModel.ProjectMetrics = new ProjectMetrics([], [], [], []);
+        var dialog = new FakeExcelSaveDialog(null)
+        {
+            ExceptionToThrow = new InvalidOperationException("Native dialog details")
+        };
+        var exporter = new FakeUrbanMetricsExcelExporter();
+        var message = CreateMessage(dialog, exporter);
+
+        var result = message.HandleMessage();
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Status, Is.EqualTo("Failed"));
+            Assert.That(result.ErrorMessage, Is.EqualTo("Excel export failed. Check the Rhino command history for details."));
+            Assert.That(exporter.CallCount, Is.Zero);
+        });
+    }
+
+    [Test]
+    public void HandleMessage_WhenProjectIsNamedUrbanModel_UsesProjectInSuggestedFileName()
+    {
+        _urbanModel.ProjectMetrics = new ProjectMetrics([], [], [], []);
+        var dialog = new FakeExcelSaveDialog(null);
+        var exporter = new FakeUrbanMetricsExcelExporter();
+        var message = new ExportExcelMessage(
+            dialog,
+            exporter,
+            () => "Urban Model.3dm",
+            () => new DateTime(2026, 8, 4, 14, 30, 0),
+            _urbanModel,
+            _ => { });
+
+        message.HandleMessage();
+
+        Assert.That(
+            dialog.SuggestedFileName,
+            Is.EqualTo("Urban Model - Urban Metrics.xlsx"));
+    }
+
     private ExportExcelMessage CreateMessage(
         IExcelSaveDialog dialog,
         IUrbanMetricsExcelExporter exporter)
@@ -131,11 +173,14 @@ public class ExportExcelMessageTests
     {
         public int CallCount { get; private set; }
         public string? SuggestedFileName { get; private set; }
+        public Exception? ExceptionToThrow { get; init; }
 
         public string? Show(string suggestedFileName)
         {
             CallCount++;
             SuggestedFileName = suggestedFileName;
+            if (ExceptionToThrow is not null)
+                throw ExceptionToThrow;
             return selectedPath;
         }
     }
