@@ -69,4 +69,14 @@ public class MessageConverterTests
         // Assert
         Assert.That(message, Is.TypeOf<GetInstallationIdMessage>());
     }
+
+    [Test]
+    public void Convert_ExportExcelMessage_ReturnsExportExcelMessage()
+    {
+        const string json = "{\"messageType\":\"ExportExcel\"}";
+
+        var message = MessageConverter.Convert(json);
+
+        Assert.That(message, Is.TypeOf<ExportExcelMessage>());
+    }
 }

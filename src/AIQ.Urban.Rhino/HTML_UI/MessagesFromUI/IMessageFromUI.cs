@@ -9,7 +9,8 @@ public enum TypeOfMessage
     Landuse,
     LanduseListEdit,
     ToolSelection,
-    GetInstallationId
+    GetInstallationId,
+    ExportExcel
 }
 
 public interface IMessageFromUI<out T> where T : MessageToUI.IMessageToUI
