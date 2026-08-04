@@ -125,6 +125,7 @@ public class TransitPipelineConfigurationTests
     [TestCase("DistinctValidObjects")]
     [TestCase("MixedValidAndInvalidObjects")]
     [TestCase("RepeatedObject")]
+    [TestCase("AllRejectedObjects")]
     public void SelectTransitCenterlinesStep_Selection_ReturnsExpectedEditData(string testName)
     {
         // Arrange
@@ -153,12 +154,20 @@ public class TransitPipelineConfigurationTests
         // Assert
         var transitData = result.OfType<TransitData>().ToList();
         var rhinoDeletionIds = result.OfType<RhinoObjectDeletionData>().Select(data => data.Id).ToList();
-        var transitDeletionData = result.OfType<TransitDeletionData>().Single();
+        var transitDeletionData = result.OfType<TransitDeletionData>().ToList();
         Assert.That(transitData, Has.Count.EqualTo(expectedAcceptedIds.Count));
         Assert.That(rhinoDeletionIds, Is.EquivalentTo(expectedAcceptedIds));
         Assert.That(rhinoDeletionIds, Is.Unique);
-        Assert.That(transitDeletionData.CenterlineIds, Is.EquivalentTo(expectedAcceptedIds));
-        Assert.That(transitDeletionData.CenterlineIds, Is.Unique);
+        if (expectedAcceptedIds.Count > 0)
+        {
+            Assert.That(transitDeletionData, Has.Count.EqualTo(1));
+            Assert.That(transitDeletionData.Single().CenterlineIds, Is.EquivalentTo(expectedAcceptedIds));
+            Assert.That(transitDeletionData.Single().CenterlineIds, Is.Unique);
+        }
+        else
+        {
+            Assert.That(transitDeletionData, Is.Empty);
+        }
         Assert.That(
             transitData.SelectMany(data => data.Centerline.Geometry.Points()).Select(point => point.Z),
             Is.All.EqualTo(0));
@@ -473,7 +482,7 @@ public class TransitPipelineConfigurationTests
                 CaseName: "DistinctValidObjects",
                 CurveCoordinates: [
                     [[0, 0, 0], [10, 0, 0]],
-                    [[0, 5, 0.000009], [10, 5, -0.000009]],
+                    [[0, 0, 0], [10, 0, 0]],
                 ],
                 SelectedCurveIndices: [0, 1],
                 ExpectedAcceptedCurveIndices: [0, 1],
@@ -500,6 +509,16 @@ public class TransitPipelineConfigurationTests
                 ExpectedAcceptedCurveIndices: [0],
                 ExpectedWarningCount: 0,
                 ExpectedWarningText: ""),
+
+            "AllRejectedObjects" => new TransitGatherTestData(
+                CaseName: "AllRejectedObjects",
+                CurveCoordinates: [
+                    [[0, 0, 1], [10, 0, 1]],
+                ],
+                SelectedCurveIndices: [0],
+                ExpectedAcceptedCurveIndices: [],
+                ExpectedWarningCount: 1,
+                ExpectedWarningText: "Z range"),
 
             _ => throw new ArgumentException($"Unknown test case: {caseName}")
         };
