@@ -7,7 +7,9 @@ public class BootstrapForceInitialize
     [ModuleInitializer]
     public static void ForcePreviewBootstrapStart()
     {
+#if DEBUG
         PreviewAssemblyBootstrap.Initialize();
+#endif
     }
 
 }

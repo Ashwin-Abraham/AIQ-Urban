@@ -31,11 +31,13 @@ public class Polygon2DExtensionTests
         // Act
         var result = polygon.ContainsOrCoincides(line);
 
+#if DEBUG
         // Visualise
         PreviewHub.ResetDoc();
         line.Transform(Transform.Translation(0, 0, .3));
         line.ToNurbsCurve().AddToPreviewDoc(Color.Red);
         polygon.PreviewViaHub(color: Color.Black);
+#endif
 
         // Assert
         Assert.That(result, Is.EqualTo(td.Expected));

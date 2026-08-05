@@ -24,12 +24,14 @@ public class Mesh2DTests
 
         var result = Mesh2D.Create(profile);
 
+#if DEBUG
         // Preview
         PreviewHub.ResetDoc();
         profile.Outline.Geometry.Translate(0, 0, -1);
         profile.Holes.ForEach(x => x.Geometry.Translate(0, 0, -1));
         profile.AddToPreviewDoc(Color.Beige);
         result.PreviewViaHub(color: Color.Black);
+#endif
 
         // Assert
         Assert.That(result, Is.Not.Null);

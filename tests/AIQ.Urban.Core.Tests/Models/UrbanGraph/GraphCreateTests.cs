@@ -30,9 +30,11 @@ public class GraphCreateTests
         // Act
         var graph = Graph.Create(profile);
 
+#if DEBUG
         // Preview
         PreviewHub.ResetDoc();
         graph.PreviewViaHub();
+#endif
 
         // Assert
         Assert.That(graph.Nodes.Count, Is.EqualTo(testData.ExpectedNodeCount),

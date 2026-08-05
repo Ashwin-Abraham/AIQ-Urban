@@ -23,7 +23,7 @@ public class StartUI_AIQUrban : Command
 
     public static StartUI_AIQUrban Instance { get; private set; }
 
-    public override string EnglishName => "StartUI_AIQUrban";
+    public override string EnglishName => "AIQUrban";
 
     protected override Result RunCommand(RhinoDoc doc, RunMode mode)
     {
