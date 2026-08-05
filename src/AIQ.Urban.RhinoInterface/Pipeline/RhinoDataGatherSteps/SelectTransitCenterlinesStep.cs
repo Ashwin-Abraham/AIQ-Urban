@@ -26,12 +26,14 @@ public class SelectTransitCenterlinesStep(
     {
         var selected = objectsToParse
             .Where(obj => obj.ObjectType == ObjectType.Curve)
+            .DistinctBy(obj => obj.Id)
             .ToList();
 
         if (selected.Count == 0)
             throw new Exception("Select one or more transit centerline curves first.");
 
         var result = new List<IModelEditData>();
+        var acceptedCenterlineIds = new List<Guid>();
         var rejectedCount = 0;
 
         foreach (var obj in selected)
@@ -65,7 +67,11 @@ public class SelectTransitCenterlinesStep(
             var curve2D = new Curve2D(normalizedCurve, obj.Id);
             result.Add(new TransitData(curve2D, width, transitType));
             result.Add(new RhinoObjectDeletionData(obj.Id));
+            acceptedCenterlineIds.Add(obj.Id);
         }
+
+        if (acceptedCenterlineIds.Count > 0)
+            result.Add(new TransitDeletionData(acceptedCenterlineIds.Distinct().ToList()));
 
         var transitCount = result.OfType<TransitData>().Count();
         _logger.LogInformation(

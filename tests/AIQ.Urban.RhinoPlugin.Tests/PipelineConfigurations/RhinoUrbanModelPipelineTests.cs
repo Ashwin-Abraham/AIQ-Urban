@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using AIQ.Urban.Core;
 using AIQ.Urban.Core.ModelActions;
 using AIQ.Urban.Core.ModelActions.EditData;
@@ -31,10 +32,10 @@ public class RhinoUrbanModelPipelineTests
         var modelStep = new CapturingModelStep();
 
         var pipeline = new RhinoUrbanModelPipeline(doc, UrbanModel.Instance)
-            .WithDataGatherStep(new StubGatherStep(
+            .WithDataGatherStep(GatherStep(
                 [new SequenceData(1), new SequenceData(2)],
                 () => gatherOrder.Add(1)))
-            .WithDataGatherStep(new StubGatherStep(
+            .WithDataGatherStep(GatherStep(
                 [new SequenceData(3)],
                 () => gatherOrder.Add(2)))
             .WithUrbanElementStep(modelStep);
@@ -55,11 +56,11 @@ public class RhinoUrbanModelPipelineTests
         var preservedId = doc.Objects.AddLine(new Line(Point3d.Origin, new Point3d(0, 1, 0)));
 
         new RhinoUrbanModelPipeline(doc, UrbanModel.Instance)
-            .WithDataGatherStep(new StubGatherStep([
+            .WithDataGatherStep(GatherStep([
                 new RhinoObjectDeletionData(deletedId),
                 new RhinoObjectDeletionData(preservedId)
             ]))
-            .WithDataGatherStep(new StubGatherStep([new RhinoObjectPreservationData(preservedId)]))
+            .WithDataGatherStep(GatherStep([new RhinoObjectPreservationData(preservedId)]))
             .WithRhinoOutputter(new ParcelBoundaryOutputter())
             .Run();
 
@@ -69,12 +70,32 @@ public class RhinoUrbanModelPipelineTests
 
     private record SequenceData(int Value) : IModelEditData;
 
-    private class StubGatherStep(List<IModelEditData> data, Action onRun = null) : IRhinoDataGatherStep
+    // Keep RhinoDoc out of nested test-type signatures so Rhino.Testing can initialise during discovery.
+    private static IRhinoDataGatherStep GatherStep(List<IModelEditData> data, Action onRun = null)
     {
-        public List<IModelEditData> Run(RhinoDoc doc)
+        var gatherStep = DispatchProxy.Create<IRhinoDataGatherStep, GatherStepProxy>();
+        ((GatherStepProxy)(object)gatherStep).Configure(data, onRun);
+        return gatherStep;
+    }
+
+    private class GatherStepProxy : DispatchProxy
+    {
+        private List<IModelEditData> _data = [];
+        private Action _onRun;
+
+        public void Configure(List<IModelEditData> data, Action onRun)
         {
-            onRun?.Invoke();
-            return data;
+            _data = data;
+            _onRun = onRun;
+        }
+
+        protected override object Invoke(MethodInfo targetMethod, object[] args)
+        {
+            if (targetMethod.Name != nameof(IRhinoDataGatherStep.Run))
+                throw new NotSupportedException(targetMethod.Name);
+
+            _onRun?.Invoke();
+            return _data;
         }
     }
 
