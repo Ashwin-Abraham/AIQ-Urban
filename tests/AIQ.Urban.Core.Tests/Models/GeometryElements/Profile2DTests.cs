@@ -32,9 +32,11 @@ internal class Profile2DTests
         var brep = Brep.CreatePlanarBreps(offsets, tolerence)[0];
         var result = Profile2D.Create(brep);
 
+#if DEBUG
         // Preview
         PreviewHub.ResetDoc();
         result.PreviewViaHub(color: Color.Black);
+#endif
 
         // Assert
         var area = result.Area();

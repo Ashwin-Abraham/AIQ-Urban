@@ -1,7 +1,0 @@
-﻿Creating a rhino package
-https://developer.rhino3d.com/guides/yak/creating-a-rhino-plugin-package/
-
-1. Run as admin
-2. cd <path>
-3. &"C:\Program Files\Rhino 8\System\Yak.exe" build --platform win
-4. &"C:\Program Files\Rhino 8\System\Yak.exe" push <package name>.yak 

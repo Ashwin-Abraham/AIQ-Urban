@@ -29,6 +29,7 @@ public class TrapezoidalTriangulatorTests
 
         var triangles = TrapezoidalTriangulator.Triangulate(profile);
 
+#if DEBUG
         // Preview
         var trianglePolygons = triangles.Select(x => new PolylineCurve([x.A, x.B, x.C, x.A])).ToList();
         PreviewHub.ResetDoc();
@@ -36,6 +37,7 @@ public class TrapezoidalTriangulatorTests
         profile.Holes.ForEach(x => x.Geometry.Translate(0, 0, - 1));
         profile.AddToPreviewDoc(Color.Beige);
         trianglePolygons.PreviewViaHub(color: Color.Black);
+#endif
 
         // Assert
         Assert.That(triangles, Has.Count.GreaterThan(0));

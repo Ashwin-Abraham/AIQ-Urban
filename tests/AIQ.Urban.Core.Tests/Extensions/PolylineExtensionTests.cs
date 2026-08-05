@@ -35,10 +35,12 @@ public class PolylineExtensionTests
         // Act
         var result = testData.Input.CreateMinimalBox();
 
+#if DEBUG
         // Preview
         PreviewHub.ResetDoc();
         new PolylineCurve(testData.Input).AddToPreviewDoc();
         new PolylineCurve(result).PreviewViaHub();
+#endif
         
         // Assert
         var area = AreaMassProperties.Compute(result.ToPolylineCurve(), 1e-5).Area;

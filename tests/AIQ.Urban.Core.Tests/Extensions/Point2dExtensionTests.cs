@@ -45,12 +45,14 @@ public class Point2dExtensionTests
         var resultPoints = result.Select(x => x.ToPoint3d()).Append(result[0].ToPoint3d()).ToList();
         var polylineResult = new PolylineCurve(resultPoints);
 
+#if DEBUG
         // Preview
         PreviewHub.ResetDoc();
 
         new PolylineCurve(testData.Input.Select(x => x.ToPoint3d())).AddToPreviewDoc();
         polylineResult.Translate(0, 0, 0.1);
         polylineResult.PreviewViaHub(color: Color.DarkBlue);
+#endif
 
         // Assert
         var area = AreaMassProperties.Compute(polylineResult).Area;

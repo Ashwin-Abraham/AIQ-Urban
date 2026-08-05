@@ -25,16 +25,13 @@ public class CurveExtensionTests
 
         //// Act
         var offsetCurves = testData.Curve.OffsetBothWays(testData.OffsetSize, Plane.WorldXY, 1e-5);
-        
-        // Preview
-        var curvePoints = offsetCurves
-            .Select(x => x.ToNurbsCurve().Points)
-            .Select(ptList => ptList.Select(pt => (pt.X, pt.Y)))
-            .ToList();
 
+#if DEBUG
+        // Preview
         PreviewHub.ResetDoc();
         testData.Curve.AddToPreviewDoc(Color.Red);
         offsetCurves.PreviewViaHub();
+#endif
 
         //// Assert
         var results = offsetCurves.OrderBy(x => x.GetLength()).ToList();
