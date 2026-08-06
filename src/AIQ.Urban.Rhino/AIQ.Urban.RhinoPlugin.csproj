@@ -11,7 +11,7 @@
   
   <PropertyGroup>
     <!-- Specifies information for Assembly and Yak -->
-    <Version>1.0</Version>
+    <Version>3.0.0</Version>
     <Title>AIQ.Urban.RhinoPlugin</Title>
     <Company>AIQ.Urban.RhinoPlugin Authors</Company>
     <Description>Description of AIQ.Urban.RhinoPlugin</Description>
