@@ -23,7 +23,7 @@
     <PackageReference Include="NUnit" Version="3.14.0" />
     <PackageReference Include="Rhino.Testing" Version="8.0.28-beta" />
 
-    <PackageReference Include="RhinoCommon" Version="8.32.26131.18001-rc" ExcludeAssets="runtime" />
+    <PackageReference Include="RhinoCommon" Version="8.32.26131.18001-rc" />
   </ItemGroup>
   
   <ItemGroup>

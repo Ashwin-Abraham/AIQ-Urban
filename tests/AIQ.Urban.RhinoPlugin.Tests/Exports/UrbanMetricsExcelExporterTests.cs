@@ -1,4 +1,5 @@
 using System;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using AIQ.Urban.Core;
@@ -10,11 +11,10 @@ using AIQ.Urban.Core.Models.UrbanElements;
 using AIQ.Urban.RhinoInterface.Exports;
 using NUnit.Framework;
 using Rhino.Geometry;
-using Rhino.Testing.Fixtures;
 
 namespace AIQ.Urban.RhinoInterface.Tests.Exports;
 
-[RhinoTestFixture]
+[TestFixture]
 public class UrbanMetricsExcelExporterTests
 {
     [SetUp]
@@ -33,9 +33,11 @@ public class UrbanMetricsExcelExporterTests
 
         // Act
         var exception = Assert.Throws<InvalidOperationException>(
-            () => UrbanMetricsExcelExporter.Export(
+            () => new UrbanMetricsExcelExporter().Export(
                 UrbanModel.Instance,
-                outputPath));
+                outputPath,
+                "Unsaved Project",
+                new DateTime(2026, 8, 4, 14, 30, 0)));
 
         // Assert
         Assert.That(
@@ -45,7 +47,7 @@ public class UrbanMetricsExcelExporterTests
     }
 
     [Test]
-    public void BuildWorkbookData_CurrentMetrics_MapsProjectAndZoneScopes()
+    public void BuildWorkbookData_CurrentMetrics_MapsAcceptedProjectAndZoneInputs()
     {
         // Arrange
         var model = UrbanModel.Instance;
@@ -73,28 +75,45 @@ public class UrbanMetricsExcelExporterTests
         ProjectMetricsCalculator.CalculateAndStore(
             model,
             containmentTolerance: 0.001);
+        var transitColor = Color.FromArgb(80, 90, 100);
+        firstTransit.Color = transitColor;
+        secondTransit.Color = transitColor;
+        var exportedAt = new DateTime(2026, 8, 4, 14, 30, 0);
 
         // Act
         var workbookData = UrbanMetricsExcelExporter.BuildWorkbookData(
-            model.ProjectMetrics!);
+            model,
+            "Sample Project",
+            exportedAt);
 
         // Preview
         TestContext.WriteLine(
-            $"Workbook scopes: {string.Join(", ", workbookData.Worksheets.Select(x => x.Name))}");
+            $"Project: {workbookData.ProjectName}; Zones: {workbookData.Zones.Count}");
 
         // Assert
-        Assert.That(workbookData.Worksheets, Has.Count.EqualTo(2));
-        Assert.That(workbookData.Worksheets[0].Name, Is.EqualTo("Project"));
-        Assert.That(workbookData.Worksheets[1].Name, Is.EqualTo("Central/Zone"));
-        Assert.That(workbookData.Worksheets[0].TotalLandArea, Is.EqualTo(100).Within(1e-6));
-        Assert.That(workbookData.Worksheets[0].TotalBuiltArea, Is.EqualTo(8).Within(1e-6));
-        Assert.That(workbookData.Worksheets[0].TransitCount, Is.EqualTo(2));
+        Assert.That(workbookData.ProjectName, Is.EqualTo("Sample Project"));
+        Assert.That(workbookData.ExportedAt, Is.EqualTo(exportedAt));
+        Assert.That(workbookData.Project.ParcelUses.Single().ParcelCount, Is.EqualTo(1));
+        Assert.That(workbookData.Project.ParcelUses.Single().Area, Is.EqualTo(100).Within(1e-6));
         Assert.That(
-            workbookData.Worksheets[0].TransitMetrics.Sum(metric => metric.RunningLength),
-            Is.EqualTo(30).Within(1e-6));
+            workbookData.Project.ParcelUses.Single().SumOfParcelPerimeters,
+            Is.EqualTo(40).Within(1e-6));
         Assert.That(
-            workbookData.Worksheets[1].BuiltAreaByUse.Single().UseName,
-            Is.EqualTo("Residential"));
+            workbookData.Project.ParcelUses.Single().BuildingFootprint,
+            Is.EqualTo(4).Within(1e-6));
+        Assert.That(
+            workbookData.Project.BuiltPlateUses.Single().BuiltArea,
+            Is.EqualTo(8).Within(1e-6));
+        Assert.That(
+            workbookData.Project.TransitMetrics.All(row => row.Color == transitColor),
+            Is.True);
+        Assert.That(workbookData.Zones, Has.Count.EqualTo(1));
+        Assert.That(
+            workbookData.Zones.Single().ZoneBoundaryArea,
+            Is.EqualTo(900).Within(1e-6));
+        Assert.That(
+            workbookData.Zones.Single().ParcelArea,
+            Is.EqualTo(100).Within(1e-6));
     }
 
     private static Transit CreateTransit(

@@ -62,6 +62,7 @@ public static class ProjectMetricsCalculator
                 return new ZoneMetrics(
                     zone.Id,
                     zone.Name,
+                    zone.Boundary.Area(),
                     zoneBuildingMetrics,
                     zoneParcelMetrics,
                     containedTransits);

@@ -71,4 +71,33 @@ public class ProjectMetricsJsonSerializerTests
                 File.Delete(filePath);
         }
     }
+
+    [Test]
+    public void Save_DoesNotSerializeZoneParcelExportInputs()
+    {
+        var zone = new ZoneMetrics(
+            Guid.NewGuid(),
+            "Zone",
+            100,
+            buildings: [],
+            parcels: [],
+            transits: []);
+        var metrics = new ProjectMetrics([], [], [], [zone]);
+        var filePath = Path.Combine(
+            Path.GetTempPath(),
+            $"test_metrics_{Guid.NewGuid()}.json");
+
+        try
+        {
+            ProjectMetricsJsonSerializer.Save(metrics, filePath);
+
+            var content = File.ReadAllText(filePath);
+            Assert.That(content, Does.Not.Contain("ParcelMetrics"));
+        }
+        finally
+        {
+            if (File.Exists(filePath))
+                File.Delete(filePath);
+        }
+    }
 }

@@ -176,6 +176,64 @@ public class ExcelDocumentWriterTests
         }
     }
 
+    [Fact]
+    public void Write_ExistingDestination_ReplacesWorkbook()
+    {
+        var outputPath = TemporaryWorkbookPath();
+
+        try
+        {
+            var writer = new ExcelDocumentWriter();
+            writer.Write(CreateTextDocument("Before"), outputPath);
+            writer.Write(CreateTextDocument("After"), outputPath);
+
+            using var workbook = new XLWorkbook(outputPath);
+            Assert.Equal(
+                "After",
+                workbook.Worksheet("Summary").Cell("A1").GetString());
+        }
+        finally
+        {
+            DeleteIfPresent(outputPath);
+        }
+    }
+
+    [Fact]
+    public void Write_WriterFails_RemovesTemporaryWorkbookAndPreservesDestination()
+    {
+        var outputPath = TemporaryWorkbookPath();
+        File.WriteAllText(outputPath, "original");
+        var document = CreateTextDocument("replacement");
+        var writer = new ExcelDocumentWriter(
+            _ => throw new InvalidOperationException("post-processing failed"));
+
+        try
+        {
+            Assert.Throws<InvalidOperationException>(
+                () => writer.Write(document, outputPath));
+
+            Assert.Equal("original", File.ReadAllText(outputPath));
+            var pattern = $".{Path.GetFileName(outputPath)}.*.tmp.xlsx";
+            Assert.Empty(
+                Directory.GetFiles(Path.GetDirectoryName(outputPath)!, pattern));
+        }
+        finally
+        {
+            DeleteIfPresent(outputPath);
+        }
+    }
+
+    private static ExcelDocument CreateTextDocument(string value)
+    {
+        var block = new TableBlockBuilder()
+            .AddNewRow([ExcelCell.From(value)])
+            .Build();
+        return CreateDocument(
+            "Summary",
+            [block],
+            new ExcelCellAddress(1, 1));
+    }
+
     private static ExcelDocument CreateDocument(
         string worksheetName,
         IReadOnlyList<IExcelBlock> blocks,

@@ -12,6 +12,19 @@ public sealed class ExcelDocumentWriter
         new TableBlockWriter(),
     ];
 
+    private readonly Action<string> _postProcess;
+
+    public ExcelDocumentWriter()
+        : this(EnsureFillFormatsApplied)
+    {
+    }
+
+    internal ExcelDocumentWriter(Action<string> postProcess)
+    {
+        ArgumentNullException.ThrowIfNull(postProcess);
+        _postProcess = postProcess;
+    }
+
     public void Write(
         ExcelDocument document,
         string filePath)
@@ -35,6 +48,31 @@ public sealed class ExcelDocumentWriter
                 $"The destination directory does not exist: {directory}");
 
         ValidateWorksheetNames(document.Worksheets);
+
+        var temporaryPath = Path.Combine(
+            directory,
+            $".{Path.GetFileName(absolutePath)}.{Guid.NewGuid():N}.tmp.xlsx");
+
+        try
+        {
+            WriteWorkbook(document, temporaryPath);
+
+            if (File.Exists(absolutePath))
+                File.Replace(temporaryPath, absolutePath, destinationBackupFileName: null);
+            else
+                File.Move(temporaryPath, absolutePath);
+        }
+        finally
+        {
+            if (File.Exists(temporaryPath))
+                File.Delete(temporaryPath);
+        }
+    }
+
+    private void WriteWorkbook(
+        ExcelDocument document,
+        string filePath)
+    {
 
         using var workbook = new XLWorkbook();
 
@@ -64,8 +102,8 @@ public sealed class ExcelDocumentWriter
         }
 
         workbook.RecalculateAllFormulas();
-        workbook.SaveAs(absolutePath);
-        EnsureFillFormatsApplied(absolutePath);
+        workbook.SaveAs(filePath);
+        _postProcess(filePath);
     }
 
     private static void EnsureFillFormatsApplied(string filePath)

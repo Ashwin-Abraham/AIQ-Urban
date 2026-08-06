@@ -28,6 +28,7 @@ public static class MessageConverter
             "landuselistedit" => Deserialize<LanduseListEditMessage>(json),
             "toolselection" => new ToolSelectionMessage(),
             "getinstallationid" => new GetInstallationIdMessage(),
+            "exportexcel" => new ExportExcelMessage(),
             _ => throw new Exception($"Unsupported messageType: {messageType}")
         };
     }

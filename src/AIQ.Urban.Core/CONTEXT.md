@@ -125,6 +125,12 @@ A 3D parcel extruded from a `Parcel2D FlatParcel` plus a `Mesh ProjectedParcel` 
 ### Zone
 An `IUrbanElement` with a `Polygon2D Boundary` and a `string Name`. A named spatial container (e.g. "Downtown", "Park") that can query which model elements fall within its boundary. `GetContainedElements(UrbanModel)` tests each element's representative point (centroid of lowest floor plate for buildings, midpoint of centerline for transit, centroid of outline for parcels) against the boundary. Never returns other Zones. Layer: `AIQ Urban::Zone::{Name}`.
 
+Zone has no domain Colour. Reports must not invent export-only Zone colours; a future Zone-colour feature would need a shared contract across the model, Rhino, Vue, and exports.
+
+Zones may overlap and do not form a partition of the project. Project reports may compare one row per Zone but must not total Zone rows or calculate their shares as though each model element belonged to exactly one Zone.
+
+Current Zone reporting uses representative-point assignment and contributes each assigned element's full metrics; it does not clip geometry at the Zone boundary. Boundary-intersection metrics are a separate future feature, so exporters must preserve the current assignment semantics rather than introducing an independent clipping calculation.
+
 ### Parcel (group)
 A `ModelGroup` attached to a `Parcel2D Host`. Groups ModelElements that sit on that parcel.
 
@@ -145,14 +151,25 @@ Static utility in `Models/Metrics/ProjectMetricsCalculator.cs`. Reads `UrbanMode
 ### Built Area by Use
 An export roll-up of floor-plate area grouped by each `FloorPlate`'s **Use**. It is not a count or classification of **Buildings**, because a Building may contain floor plates with different Uses.
 
+It must not be paired with **Land Area by Use** to calculate FAR by matching use name. Floor-plate Uses and Parcel Uses describe independent classifications, and the buildings carrying a floor-plate Use may not sit on parcels with the same Use.
+
+For reporting, prefer the title **Built-Plate Use Summary** while retaining **FloorPlate Use** for the underlying classification.
+
 ### Land Area by Use
 An export roll-up of parcel land area grouped by each `Parcel`'s **Use**. It is distinct from a parcel-detail export, which would retain one row per source Parcel.
 
+For reporting, prefer the term **Parcel Use Summary**. Area, perimeter, and coverage may be aggregated by Parcel Use because their numerators and denominators remain scoped to the same source Parcels. Coverage for a Parcel Use is the sum of building footprints assigned to those Parcels divided by their total land area.
+
+Report aggregated perimeter as **Sum of Parcel Perimeters**. Do not present that sum as project perimeter or zone perimeter: adjacent Parcels contribute their shared boundary once each, so the sum double-counts shared edges and is not the enclosing boundary length of the scope.
+
 ### Transit by Type and Width
-An export hierarchy that groups source `TransitMetrics` first by `TransitType` and then by corridor width. Width rows report corridor count, running length, and area; each type has a subtotal and the report scope has a grand total.
+An export hierarchy that groups source `TransitMetrics` first by `TransitType` and then by corridor width. Width rows report corridor count, running length, area, and the same type-and-width Colour used by the Rhino output and Vue metrics charts; each type has a subtotal and the report scope has a grand total. The Colour is presentation data and does not redefine the numeric Transit metrics.
 
 ### Overall Zone Metrics
-The summary shared by project and named-zone workbook sheets: contained parcel land area, building footprint and built area, transit length and area, element counts, coverage, and FAR. It excludes geometric boundary area so project and named-zone scopes retain the same meaning.
+The summary shared by project and named-zone workbook sheets: contained parcel land area, building footprint and built area, transit length and area, element counts, coverage, and FAR. Named-zone summaries also include **Zone Boundary Area**, calculated from the Zone boundary geometry, to reveal the difference between the bounded scope and the land represented by contained Parcels. Coverage and FAR continue to use contained Parcel Area as their denominator, not Zone Boundary Area.
+
+### Zone Comparison
+A project-level report table with one non-additive row per Zone: Zone Boundary Area, assigned Parcel Area, Building Footprint, Coverage, Built Area, FAR, Transit Length, and Transit Area. It has no Zone Colour, perimeter, share columns, or total row because Zones may overlap and do not partition the project.
 
 ### TopoMesh
 A terrain mesh. Wraps a Rhino `Mesh`.
@@ -164,7 +181,7 @@ A `PointObject` with `Transform Base` and `Geometry GeometryAtOrigin`. A placed 
 Metrics for exactly one Transit. Fields: source Transit ID, `TransitType Type`, `double Width`, `double RunningLength`, and `double Area` (= RunningLength × Width). Project metrics retain these per-Transit records; consumer-specific messages are responsible for grouping them. Implements `IMetrics`. Defined in `Models/Metrics/TransitMetrics.cs`.
 
 ### ZoneMetrics
-Per-zone metrics. Fields: source Zone ID, `string ZoneName`, `double TotalLandArea` (sum of contained parcel land areas), `double TotalFootprintArea` (sum of contained building footprints), `double TotalBuiltArea`, `double TotalTransitLength`, `double TotalTransitArea`, `int BuildingCount`, `int ParcelCount`, `int TransitCount`, `List<(Use Use, double Area)> BuiltAreaByUse` (built area from building floor plates per use), `List<(Use Use, double Area)> LandAreaByUse` (land area from parcel outlines per use), per-Transit `List<TransitMetrics> TransitMetrics`, `double CoveragePercentage` (= TotalFootprintArea / TotalLandArea × 100, 0 if no parcels), `double FAR` (= TotalBuiltArea / TotalLandArea, 0 if no parcels). Consumer messages group the transit records when needed. Implements `IMetrics`. Defined in `Models/Metrics/ZoneMetrics.cs`.
+Per-zone metrics. Fields include source Zone ID, `string ZoneName`, `double ZoneBoundaryArea` (area of the Zone boundary), `double TotalLandArea` (sum of contained parcel land areas), `double TotalFootprintArea` (sum of contained building footprints), `double TotalBuiltArea`, `double TotalTransitLength`, `double TotalTransitArea`, element counts, built and land area roll-ups by Use, per-Transit metrics, `double CoveragePercentage` (= TotalFootprintArea / TotalLandArea × 100, 0 if no parcels), and `double FAR` (= TotalBuiltArea / TotalLandArea, 0 if no parcels). Zone Boundary Area is contextual only and is not the denominator for Coverage or FAR. Consumer messages group the transit records when needed. Implements `IMetrics`. Defined in `Models/Metrics/ZoneMetrics.cs`.
 
 ### ParcelMetrics
 Per-parcel metrics. Fields: `Use Use` (parcel's land use), `double LandArea`, `double Perimeter`, `double BuiltUpArea` (sum of buildings on parcel), `double BuiltFootprint`, `double FAR`, `double CoverageRatio`. Implements `IMetrics`. Defined in `Models/Metrics/ParcelMetrics.cs`.

@@ -1,16 +1,33 @@
+using System.Drawing;
 using AIQ.Exports.Excel.Reports;
 using AIQ.Exports.Excel.Writing;
 using AIQ.Urban.Core;
+using AIQ.Urban.Core.Enums;
 using AIQ.Urban.Core.Models;
 using AIQ.Urban.Core.Models.Metrics;
 
 namespace AIQ.Urban.RhinoInterface.Exports;
 
-public static class UrbanMetricsExcelExporter
+public sealed class UrbanMetricsExcelExporter : IUrbanMetricsExcelExporter
 {
-    public static void Export(
+    public void Export(
         UrbanModel urbanModel,
-        string filePath)
+        string filePath,
+        string projectName,
+        DateTime exportedAt)
+    {
+        var report = BuildWorkbookData(
+            urbanModel,
+            projectName,
+            exportedAt);
+        var document = MetricsWorkbookBuilder.Build(report);
+        new ExcelDocumentWriter().Write(document, filePath);
+    }
+
+    internal static MetricsWorkbookData BuildWorkbookData(
+        UrbanModel urbanModel,
+        string projectName,
+        DateTime exportedAt)
     {
         ArgumentNullException.ThrowIfNull(urbanModel);
 
@@ -19,86 +36,104 @@ public static class UrbanMetricsExcelExporter
                 "Project metrics have not been calculated. "
                 + "Run the pipeline with metrics calculation before exporting.");
 
-        var document = MetricsWorkbookBuilder.Build(
-            BuildWorkbookData(metrics));
-        new ExcelDocumentWriter().Write(document, filePath);
-    }
+        var transitColors = urbanModel.Transits
+            .GroupBy(transit => (transit.TransitType, transit.Width))
+            .ToDictionary(
+                group => group.Key,
+                group => group.First().Color ?? Color.DarkGray);
 
-    internal static MetricsWorkbookData BuildWorkbookData(
-        ProjectMetrics metrics)
-    {
-        ArgumentNullException.ThrowIfNull(metrics);
-
-        var worksheets = new List<MetricsWorksheetData>
-        {
-            BuildProjectWorksheet(metrics),
-        };
-        worksheets.AddRange(metrics.ZoneMetrics.Select(BuildZoneWorksheet));
-
-        return new MetricsWorkbookData(worksheets);
-    }
-
-    private static MetricsWorksheetData BuildProjectWorksheet(
-        ProjectMetrics metrics)
-    {
-        return new MetricsWorksheetData(
-            Name: "Project",
-            TotalLandArea: metrics.TotalLandArea,
-            TotalFootprintArea: metrics.BuildingMetrics.Sum(
+        var project = new MetricsScopeData(
+            DisplayName: projectName,
+            ZoneBoundaryArea: null,
+            ParcelArea: metrics.TotalLandArea,
+            BuildingFootprint: metrics.BuildingMetrics.Sum(
                 building => building.FootprintArea),
-            TotalBuiltArea: metrics.TotalBuiltUpArea,
-            TotalTransitLength: metrics.TotalTransitLength,
-            TotalTransitArea: metrics.TotalTransitArea,
+            BuiltArea: metrics.TotalBuiltUpArea,
+            TransitLength: metrics.TotalTransitLength,
+            TransitArea: metrics.TotalTransitArea,
             BuildingCount: metrics.BuildingCount,
             ParcelCount: metrics.ParcelCount,
             TransitCount: metrics.TransitMetrics.Count,
-            CoverageRatio: metrics.OverallCoverageRatio / 100,
-            FAR: metrics.OverallFAR,
-            LandAreaByUse: MapUseAreas(metrics.LandAreaByUse),
-            BuiltAreaByUse: MapUseAreas(metrics.BuiltAreaByUse),
-            TransitMetrics: MapTransitMetrics(metrics.TransitMetrics));
+            ParcelUses: MapParcelUses(metrics.ParcelMetrics),
+            BuiltPlateUses: MapBuiltPlateUses(metrics.BuiltAreaByUse),
+            TransitMetrics: MapTransitMetrics(
+                metrics.TransitMetrics,
+                transitColors));
+
+        var zones = metrics.ZoneMetrics
+            .Select(zone => MapZone(zone, transitColors))
+            .ToList();
+
+        return new MetricsWorkbookData(
+            projectName,
+            exportedAt,
+            project,
+            zones);
     }
 
-    private static MetricsWorksheetData BuildZoneWorksheet(
-        ZoneMetrics metrics)
+    private static MetricsScopeData MapZone(
+        ZoneMetrics metrics,
+        IReadOnlyDictionary<(TransitType Type, double Width), Color> transitColors)
     {
-        return new MetricsWorksheetData(
-            Name: metrics.ZoneName,
-            TotalLandArea: metrics.TotalLandArea,
-            TotalFootprintArea: metrics.TotalFootprintArea,
-            TotalBuiltArea: metrics.TotalBuiltArea,
-            TotalTransitLength: metrics.TotalTransitLength,
-            TotalTransitArea: metrics.TotalTransitArea,
+        return new MetricsScopeData(
+            DisplayName: metrics.ZoneName,
+            ZoneBoundaryArea: metrics.ZoneBoundaryArea,
+            ParcelArea: metrics.TotalLandArea,
+            BuildingFootprint: metrics.TotalFootprintArea,
+            BuiltArea: metrics.TotalBuiltArea,
+            TransitLength: metrics.TotalTransitLength,
+            TransitArea: metrics.TotalTransitArea,
             BuildingCount: metrics.BuildingCount,
             ParcelCount: metrics.ParcelCount,
             TransitCount: metrics.TransitCount,
-            CoverageRatio: metrics.CoveragePercentage / 100,
-            FAR: metrics.FAR,
-            LandAreaByUse: MapUseAreas(metrics.LandAreaByUse),
-            BuiltAreaByUse: MapUseAreas(metrics.BuiltAreaByUse),
-            TransitMetrics: MapTransitMetrics(metrics.TransitMetrics));
+            ParcelUses: MapParcelUses(metrics.ParcelMetrics),
+            BuiltPlateUses: MapBuiltPlateUses(metrics.BuiltAreaByUse),
+            TransitMetrics: MapTransitMetrics(
+                metrics.TransitMetrics,
+                transitColors));
     }
 
-    private static List<UseAreaData> MapUseAreas(
+    private static List<ParcelUseData> MapParcelUses(
+        IEnumerable<ParcelMetrics> parcels)
+    {
+        return parcels
+            .GroupBy(parcel => parcel.Use)
+            .Select(group => new ParcelUseData(
+                group.Key.Name,
+                group.Key.Color,
+                group.Count(),
+                group.Sum(parcel => parcel.LandArea),
+                group.Sum(parcel => parcel.Perimeter),
+                group.Sum(parcel => parcel.BuiltFootprint)))
+            .OrderBy(row => row.UseName, StringComparer.OrdinalIgnoreCase)
+            .ToList();
+    }
+
+    private static List<BuiltPlateUseData> MapBuiltPlateUses(
         IEnumerable<(Use Use, double Area)> areas)
     {
         return areas
-            .Select(item => new UseAreaData(
+            .Select(item => new BuiltPlateUseData(
                 item.Use.Name,
                 item.Use.Color,
                 item.Area))
+            .OrderBy(row => row.UseName, StringComparer.OrdinalIgnoreCase)
             .ToList();
     }
 
     private static List<TransitMetricData> MapTransitMetrics(
-        IEnumerable<TransitMetrics> metrics)
+        IEnumerable<TransitMetrics> metrics,
+        IReadOnlyDictionary<(TransitType Type, double Width), Color> transitColors)
     {
         return metrics
             .Select(metric => new TransitMetricData(
                 metric.Type.ToString(),
                 metric.Width,
                 metric.RunningLength,
-                metric.Area))
+                metric.Area,
+                transitColors.GetValueOrDefault(
+                    (metric.Type, metric.Width),
+                    Color.DarkGray)))
             .ToList();
     }
 }
