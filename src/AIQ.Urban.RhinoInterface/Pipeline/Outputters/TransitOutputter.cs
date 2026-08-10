@@ -33,7 +33,6 @@ public class TransitOutputter(ILoggerFactory? _loggerFactory = null) : IUrbanMod
         {
             var transitColor = transit.Color ?? ColorUtils.GetTransitTypeColor(transit.TransitType);
 
-            RhinoOutputHelper.OutputGeometry(doc, transit.Outline, RhinoOutputHelper.MakeLayerDrivenAttributes(doc, LayerConstants.TransitOutline(transit.TransitType, transit.Width), transitColor), false);
             RhinoOutputHelper.OutputGeometry(doc, transit.Centerline, RhinoOutputHelper.MakeLayerDrivenAttributes(doc, LayerConstants.TransitCenterline(transit.TransitType, transit.Width), transitColor));
         }
 
