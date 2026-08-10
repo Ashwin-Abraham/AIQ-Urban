@@ -29,7 +29,7 @@ public static class UrbanHtmlUi
         layout.AddSeparateRow(webView);
         layout.Add(null);
 
-        _window = new Form
+        var window = new Form
         {
             Title = "AIQ Urban UI",
             Width = DefaultWindowWidth,
@@ -39,13 +39,15 @@ public static class UrbanHtmlUi
             Content = layout,
         };
 
-        _window.Closed += (_, _) =>
+        _window = window;
+        window.Shown += (_, _) => window.Topmost = false;
+        window.Closed += (_, _) =>
         {
             _window = null;
             onClosed();
         };
-        _window.Show();
+        window.Show();
 
-        return _window;
+        return window;
     }
 }
