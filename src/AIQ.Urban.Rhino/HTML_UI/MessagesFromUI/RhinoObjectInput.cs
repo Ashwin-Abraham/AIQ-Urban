@@ -10,16 +10,16 @@ internal static class RhinoObjectInput
 {
     public static List<RhinoObject> Resolve(RhinoDoc doc, List<Guid>? objectIds, ObjectType allowedTypes)
     {
-        if (objectIds is null)
-        {
-            return doc.Objects.GetSelectedObjects(false, false)
-                .Where(obj => (obj.ObjectType & allowedTypes) != 0)
-                .ToList();
-        }
+        if (objectIds is { Count: > 0 })
+            return ValidateAndResolveIds(doc, objectIds, allowedTypes);
 
-        if (objectIds.Count == 0)
-            throw new ArgumentException("ObjectIds must contain at least one object ID.", nameof(objectIds));
+        return doc.Objects.GetSelectedObjects(false, false)
+            .Where(obj => (obj.ObjectType & allowedTypes) != 0)
+            .ToList();
+    }
 
+    private static List<RhinoObject> ValidateAndResolveIds(RhinoDoc doc, List<Guid> objectIds, ObjectType allowedTypes)
+    {
         var result = new List<RhinoObject>(objectIds.Count);
         var seen = new HashSet<Guid>();
         foreach (var id in objectIds)

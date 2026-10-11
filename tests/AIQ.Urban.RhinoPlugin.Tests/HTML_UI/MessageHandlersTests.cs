@@ -190,7 +190,7 @@ public class MessageHandlersTests
     }
 
     [Test]
-    public void AddZoneMessage_WithEmptyObjectIds_DoesNotUseSelection()
+    public void AddZoneMessage_WithEmptyObjectIds_UsesSelection()
     {
         using var doc = RhinoDoc.CreateHeadless(null);
         var selectedId = doc.Objects.AddCurve(new PolylineCurve([
@@ -200,8 +200,9 @@ public class MessageHandlersTests
         doc.Objects.FindId(selectedId)?.Select(true);
         var message = new AddZoneMessage { Name = "Downtown", ObjectIds = [] };
 
-        Assert.That(() => message.HandleMessage(), Throws.ArgumentException.With.Message.Contains("at least one"));
-        Assert.That(UrbanModel.Instance.Zones, Is.Empty);
+        message.HandleMessage();
+
+        Assert.That(UrbanModel.Instance.Zones, Has.Count.EqualTo(1));
     }
 
     private static Parcel AddParcelToDocAndModel(RhinoDoc doc, Use use)
