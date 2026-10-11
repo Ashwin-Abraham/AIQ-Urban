@@ -21,13 +21,12 @@ public class ChangeUseMessage : IMessageFromUI<ModelStateMessage>
     public TypeOfMessage MessageType => TypeOfMessage.Landuse;
 
     public string Use { get; init; } = string.Empty;
+    public List<Guid>? ObjectIds { get; init; }
 
     public ModelStateMessage HandleMessage()
     {
         var doc = RhinoDoc.ActiveDoc ?? throw new Exception("No active Rhino document.");
-        var selected = doc.Objects.GetSelectedObjects(false, false)
-            .Where(obj => obj.ObjectType is ObjectType.Brep or ObjectType.Curve)
-            .ToList();
+        var selected = RhinoObjectInput.Resolve(doc, ObjectIds, ObjectType.Brep | ObjectType.Curve);
 
         if (selected.Count == 0)
             throw new Exception("Select one or more parcels, building envelopes, or floor plate curves first.");

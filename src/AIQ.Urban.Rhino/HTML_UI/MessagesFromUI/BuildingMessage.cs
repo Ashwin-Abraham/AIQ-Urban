@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using AIQ.Urban.Core;
 using AIQ.Urban.Core.ModelActions.EditData;
 using AIQ.Urban.Core.Models;
@@ -23,10 +22,11 @@ public class BuildingMessage : IMessageFromUI<ModelStateMessage>
     public double FloorHeight { get; init; }
 
     public string manual_generationType { get; init; } = "Footprint";
+    public List<Guid>? ObjectIds { get; init; }
 
     public ModelStateMessage HandleMessage()
     {
-        var doc = RhinoDoc.ActiveDoc;
+        var doc = RhinoDoc.ActiveDoc ?? throw new Exception("No active Rhino document.");
         var use = UrbanModel.Instance.GetUse(DefaultUses.UndefinedName);
 
         if (manual_generationType == "Mass")
@@ -37,9 +37,7 @@ public class BuildingMessage : IMessageFromUI<ModelStateMessage>
 
     private ModelStateMessage HandleFootprintMode(RhinoDoc doc, Use use)
     {
-        var selected = doc.Objects.GetSelectedObjects(false, false)
-            .Where(obj => obj.ObjectType == ObjectType.Curve)
-            .ToList();
+        var selected = RhinoObjectInput.Resolve(doc, ObjectIds, ObjectType.Curve);
 
         if (selected.Count == 0)
             throw new Exception("Select one or more building footprint curves first.");
@@ -52,9 +50,7 @@ public class BuildingMessage : IMessageFromUI<ModelStateMessage>
 
     private ModelStateMessage HandleMassMode(RhinoDoc doc, Use use)
     {
-        var selected = doc.Objects.GetSelectedObjects(false, false)
-            .Where(obj => obj.ObjectType is ObjectType.Brep or ObjectType.Extrusion)
-            .ToList();
+        var selected = RhinoObjectInput.Resolve(doc, ObjectIds, ObjectType.Brep | ObjectType.Extrusion);
 
         if (selected.Count == 0)
             throw new Exception("Select one or more building envelope Breps or Extrusions first.");

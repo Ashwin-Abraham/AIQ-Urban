@@ -156,9 +156,41 @@ public class ExportExcelMessageTests
             Is.EqualTo("Urban Model - Urban Metrics.xlsx"));
     }
 
+    [Test]
+    public void HandleMessage_WithFilePath_ExportsWithoutShowingDialog()
+    {
+        const string path = @"C:\Exports\Scripted.xlsx";
+        _urbanModel.ProjectMetrics = new ProjectMetrics([], [], [], []);
+        var dialog = new FakeExcelSaveDialog(null);
+        var exporter = new FakeUrbanMetricsExcelExporter();
+        var message = CreateMessage(dialog, exporter, path);
+
+        var result = message.HandleMessage();
+
+        Assert.That(dialog.CallCount, Is.Zero);
+        Assert.That(exporter.FilePath, Is.EqualTo(path));
+        Assert.That(result.Status, Is.EqualTo("Succeeded"));
+    }
+
+    [Test]
+    public void HandleMessage_WithEmptyFilePath_ReturnsFailureWithoutShowingDialog()
+    {
+        _urbanModel.ProjectMetrics = new ProjectMetrics([], [], [], []);
+        var dialog = new FakeExcelSaveDialog(null);
+        var exporter = new FakeUrbanMetricsExcelExporter();
+        var message = CreateMessage(dialog, exporter, "");
+
+        var result = message.HandleMessage();
+
+        Assert.That(dialog.CallCount, Is.Zero);
+        Assert.That(exporter.CallCount, Is.Zero);
+        Assert.That(result.Status, Is.EqualTo("Failed"));
+    }
+
     private ExportExcelMessage CreateMessage(
         IExcelSaveDialog dialog,
-        IUrbanMetricsExcelExporter exporter)
+        IUrbanMetricsExcelExporter exporter,
+        string? filePath = null)
     {
         return new ExportExcelMessage(
             dialog,
@@ -166,7 +198,7 @@ public class ExportExcelMessageTests
             () => null,
             () => new DateTime(2026, 8, 4, 14, 30, 0),
             _urbanModel,
-            _ => { });
+            _ => { }) { FilePath = filePath };
     }
 
     private sealed class FakeExcelSaveDialog(string? selectedPath) : IExcelSaveDialog

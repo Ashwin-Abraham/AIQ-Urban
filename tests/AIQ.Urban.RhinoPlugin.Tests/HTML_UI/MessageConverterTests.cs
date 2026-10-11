@@ -73,10 +73,23 @@ public class MessageConverterTests
     [Test]
     public void Convert_ExportExcelMessage_ReturnsExportExcelMessage()
     {
-        const string json = "{\"messageType\":\"ExportExcel\"}";
+        const string json = "{\"messageType\":\"ExportExcel\",\"filePath\":\"C:\\\\Exports\\\\Scripted.xlsx\"}";
 
         var message = MessageConverter.Convert(json);
 
         Assert.That(message, Is.TypeOf<ExportExcelMessage>());
+        Assert.That(((ExportExcelMessage)message).FilePath, Is.EqualTo(@"C:\Exports\Scripted.xlsx"));
+    }
+
+    [Test]
+    public void Convert_ZoneMessage_ReadsObjectIds()
+    {
+        const string id = "6634e8c5-cea3-479e-839d-430a3a32ff32";
+        var json = "{\"messageType\":\"Zone\",\"name\":\"Downtown\",\"objectIds\":[\"" + id + "\"]}";
+
+        var message = MessageConverter.Convert(json);
+
+        Assert.That(message, Is.TypeOf<AddZoneMessage>());
+        Assert.That(((AddZoneMessage)message).ObjectIds, Is.EqualTo(new[] { System.Guid.Parse(id) }));
     }
 }

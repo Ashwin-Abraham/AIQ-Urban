@@ -1,5 +1,5 @@
 using System;
-using System.Linq;
+using System.Collections.Generic;
 using AIQ.Urban.Core;
 using AIQ.Urban.RhinoInterface;
 using AIQ.Urban.RhinoInterface.Logging;
@@ -14,13 +14,12 @@ namespace AIQ.Urban.RhinoPlugin.HTML_UI.MessagesFromUI;
 public class AddParcelBoundaryMessage : IMessageFromUI<ModelStateMessage>
 {
     public TypeOfMessage MessageType => TypeOfMessage.Divider;
+    public List<Guid>? ObjectIds { get; init; }
 
     public ModelStateMessage HandleMessage()
     {
         var doc = RhinoDoc.ActiveDoc ?? throw new Exception("No active Rhino document.");
-        var selected = doc.Objects.GetSelectedObjects(false, false)
-            .Where(obj => obj.ObjectType == ObjectType.Curve)
-            .ToList();
+        var selected = RhinoObjectInput.Resolve(doc, ObjectIds, ObjectType.Curve);
 
         if (selected.Count == 0)
             throw new Exception("Select one or more parcel boundary curves first.");
