@@ -46,6 +46,7 @@ public sealed class ExportExcelMessage : IMessageFromUI<ExcelExportResultMessage
     }
 
     public TypeOfMessage MessageType => TypeOfMessage.ExportExcel;
+    public string? FilePath { get; init; }
 
     public ExcelExportResultMessage HandleMessage()
     {
@@ -63,9 +64,11 @@ public sealed class ExportExcelMessage : IMessageFromUI<ExcelExportResultMessage
             var suggestedFileName = savedProjectName is not null
                 ? GetSuggestedFileName(savedProjectName)
                 : "Urban Metrics.xlsx";
-            var selectedPath = _saveDialog.Show(suggestedFileName);
+            var selectedPath = FilePath is null ? _saveDialog.Show(suggestedFileName) : FilePath;
             if (string.IsNullOrWhiteSpace(selectedPath))
-                return ExcelExportResultMessage.Cancelled();
+                return FilePath is null
+                    ? ExcelExportResultMessage.Cancelled()
+                    : ExcelExportResultMessage.Failed("Export path must not be empty.");
 
             _exporter.Export(
                 _urbanModel,

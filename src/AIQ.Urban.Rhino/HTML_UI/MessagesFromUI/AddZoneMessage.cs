@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using AIQ.Urban.Core;
 using AIQ.Urban.Core.ModelActions.EditData;
 using AIQ.Urban.RhinoInterface;
@@ -18,13 +17,12 @@ public class AddZoneMessage : IMessageFromUI<ModelStateMessage>
     public TypeOfMessage MessageType => TypeOfMessage.Zone;
 
     public string Name { get; init; } = string.Empty;
+    public List<Guid>? ObjectIds { get; init; }
 
     public ModelStateMessage HandleMessage()
     {
         var doc = RhinoDoc.ActiveDoc ?? throw new Exception("No active Rhino document.");
-        var selected = doc.Objects.GetSelectedObjects(false, false)
-            .Where(obj => obj.ObjectType == ObjectType.Curve)
-            .ToList();
+        var selected = RhinoObjectInput.Resolve(doc, ObjectIds, ObjectType.Curve);
 
         if (selected.Count == 0)
             throw new Exception("Select one zone boundary curve first.");

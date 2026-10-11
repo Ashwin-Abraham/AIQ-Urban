@@ -1,5 +1,5 @@
 using System;
-using System.Linq;
+using System.Collections.Generic;
 using AIQ.Urban.Core;
 using AIQ.Urban.Core.Enums;
 using AIQ.Urban.RhinoInterface;
@@ -17,13 +17,12 @@ public class TransitMessage : IMessageFromUI<ModelStateMessage>
     public TypeOfMessage MessageType => TypeOfMessage.Transit;
 
     public double RoadWidth { get; init; }
+    public List<Guid>? ObjectIds { get; init; }
 
     public ModelStateMessage HandleMessage()
     {
-        var doc = RhinoDoc.ActiveDoc;
-        var selected = doc.Objects.GetSelectedObjects(false, false)
-            .Where(obj => obj.ObjectType == ObjectType.Curve)
-            .ToList();
+        var doc = RhinoDoc.ActiveDoc ?? throw new Exception("No active Rhino document.");
+        var selected = RhinoObjectInput.Resolve(doc, ObjectIds, ObjectType.Curve);
 
         if (selected.Count == 0)
             throw new Exception("Select one or more transit centerline curves first.");

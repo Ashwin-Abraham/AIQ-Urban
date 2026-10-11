@@ -112,6 +112,99 @@ public class MessageHandlersTests
         Assert.That(UrbanModel.Instance.Buildings[0].FloorPlates.All(p => p.Use.Name == "Commercial"), Is.True);
     }
 
+    [Test]
+    public void AddParcelBoundaryMessage_WithObjectIds_UsesSpecifiedCurve()
+    {
+        using var doc = RhinoDoc.CreateHeadless(null);
+        var sourceId = doc.Objects.AddCurve(new LineCurve(new Point3d(0, 5, 0), new Point3d(10, 5, 0)));
+
+        new AddParcelBoundaryMessage { ObjectIds = [sourceId] }.HandleMessage();
+
+        Assert.That(UrbanModel.Instance.ParcelBoundaries, Has.Count.EqualTo(1));
+        Assert.That(doc.Objects.FindId(sourceId), Is.Null);
+    }
+
+    [Test]
+    public void AddZoneMessage_WithObjectIds_IgnoresOtherSelectedCurves()
+    {
+        using var doc = RhinoDoc.CreateHeadless(null);
+        var sourceId = doc.Objects.AddCurve(new PolylineCurve([
+            new Point3d(0, 0, 0), new Point3d(10, 0, 0), new Point3d(10, 10, 0),
+            new Point3d(0, 10, 0), new Point3d(0, 0, 0),
+        ]));
+        var otherId = doc.Objects.AddCurve(new LineCurve(new Point3d(20, 0, 0), new Point3d(30, 0, 0)));
+        doc.Objects.FindId(otherId)?.Select(true);
+
+        new AddZoneMessage { Name = "Downtown", ObjectIds = [sourceId] }.HandleMessage();
+
+        Assert.That(UrbanModel.Instance.Zones, Has.Count.EqualTo(1));
+        Assert.That(doc.Objects.FindId(otherId), Is.Not.Null);
+    }
+
+    [Test]
+    public void TransitMessage_WithObjectIds_UsesSpecifiedCurve()
+    {
+        using var doc = RhinoDoc.CreateHeadless(null);
+        var sourceId = doc.Objects.AddCurve(new LineCurve(new Point3d(0, 0, 0), new Point3d(20, 0, 0)));
+
+        new TransitMessage { RoadWidth = 4, ObjectIds = [sourceId] }.HandleMessage();
+
+        Assert.That(UrbanModel.Instance.Transits, Has.Count.EqualTo(1));
+        Assert.That(doc.Objects.FindId(sourceId), Is.Null);
+    }
+
+    [Test]
+    public void BuildingMessage_WithObjectIds_UsesSpecifiedFootprint()
+    {
+        using var doc = RhinoDoc.CreateHeadless(null);
+        var sourceId = doc.Objects.AddCurve(new PolylineCurve([
+            new Point3d(0, 0, 0), new Point3d(10, 0, 0), new Point3d(10, 10, 0),
+            new Point3d(0, 10, 0), new Point3d(0, 0, 0),
+        ]));
+
+        new BuildingMessage { FloorHeight = 3, FloorCount = 2, ObjectIds = [sourceId] }.HandleMessage();
+
+        Assert.That(UrbanModel.Instance.Buildings, Has.Count.EqualTo(1));
+        Assert.That(doc.Objects.FindId(sourceId), Is.Null);
+    }
+
+    [Test]
+    public void ChangeUseMessage_WithObjectIds_UsesSpecifiedParcel()
+    {
+        using var doc = RhinoDoc.CreateHeadless(null);
+        var parcel = AddParcelToDocAndModel(doc, DefaultUses.Create("Public"));
+
+        new ChangeUseMessage { Use = "Residential", ObjectIds = [parcel.Outline.Id] }.HandleMessage();
+
+        Assert.That(UrbanModel.Instance.Parcels[0].Use.Name, Is.EqualTo("Residential"));
+    }
+
+    [Test]
+    public void AddZoneMessage_WithMissingObjectId_RejectsBeforeEditing()
+    {
+        using var doc = RhinoDoc.CreateHeadless(null);
+        var message = new AddZoneMessage { Name = "Downtown", ObjectIds = [Guid.NewGuid()] };
+
+        Assert.That(() => message.HandleMessage(), Throws.ArgumentException.With.Message.Contains("was not found"));
+        Assert.That(UrbanModel.Instance.Zones, Is.Empty);
+    }
+
+    [Test]
+    public void AddZoneMessage_WithEmptyObjectIds_UsesSelection()
+    {
+        using var doc = RhinoDoc.CreateHeadless(null);
+        var selectedId = doc.Objects.AddCurve(new PolylineCurve([
+            new Point3d(0, 0, 0), new Point3d(10, 0, 0), new Point3d(10, 10, 0),
+            new Point3d(0, 10, 0), new Point3d(0, 0, 0),
+        ]));
+        doc.Objects.FindId(selectedId)?.Select(true);
+        var message = new AddZoneMessage { Name = "Downtown", ObjectIds = [] };
+
+        message.HandleMessage();
+
+        Assert.That(UrbanModel.Instance.Zones, Has.Count.EqualTo(1));
+    }
+
     private static Parcel AddParcelToDocAndModel(RhinoDoc doc, Use use)
     {
         var polygon = new Polygon2D(new PolylineCurve([
