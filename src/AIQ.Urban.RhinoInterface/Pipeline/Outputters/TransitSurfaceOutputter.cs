@@ -14,8 +14,20 @@ public class TransitSurfaceOutputter(ILoggerFactory? _loggerFactory = null) : IU
 
     public void Run(UrbanModel model, RhinoDoc doc, List<IUrbanElement> elements)
     {
-        foreach (var (profile, type) in model.TransitSurfaces)
-            RhinoOutputHelper.OutputGeometry(doc, profile, RhinoOutputHelper.MakeLayerDrivenAttributes(doc, LayerConstants.TransitSurface(type), ColorUtils.GetTransitTypeColor(type)), true);
+        foreach (var surfaceGroup in model.TransitSurfaces.GroupBy(x => x.Type))
+        {
+            var attributes = RhinoOutputHelper.MakeLayerDrivenAttributes(
+                doc,
+                LayerConstants.TransitSurface(surfaceGroup.Key),
+                ColorUtils.GetTransitTypeColor(surfaceGroup.Key));
+
+            RhinoOutputHelper.SetLayerLocked(doc, attributes.LayerIndex, false);
+
+            foreach (var (profile, _) in surfaceGroup)
+                RhinoOutputHelper.OutputGeometry(doc, profile, attributes, true);
+
+            RhinoOutputHelper.SetLayerLocked(doc, attributes.LayerIndex, true);
+        }
 
         _logger.LogInformation("Output {Count} transit surfaces to Rhino", model.TransitSurfaces.Count);
     }

@@ -21,6 +21,17 @@ internal static class RhinoOutputHelper
         return new ObjectAttributes { LayerIndex = layerIndex };
     }
 
+    internal static void SetLayerLocked(RhinoDoc doc, int layerIndex, bool isLocked)
+    {
+        var layer = doc.Layers[layerIndex];
+
+        if (layer.IsLocked == isLocked)
+            return;
+
+        layer.IsLocked = isLocked;
+        doc.Layers.Modify(layer, layerIndex, true);
+    }
+
     internal static void OutputGeometry(RhinoDoc doc, Curve2D geometry, ObjectAttributes attributes)
     {
         var curve = geometry.Geometry.Duplicate() as Curve;
